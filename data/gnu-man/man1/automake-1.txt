@@ -1,0 +1,150 @@
+AUTOMAKE(1)                                         User Commands                                        AUTOMAKE(1)
+
+
+
+NAME
+       automake - manual page for automake 1.14.1
+
+SYNOPSIS
+       automake-1.14 [OPTION]... [Makefile]...
+
+DESCRIPTION
+       Generate Makefile.in for configure from Makefile.am.
+
+   Operation modes:
+       --help print this help, then exit
+
+       --version
+              print version number, then exit
+
+       -v, --verbose
+              verbosely list files processed
+
+       --no-force
+              only update Makefile.in's that are out of date
+
+       -W, --warnings=CATEGORY
+              report the warnings falling in CATEGORY
+
+   Dependency tracking:
+       -i, --ignore-deps
+              disable dependency tracking code
+
+       --include-deps
+              enable dependency tracking code
+
+   Flavors:
+       --foreign
+              set strictness to foreign
+
+       --gnits
+              set strictness to gnits
+
+       --gnu  set strictness to gnu
+
+   Library files:
+       -a, --add-missing
+              add missing standard files to package
+
+       --libdir=DIR
+              set directory storing library files
+
+       --print-libdir
+              print directory storing library files
+
+       -c, --copy
+              with -a, copy missing files (default is symlink)
+
+       -f, --force-missing
+              force update of standard files
+
+   Warning categories include:
+       gnu    GNU coding standards (default in gnu and gnits modes)
+
+       obsolete
+              obsolete features or constructions
+
+       override
+              user redefinitions of Automake rules or variables
+
+       portability
+              portability issues (default in gnu and gnits modes)
+
+       extra-portability
+              extra portability issues related to obscure tools
+
+       syntax dubious syntactic constructs (default)
+
+       unsupported
+              unsupported or incomplete features (default)
+
+       all    all the warnings
+
+       no-CATEGORY
+              turn off warnings in CATEGORY
+
+       none   turn off all the warnings
+
+       error  treat warnings as errors
+
+   Files automatically distributed if found (always):
+       ABOUT-GNU
+              INSTALL             config.rpath        ltconfig
+
+       ABOUT-NLS
+              NEWS                config.sub          ltmain.sh
+
+       AUTHORS
+              README              depcomp             mdate-sh
+
+       BACKLOG
+              THANKS              install-sh          missing
+
+       COPYING
+              TODO                libversion.in       mkinstalldirs
+
+       COPYING.DOC
+              ar-lib              ltcf-c.sh           py-compile
+
+       COPYING.LESSER
+              compile             ltcf-cxx.sh         texinfo.tex
+
+       COPYING.LIB
+              config.guess        ltcf-gcj.sh         ylwrap
+
+              ChangeLog
+
+   Files automatically distributed if found (under certain conditions):
+       acconfig.h
+              config.h.bot        configure           configure.in
+
+       aclocal.m4
+              config.h.top        configure.ac        stamp-vti
+
+AUTHOR
+       Written by Tom Tromey <tromey@redhat.com>
+
+              and Alexandre Duret-Lutz <adl@gnu.org>.
+
+REPORTING BUGS
+       Report bugs to <bug-automake@gnu.org>.
+       GNU Automake home page: <http://www.gnu.org/software/automake/>.
+       General help using GNU software: <http://www.gnu.org/gethelp/>.
+
+COPYRIGHT
+       Copyright   ©   2013   Free   Software  Foundation,  Inc.   License  GPLv2+:  GNU  GPL  version  2  or  later
+       <http://gnu.org/licenses/gpl-2.0.html>
+       This is free software: you are free to change and redistribute it.  There is NO WARRANTY, to the extent  per‐
+       mitted by law.
+
+SEE ALSO
+       The full documentation for automake is maintained as a Texinfo manual.  If the info and automake programs are
+       properly installed at your site, the command
+
+              info automake
+
+       should give you access to the complete manual.
+
+
+
+automake 1.14.1                                     January 2014                                         AUTOMAKE(1)

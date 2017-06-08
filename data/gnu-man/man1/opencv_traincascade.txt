@@ -1,0 +1,123 @@
+OPENCV_TRAINCASCADE(1)                              User Commands                             OPENCV_TRAINCASCADE(1)
+
+
+
+NAME
+       opencv_traincascade - transcascade application
+
+
+
+
+SYNOPSIS
+       opencv_traincascade [options]
+
+
+
+DESCRIPTION
+       traincascade application.
+
+
+OPTIONS
+       opencv_traincascade supports the following options:
+
+
+BASIC OPTIONS
+       -data cascade_dir_name
+
+
+       -vec vec_file_name
+
+
+       -bg background_file_name
+
+
+       -numPos number_of_positive_samples
+              The default is 2000.
+
+
+       -numNeg number_of_negative_samples
+              The default is 1000.
+
+
+       -num Stagesnumber_of_stages
+              The default is 20.
+
+
+       -precalcValBufSize precalculated_vals_buffer_size_in_Mb
+              The default is 256.
+
+
+       -precalcIdxBufSize precalculated_idxs_buffer_size_in_Mb
+              The default is 256.
+
+
+       -baseFormatSave
+
+
+CASCADE OPTIONS
+       -stageType
+              The default is BOOST.
+
+
+       -featureType
+              Set feature type . You can select HAAR or LBP.  The default is HAAR.
+
+
+       -w sampleWidth
+              The default is 24.
+
+
+       -h sampleHeight
+              The default is 24.
+
+
+BOOST OPTIONS
+       -bt {DAB|RAB|LB|GAB}
+              The  type  of  the  applied  boosting  algorithm. You can choose between Discrete AdaBoost (DAB), Real
+              AdaBoost (RAB), LogitBoost (LB) and Gentle AdaBoost (GAB). The default is GAB.
+
+
+       -minHitRate min_hit_rate
+              The default is 0.995.
+
+
+       -maxFalseAlarmRate max_false_alarm_rate
+              The default is 0.5.
+
+
+       -weightTrimRate weight_trim_rate
+              The default is 0.95.
+
+
+       -maxDepth max_depth_of_weak_tree
+              The default is 1.
+
+
+       -maxWeakCount max_weak_tree_count
+              The default is 100.
+
+
+HAARFEATURE OPTIONS
+       -mode <BASIC|CORE|ALL>
+              The type of the applied haarFeature mode. You can choose between BASIC, ORE and ALL.  The  default  is
+              BASIC.
+
+
+EXAMPLES
+       TODO
+
+
+SEE ALSO
+       opencv_haartraing(1), opencv_performance(1)
+
+       More information and examples can be found in the OpenCV documentation.
+
+
+
+AUTHORS
+       This  manual  page  was written by Nobuhiro Iwamatsu <iwamatsu@debian.org> for the Debian project (but may be
+       used by others).
+
+
+
+OpenCV                                                May 2010                                OPENCV_TRAINCASCADE(1)

@@ -1,0 +1,67 @@
+LDD(1)                                        Linux Programmer's Manual                                       LDD(1)
+
+
+
+NAME
+       ldd - print shared library dependencies
+
+SYNOPSIS
+       ldd [OPTION]... FILE...
+
+DESCRIPTION
+       ldd prints the shared libraries required by each program or shared library specified on the command line.
+
+   Security
+       In  the  usual  case, ldd invokes the standard dynamic linker (see ld.so(8)) with the LD_TRACE_LOADED_OBJECTS
+       environment variable set to 1, which causes the linker to display the library dependencies.  Be  aware,  how‐
+       ever,  that  in  some circumstances, some versions of ldd may attempt to obtain the dependency information by
+       directly executing the program.  Thus, you should never employ ldd on an untrusted executable, since this may
+       result in the execution of arbitrary code.  A safer alternative when dealing with untrusted executables is:
+
+           $ objdump -p /path/to/program | grep NEEDED
+
+OPTIONS
+       --version
+              Print the version number of ldd.
+
+       -v --verbose
+              Print all information, including, for example, symbol versioning information.
+
+       -u --unused
+              Print unused direct dependencies.  (Since glibc 2.3.4.)
+
+       -d --data-relocs
+              Perform relocations and report any missing objects (ELF only).
+
+       -r --function-relocs
+              Perform  relocations  for both data objects and functions, and report any missing objects or functions
+              (ELF only).
+
+       --help Usage information.
+
+NOTES
+       The standard version of ldd comes with glibc2.  Libc5 came with an older version, still present on some  sys‐
+       tems.   The  long options are not supported by the libc5 version.  On the other hand, the glibc2 version does
+       not support -V and only has the equivalent --version.
+
+       The libc5 version of this program will use the name of a library given on the command line as-is when it con‐
+       tains  a '/'; otherwise it searches for the library in the standard locations.  To run it on a shared library
+       in the current directory, prefix the name with "./".
+
+BUGS
+       ldd does not work on a.out shared libraries.
+
+       ldd does not work with some extremely old a.out programs which were built before ldd support was added to the
+       compiler  releases.   If  you use ldd on one of these programs, the program will attempt to run with argc = 0
+       and the results will be unpredictable.
+
+SEE ALSO
+       ld.so(8), ldconfig(8)
+
+COLOPHON
+       This page is part of release 3.54 of the Linux man-pages project.  A description of the project, and informa‐
+       tion about reporting bugs, can be found at http://www.kernel.org/doc/man-pages/.
+
+
+
+                                                     2012-07-16                                               LDD(1)

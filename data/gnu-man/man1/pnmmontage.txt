@@ -1,0 +1,56 @@
+pnmmontage(1)                                  General Commands Manual                                 pnmmontage(1)
+
+
+
+NAME
+       pnmmontage - create a montage of portable anymaps
+
+SYNOPSIS
+       pnmmontage [-?|-help] [-header=headerfile] [-quality=n] [-prefix=prefix] [-0|-1|-2|...|-9] pnmfile...
+
+DESCRIPTION
+       Packs  images  of  differing  sizes into a minimum-area composite image, optionally producing a C header file
+       with the locations of the subimages within the composite image.
+
+OPTIONS
+       -?, -help
+              Displays a (very) short usage message.
+
+       -header
+              Tells pnmmontage to write a C header file of the locations of the original images  within  the  packed
+              image.   Each  original  image generates four #defines within the packed file: xxxX, xxxY, xxxSZX, and
+              xxxSZY, where xxx is the name of the file, converted to all  uppercase.   The  #defines  OVERALLX  and
+              OVERALLY are also produced, specifying the total size of the montage image.
+
+       -prefix
+              Tells pnmmontage to use the specified prefix on all of the #defines it generates.
+
+       -quality
+              Before  attempting  to  place the subimages, pnmmontage will calculate a minimum possible area for the
+              montage; this is either the total of the areas of all the subimages, or the width of the widest subim‐
+              age times the height of the tallest subimage, whichever is greater.  pnmmontage then initiates a prob‐
+              lem-space search to find the best packing; if it finds a solution that is (at least) as  good  as  the
+              minimum  area times the quality as a percent, it will break out of the search.  Thus, -q 100 will find
+              the best possible solution; however, it may take a very long time to do so.  The default is -q 200.
+
+       -0, -1, ... -9
+              These options control the quality at a higher level than -q; -0 is the worst quality  (literally  pick
+              the first solution found), while -9 is the best quality (perform an exhaustive search of problem space
+              for the absolute best packing).  The higher the number, the slower the computation.   The  default  is
+              -5.
+
+NOTES
+       Using -9 is excessively slow on all but the smallest image sets.  If the anymaps differ in maxvals, then pnm‐
+       montage will pick the smallest maxval which is evenly divisible by  each  of  the  maxvals  of  the  original
+       images.
+
+SEE ALSO
+       pnmcat(1), pnmindex(1), pnm(5), pam(5), pbm(5), pgm(5), ppm(5)
+
+
+AUTHOR
+       Copyright (C) 2000 by Ben Olmstead.
+
+
+
+                                                  31 December 2000                                     pnmmontage(1)

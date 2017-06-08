@@ -1,0 +1,29 @@
+DH_DESKTOP(1)                                         Debhelper                                        DH_DESKTOP(1)
+
+
+
+NAME
+       dh_desktop - deprecated no-op
+
+SYNOPSIS
+       dh_desktop [debhelper options]
+
+DESCRIPTION
+       dh_desktop was a debhelper program that registers .desktop files.  However, it no longer does anything, and
+       is now deprecated.
+
+       If a package ships desktop files, they just need to be installed in the correct location
+       (/usr/share/applications) and they will be registered by the appropriate tools for the corresponding desktop
+       environments.
+
+SEE ALSO
+       debhelper
+
+       This program is a part of debhelper.
+
+AUTHOR
+       Ross Burton <ross@burtonini.com>
+
+
+
+9.20131227ubuntu1                                    2013-07-01                                        DH_DESKTOP(1)

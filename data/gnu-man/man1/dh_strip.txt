@@ -1,0 +1,62 @@
+DH_STRIP(1)                                           Debhelper                                          DH_STRIP(1)
+
+
+
+NAME
+       dh_strip - strip executables, shared libraries, and some static libraries
+
+SYNOPSIS
+       dh_strip [debhelper options] [-Xitem] [--dbg-package=package] [--keep-debug]
+
+DESCRIPTION
+       dh_strip is a debhelper program that is responsible for stripping executables, shared libraries, and static
+       libraries that are not used for debugging.
+
+       This program examines your package build directories and works out what to strip on its own. It uses file(1)
+       and file permissions and filenames to figure out what files are shared libraries (*.so), executable binaries,
+       and static (lib*.a) and debugging libraries (lib*_g.a, debug/*.so), and strips each as much as is possible.
+       (Which is not at all for debugging libraries.) In general it seems to make very good guesses, and will do the
+       right thing in almost all cases.
+
+       Since it is very hard to automatically guess if a file is a module, and hard to determine how to strip a
+       module, dh_strip does not currently deal with stripping binary modules such as .o files.
+
+OPTIONS
+       -Xitem, --exclude=item
+           Exclude files that contain item anywhere in their filename from being stripped. You may use this option
+           multiple times to build up a list of things to exclude.
+
+       --dbg-package=package
+           Causes dh_strip to save debug symbols stripped from the packages it acts on as independent files in the
+           package build directory of the specified debugging package.
+
+           For example, if your packages are libfoo and foo and you want to include a foo-dbg package with debugging
+           symbols, use dh_strip --dbg-package=foo-dbg.
+
+           Note that this option behaves significantly different in debhelper compatibility levels 4 and below.
+           Instead of specifying the name of a debug package to put symbols in, it specifies a package (or packages)
+           which should have separated debug symbols, and the separated symbols are placed in packages with -dbg
+           added to their name.
+
+       -k, --keep-debug
+           Debug symbols will be retained, but split into an independent file in usr/lib/debug/ in the package build
+           directory. --dbg-package is easier to use than this option, but this option is more flexible.
+
+NOTES
+       If the DEB_BUILD_OPTIONS environment variable contains nostrip, nothing will be stripped, in accordance with
+       Debian policy (section 10.1 "Binaries").
+
+CONFORMS TO
+       Debian policy, version 3.0.1
+
+SEE ALSO
+       debhelper(7)
+
+       This program is a part of debhelper.
+
+AUTHOR
+       Joey Hess <joeyh@debian.org>
+
+
+
+9.20131227ubuntu1                                    2013-12-09                                          DH_STRIP(1)

@@ -1,0 +1,182 @@
+JPEGTOPNM(1)                                   General Commands Manual                                  JPEGTOPNM(1)
+
+
+
+NAME
+       jpegtopnm - convert JPEG/JFIF file to portable pixmap or graymap
+
+SYNOPSIS
+       jpegtopnm  [-dct  {int|fast|float}]  [-nosmooth]  [-maxmemory N] [{-adobe|-notadobe}] [-comments] [-dumpexif]
+       [-exif=filespec] [-verbose] [-tracelevel N] [ filename ]
+
+       All options may be abbreviated to their shortest unique prefix.
+
+
+DESCRIPTION
+       jpegtopnm converts the named JFIF file, or the standard input if no file is named to a PPM or PGM image  file
+       on  the  standard  output.  If the JFIF file is of the grayscale variety, jpegtopnm generates a PGM (Portable
+       Graymap) file.  Otherwise, it generates a PPM (Portable Pixmap) file.
+
+       jpegtopnm uses the Independent JPEG Group's JPEG library to interpret the input file.  See http://www.ijg.org
+       for information on the library.
+
+       "JFIF"  is  the  correct  name  for  the image format commonly known as "JPEG."  Strictly speaking, JPEG is a
+       method of compression.  The image format using JPEG compression that is by  far  the  most  common  is  JFIF.
+       There is also a subformat of TIFF that uses JPEG compression.
+
+       EXIF  is  an image format that is a subformat of JFIF (to wit, a JFIF file that contains an EXIF header as an
+       APP1 marker).  jpegtopnm handles EXIF.
+
+       JFIF files can have either 8 bits per sample or 12 bits per sample.  The 8 bit variety is  by  far  the  most
+       common.  There are two versions of the IJG JPEG library.  One reads only 8 bit files and the other reads only
+       12 bit files.  You must link the appropriate one of these libraries with jpegtopnm.  Ordinarily,  this  means
+       the library is in your shared library search path when you run jpegtopnm.
+
+       jpegtopnm  generates  output with either one byte or two bytes per sample depending on whether the JFIF input
+       has either 8 bits or 12 bits per sample.  You can use pnmdepth to reduce a two-byte-per-sample file to a one-
+       byte-per-sample file if you need to.
+
+       If the JFIF file uses the CMYK or YCCK color space, the input does not actually contain enough information to
+       know what color each pixel is.  To know what color a pixel is, one would have to know the properties  of  the
+       inks  to which the color space refers.  jpegtopnm interprets the colors using the common transformation which
+       assumes all the inks are simply subtractive and linear.
+
+
+
+OPTIONS
+       The options are only for advanced users:
+
+       -dct int
+              Use integer DCT method (default).
+
+       -dct fast
+              Use fast integer DCT (less accurate).
+
+       -dct float
+              Use floating-point DCT method.  The float method is very slightly more accurate than the  int  method,
+              but  is much slower unless your machine has very fast floating-point hardware.  Also note that results
+              of the floating-point method may vary slightly across machines, while the integer methods should  give
+              the same results everywhere.  The fast integer method is much less accurate than the other two.
+
+       -nosmooth
+              Use a faster, lower-quality upsampling routine.
+
+       -maxmemory N
+              Set limit on the amount of memory jpegtopnm uses in processing large images.  Value is in thousands of
+              bytes, or millions of bytes if "M" is suffixed to the number.   For  example,  -maxmemory  4m  selects
+              4000000 bytes.  If jpegtopnm needs more space, it uses temporary files.
+
+       -adobe
+
+       -notadobe
+              There  are  two  variations  on  the CMYK (and likewise YCCK) color space that may be used in the JFIF
+              input.  In the normal one, a zero value for a color components  indicates  absence  of  ink.   In  the
+              other,  a  zero  value  means the maximum ink coverage.  The latter is used by Adobe Photoshop when it
+              creates a bare JFIF output file (but not when it creates JFIF output as  part  of  Encapsulated  Post‐
+              script output).
+
+              These  options  tell  jpegtopnm  which version of the CMYK or YCCK color space the image uses.  If you
+              specify neither, jpegtopnm tries to figure it out on its own.  In the present version, it doesn't  try
+              very  hard at all: It just assumes the Photoshop version, since Photoshop and its emulators seem to be
+              the main source of CMYK and YCCK images.  But with experience of use, future versions  might  be  more
+              sophisticated.
+
+              If the JFIF image does not indicate that it is CMYK or YCCK, these options have no effect.
+
+              If you don't use the right one of these options, the symptom is output that looks like a negative.
+
+
+       -dumpexif
+              Print the interpreted contents of any Exif header in the input file to the Standard Error file.  Simi‐
+              lar to the program jhead (not part of the Netpbm package).
+
+       -exif=filespec
+              Extract the contents of the EXIF header from the input image and write it to the file filespec.  file‐
+              spec  =  -  means  write it to Standard Output.  In this case, jpegtopnm does not output the converted
+              image at all.
+
+              jpegtopnm writes the contents of the EXIF header byte-for-byte, starting  with  the  two  byte  length
+              field (which length includes those two bytes).
+
+              You can use this file as input to ppmtojpeg to insert an identical EXIF header into a new JFIF image.
+
+              If there is no EXIF header, jpegtopnm writes two bytes of binary zero and nothing else.
+
+              An  EXIF  header  takes  the  form  of a JFIF APP1 marker.  Only the first such marker within the JFIF
+              header counts.
+
+
+       -comments
+              Print any comments in the input file to the Standard Error file.
+
+       -verbose
+              Print details about the conversion to the Standard Error file.
+
+       -tracelevel n
+              Turn on the JPEG library's trace messages to the Standard Error file.  A higher value of n  gets  more
+              trace information.  -verbose implies a trace level of at least 1.
+
+
+EXAMPLES
+       This example converts the color JFIF file foo.jpg to a PPM file named foo.ppm:
+
+              jpegtopnm foo.jpg >foo.ppm
+
+
+HINTS
+       You can use ppmquant to color quantize the result, i.e. to reduce the number of distinct colors in the image.
+       In fact, you may have to if you want to convert the PPM file to certain other formats.  ppmdither Does a more
+       sophisticated quantization.
+
+       Use pnmscale to change the dimensions of the resulting image.
+
+       Use ppmtopgm to convert a color JFIF file to a grayscale PGM file.
+
+       You can easily use these converters together.  E.g.:
+
+              jpegtopnm foo.jpg | ppmtopgm | pnmscale .25
+              >foo.pgm
+
+       -dct fast and/or -nosmooth gain speed at a small sacrifice in quality.
+
+       If  you  are  fortunate  enough to have very fast floating point hardware, -dct float may be even faster than
+       -dct fast.  But on most machines -dct float is slower than -dct int; in this case  it  is  not  worth  using,
+       because its theoretical accuracy advantage is too small to be significant in practice.
+
+       Another  program, djpeg, is similar.  djpeg is maintained by the Independent JPEG Group and packaged with the
+       JPEG library which jpegtopnm uses for all its JPEG work.  Because of that, you may expect it to exploit  more
+       current  JPEG features.  Also, since you have to have the library to run jpegtopnm, but not vice versa, cjpeg
+       may be more commonly available.
+
+       On the other hand, djpeg does not use the NetPBM libraries to generate its output, as all  the  NetPBM  tools
+       such  as  jpegtopnm  do.  This means it is less likely to be consistent with all the other programs that deal
+       with the NetPBM formats.  Also, the command syntax of jpegtopnm is consistent with that of the  other  Netpbm
+       tools, unlike djpeg.
+
+
+ENVIRONMENT
+       JPEGMEM
+              If this environment variable is set, its value is the default memory limit.  The value is specified as
+              described for the -maxmemory option.  An explicit -maxmemory option overrides any JPEGMEM.
+
+SEE ALSO
+       ppm(5), pgm(5), ppmtojpeg(1), ppmquant(1), pnmscale(1), ppmtopgm(1), ppmdither(1), pnmdepth(1),
+       djpeg(1), cjpeg(1), jpegtran(1), rdjpgcom(1), wrjpgcom(1), jhead(1)
+       Wallace, Gregory K.  "The JPEG Still Picture Compression Standard", Communications of  the  ACM,  April  1991
+       (vol. 34, no. 4), pp. 30-44.
+
+
+LIMITATIONS
+       Arithmetic coding is not supported for legal reasons.
+
+       The program could be much faster.
+
+
+AUTHOR
+       jpegtopnm  and  this man page were derived in large part from djpeg, by the Independent JPEG Group.  The pro‐
+       gram is otherwise by Bryan Henderson on March 19, 2000.
+
+
+
+
+                                                    19 March 2000                                       JPEGTOPNM(1)

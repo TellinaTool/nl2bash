@@ -1,0 +1,35 @@
+
+
+BZGREP(1)                                      General Commands Manual                                     BZGREP(1)
+
+
+
+NAME
+       bzgrep, bzfgrep, bzegrep - search possibly bzip2 compressed files for a regular expression
+
+SYNOPSIS
+       bzgrep [ grep_options ] [ -e ] pattern filename...
+       bzegrep [ egrep_options ] [ -e ] pattern filename...
+       bzfgrep [ fgrep_options ] [ -e ] pattern filename...
+
+DESCRIPTION
+       Bzgrep  is  used  to  invoke the grep on bzip2-compressed files. All options specified are passed directly to
+       grep.  If no file is specified, then the standard input is decompressed if necessary and fed to grep.  Other‐
+       wise the given files are uncompressed if necessary and fed to grep.
+
+       If bzgrep is invoked as bzegrep or bzfgrep then egrep or fgrep is used instead of grep.  If the GREP environ‐
+       ment variable is set, bzgrep uses it as the grep program to be invoked. For example:
+
+           for sh:  GREP=fgrep  bzgrep string files
+           for csh: (setenv GREP fgrep; bzgrep string files)
+
+AUTHOR
+       Charles Levert (charles@comm.polymtl.ca). Adapted to bzip2  by  Philippe  Troin  <phil@fifi.org>  for  Debian
+       GNU/Linux.
+
+SEE ALSO
+       grep(1), egrep(1), fgrep(1), bzdiff(1), bzmore(1), bzless(1), bzip2(1)
+
+
+
+                                                                                                           BZGREP(1)

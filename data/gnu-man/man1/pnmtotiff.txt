@@ -1,0 +1,130 @@
+pnmtotiff(1)                                   General Commands Manual                                  pnmtotiff(1)
+
+
+
+NAME
+       pnmtotiff - convert a portable anymap into a TIFF file
+
+SYNOPSIS
+       pnmtotiff  [-none|-packbits|-lzw|-g3|-g4]  [-2d] [-fill] [-predictor n] [-msb2lsb|-lsb2msb] [-rowsperstrip n]
+       [-minisblack|-miniswhite] [-truecolor] [-color] [-indexbits 1|2|4|8] [pnmfile]
+
+
+       Minimum unambiguous abbreviations of options are acceptable.
+
+
+DESCRIPTION
+       Reads a PNM image as input.  Produces a TIFF file as output.
+
+       The output goes to Standard Output, which must be a seekable file.  That means no pipes, but any regular file
+       should work.
+
+
+
+OPTIONS
+       By  default,  pnmtotiff creates a TIFF file with no compression.  This is your best bet most of the time.  If
+       you want to try another compression scheme or tweak some of the other even more obscure output options, there
+       are a number of flags to play with.
+
+       Actually,  the  best  default would be to use LZW compression, which is what pnmtotiff used to do by default.
+       However, the Tiff library no longer does LZW compression due to concerns with violating  Unisys's  patent  on
+       LZW compression.
+
+       The -none, -packbits, -lzw, -g3, -g4, -flate, and -adobeflat options are used to override the default and set
+       the compression scheme used in creating the output file.  The CCITT Group 3 and  Group  4  compression  algo‐
+       rithms  can only be used with bilevel data.  -lzw doesn't really work because the Tiff library doesn't do LZW
+       compression.  It used to, but its developers removed the function out of  concern  about  violating  Unisys's
+       patent.   This  option remains in case you use a Tiff library that cooperates, now or in the future.  The -2d
+       and -fill options are meaningful only with Group 3 compression: -2d requests  2-dimensional  encoding,  while
+       -fill  requests  that  each encoded scanline be zero-filled to a byte boundry.  The -predictor option is only
+       meaningful with LZW compression: a predictor value of 2 causes each scanline of the output image  to  undergo
+       horizontal differencing before it is encoded; a value of 1 forces each scanline to be encoded without differ‐
+       encing.
+
+       By default, pnmtotiff creates a TIFF file with msb-to-lsb fill order.  The -msb2lsb and -lsb2msb options  are
+       used to override the default and set the fill order used in creating the file.
+
+       The fill order is the order in which pixels are packed into a byte in the Tiff raster, in the case that there
+       are multiple pixels per byte.  msb-to-lsb means that the leftmost columns go into the most  significant  bits
+       of  the  byte  in  the Tiff image.  However, there is considerable confusion about the meaning of fill order.
+       Some believe it means whether 16 bit sample values in the Tiff image are little-endian or  big-endian.   This
+       is  totally erroneous (The endianness of integers in a Tiff image is designated by the image's magic number).
+       However, ImageMagick and older Netpbm both have been known to implement that interpretation.  2001.09.06.
+
+       If the image does not have sub-byte pixels, these options have no effect other than to set the value  of  the
+       FILLORDER tag in the Tiff image (which may be useful for those programs that misinterpret the tag with refer‐
+       ence to 16 bit samples).
+
+
+       The -rowsperstrip option can be used to set the number of rows (scanlines) in each strip of data in the  out‐
+       put  file.  By default, the output file has the number of rows per strip set to a value that will ensure each
+       strip is no more than 8 kilobytes long.
+
+       The -minisblack and -miniswhite option force the output image to have a "minimum is  black"  or  "minimum  is
+       white"  photometric,  respectively.  If you don't specify either, pnmtotiff uses minimum is black except when
+       using Group 3 or Group 4 compression, in which case pnmtotiff follows CCITT fax standards and  uses  "minimum
+       is white."  This usually results in better compression and is generally preferred for bilevel coding.
+
+       Before  February 2001, pnmtotiff always produced "minimum is black," due to a bug.  In either case, pnmtotiff
+       sets the photometric interpretation tag in the TIFF output according to which photometric is actually used.
+
+       -truecolor tells pnmtotiff to produce the 24-bit RGB form of TIFF output if it  is  producing  a  color  TIFF
+       image.   Without  this  option, pnmtotiff produces a colormapped (paletted) 8-bit TIFF image unless there are
+       more than 256 colors (and in the latter case, issues a warning).
+
+       The -truecolor option can prevent pnmtotiff from making two passes through the  input  file,  thus  improving
+       speed and memory usage.  See the section MULTIPLE PASSES.
+
+       If pnmtotiff produces a grayscale TIFF image, this option has no effect.
+
+       -color  tells  pnmtotiff to produce a color, as opposed to grayscale, TIFF image if the input is PPM, even if
+       it contains only shades of gray.  Without this option, pnmtotiff produces a grayscale TIFF image if the input
+       is PPM and contains only shades of gray, and at most 256 shades.  Otherwise, it produces a color TIFF output.
+       For PBM and PGM input, pnmtotiff always produces grayscale TIFF output and this option has no effect.
+
+       The -color option can prevent pnmtotiff from making two passes through the input file, thus  improving  speed
+       and memory usage.  See the section MULTIPLE PASSES.
+
+       The  -indexbits  option  is  meaningful  only  for a colormapped (paletted) image. In this kind of image, the
+       raster contains values which are indexes into a table of colors, with the indexes normally taking less  space
+       that the color description in the table. pnmtotiff can generate indexes of 1, 2, 4, or 8 bits. By default, it
+       will use 8, because many programs that interpret TIFF images can't handle any other width.
+
+
+NOTES
+       There are myriad variations of the TIFF format, and this program generates only a  few  of  them.   pnmtotiff
+       creates  a  grayscale  TIFF  file if its input is a PBM (monochrome) or PGM (grayscale) file.  pnmtotiff also
+       creates a grayscale file if it input is PPM (color), but there is only one color in the image.  If the  input
+       is a PPM (color) file and there are 256 colors or fewer, but more than 1, pnmtotiff generates a color palette
+       TIFF file.  If there are more colors than that, pnmtotiff generates an RGB (not RGBA) single plane TIFF file.
+       Use pnmtotiffcmyk to generate the cyan-magenta-yellow-black ink color separation TIFF format.
+
+       The number of bits per sample in the TIFF output is determined by the maxval of the PNM input.  If the maxval
+       is less than 256, the bits per sample in the output is the smallest number that can encode  the  maxval.   If
+       the maxval is greater than or equal to 256, there are 16 bits per sample in the output.
+
+
+   Multiple Passes
+       pnmtotiff  reads  the  input image once if it can, and otherwise twice.  It needs that second pass to analyze
+       the colors in the image and generate a color map (pallette) and determine if the image is grayscale.  So  the
+       second  pass only happens when the input is PPM.  And you can avoid it then by specifying both the -truecolor
+       and -color options.
+
+       If the input image is small enough to fit in your system's file cache, the second pass is very fast.  If not,
+       it requires reading from disk twice, which can be slow.
+
+       When  the input is from a file that cannot be rewound and reread, pnmtotiff reads the entire input image into
+       a temporary file which can, and works from that.  Even if it only needs one pass.
+
+
+SEE ALSO
+       tifftopnm(1), pnmtotiffcmyk(1), pnmdepth(1), pnm(5)
+
+
+AUTHOR
+       Derived by Jef Poskanzer from ras2tiff.c, which is Copyright (c) 1990  by  Sun  Microsystems,  Inc.   Author:
+       Patrick J. Naughton (naughton@wind.sun.com).
+
+
+
+                                                   24 January 2001                                      pnmtotiff(1)

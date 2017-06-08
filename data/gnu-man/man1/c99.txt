@@ -1,0 +1,31 @@
+C99(1)                                         General Commands Manual                                        C99(1)
+
+
+
+NAME
+       c99 - ANSI (1999) C compiler
+
+SYNOPSIS
+       c99 [-pedantic] [-pedantic-errors] [-D_ANSI_SOURCE] options ...
+
+DESCRIPTION
+       Calls  the C compiler (cc) with the given options , using a C language environment compatible with the -ansiC
+       specification.
+
+       This includes proper handling of trigraphs, disabling non-ANSI compiler features (such as asm , typeof ,  and
+       the $ character in identifiers), and definition of the preprocessor symbol __STRICT_ANSI__ .
+
+       The status of C99 features implemented in GCC is described at http://gcc.gnu.org/gcc-4.8/c99status.html
+
+SEE ALSO
+       cc(1) for a description of all options.
+
+HISTORY
+       Appeared in NetBSD 1.4 .
+
+BUGS
+       Since c99 is a shell wrapper script to cc , compile errors are prefixed by "cc:".
+
+
+
+                                                                                                              C99(1)

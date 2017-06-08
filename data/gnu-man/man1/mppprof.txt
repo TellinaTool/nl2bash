@@ -1,0 +1,52 @@
+CREATE(1)                                           User Commands                                          CREATE(1)
+
+
+
+NAME
+       Create - Create Model Printer Profile.
+
+DESCRIPTION
+       Create  Model Printer Profile, Version 1.5.1 Author: Graeme W. Gill, licensed under the AGPL Version 3 usage:
+       debian/tmp/usr/bin/mppprof [options] outfile
+
+       -v [level] Verbose mode
+
+       -q [lmhus] Quality - Low, Medium (def), High, Ultra, Simple
+
+       -l limit
+              override default ink limit, 1 - n00%
+
+       -s     Generate spectral model too
+
+       -m     Generate ink mixing model
+
+       -y [level] Verify profile, 2 = read/write verify
+
+       -L     Output Lab values
+
+       outfile
+              Base name for input.ti3/output.mpp file
+
+       Author: Graeme W. Gill, licensed under the AGPL Version 3 usage: debian/tmp/usr/bin/mppprof [options] outfile
+
+       -v [level] Verbose mode
+
+       -q [lmhus] Quality - Low, Medium (def), High, Ultra, Simple
+
+       -l limit
+              override default ink limit, 1 - n00%
+
+       -s     Generate spectral model too
+
+       -m     Generate ink mixing model
+
+       -y [level] Verify profile, 2 = read/write verify
+
+       -L     Output Lab values
+
+       outfile
+              Base name for input.ti3/output.mpp file
+
+
+
+Create Model Printer Profile, Version 1.5.1          August 2013                                           CREATE(1)

@@ -1,0 +1,51 @@
+ppmcolormask(1)                                General Commands Manual                               ppmcolormask(1)
+
+
+
+NAME
+       ppmcolormask - produce mask of areas of a certain color in a PPM file
+
+SYNOPSIS
+       ppmcolormask color [ppmfile]
+
+DESCRIPTION
+       Reads  a  PPM file as input.  Produces a PBM (bitmap) file as output.  The output file is the same dimensions
+       as the input file and is black in all places where the input file is the color color,  and  white  everywhere
+       else.
+
+       The  output  of ppmcolormask is useful as an alpha mask input to pnmcomp.  Note that you can generate such an
+       alpha mask automatically as you convert to PNG format with pnmtopng(1).  Use its -transparent option.
+
+       ppmfile is the input file.  If you don't specify ppmfile, the input is from Standard Input.
+
+       The output goes to Standard Output.
+
+       You can specify color five ways:
+
+       o      An X11-style color name (e.g.  black).
+
+       o      An X11-style hexadecimal specifier: rgb:r/g/b, where r g and b are each 1- to 4-digit hexadecimal num‐
+              bers.
+
+       o      An  X11-style  decimal specifier: rgbi:r/g/b, where r g and b are floating point numbers between 0 and
+              1.
+
+       o      For backwards compatibility, an  old-X11-style  hexadecimal  number:  #rgb,  #rrggbb,  #rrrgggbbb,  or
+              #rrrrggggbbbb.
+
+       o      For  backwards  compatibility,  a  triplet  of numbers separated by commas: r,g,b, where r g and b are
+              floating point numbers between 0 and 1.  (This style was added before MIT came  up  with  the  similar
+              rgbi style.)
+
+
+SEE ALSO
+       pgmtoppm(1), pnmcomp(1), pbmmask(1), ppm(5)
+
+
+AUTHOR
+       Bryan Henderson (bryanh@giraffe-data.com)
+
+
+
+
+                                                    14 April 2000                                    ppmcolormask(1)

@@ -1,0 +1,62 @@
+hp-unload(1)                                        User Manuals                                        hp-unload(1)
+
+
+
+NAME
+       hp-unload - Photo Card Access Utility
+
+DESCRIPTION
+       Access  inserted photo cards on supported HPLIP printers. This provides an alternative for older devices that
+       do not support USB mass storage or for access to photo cards over a network.
+
+SYNOPSIS
+       hp-unload [DEVICE_URI|PRINTER_NAME] [MODE] [OPTIONS]
+
+PRINTER|DEVICE-URI
+       To specify a device-URI:
+              -d<device-uri> or --device=<device-uri>
+
+       To specify a CUPS printer:
+              -p<printer> or --printer=<printer>
+
+MODE
+       Run in interactive mode:
+              -i or --interactive
+
+       Run in non-interactive mode:
+              -n or --non-interactive
+
+OPTIONS
+       Set the logging level:
+              -l<level> or --logging=<level> <level>: none, info*, error, warn, debug (*default)
+
+       Run in debug mode:
+              -g (same as option: -ldebug)
+
+       This help information:
+              -h or --help
+
+       Output directory:
+              -o<dir> or --output=<dir> (Defaults to current directory)(Only used for non-GUI modes)
+
+SEE ALSO
+       hp-toolbox
+
+AUTHOR
+       HPLIP (Hewlett-Packard Linux Imaging and Printing) is an HP developed solution for  printing,  scanning,  and
+       faxing with HP inkjet and laser based printers in Linux.
+
+REPORTING BUGS
+       The  HPLIP Launchpad.net site https://launchpad.net/hplip is available to get help, report bugs, make sugges‐
+       tions, discuss the HPLIP project or otherwise contact the HPLIP Team.
+
+COPYRIGHT
+       Copyright (c) 2001-13 Hewlett-Packard Development Company, L.P.
+
+       This software comes with ABSOLUTELY NO WARRANTY.  This is free software, and you are welcome to distribute it
+       under certain conditions. See COPYING file for more details.
+
+
+
+
+Linux                                                    3.3                                            hp-unload(1)

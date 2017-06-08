@@ -1,0 +1,21 @@
+PLOT(1)                                             User Commands                                            PLOT(1)
+
+
+
+NAME
+       Plot - Plot spectrum and calculate CCT and VCT.
+
+DESCRIPTION
+       Plot spectrum and calculate CCT and VCT Author: Graeme W. Gill usage: ccttest [infile.sp]
+
+       [infile.sp]
+              spectrum to plot default is all built in illuminants
+
+       Author: Graeme W. Gill usage: ccttest [infile.sp]
+
+       [infile.sp]
+              spectrum to plot default is all built in illuminants
+
+
+
+Plot spectrum and calculate CCT and VCT              August 2013                                             PLOT(1)

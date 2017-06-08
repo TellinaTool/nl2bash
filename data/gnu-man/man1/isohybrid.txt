@@ -1,0 +1,73 @@
+ISOHYBRID(1)                                      Syslinux Project                                      ISOHYBRID(1)
+
+
+
+NAME
+       isohybrid - Postprocess ISO images for hybrid mode
+
+
+SYNOPSIS
+       isohybrid [OPTIONS] IMAGE
+
+
+DESCRIPTION
+       Starting  in version 3.72, ISOLINUX supports a "hybrid mode" which can be booted from either CD-ROM or from a
+       device which BIOS considers a hard disk or ZIP disk, e.g. a USB key or similar.
+
+       To enable this mode, the .iso image needs to be postprecessed with this utility.
+
+
+OPTIONS
+       -h HEADS
+           Number of default geometry heads.
+
+       -s SECTORS
+           Number of default geometry sectors.
+
+       -e, --entry
+           Specify partition entry number (1-4).
+
+       -o, --offset
+           Specify partition offset (default 0).
+
+       -t, --type
+           Specify partition type (default 0x17).
+
+       -i, --id
+           Specify MBR ID (default random).
+
+       --forcehd0
+           Assume we are loaded as disk ID 0.
+
+       --ctrlhd0
+           Assume disk ID 0 if the Ctrl key is pressed.
+
+       --partok
+           Allow booting from within a partition.
+
+       -?, --help
+           Display help.
+
+       -v, --verbose
+           Display verbose output.
+
+       -V, --version
+           Display version information.
+
+
+SEE ALSO
+       syslinux(1)
+
+
+HOMEPAGE
+       More information about the Syslinux project can be found on the homepage at <http://syslinux.zytor.com/>.
+
+
+AUTHOR
+       isohybrid was written by H. Peter Anvin <hpa@zytor.com>.
+
+       This manual page was written by Daniel Baumann <mail@daniel-baumann.ch>.
+
+
+
+4.00                                                 2010-06-22                                         ISOHYBRID(1)

@@ -1,0 +1,35 @@
+pbmtomda(1)                                    General Commands Manual                                   pbmtomda(1)
+
+
+
+NAME
+       pbmtomda - convert a portable bitmap to a Microdesign .mda
+
+SYNOPSIS
+       pbmtomda [-d][-i][--] [ pbmfile ]
+
+DESCRIPTION
+       Reads  a portable bitmap file as input.  Reads from stdin if input file is omitted.  Produces a MicroDesign 2
+       area file (.MDA) as output.
+
+OPTIONS
+       -d     Halve the height of the output file, to compensate for the aspect ratio used in MicroDesign files.
+
+       -i     Invert the colours used.
+
+       --     End of options (use this if the filename starts with "-")
+
+BUGS
+       There's no way to produce files in MicroDesign 3 format. MD3 itself and mdatopbm(1) can read files in  either
+       format.
+
+SEE ALSO
+       mdatopbm(1), pbm(5)
+
+AUTHOR
+       Copyright (C) 1999 John Elliott <jce@seasip.demon.co.uk>.
+
+
+
+
+                                                     3 June 1999                                         pbmtomda(1)

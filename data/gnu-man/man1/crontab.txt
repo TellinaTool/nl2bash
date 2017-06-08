@@ -1,0 +1,94 @@
+CRONTAB(1)                                     General Commands Manual                                    CRONTAB(1)
+
+
+
+NAME
+       crontab - maintain crontab files for individual users (Vixie Cron)
+
+SYNOPSIS
+       crontab [ -u user ] file
+       crontab [ -u user ] [ -i ] { -e | -l | -r }
+
+DESCRIPTION
+       crontab  is  the  program  used  to install, deinstall or list the tables used to drive the cron(8) daemon in
+       Vixie Cron.  Each user can have their own crontab, and though these are  files  in  /var/spool/cron/crontabs,
+       they are not intended to be edited directly.
+
+       If  the  /etc/cron.allow  file  exists,  then  you  must be listed (one user per line) therein in order to be
+       allowed to use this command.  If the /etc/cron.allow file does not exist but  the  /etc/cron.deny  file  does
+       exist, then you must not be listed in the /etc/cron.deny file in order to use this command.
+
+       If  neither  of these files exists, then depending on site-dependent configuration parameters, only the super
+       user will be allowed to use this command, or all users will be able to use this command.
+
+       If both files exist then /etc/cron.allow takes precedence. Which means that /etc/cron.deny is not  considered
+       and your user must be listed in /etc/cron.allow in order to be able to use the crontab.
+
+       Regardless  of the existance of any of these files, the root administrative user is always allowed to setup a
+       crontab.  For standard Debian systems, all users may use this command.
+
+       If the -u option is given, it specifies the name of the user whose crontab is to be used  (when  listing)  or
+       modified  (when  editing). If this option is not given, crontab examines "your" crontab, i.e., the crontab of
+       the person executing the command.  Note that su(8) can confuse crontab and that if you are running inside  of
+       su(8) you should always use the -u option for safety's sake.
+
+       The first form of this command is used to install a new crontab from some named file or standard input if the
+       pseudo-filename ``-'' is given.
+
+       The -l option causes the current crontab to be displayed on standard output. See the note under  DEBIAN  SPE‐
+       CIFIC below.
+
+       The -r option causes the current crontab to be removed.
+
+       The -e option is used to edit the current crontab using the editor specified by the VISUAL or EDITOR environ‐
+       ment variables.  After you exit from the editor, the modified crontab will  be  installed  automatically.  If
+       neither of the environment variables is defined, then the default editor /usr/bin/editor is used.
+
+       The  -i  option  modifies  the -r option to prompt the user for a 'y/Y' response before actually removing the
+       crontab.
+
+DEBIAN SPECIFIC
+       The "out-of-the-box" behaviour for crontab -l is to display the three line "DO NOT  EDIT  THIS  FILE"  header
+       that  is  placed  at  the  beginning  of  the  crontab when it is installed. The problem is that it makes the
+       sequence
+
+       crontab -l | crontab -
+
+       non-idempotent -- you keep adding copies of the header. This causes pain to scripts that use sed  to  edit  a
+       crontab.  Therefore,  the  default behaviour of the -l option has been changed to not output such header. You
+       may obtain the original behaviour by setting the environment variable CRONTAB_NOHEADER  to  'N',  which  will
+       cause the crontab -l command to emit the extraneous header.
+
+SEE ALSO
+       crontab(5), cron(8)
+
+FILES
+       /etc/cron.allow
+       /etc/cron.deny
+       /var/spool/cron/crontabs
+
+       There is one file for each user's crontab under the /var/spool/cron/crontabs directory. Users are not allowed
+       to edit the files under that directory directly to ensure that only users allowed by the system to run  peri‐
+       odic  tasks can add them, and only syntactically correct crontabs will be written there.  This is enforced by
+       having the directory writable only by the crontab group and configuring crontab command with the  setgid  bid
+       set for that specific group.
+
+STANDARDS
+       The crontab command conforms to IEEE Std1003.2-1992 (``POSIX'').  This new command syntax differs from previ‐
+       ous versions of Vixie Cron, as well as from the classic SVR3 syntax.
+
+
+DIAGNOSTICS
+       A fairly informative usage message appears if you run it with a bad command line.
+
+       cron requires that each entry in a crontab end in a newline character. If the last  entry  in  a  crontab  is
+       missing the newline, cron will consider the crontab (at least partially) broken and refuse to install it.
+
+
+AUTHOR
+       Paul  Vixie <paul@vix.com> is the author of cron and original creator of this manual page. This page has also
+       been modified for Debian by Steve Greenland, Javier Fernandez-Sanguino and Christian Kastner.
+
+
+
+4th Berkeley Distribution                           19 April 2010                                         CRONTAB(1)

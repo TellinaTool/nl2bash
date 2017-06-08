@@ -1,0 +1,39 @@
+DOCKER(1)                                                                                                  DOCKER(1)
+
+
+
+NAME
+       docker-container-rm - Remove one or more containers
+
+
+
+SYNOPSIS
+       docker container rm [OPTIONS] CONTAINER [CONTAINER...]
+
+
+
+DESCRIPTION
+       Remove one or more containers
+
+
+
+OPTIONS
+       -f, --force[=false]
+           Force the removal of a running container (uses SIGKILL)
+
+
+       -l, --link[=false]
+           Remove the specified link
+
+
+       -v, --volumes[=false]
+           Remove the volumes associated with the container
+
+
+
+SEE ALSO
+       docker-container(1)
+
+
+
+Docker Community                                      Mar 2017                                             DOCKER(1)

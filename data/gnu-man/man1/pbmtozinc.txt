@@ -1,0 +1,23 @@
+pbmtozinc(l)                                                                                            pbmtozinc(l)
+
+
+
+NAME
+       pbmtozinc - convert a portable bitmap into a Zinc bitmap
+
+SYNOPSIS
+       pbmtozinc [pbmfile]
+
+DESCRIPTION
+       Reads  a  portable bitmap as input.  Produces a bitmap in the format used by the Zinc Interface Library (ZIL)
+       Version 1.0 as output.
+
+SEE ALSO
+       pbm(5)
+
+AUTHOR
+       Copyright (C) 1988 by James Darrell McCauley (jdm5548@diamond.tamu.edu) and Jef Poskanzer.
+
+
+
+                                                  02 November 1990                                      pbmtozinc(l)

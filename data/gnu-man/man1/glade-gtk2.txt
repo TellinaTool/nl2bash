@@ -1,0 +1,50 @@
+GLADE-GTK2(1)                                  General Commands Manual                                 GLADE-GTK2(1)
+
+
+
+NAME
+       glade-gtk2 - GUI Builder for GTK+ 2
+
+SYNOPSIS
+       glade-gtk2 [options] file
+
+DESCRIPTION
+       Glade  allows a graphical interface to be designed from within a graphical interface, instead of written as a
+       program using a function or class library.
+
+       The creation of various GTK graphical "widgets" is supported, allowing a programmer to concentrate on  imple‐
+       mentation of an applications functionality, instead of the presentation.
+
+OPTIONS
+       -h, --help
+              Show summary of options.
+
+       -without-devhelp
+              Disable Devhelp integration
+
+       --display=DISPLAY
+              X display to use
+
+       -v, --version
+              Show version of program.
+
+       Glade also accepts the standard GNOME and GTK options.
+
+FILES
+       A  single  input  XML  file  may  be given as an argument.  This file should have been previous created by an
+       interactive session with Glade.
+
+AUTHOR
+       glade-gtk2 was written by Chema Celorio <chema@ximian.com>.
+
+       This manual page was written by Justin Pryzby <justinpryzby@users.sf.net>, for the Debian project (but may be
+       used by others).
+
+SEE ALSO
+       gtk-options(7), gnome-options(7)
+
+       The online documentation available through the program's Help menu.
+
+
+
+                                                   24 January 2005                                     GLADE-GTK2(1)

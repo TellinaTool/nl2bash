@@ -1,0 +1,52 @@
+winicontoppm(1)                                General Commands Manual                               winicontoppm(1)
+
+
+
+NAME
+       winicontoppm - convert a Windows .ico file into 1 or more portable pixmap files
+
+SYNOPSIS
+       winicontoppm [-writeands] [-allicons|-bestqual] [-multippm] [-verbose] [iconfile] [ppmdestfile]
+
+DESCRIPTION
+       Reads a Microsoft Windows .ico file, converts it to one or more ppms.
+
+       A Windows icon contains 1 or more images, at different resolutions and color depths.  Each image has an 'and'
+       mask, which contains transparancy data.
+
+       By default, the output goes to Standard Output.  If you specify ppmdestfile, output goes  into  one  or  more
+       files named as follows.  If it's just one file (i.e. you specify the -multippm option or don't specify -alli‐
+       cons), the file specification is ppmdestfile.ppm.  If it's multiple  files,  their  file  specifications  are
+       ppmdestfile_1.ppm, ppmdestfile_2.ppm, etc.
+
+       When  you  specify  the  -writeands  option, the filenames above are modified to include the string xor as in
+       ppmdestfile_xor.ppm or ppmdestfile_xor_1.ppm.
+
+       winicontoppm can convert images with 1, 4, 8, 24 or 32 bits per pixel (bpp).
+
+
+OPTIONS
+       -writeands
+              For each icon written, also write the 'and' (transparancy) mask as a seperate PBM file.  It's name  is
+              of the form ppmdestfile_and.pbm or ppmdestfile_and_1.pbm.
+
+       -allicons
+              Extract all images from the .ico file.
+
+       -bestqual
+              Extract only the best quality (largest, then highest bpp) image from the .ico file.
+
+       -multippm
+              Write all ppms to a single file.
+
+
+SEE ALSO
+       ppmtowinicon(1), ppm(5)
+
+
+AUTHOR
+       Copyright (C) 2000, 2003 by Lee Benfield.
+
+
+
+                                                     22 May 2000                                     winicontoppm(1)

@@ -1,0 +1,44 @@
+ODS-SERVER(1)                                       User Commands                                      ODS-SERVER(1)
+
+
+
+NAME
+       ods-server - minimal OBEX server based on obex-data-server
+
+SYNOPSIS
+       ods-server [options] profile path
+
+DESCRIPTION
+       ods-server provides a minimal OBEX server based on obex-data-server for receiving files over bluetooth.  pro‐
+       file selects the UUID-128 profile ID to use, currently opp and ftp can be used as aliases for object push and
+       obex ftp respectively.  path is the target directory for received files.
+
+OPTIONS
+       -h, --help
+              show this help message and exit
+
+       -l ADDRESS, --local=ADDRESS
+              ADDRESS of Bluetooth adapter to listen on. Default is 00:00:00:00:00:00
+
+       -p, --pairing
+              Require remote devices to be paired before allowing them to connect. Disabled by default
+
+       -r, --readonly
+              Disallow any write operations. Allowed by default
+
+       -t, --thumbnails
+              Require remote device to send thumbnails when using Imaging (BIP) server
+
+       -a, --ask-to-accept
+              Prompt user to accept or reject every file. By default all files are accepted
+
+AUTHOR
+       ods-server was written by Tadas Dailyda <tadas@dailyda.com> and is shipped as ods-server-test.py in the obex-
+       data-server distribution
+
+       This manual page was written by Filippo Giunchedi <filippo@debian.org> for the Debian  project  (but  may  be
+       used by others).
+
+
+
+ods-server 0.4.4                                      May 2009                                         ODS-SERVER(1)

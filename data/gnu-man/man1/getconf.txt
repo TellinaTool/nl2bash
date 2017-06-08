@@ -1,0 +1,54 @@
+GETCONF(1)                                        Debian GNU/Linux                                        GETCONF(1)
+
+
+
+NAME
+       getconf - Query system configuration variables
+
+SYNOPSIS
+       getconf -a
+
+       getconf [-v specification] system_var
+
+       getconf [-v specification] path_var pathname
+
+DESCRIPTION
+       -a
+
+               Displays all configuration variables for the current system
+               and their values.
+
+       -v
+
+               Indicate the specification and version for which to obtain
+               configuration variables.
+
+       system_var
+
+               A system configuration variable, as defined by sysconf(3) or
+               confstr(3).
+
+       path_var
+
+               A system configuration variable as defined by pathconf(3). This
+               must be used with a pathname.
+
+
+AUTHOR
+       getconf was written by Roland McGrath for the GNU C Library
+
+       This man page was written by Ben Collins <bcollins@debian.org> for the Debian GNU/Linux system.
+
+SEE ALSO
+       sysconf(3), pathconf(3), confstr(3)
+
+
+
+
+
+
+
+
+
+
+3rd Berkeley Distribution                              squeeze                                            GETCONF(1)

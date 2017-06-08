@@ -1,0 +1,132 @@
+zjsdecode(1)                                   General Commands Manual                                  zjsdecode(1)
+
+
+
+
+
+NAME
+       zjsdecode - Decode a ZjStream into human readable form.
+
+SYNOPSIS
+       zjsdecode [options] <zjs-file
+
+DESCRIPTION
+       zjsdecode decodes a ZjStream into human readable form.
+
+       A ZjStream is the printer language used by some Minolta/QMS and HP printers, such as the 2300DL and LJ-1000.
+
+       More information on Zenographics ZjStream can be found at:
+
+              http://ddk.zeno.com
+
+
+COMMAND LINE OPTIONS
+       These are the options that can appear on the command line.
+
+       -d basename
+              Basename of .pbm file for saving decompressed planes.
+
+       -r basename
+              Basename of .jbg file for saving raw planes
+
+       -h     Print hex file offsets.
+
+       -o     Print file offsets.
+
+       -p     Don't do 4 byte padding
+
+       -D level
+              Set Debug level [0].
+
+
+EXAMPLES
+       Decode an ZjStream file created by foo2zjs.
+
+       $ zjsdecode < testpage.zm
+       ZJT_START_DOC, 3 items
+               ZJI_PAGECOUNT, 0 (0x0)
+               ZJI_DMDUPLEX, 1 (0x1)
+               ZJI_QUANTITY, 1 (0x1)
+       ZJT_START_PAGE, 17 items
+               ZJI_0x17, 0 (0x0)
+               ZJI_0x16, 1 (0x1)
+               ZJI_VIDEO_X, 10200 (0x27d8)
+               ZJI_VIDEO_Y, 6600 (0x19c8)
+               ZJI_VIDEO_BPP, 1 (0x1)
+               ZJI_RASTER_X, 10200 (0x27d8)
+               ZJI_RASTER_Y, 6600 (0x19c8)
+               ZJI_OFFSET_X, 0 (0x0)
+               ZJI_OFFSET_Y, 0 (0x0)
+               ZJI_NBIE, 1 (0x1)
+               ZJI_RESOLUTION_X, 1200 (0x4b0)
+               ZJI_RESOLUTION_Y, 600 (0x258)
+               ZJI_DMDEFAULTSOURCE, 7 (0x7)
+               ZJI_DMCOPIES, 1 (0x1)
+               ZJI_DMPAPER, 1 (0x1)
+               ZJI_DMMEDIATYPE, 1 (0x1)
+               ZJI_MINOLTA_PAGE_NUMBER, 1 (0x1)
+       ZJT_JBIG_BIH, 0 items
+               Data: 20 bytes
+                       DL = 0, D = 0, P = 1, - = 0, XY = 10200 x 6600
+                       L0 = 128, MX = 16, MY = 0
+                       Order   = 3  ILEAVE SMID
+                       Options = 92  LRLTWO TPDON TPBON DPON
+                       52 stripes, 0 layers, 1 planes
+       ZJT_JBIG_BID, 0 items
+               Data: 65536 bytes
+       ZJT_JBIG_BID, 0 items
+               Data: 29120 bytes
+       ZJT_END_JBIG, 0 items
+       ZJT_END_PAGE, 0 items
+       ZJT_END_DOC, 0 items
+
+
+FILES
+       /usr/bin/zjsdecode
+
+SEE ALSO
+       foo2zjs-wrapper(1), foo2zjs(1), jbg2pbm(1)
+
+AUTHOR
+       Rick Richardson <rick.richardson@comcast.net>
+       http://foo2zjs.rkkda.com/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

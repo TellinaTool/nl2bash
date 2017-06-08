@@ -1,0 +1,91 @@
+PRINTF(1)                                           User Commands                                          PRINTF(1)
+
+
+
+NAME
+       printf - format and print data
+
+SYNOPSIS
+       printf FORMAT [ARGUMENT]...
+       printf OPTION
+
+DESCRIPTION
+       Print ARGUMENT(s) according to FORMAT, or execute according to OPTION:
+
+       --help display this help and exit
+
+       --version
+              output version information and exit
+
+       FORMAT controls the output as in C printf.  Interpreted sequences are:
+
+       \"     double quote
+
+       \\     backslash
+
+       \a     alert (BEL)
+
+       \b     backspace
+
+       \c     produce no further output
+
+       \e     escape
+
+       \f     form feed
+
+       \n     new line
+
+       \r     carriage return
+
+       \t     horizontal tab
+
+       \v     vertical tab
+
+       \NNN   byte with octal value NNN (1 to 3 digits)
+
+       \xHH   byte with hexadecimal value HH (1 to 2 digits)
+
+       \uHHHH Unicode (ISO/IEC 10646) character with hex value HHHH (4 digits)
+
+       \UHHHHHHHH
+              Unicode character with hex value HHHHHHHH (8 digits)
+
+       %%     a single %
+
+       %b     ARGUMENT  as  a  string  with '\' escapes interpreted, except that octal escapes are of the form \0 or
+              \0NNN
+
+       and all C format specifications ending with one of diouxXfeEgGcs, with ARGUMENTs  converted  to  proper  type
+       first.  Variable widths are handled.
+
+       NOTE:  your  shell  may  have its own version of printf, which usually supersedes the version described here.
+       Please refer to your shell's documentation for details about the options it supports.
+
+AUTHOR
+       Written by David MacKenzie.
+
+REPORTING BUGS
+       Report printf bugs to bug-coreutils@gnu.org
+       GNU coreutils home page: <http://www.gnu.org/software/coreutils/>
+       General help using GNU software: <http://www.gnu.org/gethelp/>
+       Report printf translation bugs to <http://translationproject.org/team/>
+
+COPYRIGHT
+       Copyright  ©  2013  Free  Software  Foundation,  Inc.   License  GPLv3+:  GNU  GPL   version   3   or   later
+       <http://gnu.org/licenses/gpl.html>.
+       This  is free software: you are free to change and redistribute it.  There is NO WARRANTY, to the extent per‐
+       mitted by law.
+
+SEE ALSO
+       printf(3)
+
+       The full documentation for printf is maintained as a Texinfo manual.  If the info  and  printf  programs  are
+       properly installed at your site, the command
+
+              info coreutils 'printf invocation'
+
+       should give you access to the complete manual.
+
+
+
+GNU coreutils 8.21                                   March 2016                                            PRINTF(1)

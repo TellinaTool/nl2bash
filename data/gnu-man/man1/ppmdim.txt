@@ -1,0 +1,28 @@
+ppmdim(1)                                      General Commands Manual                                     ppmdim(1)
+
+
+
+NAME
+       ppmdim - dim a portable pixmap down to total blackness
+
+SYNOPSIS
+       ppmdim dimfactor [ppmfile]
+
+DESCRIPTION
+       Reads  a  portable pixmap as input. Diminishes its brightness by the specified dimfactor down to total black‐
+       ness.  The dimfactor may be in the range from 0.0 (total blackness, deep night, nada, null, nothing)  to  1.0
+       (original picture's brightness).
+
+       As pnmgamma does not do the brightness correction in the way I wanted it, this small program was written.
+
+       ppmdim is similar to ppmbrighten , but not exactly the same.
+
+SEE ALSO
+       ppm(5), ppmflash(1), pnmgamma(1), ppmbrighten(1)
+
+AUTHOR
+       Copyright (C) 1993 by Frank Neumann
+
+
+
+                                                  16 November 1993                                         ppmdim(1)
