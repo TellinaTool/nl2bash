@@ -5,11 +5,9 @@ import cmd_parser.CmdParserInterface;
 import javafx.util.Pair;
 import man_parser.parser.ParseException;
 import man_parser.ManParserInterface;
-import org.antlr.v4.runtime.RecognitionException;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.PrintStream;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
