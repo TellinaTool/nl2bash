@@ -39,7 +39,7 @@ _QUANTITIES = {
     '-Permission'
 }
 
-_ENTITIES = _PATTERNS + _QUANTITIES + ['Type', 'Unknown']
+_ENTITIES = _PATTERNS | _QUANTITIES | {'Type', 'Unknown'}
 
 type_conversion = {
     _FILE: 'File',

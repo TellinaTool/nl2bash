@@ -11,7 +11,7 @@ ARGS=${@:1}
     --steps_per_epoch 4000 \
     --tg_token_use_attention \
     --tg_token_attn_fun non-linear \
-    --universal_keep 0.6 \
+    --universal_keep 0.600001 \
     --sc_input_keep 1.0 \
     --tg_input_keep 1.0 \
     --sc_output_keep 1.0 \

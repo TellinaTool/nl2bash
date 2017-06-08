@@ -64,6 +64,7 @@ parsers/out/production/*
 
 # sensitive data
 shallow_baselines/knn/data/*
+shallow_baselines/ibm/data/*
 data/bash/*
 parsers/test_data/*
 *.cm*

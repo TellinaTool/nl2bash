@@ -1,5 +1,5 @@
 #!/bin/bash
-FILES=./man/man1/*
+FILES=/usr/share/man/*
 #f=./man/man1/find.1
 for f in $FILES
 do
