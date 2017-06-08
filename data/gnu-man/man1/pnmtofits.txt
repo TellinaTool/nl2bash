@@ -1,0 +1,36 @@
+pnmtofits(1)                                   General Commands Manual                                  pnmtofits(1)
+
+
+
+NAME
+       pnmtofits - convert a portable anymap into FITS format
+
+SYNOPSIS
+       pnmtofits [-max f] [-min f] [pnmfile]
+
+DESCRIPTION
+       Reads  a  portable  anymap  as input.  Produces a FITS (Flexible Image Transport System) file as output.  The
+       resolution of the output file is either 8 bits/pixel, or 16 bits/pixel, depending on the value of  maxval  in
+       the  input file.  If the input file is a portable bitmap or a portable graymap, the output file consists of a
+       single plane image (NAXIS = 2). If instead the input file is a portable pixmap, the output file will  consist
+       of  a  three-plane  image  (NAXIS  =  3,  NAXIS3 = 3).  A full description of the FITS format can be found in
+       Astronomy & Astrophysics Supplement Series 44 (1981), page 363.
+
+OPTIONS
+       Flags -min and -max can be used to set DATAMAX, DATAMIN, BSCALE and BZERO in the  FITS  header,  but  do  not
+       cause the data to be rescaled.
+
+BUGS
+       FITS  uses signed data, and this program outputs unsigned values. If you run into this problem, you might use
+       "-min 32768".
+
+SEE ALSO
+       fitstopnm(1), pgm(5)
+
+AUTHOR
+       Copyright  (C)  1989  by  Wilson  H.  Bent  (whb@hoh-2.att.com),  with  modifications  by  Alberto  Accomazzi
+       (alberto@cfa.harvard.edu).
+
+
+
+                                                     5 Dec 1992                                         pnmtofits(1)

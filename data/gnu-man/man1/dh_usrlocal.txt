@@ -1,0 +1,47 @@
+DH_USRLOCAL(1)                                        Debhelper                                       DH_USRLOCAL(1)
+
+
+
+NAME
+       dh_usrlocal - migrate usr/local directories to maintainer scripts
+
+SYNOPSIS
+       dh_usrlocal [debhelper options] [-n]
+
+DESCRIPTION
+       dh_usrlocal is a debhelper program that can be used for building packages that will provide a subdirectory in
+       /usr/local when installed.
+
+       It finds subdirectories of usr/local in the package build directory, and removes them, replacing them with
+       maintainer script snippets (unless -n is used) to create the directories at install time, and remove them
+       when the package is removed, in a manner compliant with Debian policy. These snippets are inserted into the
+       maintainer scripts by dh_installdeb. See dh_installdeb(1) for an explanation of debhelper maintainer script
+       snippets.
+
+       If the directories found in the build tree have unusual owners, groups, or permissions, then those values
+       will be preserved in the directories made by the postinst script. However, as a special exception, if a
+       directory is owned by root.root, it will be treated as if it is owned by root.staff and is mode 2775. This is
+       useful, since that is the group and mode policy recommends for directories in /usr/local.
+
+OPTIONS
+       -n, --noscripts
+           Do not modify postinst/prerm scripts.
+
+NOTES
+       Note that this command is not idempotent. dh_prep(1) should be called between invocations of this command.
+       Otherwise, it may cause multiple instances of the same text to be added to maintainer scripts.
+
+CONFORMS TO
+       Debian policy, version 2.2
+
+SEE ALSO
+       debhelper(7)
+
+       This program is a part of debhelper.
+
+AUTHOR
+       Andrew Stribblehill <ads@debian.org>
+
+
+
+9.20131227ubuntu1                                    2013-07-01                                       DH_USRLOCAL(1)

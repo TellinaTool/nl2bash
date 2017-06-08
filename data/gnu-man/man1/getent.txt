@@ -1,0 +1,104 @@
+GETENT(1)                                           User Commands                                          GETENT(1)
+
+
+
+NAME
+       getent - get entries from Name Service Switch libraries
+
+SYNOPSIS
+       getent database [key ...]
+
+DESCRIPTION
+       The  getent command displays entries from databases supported by the Name Service Switch libraries, which are
+       configured in /etc/nsswitch.conf.  If one or more key arguments are provided,  then  only  the  entries  that
+       match  the  supplied keys will be displayed.  Otherwise, if no key is provided, all entries will be displayed
+       (unless the database does not support enumeration).
+
+       The database may be any of those supported by the GNU C Library, listed below:
+
+          ahosts    When no key is provided, use sethostent(3), gethostent(3), and endhostent(3)  to  enumerate  the
+                    hosts database.  This is identical to using hosts.  When one or more key arguments are provided,
+                    pass each key in succession to getaddrinfo(3) with the  address  family  AF_UNSPEC,  enumerating
+                    each socket address structure returned.
+
+          ahostsv4  Same as ahosts, but use the address family AF_INET.
+
+          ahostsv6  Same  as  ahosts,  but use the address family AF_INET6.  The call to getaddrinfo(3) in this case
+                    includes the AI_V4MAPPED flag.
+
+          aliases   When no key is provided, use setaliasent(3), getaliasent(3), and endaliasent(3) to enumerate the
+                    aliases  database.   When one or more key arguments are provided, pass each key in succession to
+                    getaliasbyname(3) and display the result.
+
+          ethers    When one or more key arguments are provided, pass each key in succession  to  ether_aton(3)  and
+                    ether_hostton(3)  until  a  result is obtained, and display the result.  Enumeration is not sup‐
+                    ported on ethers, so a key must be provided.
+
+          group     When no key is provided, use setgrent(3), getgrent(3), and endgrent(3) to  enumerate  the  group
+                    database.  When one or more key arguments are provided, pass each numeric key to getgrgid(3) and
+                    each nonnumeric key to getgrnam(3) and display the result.
+
+          gshadow   When no key is provided, use setsgent(3), getsgent(3), and endsgent(3) to enumerate the  gshadow
+                    database.   When  one  or more key arguments are provided, pass each key in succession to getsg‐
+                    nam(3) and display the result.
+
+          hosts     When no key is provided, use sethostent(3), gethostent(3), and endhostent(3)  to  enumerate  the
+                    hosts  database.  When one or more key arguments are provided, pass each key to gethostbyaddr(3)
+                    or gethostbyname2(3), depending on whether a call to inet_pton(3) indicates that the key  is  an
+                    IPv6 or IPv4 address or not, and display the result.
+
+          initgroups
+                    When  one or more key arguments are provided, pass each key in succession to getgrouplist(3) and
+                    display the result.  Enumeration is not supported on initgroups, so a key must be provided.
+
+          netgroup  When one key is provided, pass the key to setnetgrent(3) and, using getnetgrent(3)  display  the
+                    resulting string triple (hostname, username, domainname).  Alternatively, three keys may be pro‐
+                    vided, which are interpreted as the hostname, username and domainname to  match  to  a  netgroup
+                    name via innetgr(3).  Enumeration is not supported on netgroup, so either one or three keys must
+                    be provided.
+
+          networks  When no key is provided, use setnetent(3), getnetent(3), and endnetent(3) to enumerate the  net‐
+                    works  database.   When one or more key arguments are provided, pass each numeric key to getnet‐
+                    byaddr(3) and each nonnumeric key to getnetbyname(3) and display the result.
+
+          passwd    When no key is provided, use setpwent(3), getpwent(3), and endpwent(3) to enumerate  the  passwd
+                    database.  When one or more key arguments are provided, pass each numeric key to getpwuid(3) and
+                    each nonnumeric key to getpwnam(3) and display the result.
+
+          protocols When no key is provided, use setprotoent(3), getprotoent(3), and endprotoent(3) to enumerate the
+                    protocols  database.  When one or more key arguments are provided, pass each numeric key to get‐
+                    protobynumber(3) and each nonnumeric key to getprotobyname(3) and display the result.
+
+          rpc       When no key is provided, use setrpcent(3), getrpcent(3), and endrpcent(3) to enumerate  the  rpc
+                    database.   When  one  or more key arguments are provided, pass each numeric key to getrpcbynum‐
+                    ber(3) and each nonnumeric key to getrpcbyname(3) and display the result.
+
+          services  When no key is provided, use setservent(3), getservent(3), and endservent(3)  to  enumerate  the
+                    services  database.   When one or more key arguments are provided, pass each numeric key to get‐
+                    servbynumber(3) and each nonnumeric key to getservbyname(3) and display the result.
+
+          shadow    When no key is provided, use setspent(3), getspent(3), and endspent(3) to enumerate  the  shadow
+                    database.   When  one  or more key arguments are provided, pass each key in succession to getsp‐
+                    nam(3) and display the result.
+
+EXIT STATUS
+       One of the following exit values can be returned by getent:
+
+          0         Command completed successfully.
+
+          1         Missing arguments, or database unknown.
+
+          2         One or more supplied key could not be found in the database.
+
+          3         Enumeration not supported on this database.
+
+SEE ALSO
+       nsswitch.conf(5)
+
+COLOPHON
+       This page is part of release 3.54 of the Linux man-pages project.  A description of the project, and informa‐
+       tion about reporting bugs, can be found at http://www.kernel.org/doc/man-pages/.
+
+
+
+Linux                                                2013-03-15                                            GETENT(1)

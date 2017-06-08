@@ -1,0 +1,69 @@
+VIEW(1)                                             User Commands                                            VIEW(1)
+
+
+
+NAME
+       View - View gamuts.
+
+DESCRIPTION
+       View gamuts Version 1.5.1 Author: Graeme W. Gill, licensed under the AGPL Version 3 Diagnostic: Too few argu‐
+       ments, got 1 expect at least 2 usage: viewgam { [-c color] [-t trans] [-w|s] infile.gam } ... outfile.wrl
+
+       -c color
+              Color to make gamut, r = red, g = green, b = blue c = cyan, m = magenta, y = yellow, e  =  grey,  w  =
+              white n = natural color
+
+       -t trans
+              Set transparency from 0.0 (opaque) to 1.0 (invisible)
+
+       -w     Show as a wireframe
+
+       -s     Show as a solid surace
+
+       infile.gam
+              Name of .gam file Repeat above for each input file
+
+       -n     Don't add Lab axes
+
+       -k     Add markers for prim. & sec. "cusp" points
+
+       -i     Compute and print intersecting volume of first 2 gamuts
+
+       -I isect.gam
+              Same as -i, but save intersection gamut to isect.gam
+
+       outfile.wrl
+              Name of output .wrl file
+
+       Author:  Graeme  W.  Gill,  licensed  under the AGPL Version 3 Diagnostic: Too few arguments, got 1 expect at
+       least 2 usage: viewgam { [-c color] [-t trans] [-w|s] infile.gam } ... outfile.wrl
+
+       -c color
+              Color to make gamut, r = red, g = green, b = blue c = cyan, m = magenta, y = yellow, e  =  grey,  w  =
+              white n = natural color
+
+       -t trans
+              Set transparency from 0.0 (opaque) to 1.0 (invisible)
+
+       -w     Show as a wireframe
+
+       -s     Show as a solid surace
+
+       infile.gam
+              Name of .gam file Repeat above for each input file
+
+       -n     Don't add Lab axes
+
+       -k     Add markers for prim. & sec. "cusp" points
+
+       -i     Compute and print intersecting volume of first 2 gamuts
+
+       -I isect.gam
+              Same as -i, but save intersection gamut to isect.gam
+
+       outfile.wrl
+              Name of output .wrl file
+
+
+
+View gamuts Version 1.5.1                            August 2013                                             VIEW(1)

@@ -1,0 +1,44 @@
+GEM1.9.1(1)                                         User Commands                                        GEM1.9.1(1)
+
+
+
+NAME
+       gem1.9.1 - the front end to RubyGems
+
+SYNOPSIS
+              gem1.9.1 command [arguments...] [options...]
+
+              gem1.9.1 -h | --help
+
+              gem1.9.1 -v | --version
+
+DESCRIPTION
+       gem1.9.1 is the front end to RubyGems, a sophisticated package manager for Ruby. This is a basic help message
+       containing pointers to more information.
+
+       Further help:
+
+       gem1.9.1 help commands
+              list all 'gem1.9.1' commands
+
+       gem1.9.1 help examples
+              show some examples of usage
+
+       gem1.9.1 help <COMMAND>
+              show help on COMMAND
+
+              (e.g. 'gem1.9.1 help install')
+
+       Further information:
+
+              http://rubygems.org/
+
+EXAMPLES
+              gem1.9.1 install rake
+              gem1.9.1 list --local
+              gem1.9.1 build package.gemspec
+              gem1.9.1 help install
+
+
+
+gem1.9.1 1.0.0                                        Dec 2007                                           GEM1.9.1(1)

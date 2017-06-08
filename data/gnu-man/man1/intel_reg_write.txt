@@ -1,0 +1,21 @@
+intel_reg_write(1)                             General Commands Manual                            intel_reg_write(1)
+
+
+
+NAME
+       intel_reg_write - Set an Intel GPU register to a value
+
+SYNOPSIS
+       intel_reg_write register value
+
+DESCRIPTION
+       intel_reg_write is a tool to set Intel GPU registers to values, for use in speeding up debugging.  The regis‐
+       ter and value arguments are given as hexadecimal.
+
+EXAMPLES
+       intel_reg_write 0x61230 0x0
+              Disables the first internal panel fitter.
+
+
+
+X Version 11                                     intel-gpu-tools 1.3                              intel_reg_write(1)

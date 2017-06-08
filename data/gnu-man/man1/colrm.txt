@@ -1,0 +1,32 @@
+COLRM(1)                                     BSD General Commands Manual                                    COLRM(1)
+
+NAME
+     colrm — remove columns from a file
+
+SYNOPSIS
+     colrm [start [stop]]
+
+DESCRIPTION
+     The colrm utility removes selected columns from the lines of a file.  A column is defined as a single character
+     in a line.  Input is read from the standard input.  Output is written to the standard output.
+
+     If only the start column is specified, columns numbered less than the start column will be written.  If both
+     start and stop columns are specified, columns numbered less than the start column or greater than the stop col‐
+     umn will be written.  Column numbering starts with one, not zero.
+
+     Tab characters increment the column count to the next multiple of eight.  Backspace characters decrement the
+     column count by one.
+
+ENVIRONMENT
+     The LANG, LC_ALL and LC_CTYPE environment variables affect the execution of colrm as described in environ(7).
+
+EXIT STATUS
+     The colrm utility exits 0 on success, and >0 if an error occurs.
+
+SEE ALSO
+     awk(1), column(1), cut(1), paste(1)
+
+HISTORY
+     The colrm command appeared in 3.0BSD.
+
+BSD                                                August 4, 2004                                                BSD

@@ -1,0 +1,57 @@
+PNMTORLE(1)                                    General Commands Manual                                   PNMTORLE(1)
+
+
+
+NAME
+       pnmtorle - convert a Netpbm image file into an RLE image file.
+
+SYNOPSIS
+       pnmtorle [ -h ] [ -v ] [ -a ] [ -o outfile ] [ pnmfile ]
+
+DESCRIPTION
+       This  program  converts  Netpbm image files into Utah RLE(5) image files.  You can include an alpha mask.  If
+       the input is a multiple image file, the output consists of several concatenated RLE images.
+
+       The RLE file will contain either a three channel color image (24 bits) or a single channel grayscale image (8
+       bits) depending upon the pnm file depth.  If a converted ppm is displayed on an 8 bit display, the image must
+       be dithered.  In order to produce a better looking image (on 8 bit displays),  it  is  recommended  that  the
+       image  be  quantizing (to 8 bit mapped color) prior to its display.  This may be done by piping the output of
+       this program into the Utah mcut(1) or rlequant(1) utilities.  An example of this is shown later.
+
+OPTIONS
+       -v     This option will cause pnmtorle to operate in verbose mode.  The  header  information  is  written  to
+              "stderr".  Actually, there is not much header information stored in a Netpbm file, so this information
+              is minimal.
+
+       -h     This option allows the header of the Netpbm image to be dumped  to  "stderr"  without  converting  the
+              file.  It is equivalent to using the -v option except that no file conversion takes place.
+
+       -a     This  option  causes  pnmtorle  to include an alpha channel in the output image.  The alpha channel is
+              based on the image:  Wherever a pixel is black, the corresponding alpha value is transparent.   Every‐
+              where else, the alpha value is fully opaque.
+
+       -o outfile
+              If  specified, the output will be written to this file.  If outfile is "-", or if it is not specified,
+              the output will be written to the standard output stream.
+
+       pnmfile
+              The name of the Netpbm image data file to be converted.  If not specified, standard input is assumed.
+
+EXAMPLES
+       pnmtorle -v file.ppm -o file.rle
+              While running in verbose mode, convert file.ppm to RLE format and store resulting data in file.rle.
+
+       pnmtorle -h file.pgm
+              Dump the header information of the Netpbm file called file.pgm.
+
+SEE ALSO
+       rletopnm(1), urt(1), RLE(5).
+
+AUTHOR
+       Wes Barris
+       Army High Performance Computing Research Center (AHPCRC)
+       Minnesota Supercomputer Center, Inc.
+
+
+
+1                                                  March 31, 1994                                        PNMTORLE(1)

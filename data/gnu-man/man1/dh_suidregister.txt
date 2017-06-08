@@ -1,0 +1,35 @@
+DH_SUIDREGISTER(1)                                    Debhelper                                   DH_SUIDREGISTER(1)
+
+
+
+NAME
+       dh_suidregister - suid registration program (deprecated)
+
+SYNOPSIS
+       Do not run!
+
+DESCRIPTION
+       This program used to register suid and sgid files with suidregister(1), but with the introduction of
+       dpkg-statoverride(8), registration of files in this way is unnecessary, and even harmful, so this program is
+       deprecated and should not be used.
+
+CONVERTING TO STATOVERRIDE
+       Converting a package that uses this program to use the new statoverride mechanism is easy. Just remove the
+       call to dh_suidregister from debian/rules, and add a versioned conflicts into your control file, as follows:
+
+         Conflicts: suidmanager (<< 0.50)
+
+       The conflicts is only necessary if your package used to register things with suidmanager; if it did not, you
+       can just remove the call to this program from your rules file.
+
+SEE ALSO
+       debhelper(7)
+
+       This program is a part of debhelper.
+
+AUTHOR
+       Joey Hess <joeyh@debian.org>
+
+
+
+9.20131227ubuntu1                                    2013-07-01                                   DH_SUIDREGISTER(1)

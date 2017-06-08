@@ -1,0 +1,100 @@
+sldtoppm(1)                                    General Commands Manual                                   sldtoppm(1)
+
+
+
+NAME
+       sldtoppm - convert an AutoCAD slide file into a portable pixmap
+
+SYNOPSIS
+       sldtoppm [-adjust] [-dir] [-height|-ysize s] [-info] [-lib|-Lib name] [-scale s] [-verbose] [-width|-xsize s]
+              [slidefile]
+
+DESCRIPTION
+       Reads an AutoCAD® slide file and outputs a portable pixmap.  If no slidefile is specified, input is read from
+       standard  input.  The ppmdraw library is used to convert the vector and polygon information in the slide file
+       to a pixmap; see the file ppmdraw.h for details on this package.
+
+OPTIONS
+       -adjust
+              If the display on which the slide file was created had non-square pixels, when the slide is  processed
+              with sldtoppm and the -adjust option is not present, the following warning will appear:
+                Warning - pixels on source screen were non-square.
+                Specifying -adjust will correct image width to compensate.
+              Specifying  the  -adjust  option causes sldtoppm to scale the width of the image so that pixels in the
+              resulting portable pixmap are square (and hence circles appear as true circles,  not  ellipses).   The
+              scaling  is  performed  in  the  vector  domain, before scan converting the objects.  The results are,
+              therefore, superior in appearance to what you'd obtain were you to perform the equivalent scaling with
+              pnmscale after the bitmap had been created.
+
+       -dir   The  input  is  assumed  to  be  an AutoCAD slide library file.  A directory listing each slide in the
+              library is printed on standard error.
+
+       -height size
+              Scales the image in the vector domain so it is size pixels in height.  If no -width or  -xsize  option
+              is specified, the width will be adjusted to preserve the pixel aspect ratio.
+
+       -info  Dump  the  slide  file  header on standard error, displaying the original screen size and aspect ratio
+              among other information.
+
+       -lib name
+              Extracts the slide with the given name from the slide library given as input.  The specified  name  is
+              converted to upper case.
+
+       -Lib name
+              Extracts  the  slide  with  the  given  name  from the slide library given as input.  The name is used
+              exactly as specified; it is not converted to upper case.
+
+       -scale s
+              Scales the image by factor s, which may be any floating point value greater  than  zero.   Scaling  is
+              done  after  aspect ratio adjustment, if any.  Since scaling is performed in the vector domain, before
+              rasterisation, the results look much better than running the output of sldtoppm through pnmscale.
+
+       -verbose
+              Dumps the slide file header and lists every vector and polygon in the file on standard error.
+
+       -width size
+              Scales the image in the vector domain so it is size pixels wide.  If no -height or  -ysize  option  is
+              specified, the height will be adjusted to preserve the pixel aspect ratio.
+
+       -xsize size
+              Scales  the  image  in the vector domain so it is size pixels wide.  If no -height or -ysize option is
+              specified, the height will be adjusted to preserve the pixel aspect ratio.
+
+       -ysize size
+              Scales the image in the vector domain so it is size pixels in height.  If no -width or  -xsize  option
+              is specified, the width will be adjusted to preserve the pixel aspect ratio.
+
+       All flags can be abbreviated to their shortest unique prefix.
+
+BUGS
+       Only Level 2 slides are converted.  Level 1 format has been obsolete since the advent of AutoCAD Release 9 in
+       1987, and was not portable across machine architectures.
+
+       Slide library items with names containing 8 bit (such as ISO) or 16 bit (Kanji, for example)  characters  may
+       not  be  found  when chosen with the -lib option unless sldtoppm has been built with character set conversion
+       functions appropriate to the locale.  You can always retrieve slides from libraries regardless of the charac‐
+       ter  set  by using the -Lib option and specifying the precise name of library member.  Use the -dir option to
+       list the slides in a library if you're unsure of the exact name.
+
+SEE ALSO
+       AutoCAD Reference Manual: Slide File Format, pnmscale(1), ppm(5)
+
+AUTHOR
+            John Walker
+            Autodesk SA
+            Avenue des Champs-Montants 14b
+            CH-2074 MARIN
+            Suisse/Schweiz/Svizzera/Svizra/Switzerland
+            Usenet:  kelvin@Autodesk.com
+            Fax:     038/33 88 15
+            Voice:   038/33 76 33
+
+       Permission to use, copy, modify, and distribute this software and its documentation for any purpose and with‐
+       out fee is hereby granted, without any conditions or restrictions.  This software is provided ``as is'' with‐
+       out express or implied warranty.
+
+       AutoCAD and Autodesk are registered trademarks of Autodesk, Inc.
+
+
+
+                                                   10 October 1991                                       sldtoppm(1)

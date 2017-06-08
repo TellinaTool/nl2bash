@@ -1,0 +1,46 @@
+pbmtopgm(1)                                    General Commands Manual                                   pbmtopgm(1)
+
+
+
+NAME
+       pbmtopgm - convert portable bitmap to portable graymap by averaging areas
+
+
+SYNOPSIS
+       pbmtopgm width height [pbmfile]
+
+
+DESCRIPTION
+       pbmtopgm reads a portable bitmap as input.  It outputs a portable graymap in which each pixel's gray level is
+       the average the surrounding black and white input pixels.  The surrounding area is a rectangle  of  width  by
+       height pixels.
+
+       In other words, this is a convolution.  pbmtopgm is similar to a special case of pnmconvol.
+
+       You may need a ppmsmooth step after pbmtopgm.
+
+       pbmtopgm has the effect of anti-aliasing bitmaps which contain distinct line features.
+
+       pbmtopgm works best with odd sample width and heights.
+
+       You  don't  need  pbmtopgm  just  to use a PGM program on a PBM image.  Any PGM program (assuming it uses the
+       Netpbm libraries to read the PGM input) takes PBM input as if it were PGM, with only the mininum and  maximum
+       gray levels.  So unless your convolution rectangle is bigger than one pixel, you're not gaining anything with
+       a pbmtopgm step.
+
+
+SEE ALSO
+       netpbm(1), pgmtopbm(1), pbm(5)
+
+
+AUTHOR
+       Copyright (C) 1990 by Angus Duggan Copyright (C) 1989 by Jef Poskanzer.
+
+       Permission to use, copy, modify, and distribute this software and its documentation for any purpose and with‐
+       out  fee  is hereby granted, provided that the above copyright notice appear in all copies and that both that
+       copyright notice and this permission notice appear in supporting documentation.  This  software  is  provided
+       "as is" without express or implied warranty.
+
+
+
+                                                     03 Sep 2001                                         pbmtopgm(1)

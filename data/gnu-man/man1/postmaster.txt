@@ -1,0 +1,19 @@
+POSTMASTER(1)                              PostgreSQL 9.3.16 Documentation                             POSTMASTER(1)
+
+
+
+NAME
+       postmaster - PostgreSQL database server
+
+SYNOPSIS
+       postmaster [option...]
+
+DESCRIPTION
+       postmaster is a deprecated alias of postgres.
+
+SEE ALSO
+       postgres(1)
+
+
+
+PostgreSQL 9.3.16                                       2017                                           POSTMASTER(1)

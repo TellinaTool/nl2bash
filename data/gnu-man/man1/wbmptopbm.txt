@@ -1,0 +1,25 @@
+wbmptopbm(1)                                   General Commands Manual                                  wbmptopbm(1)
+
+
+
+NAME
+       wbmptopbm - convert a wireless bitmap (wbmp) file to a portable bitmap (pbm)
+
+SYNOPSIS
+       wbmptopbm [wbmpfile]
+
+DESCRIPTION
+       Reads a wbmp file as input.  Produces a portable bitmap as output.
+
+LIMITATIONS
+       Currently only WBMP type 0 is recognized.  This is the only type specified in the WAP 1.1 specifications.
+
+SEE ALSO
+       pbm(5), pbmtowbmp(1), Wireless Application Environment Specification.
+
+AUTHOR
+       Copyright (C) 1999 Terje Sannum <terje@looplab.com>.
+
+
+
+                                                  19 November 1999                                      wbmptopbm(1)

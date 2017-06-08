@@ -1,0 +1,31 @@
+DOCKER(1)                                                                                                  DOCKER(1)
+
+
+
+NAME
+       docker-image-push - Push an image or a repository to a registry
+
+
+
+SYNOPSIS
+       docker image push [OPTIONS] NAME[:TAG]
+
+
+
+DESCRIPTION
+       Push an image or a repository to a registry
+
+
+
+OPTIONS
+       --disable-content-trust[=true]
+           Skip image verification
+
+
+
+SEE ALSO
+       docker-image(1)
+
+
+
+Docker Community                                      Mar 2017                                             DOCKER(1)

@@ -1,0 +1,49 @@
+RBASH(1)                                       General Commands Manual                                      RBASH(1)
+
+
+
+NAME
+       rbash - restricted bash, see bash(1)
+
+RESTRICTED SHELL
+       If  bash  is  started  with  the  name  rbash,  or the -r option is supplied at invocation, the shell becomes
+       restricted.  A restricted shell is used to set up an environment more controlled than the standard shell.  It
+       behaves identically to bash with the exception that the following are disallowed or not performed:
+
+       ·      changing directories with cd
+
+       ·      setting or unsetting the values of SHELL, PATH, ENV, or BASH_ENV
+
+       ·      specifying command names containing /
+
+       ·      specifying a filename containing a / as an argument to the .  builtin command
+
+       ·      specifying a filename containing a slash as an argument to the -p option to the hash builtin command
+
+       ·      importing function definitions from the shell environment at startup
+
+       ·      parsing the value of SHELLOPTS from the shell environment at startup
+
+       ·      redirecting output using the >, >|, <>, >&, &>, and >> redirection operators
+
+       ·      using the exec builtin command to replace the shell with another command
+
+       ·      adding or deleting builtin commands with the -f and -d options to the enable builtin command
+
+       ·      using the enable builtin command to enable disabled shell builtins
+
+       ·      specifying the -p option to the command builtin command
+
+       ·      turning off restricted mode with set +r or set +o restricted.
+
+       These restrictions are enforced after any startup files are read.
+
+       When  a command that is found to be a shell script is executed, rbash turns off any restrictions in the shell
+       spawned to execute the script.
+
+SEE ALSO
+       bash(1)
+
+
+
+GNU Bash-4.0                                         2004 Apr 20                                            RBASH(1)

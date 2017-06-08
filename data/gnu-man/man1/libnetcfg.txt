@@ -1,0 +1,55 @@
+LIBNETCFG(1)                              Perl Programmers Reference Guide                              LIBNETCFG(1)
+
+
+
+NAME
+       libnetcfg - configure libnet
+
+DESCRIPTION
+       The libnetcfg utility can be used to configure the libnet.  Starting from perl 5.8 libnet is part of the
+       standard Perl distribution, but the libnetcfg can be used for any libnet installation.
+
+USAGE
+       Without arguments libnetcfg displays the current configuration.
+
+           $ libnetcfg
+           # old config ./libnet.cfg
+           daytime_hosts        ntp1.none.such
+           ftp_int_passive      0
+           ftp_testhost         ftp.funet.fi
+           inet_domain          none.such
+           nntp_hosts           nntp.none.such
+           ph_hosts
+           pop3_hosts           pop.none.such
+           smtp_hosts           smtp.none.such
+           snpp_hosts
+           test_exist           1
+           test_hosts           1
+           time_hosts           ntp.none.such
+           # libnetcfg -h for help
+           $
+
+       It tells where the old configuration file was found (if found).
+
+       The "-h" option will show a usage message.
+
+       To change the configuration you will need to use either the "-c" or the "-d" options.
+
+       The default name of the old configuration file is by default "libnet.cfg", unless otherwise specified using
+       the -i option, "-i oldfile", and it is searched first from the current directory, and then from your module
+       path.
+
+       The default name of the new configuration file is "libnet.cfg", and by default it is written to the current
+       directory, unless otherwise specified using the -o option, "-o newfile".
+
+SEE ALSO
+       Net::Config, libnetFAQ
+
+AUTHORS
+       Graham Barr, the original Configure script of libnet.
+
+       Jarkko Hietaniemi, conversion into libnetcfg for inclusion into Perl 5.8.
+
+
+
+perl v5.18.2                                         2016-03-01                                         LIBNETCFG(1)

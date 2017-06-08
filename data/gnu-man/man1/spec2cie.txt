@@ -1,0 +1,82 @@
+CONVERT(1)                                          User Commands                                         CONVERT(1)
+
+
+
+NAME
+       Convert - Convert spectral .ti3 file.
+
+SYNOPSIS
+       spec2cie [options] input.ti3 output.ti3
+
+DESCRIPTION
+       Convert spectral .ti3 file, Version 1.5.1 Author: Gerhard Fuernkranz, licensed under the AGPL Version 3
+
+       -v     Verbose mode
+
+       -I illum
+              Override actual instrument illuminant in .ti3 file:
+
+              A, C, D50, D50M2, D65, F5, F8, F10 or file.sp (only used in conjunction with -f)
+
+       -f [illum]
+              Use Fluorescent Whitening Agent compensation [simulated inst. illum.:
+
+              M0, M1, M2, A, C, D50 (def.), D50M2, D65, F5, F8, F10 or file.sp]
+
+       -i illum
+              Choose  illuminant  for computation of CIE XYZ from spectral data & FWA: A, C, D50 (def.), D50M2, D65,
+              F5, F8, F10 or file.sp
+
+       -o observ
+              Choose CIE Observer for spectral data:
+
+              1931_2 (def), 1964_10, S&B 1955_2, shaw, J&V 1978_2
+
+       -n     Don't output spectral values
+
+       -p     Plot each values spectrum
+
+       input.ti3
+              Measurement file
+
+       output.ti3
+              Converted measurement file
+
+       Author: Gerhard Fuernkranz, licensed under the AGPL Version 3
+
+       Usage: spec2cie [options] input.ti3 output.ti3
+
+       -v     Verbose mode
+
+       -I illum
+              Override actual instrument illuminant in .ti3 file:
+
+              A, C, D50, D50M2, D65, F5, F8, F10 or file.sp (only used in conjunction with -f)
+
+       -f [illum]
+              Use Fluorescent Whitening Agent compensation [simulated inst. illum.:
+
+              M0, M1, M2, A, C, D50 (def.), D50M2, D65, F5, F8, F10 or file.sp]
+
+       -i illum
+              Choose illuminant for computation of CIE XYZ from spectral data & FWA: A, C, D50 (def.),  D50M2,  D65,
+              F5, F8, F10 or file.sp
+
+       -o observ
+              Choose CIE Observer for spectral data:
+
+              1931_2 (def), 1964_10, S&B 1955_2, shaw, J&V 1978_2
+
+       -n     Don't output spectral values
+
+       -p     Plot each values spectrum
+
+       input.ti3
+              Measurement file
+
+       output.ti3
+              Converted measurement file
+
+
+
+Convert spectral .ti3 file, Version 1.5.1            August 2013                                          CONVERT(1)

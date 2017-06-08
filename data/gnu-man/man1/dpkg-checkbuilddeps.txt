@@ -1,0 +1,54 @@
+dpkg-checkbuilddeps(1)                             dpkg utilities                             dpkg-checkbuilddeps(1)
+
+
+
+NAME
+       dpkg-checkbuilddeps - check build dependencies and conflicts
+
+SYNOPSIS
+       dpkg-checkbuilddeps [option...]  [control-file]
+
+DESCRIPTION
+       This  program  checks the installed packages in the system against the build dependencies and build conflicts
+       listed in the control file. If any are not met, it displays them and exits with a nonzero return code.
+
+       By default, debian/control is read, but an alternate control filename may be specified on the command line.
+
+OPTIONS
+       --admindir=dir
+              Change the location of the dpkg database. The default location is /var/lib/dpkg.
+
+       -A     Ignore Build-Depends-Arch and Build-Conflicts-Arch lines. Use when only arch-indep  packages  will  be
+              built, or combine with -B when only a source package is to be built.
+
+       -B     Ignore  Build-Depends-Indep  and  Build-Conflicts-Indep lines. Use when only arch-dep packages will be
+              built, or combine with -A when only a source package is to be built.
+
+       -d build-depends-string
+
+       -c build-conflicts-string
+              Use the given build dependencies/conflicts instead of those contained in the debian/control file.
+
+       -a arch
+              Check build dependencies/conflicts assuming that the package described in the control file  is  to  be
+              built for the given host architecture instead of the architecture of the current system.
+
+       -P profile[,...]
+              Check  build  dependencies/conflicts  assuming that the package described in the control file is to be
+              built for the given build profile(s). The argument is a comma-separated list of profile names, without
+              the "profile." namespace prefix.
+
+       -?, --help
+              Show the usage message and exit.
+
+       --version
+              Show the version and exit.
+
+ENVIRONMENT
+       DEB_BUILD_PROFILES
+              If set, it will be used as the active build profile(s) for the package being built. It is a space sep‐
+              arated list of profile names, without the "profile." namespace prefix. Overridden by the -P option.
+
+
+
+Debian Project                                       2013-09-17                               dpkg-checkbuilddeps(1)

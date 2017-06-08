@@ -1,0 +1,32 @@
+nm-applet(1)                                   General Commands Manual                                  nm-applet(1)
+
+
+
+NAME
+       nm-applet — Network management framework
+
+SYNOPSIS
+       nm-applet
+
+DESCRIPTION
+       nm-applet is the GNOME front-end for NetworkManager
+
+       It  is  a  systray applet which will display an icon in GNOME's notification area but it also works for other
+       desktop environments which provide a systray like KDE or XFCE.
+
+       nm-applet shows a list of available networks and allows you to easily switch between them. For encrypted net‐
+       works it will prompt you for the key/passphrase and you can optionally store them in the gnome-keyring so you
+       don't have to type them again.
+
+SEE ALSO
+       NetworkManager(8), nm-tool(1)
+
+       More Information about NetworkManager can be found at http://www.gnome.org/projects/NetworkManager/ .
+
+AUTHOR
+       This manual page was written by Riccardo Setti giskard@autistici.org for the Debian system.
+
+
+
+
+                                                                                                        nm-applet(1)

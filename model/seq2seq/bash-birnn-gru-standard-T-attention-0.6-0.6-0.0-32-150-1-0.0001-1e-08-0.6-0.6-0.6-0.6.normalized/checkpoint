@@ -1,6 +1,0 @@
-model_checkpoint_path: "translate.ckpt-6"
-all_model_checkpoint_paths: "translate.ckpt-2"
-all_model_checkpoint_paths: "translate.ckpt-3"
-all_model_checkpoint_paths: "translate.ckpt-4"
-all_model_checkpoint_paths: "translate.ckpt-5"
-all_model_checkpoint_paths: "translate.ckpt-6"

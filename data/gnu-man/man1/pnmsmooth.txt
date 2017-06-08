@@ -1,0 +1,33 @@
+pnmsmooth(1)                                   General Commands Manual                                  pnmsmooth(1)
+
+
+
+NAME
+       pnmsmooth - smooth out an image
+
+SYNOPSIS
+       pnmsmooth [-size width height] [-dump dumpfile] [pnmfile]
+
+DESCRIPTION
+       Smooths  out an image by replacing each pixel with the average of its width X height neighbors.  It is imple‐
+       mented as a C progam that generates a PGM convolution matrix and then invokes pnmconvol.
+
+OPTIONS
+       -size width height
+              Specifies the size of the convolution matrix.  Default size is a 3x3 matrix.  Width and  height  sizes
+              must be odd.  Maximum size of convolution matrix is limited by the maximum value for a pixel such that
+              (width * height * 2) must not exceed the maximum pixel value.
+
+       -dump dumpfile
+              Generates and saves the convolution file only.  Use of this option does not invoke pnmconvol.
+
+SEE ALSO
+       pnmconvol(1), pnm(5)
+
+AUTHORS
+       Copyright (C) 1989, 1991 by Jef Poskanzer.
+       Converted from script to C program December 1994 by Mike Burns (burns@chem.psu.edu).
+
+
+
+                                                   4 December 1994                                      pnmsmooth(1)

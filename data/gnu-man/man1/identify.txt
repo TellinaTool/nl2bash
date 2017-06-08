@@ -1,0 +1,88 @@
+identify(1)                                    General Commands Manual                                   identify(1)
+
+
+
+NAME
+       identify - describes the format and characteristics of one or more image files.
+
+SYNOPSIS
+       identify [options] input-file
+
+OVERVIEW
+       The  identify  program is a member of the ImageMagick(1) suite of tools.  It describes the format and charac‐
+       teristics of one or more image files. It also reports if an image is incomplete or corrupt.  The  information
+       returned  includes  the  image number, the file name, the width and height of the image, whether the image is
+       colormapped or not, the number of colors in the image (by default off use -define  unique=true  option),  the
+       number of bytes in the image, the format of the image (JPEG, PNM, etc.), and finally the number of seconds it
+       took to read and process the image. Many more attributes are available with the verbose option.
+
+       For more information about the  identify  command,  point  your  browser  to  file:///usr/share/doc/imagemag‐
+       ick/www/identify.html or http://www.imagemagick.org/script/identify.php.
+
+DESCRIPTION
+       Image Settings:
+         -antialias           remove pixel-aliasing
+         -authenticate value  decrypt image with this password
+         -channel type        apply option to select image channels
+         -crop geometry       cut out a rectangular region of the image
+         -define format:option
+                              define one or more image format options
+         -define unique=true  return the number of unique colors in the image
+         -density geometry    horizontal and vertical density of the image
+         -depth value         image depth
+         -extract geometry    extract area from image
+         -features distance   analyze image features (e.g. contrast, correlation)
+         -format "string"     output formatted image characteristics
+         -fuzz distance       colors within this distance are considered equal
+         -interlace type      type of image interlacing scheme
+         -interpolate method  pixel color interpolation method
+         -limit type value    pixel cache resource limit
+         -list type           Color, Configure, Delegate, Format, Magic, Module,
+                              Resource, or Type
+         -matte               store matte channel if the image has one
+         -monitor             monitor progress
+         -ping                efficiently determine image attributes
+         -quiet               suppress all warning messages
+         -regard-warnings     pay attention to warning messages
+         -sampling-factor geometry
+                              horizontal and vertical sampling factor
+         -seed value          seed a new sequence of pseudo-random numbers
+         -set attribute value set an image attribute
+         -size geometry       width and height of image
+         -strip               strip image of all profiles and comments
+         -unique              display the number of unique colors in the image
+         -units type          the units of image resolution
+         -verbose             print detailed information about the image
+         -virtual-pixel method
+                              virtual pixel access method
+
+       Image Operators:
+         -negate              replace each pixel with its complementary color
+
+       Miscellaneous Options:
+         -debug events        display copious debugging information
+         -help                print program options
+         -log format          format of debugging information
+         -list type           print a list of supported option arguments
+         -version             print version information
+
+       By default, the image format of `file' is determined by its magic number.  To specify a particular image for‐
+       mat, precede the filename with an image format name and a colon (i.e. ps:image) or specify the image type  as
+       the filename suffix (i.e. image.ps).  Specify 'file' as '-' for standard input or output.
+
+NOTE
+       Although some options appear to modify the file to be identified, the identify command is strictly read only.
+       For instance, the crop option crops the in-memory image and then describes the result.
+
+
+SEE ALSO
+       ImageMagick(1)
+
+
+COPYRIGHT
+       Copyright (C) 1999-2012 ImageMagick Studio LLC. Additional copyrights and licenses apply  to  this  software,
+       see file:///usr/share/doc/imagemagick/www/license.html or http://www.imagemagick.org/script/license.php
+
+
+
+ImageMagick                                   Date: 2009/01/10 01:00:00                                  identify(1)

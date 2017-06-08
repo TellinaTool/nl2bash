@@ -1,0 +1,33 @@
+HCIEMU(1)                                                                                                  HCIEMU(1)
+
+
+
+NAME
+       hciemu - HCI emulator
+
+SYNOPSIS
+       hciemu [options] local_address
+
+
+DESCRIPTION
+       hciemu is used to emulate an HCI via hci_vhci kernel module
+
+
+OPTIONS
+       -d device
+              use specified device
+
+       -b bdaddr
+              emulate bdaddr
+
+       -s file
+              create snoop file file
+
+       -n     do not detach
+
+
+AUTHORS
+       Written  by Marcel Holtmann <marcel@holtmann.org> and Maxim Krasnyansky <maxk@qualcomm.com>, man page by Fil‐
+       ippo Giunchedi <filippo@debian.org>
+
+BlueZ                                                Jul 6 2009                                            HCIEMU(1)

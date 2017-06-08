@@ -1,0 +1,44 @@
+SOAPSH(1p)                               User Contributed Perl Documentation                              SOAPSH(1p)
+
+
+
+NAME
+       SOAPsh - Interactive shell for SOAP calls
+
+SYNOPSIS
+         perl SOAPsh http://services.soaplite.com/examples.cgi http://www.soaplite.com/My/Examples
+         > getStateName(2)
+         > getStateNames(1,2,3,7)
+         > getStateList([1,9])
+         > getStateStruct({a=>1, b=>24})
+         > Ctrl-D (Ctrl-Z on Windows)
+
+       or
+
+         # all parameters after uri will be executed as methods
+         perl SOAPsh http://soap.4s4c.com/ssss4c/soap.asp http://simon.fell.com/calc doubler([10,20,30])
+         > Ctrl-D (Ctrl-Z on Windows)
+
+DESCRIPTION
+       SOAPsh is a shell for making SOAP calls. It takes two parameters: mandatory endpoint and optional uri
+       (actually it will tell you about it if you try to run it). Additional commands can follow.
+
+       After that you'll be able to run any methods of SOAP::Lite, like autotype, readable, encoding, etc. You can
+       run it the same way as you do it in your Perl script. You'll see output from method, result of SOAP call,
+       detailed info on SOAP faulure or transport error.
+
+       For full list of available methods see documentation for SOAP::Lite.
+
+       Along with methods of SOAP::Lite you'll be able (and that's much more interesting) run any SOAP methods you
+       know about on remote server and see processed results. You can even switch on debugging (with call something
+       like: "on_debug(sub{print@_})") and see SOAP code with headers sent and received.
+
+COPYRIGHT
+       Copyright (C) 2000 Paul Kulchenko. All rights reserved.
+
+AUTHOR
+       Paul Kulchenko (paulclinger@yahoo.com)
+
+
+
+perl v5.18.2                                         2013-06-13                                           SOAPSH(1p)

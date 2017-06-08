@@ -1,0 +1,161 @@
+OPENCV_HAARTRAINING(1)                              User Commands                             OPENCV_HAARTRAINING(1)
+
+
+
+NAME
+       opencv_haartraining - train classifier
+
+
+
+SYNOPSIS
+       opencv_haartraining [options]
+
+
+
+DESCRIPTION
+       opencv_haartraining  is  training  the  classifier.  While  it is running, you can already get an impression,
+       whether the classifier will be suitable or if you need to improve the training set and/or parameters.
+
+       In the output:
+
+       'POS:' shows the hitrate in the set of training samples (should be equal or near to 1.0 as in stage 0)
+
+       'NEG:' indicates the false alarm rate (should reach at least 5*10-6 to be a usable classifier for real  world
+              applications)
+
+       If  one  of the above values gets 0 (zero) there is an overflow. In this case the false alarm rate is so low,
+       that further training doesn't make sense anymore, so it can be stopped.
+
+
+
+OPTIONS
+       opencv_haartraining supports the following options:
+
+
+       -data dir_name
+              The directory in which the trained classifier is stored.
+
+
+       -vec vec_file_name
+              The file name of the positive samples file (e.g. created by the opencv_createsamples(1) utility).
+
+
+       -bg background_file_name
+              The background description file (the negative sample set). It contains a list  of  images  into  which
+              randomly distorted versions of the object are pasted for positive sample generation.
+
+
+       -bg-vecfile
+              This option is that bgfilename represents a vec file with discrete negatives. The default is not set.
+
+
+       -npos number_of_positive_samples
+              The number of positive samples used in training of each classifier stage.  The default is 2000.
+
+
+       -nneg number_of_negative_samples
+              The number of negative samples used in training of each classifier stage.  The default is 2000.
+
+
+       Reasonable values are -npos 7000 -nneg 3000.
+
+
+       -nstages number_of_stage
+              The number of stages to be trained. The default is 14.
+
+
+       -nsplits number_of_splits
+              Determine the weak classifier used in stage classifiers. If the value is
+
+              1, then a simple stump classifier is used
+
+              >=2, then CART classifier with number_of_splits internal (split) nodes is used
+
+              The default is 1.
+
+
+       -mem memory_in_MB
+              Available  memory  in  MB for precalculation. The more memory you have the faster the training process
+              is.  The default is 200.
+
+
+       -sym, -nonsym
+              Specify whether the object class under training has  vertical  symmetry  or  not.   Vertical  symmetry
+              speeds  up  training  process  and reduces memory usage. For instance, frontal faces show off vertical
+              symmetry. The default is -sym.
+
+
+       -minhitrate min_hit_rate
+              The minimal desired hit rate for  each  stage  classifier.  Overall  hit  rate  may  be  estimated  as
+              min_hit_rate^number_of_stages.  The default is 0.950000.
+
+
+       -maxfalsealarm max_false_alarm_rate
+              The  maximal desired false alarm rate for each stage classifier. Overall false alarm rate may be esti‐
+              mated as max_false_alarm_rate^number_of_stages.  The default is 0.500000.
+
+
+       -weighttrimming weight_trimming
+              Specifies whether and how much weight trimming should be used. The  default  is  0.950000.   A  decent
+              choice is 0.900000.
+
+
+       -eqw   Specify if initial weights of all samples will be equal.
+
+
+       -mode {BASIC|CORE|ALL}
+              Select  the  type of haar features set used in training.  BASIC uses only upright features, while CORE
+              uses the full upright feature set and ALL uses the full set of upright and 45 degree  rotated  feature
+              set.  The default is BASIC.
+
+              For more information on this see http://www.lienhart.de/ICIP2002.pdf.
+
+
+       -h sample_height
+              The sample height (must have the same value as used during creation).  The default is 24.
+
+
+       -w sample_width
+              The sample width (must have the same value as used during creation).  The default is 24.
+
+
+       -bt {DAB|RAB|LB|GAB}
+              The  type  of  the  applied  boosting  algorithm. You can choose between Discrete AdaBoost (DAB), Real
+              AdaBoost (RAB), LogitBoost (LB) and Gentle AdaBoost (GAB). The default is GAB.
+
+
+       -err {misclass|gini|entropy}
+              The type of used error if Discrete AdaBoost (-bt DAB) algorithm is applied. The default is misclass.
+
+
+       -maxtreesplits max_number_of_splits_in_tree_cascade
+              The maximal number of splits in a tree cascade. The default is 0.
+
+
+       -minpos min_number_of_positive_samples_per_cluster
+              The minimal number of positive samples per cluster. The default is 500.
+
+
+       The same information is shown, if opencv_haartraining is called without any arguments/options.
+
+
+
+EXAMPLES
+       TODO
+
+
+
+SEE ALSO
+       opencv_createsamples(1), opencv_performance(1)
+
+       More information and examples can be found in the OpenCV documentation.
+
+
+
+AUTHORS
+       This manual page  was  written  by  Daniel  Leidert  <daniel.leidert@wgdd.de>  and  Nobuhiro  Iwamatsu  <iwa‐
+       matsu@debian.org> for the Debian project (but may be used by others).
+
+
+
+OpenCV                                                May 2010                                OPENCV_HAARTRAINING(1)

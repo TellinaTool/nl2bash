@@ -1,0 +1,25 @@
+clear(1)                                       General Commands Manual                                      clear(1)
+
+
+
+NAME
+       clear - clear the terminal screen
+
+SYNOPSIS
+       clear
+
+DESCRIPTION
+       clear  clears your screen if this is possible, including its scrollback buffer (if the extended "E3" capabil‐
+       ity is defined).  clear looks in the environment for the terminal type and then in the terminfo  database  to
+       determine how to clear the screen.
+
+       clear ignores any command-line parameters that may be present.
+
+SEE ALSO
+       tput(1), terminfo(5)
+
+       This describes ncurses version 5.9 (patch 20140118).
+
+
+
+                                                                                                            clear(1)

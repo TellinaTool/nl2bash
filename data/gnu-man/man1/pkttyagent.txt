@@ -1,0 +1,51 @@
+PKTTYAGENT(1)                                        pkttyagent                                        PKTTYAGENT(1)
+
+
+
+NAME
+       pkttyagent - Textual authentication helper
+
+SYNOPSIS
+       pkttyagent [--version] [--help]
+
+       pkttyagent [--process { pid | pid,pid-start-time } | --system-bus-name busname] [--notify-fd fd] [--fallback]
+
+DESCRIPTION
+       pkttyagent is used to start a textual authentication agent for the subject specified by either --process or
+       --system-bus-name. If neither of these options are given, the parent process is used.
+
+       To get notified when the authentication agent has been registered either listen to the Changed D-Bus signal
+       or use --notify-fd to pass the number of a file descriptor that has been passed to the program. This file
+       descriptor will then be closed when the authentication agent has been successfully registered.
+
+       If --fallback is used, the textual authentication agent will not replace an existing authentication agent.
+
+RETURN VALUE
+       If the authentication agent could not be registered, pkttyagent exits with an exit code of 127. Diagnostic
+       messages are printed on standard error.
+
+       If one or more of the options passed are malformed, pkttyagent exits with an exit code of 126. If stdin is a
+       tty, then this manual page is also shown.
+
+       If the authentication agent was successfully registered, pkttyagent will keep running, interacting with the
+       user as needed. When its services are no longer needed, the process can be killed.
+
+NOTES
+       Since process identifiers can be recycled, the caller should always use pid,pid-start-time when using the
+       --process option. The value of pid-start-time can be determined by consulting e.g. the proc(5) file system
+       depending on the operating system. If only pid is passed to the --process option, then pkttyagent will look
+       up the start time itself but note that this may be racy.
+
+AUTHOR
+       Written by David Zeuthen <davidz@redhat.com> with a lot of help from many others.
+
+BUGS
+       Please send bug reports to either the distribution or the polkit-devel mailing list, see the link
+       http://lists.freedesktop.org/mailman/listinfo/polkit-devel on how to subscribe.
+
+SEE ALSO
+       polkit(8), pkaction(1), pkcheck(1), pkexec(1)
+
+
+
+polkit                                                May 2009                                         PKTTYAGENT(1)

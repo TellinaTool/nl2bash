@@ -1,0 +1,34 @@
+XASY(1x)                                                                                                    XASY(1x)
+
+
+
+NAME
+       asy - script-based vector graphics language
+
+SYNOPSIS
+       xasy  [-x magnification] [filename]
+
+DESCRIPTION
+       Asymptote  is a powerful descriptive vector graphics language for technical drawing, inspired by MetaPost but
+       with an improved C++-like syntax.  Asymptote provides for figures the same high-quality level of  typesetting
+       that LaTeX does for scientific text.
+
+       xasy is a GUI for Asymptote that allows for final figure adjustments.
+
+
+OPTIONS
+       -x magnification
+              Initial zoom.
+
+
+SEE ALSO
+       Asymptote and xasy are documented fully in the Asymptote Info page.
+
+AUTHOR
+       Asymptote was written by Andy Hammerlindl, John Bowman, and Tom Prince.
+
+       This manual page was written by Hubert Chan for the Debian project (but may be used by others).
+
+
+
+                                                     27 Nov 2007                                            XASY(1x)

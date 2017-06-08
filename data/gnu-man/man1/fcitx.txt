@@ -1,0 +1,51 @@
+FCITX(1)                                       General Commands Manual                                      FCITX(1)
+
+
+
+NAME
+       fcitx - Free Chinese Input Toy of X - a Chinese IME for XIM
+
+SYNOPSIS
+       fcitx [OPTION]
+
+DESCRIPTION
+       This manual page documents briefly the fcitx command.
+
+       fcitx  is  a Chinese IME for XIM intentionally designed not to depend on any Desktop Environment. It includes
+       Pinyin and Table for input by default, but it can also support other Input Method.
+
+OPTIONS
+       -r     replace existing fcitx
+
+       -d     run as daemon(default)
+
+       -D     don't run as daemon
+
+       -s[sleep time]
+              override delay start time in config file, 0 for immediate start
+
+       -u, --ui[ui name]
+              force to use specified user interface
+
+       --enable[addon A,addon B]
+              specify a comma separated list for addon that will override the enable option
+
+       --disable[addon A,addon B]
+              specify a comma separated list for addon that  will  explicitly  disabled,  priority  is  higher  than
+              --enable
+
+       -v     display the version information and exit
+
+       -h     display help and exit
+
+ENVIRONMENT
+       XMODIFIERS
+              If  $XMODIFIERS is set, fcitx will run with the name that specified in $XMODIFIERS , otherwise it will
+              run with im name fcitx.
+
+SEE ALSO
+       Please see the homepage at http://www.fcitx.org/ and http://fcitx.googlecode.com/
+
+
+
+                                                     2010-12-16                                             FCITX(1)

@@ -1,0 +1,32 @@
+PWDX(1)                                             User Commands                                            PWDX(1)
+
+
+
+NAME
+       pwdx - report current working directory of a process
+
+SYNOPSIS
+       pwdx [options] pid [...]
+
+OPTIONS
+       -V, --version
+              Output version information and exit.
+
+       -h, --help
+              Output help screen and exit.
+
+SEE ALSO
+       ps(1), pgrep(1)
+
+STANDARDS
+       No standards apply, but pwdx looks an awful lot like a SunOS command.
+
+AUTHOR
+       Nicholas Miell ⟨nmiell@gmail.com⟩ wrote pwdx in 2004.
+
+REPORTING BUGS
+       Please send bug reports to ⟨procps@freelists.org⟩
+
+
+
+procps-ng                                             June 2011                                              PWDX(1)

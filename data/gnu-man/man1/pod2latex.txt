@@ -1,0 +1,98 @@
+POD2LATEX(1p)                            User Contributed Perl Documentation                           POD2LATEX(1p)
+
+
+
+NAME
+       pod2latex - convert pod documentation to latex format
+
+SYNOPSIS
+         pod2latex *.pm
+
+         pod2latex -out mytex.tex *.pod
+
+         pod2latex -full -sections 'DESCRIPTION|NAME' SomeDir
+
+         pod2latex -prefile h.tex -postfile t.tex my.pod
+
+DESCRIPTION
+       "pod2latex" is a program to convert POD format documentation (perlpod) into latex. It can process multiple
+       input documents at a time and either generate a latex file per input document or a single combined output
+       file.
+
+OPTIONS AND ARGUMENTS
+       This section describes the supported command line options. Minimum matching is supported.
+
+       -out
+           Name of the output file to be used. If there are multiple input pods it is assumed that the intention is
+           to write all translated output into a single file. ".tex" is appended if not present.  If the argument is
+           not supplied, a single document will be created for each input file.
+
+       -full
+           Creates a complete "latex" file that can be processed immediately (unless "=for/=begin" directives are
+           used that rely on extra packages).  Table of contents and index generation commands are included in the
+           wrapper "latex" code.
+
+       -sections
+           Specify pod sections to include (or remove if negated) in the translation.  See "SECTION SPECIFICATIONS"
+           in Pod::Select for the format to use for section-spec. This option may be given multiple times on the
+           command line.This is identical to the similar option in the "podselect()" command.
+
+       -modify
+           This option causes the output "latex" to be slightly modified from the input pod such that when a "=head1
+           NAME" is encountered a section is created containing the actual pod name (rather than NAME) and all
+           subsequent "=head1" directives are treated as subsections. This has the advantage that the description of
+           a module will be in its own section which is helpful for including module descriptions in documentation.
+           Also forces "latex" label and index entries to be prefixed by the name of the module.
+
+       -h1level
+           Specifies the "latex" section that is equivalent to a "H1" pod directive. This is an integer between 0
+           and 5 with 0 equivalent to a "latex" chapter, 1 equivalent to a "latex" section etc. The default is 1
+           ("H1" equivalent to a latex section).
+
+       -help
+           Print a brief help message and exit.
+
+       -man
+           Print the manual page and exit.
+
+       -verbose
+           Print information messages as each document is processed.
+
+       -preamble
+           A user-supplied preamble for the LaTeX code. Multiple values are supported and appended in order
+           separated by "\n".  See -prefile for reading the preamble from a file.
+
+       -postamble
+           A user supplied postamble for the LaTeX code. Multiple values are supported and appended in order
+           separated by "\n".  See -postfile for reading the postamble from a file.
+
+       -prefile
+           A user-supplied preamble for the LaTeX code to be read from the named file. Multiple values are supported
+           and appended in order. See -preamble.
+
+       -postfile
+           A user-supplied postamble for the LaTeX code to be read from the named file. Multiple values are
+           supported and appended in order. See -postamble.
+
+BUGS
+       Known bugs are:
+
+       ·   Cross references between documents are not resolved when multiple pod documents are converted into a
+           single output "latex" file.
+
+       ·   Functions and variables are not automatically recognized and they will therefore not be marked up in any
+           special way unless instructed by an explicit pod command.
+
+SEE ALSO
+       Pod::LaTeX
+
+AUTHOR
+       Tim Jenness <tjenness@cpan.org>
+
+       This program is free software; you can redistribute it and/or modify it under the same terms as Perl itself.
+
+       Copyright (C) 2000, 2003, 2004 Tim Jenness. All Rights Reserved.
+
+
+
+perl v5.14.2                                         2013-05-31                                        POD2LATEX(1p)

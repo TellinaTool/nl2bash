@@ -1,0 +1,26 @@
+P11-KIT(1)                                     General Commands Manual                                    P11-KIT(1)
+
+
+
+NAME
+       p11-kit - List the PKCS#11 modules provided on the system
+
+
+SYNOPSIS
+       p11-kit [OPTIONS]
+
+
+DESCRIPTION
+       List the PKCS#11 modules installed on the system
+
+
+OPTIONS
+       -l     Lists all of the PKCS#11 modules provided.
+
+       -v     Turn on verbose mode.
+
+       -h     Print usage information.
+
+
+
+p11-kit                                              2011-07-28                                           P11-KIT(1)

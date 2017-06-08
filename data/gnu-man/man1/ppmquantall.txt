@@ -1,0 +1,39 @@
+ppmquantall(1)                                 General Commands Manual                                ppmquantall(1)
+
+
+
+NAME
+       ppmquantall - run ppmquant on a bunch of files all at once, so they share a common colormap
+
+
+SYNOPSIS
+       ppmquantall [-ext extension] ncolors ppmfile ...
+
+
+DESCRIPTION
+       Takes  a bunch of portable pixmap as input.  Chooses ncolors colors to best represent all of the images, maps
+       the existing colors to the new ones, and overwrites the input files with the new quantized versions.
+
+       If you don't want to overwrite your input files, use the -ext option.  The output files are  then  named  the
+       same as the input files, plus a period and the extension text you specify.
+
+       Verbose  explanation:  Let's say you've got a dozen pixmaps that you want to display on the screen all at the
+       same time.  Your screen can only display 256 different colors, but the pixmaps have a total of a thousand  or
+       so  different  colors.   For  a single pixmap you solve this problem with ppmquant; this script solves it for
+       multiple pixmaps.  All it does is concatenate them together into one big pixmap, run ppmquant  on  that,  and
+       then split it up into little pixmaps again.
+
+       (Note  that  another  way to solve this problem is to pre-select a set of colors and then use ppmquant's -map
+       option to separately quantize each pixmap to that set.)
+
+
+SEE ALSO
+       ppmquant(1), ppm(5)
+
+
+AUTHOR
+       Copyright (C) 1991 by Jef Poskanzer.
+
+
+
+                                                    27 July 1990                                      ppmquantall(1)

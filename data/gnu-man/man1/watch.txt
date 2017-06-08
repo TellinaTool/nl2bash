@@ -1,0 +1,128 @@
+WATCH(1)                                            User Commands                                           WATCH(1)
+
+
+
+NAME
+       watch - execute a program periodically, showing output fullscreen
+
+SYNOPSIS
+       watch [options] command
+
+DESCRIPTION
+       watch  runs  command repeatedly, displaying its output and errors (the first screenfull).  This allows you to
+       watch the program output change over time.  By default, the program is run  every  2  seconds.   By  default,
+       watch will run until interrupted.
+
+OPTIONS
+       -d, --differences [permanent]
+              Highlight the differences between successive updates.  Option will read optional argument that changes
+              highlight to be permanent, allowing to see what has changed at least once since first iteration.
+
+       -n, --interval seconds
+              Specify update interval.  The command will not allow quicker than 0.1 second interval,  in  which  the
+              smaller values are converted.
+
+       -p, --precise
+              Make watch attempt to run command every interval seconds. Try it with ntptime and notice how the frac‐
+              tional seconds stays (nearly) the same, as opposed to normal mode where they continuously increase.
+
+       -t, --no-title
+              Turn off the header showing the interval, command, and current time at the top of the display, as well
+              as the following blank line.
+
+       -b, --beep
+              Beep if command has a non-zero exit.
+
+       -e, --errexit
+              Freeze updates on command error, and exit after a key press.
+
+       -g, --chgexit
+              Exit when the output of command changes.
+
+       -c, --color
+              Interpret ANSI color sequences.
+
+       -x, --exec
+              command  is  given  to  sh  -c  which  means that you may need to use extra quoting to get the desired
+              effect.  This with the --exec option, which passes the command to exec(2) instead.
+
+       -h, --help
+              Display help text and exit.
+
+       -v, --version
+              Display version information and exit.
+
+NOTE
+       Note that POSIX option processing is used (i.e., option processing stops at the first  non-option  argument).
+       This means that flags after command don't get interpreted by watch itself.
+
+EXAMPLES
+       To watch for mail, you might do
+
+              watch -n 60 from
+
+       To watch the contents of a directory change, you could use
+
+              watch -d ls -l
+
+       If you're only interested in files owned by user joe, you might use
+
+              watch -d 'ls -l | fgrep joe'
+
+       To see the effects of quoting, try these out
+
+              watch echo $$
+              watch echo '$$'
+              watch echo "'"'$$'"'"
+
+       To see the effect of precision time keeping, try adding -p to
+
+              watch -n 10 sleep 1
+
+       You can watch for your administrator to install the latest kernel with
+
+              watch uname -r
+
+       (Note  that  -p  isn't  guaranteed  to work across reboots, especially in the face of ntpdate or other bootup
+       time-changing mechanisms)
+
+BUGS
+       Upon terminal resize, the screen will not be correctly repainted until the next scheduled update.  All --dif‐
+       ferences highlighting is lost on that update as well.
+
+       Non-printing  characters  are  stripped from program output.  Use "cat -v" as part of the command pipeline if
+       you want to see them.
+
+       Combining Characters that are supposed to display on the character at the last column on the screen may  dis‐
+       play one column early, or they may not display at all.
+
+       Combining Characters never count as different in --differences mode.  Only the base character counts.
+
+       Blank lines directly after a line which ends in the last column do not display.
+
+       --precise  mode  doesn't  yet  have  advanced temporal distortion technology to compensate for a command that
+       takes more than interval seconds to execute.  watch also can get into a state where it  rapid-fires  as  many
+       executions  of  command  as  it  can to catch up from a previous executions running longer than interval (for
+       example, netstat taking ages on a DNS lookup).
+
+EXIT STATUS
+              0      Success.
+              1      Various failures.
+              2      Forking the process to watch failed.
+              3      Replacing child process stdout with write side pipe failed.
+              4      Command execution failed.
+              5      Closign child process write pipe failed.
+              7      IPC pipe creation failed.
+              8      Getting child process return value with waitpid(2) failed, or command exited up on error.
+              other  The watch will propagate command exit status as child exit status.
+AUTHORS
+       The original watch was written by Tony Rems ⟨rembo@unisoft.com⟩ in 1991, with mods and corrections  by  Fran‐
+       cois  Pinard.   It was reworked and new features added by Mike Coleman ⟨mkc@acm.org⟩ in 1999. The beep, exec,
+       and error handling features were added by Morty Abzug ⟨morty@frakir.org⟩ in 2008.   On  a  not  so  dark  and
+       stormy morning in March of 2003, Anthony DeRobertis ⟨asd@suespammers.org⟩ got sick of his watches that should
+       update every minute eventually updating many seconds after the minute started, and added  microsecond  preci‐
+       sion.  Unicode support was added in 2009 by Jarrod Lowe ⟨procps@rrod.net⟩
+
+
+
+procps-ng                                             June 2011                                             WATCH(1)

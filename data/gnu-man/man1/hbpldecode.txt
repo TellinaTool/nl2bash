@@ -1,0 +1,198 @@
+hbpldecode(1)                                  General Commands Manual                                 hbpldecode(1)
+
+
+
+
+
+NAME
+       hbpldecode - Decode a HBPL stream into human readable form.
+
+SYNOPSIS
+       hbpldecode [options] <hbpl-file
+
+DESCRIPTION
+       hbpldecode decodes a HBPL stream into human readable form.  HBPL is Host Based Printer Language.
+
+       There are two versions of HBPL in existence.
+
+       Version one is an HBPL stream with Huffman RLE data.  This data is used by the Dell 1250c, Dell C1660w, Epson
+       AcuLaser C1700, Fuji-Xerox cp105b, and similar printers.  These printers are unsupported.
+
+       Version two is an HBPL stream with JBIG encoded data. This data is used by the Xerox  WorkCentre  6015,  Fuji
+       Xerox DocuPrint CM205, and the Dell 1355c.  These printers are supported by foo2hbpl2-wrapper et al.
+
+       Both versions can be decoded by hbpldecode.
+
+
+COMMAND LINE OPTIONS
+       These are the options that can appear on the command line.
+
+       -d basename
+              Basename of .pbm file for saving decompressed planes.
+
+       -h     Print hex file offsets.
+
+       -o     Print file offsets.
+
+       -D level
+              Set Debug level [0].
+
+
+EXAMPLES
+       Decode an HBPL stream file, version 1.
+
+       $ hbpldecode -h 1250c-mono.prn
+            0:    \033%-12345X@PJL JOB MODE=PRINTER
+           1f:    @PJL SET STRINGCODESET=UTF8
+           3b:    @PJL COMMENT DATE=06/01/2011
+           58:    @PJL COMMENT TIME=13:28:30
+           73:    @PJL COMMENT DNAME=empty - Notepad
+           96:    @PJL SET JOBATTR="@LUNA=rick"
+           b4:    @PJL SET COPIES=1
+           c6:    @PJL SET QTY=1
+           d5:    @PJL SET JOBATTR="@TRCH=OFF"
+           f2:    @PJL SET DUPLEX=OFF
+          106:    @PJL SET BINDING=LONGEDGE
+          120:    @PJL SET RENDERMODE=GRAYSCALE
+          13e:    @PJL SET ECONOMODE=OFF
+          155:    @PJL SET RET=ON
+          165:    @PJL SET JOBATTR="@IREC=OFF"
+          182:    @PJL SET JOBATTR="@HOAD=I0A00020F"
+          1a5:    @PJL SET JOBATTR="@JOAU=rick"
+          1c3:    @PJL SET JOBATTR="@CNAM=RICK-VB"
+          1e4:    @PJL SET IWAMANUALDUP=OFF
+          1fe:    @PJL SET IWAJAMRECOVERY=AUTO
+          21b:    @PJL SET JOBATTR="@MSIP=NORMAL"
+          23b:    @PJL SET PAPERDIRECTION=SEF
+          257:    @PJL SET RESOLUTION=600
+          26f:    @PJL SET BITSPERPIXEL=8
+          287:    @PJL SET JOBATTR="@DRDM=RASTER"
+          2a7:    @PJL SET JOBATTR="@TCPR=33"
+          2c3:    @PJL SET JOBATTR="@TUCR=33"
+          2df:    @PJL SET JOBATTR="@TTRC=33"
+          2fb:    @PJL SET JOBATTR="@TSCR=33"
+          317:    @PJL SET JOBATTR="@GCPR=33"
+          333:    @PJL SET JOBATTR="@GUCR=33"
+          34f:    @PJL SET JOBATTR="@GTRC=33"
+          36b:    @PJL SET JOBATTR="@GSCR=33"
+          387:    @PJL SET JOBATTR="@ICPR=34"
+          3a3:    @PJL SET JOBATTR="@IUCR=34"
+          3bf:    @PJL SET JOBATTR="@ITRC=34"
+          3db:    @PJL SET JOBATTR="@ISCR=34"
+          3f7:    @PJL SET JOBATTR="@TDFT=0"
+          412:    @PJL SET JOBATTR="@GDFT=0"
+          42d:    @PJL SET JOBATTR="@IDFT=0"
+          448:    @PJL ENTER LANGUAGE=HBPL
+          461:    RECTYPE 'A' [0x41]:
+          462:         81 a1: 0x0
+          465:         82 a2: 0x7
+          469:         83 a2: 0x1
+          46d:    RECTYPE 'C' [0x43]:
+          46e:         91 a1: 0x0
+          471:         92 a1: 0x1
+          474:         93 a1: 0x1
+          477:         94 a1: 0x0
+          47a:         95 c2: 0x0
+          480:         96 a1: 0x0
+          483:         97 c3: 0x0
+          489:         98 a1: 0x0
+          48c:         99 a4: 1 [PAGECNT]
+          492:         9a c4: 5104x6600 [WxH]
+          49c:         9b a1: 0x0
+          49f:         9c a1: 0x1
+          4a2:         9d a1: 0x9
+          4a5:         9e a1: 0x2
+          4a8:         9f a1: 0x5
+          4ab:         a0 a1: 0x8
+          4ae:         a1 a1: 0x0
+          4b1:         a2 c4: 5104x6600 [WxH]
+          4bb:    RECTYPE 'Q' [0x51]:
+          4bc:    RECTYPE 'R' [0x52]:
+          4bd:         a3 a1: 0x0
+          4c0:         a4 a2: 6457 (0x1939) bytes of data...
+         1dfe:    RECTYPE 'S' [0x53]:
+         1dff:    RECTYPE 'D' [0x44]:
+         1e00:    RECTYPE 'B' [0x42]:
+         1dff:    \033%-12345X@PJL EOJ
+
+       Decode an HBPL stream file, version 2.
+
+       $ hbpldecode -h 6015c-color.prn
+            0:     33%-12345X@PJL JOB NAME=PRINTER
+           20:    @PJL SET JOBATTR="HOST:dual.rkkda.org"
+           48:    @PJL SET JOBATTR="USER:rick"
+           66:    @PJL SET JOBATTR="DOCU:(stdin)"
+           87:    @PJL SET JOBATTR="OWNR:rick"
+           a5:    @PJL SET DUPLEX=OFF
+           ba:    @PJL SET MEDIASOURCE=0
+           d2:    @PJL SET RENDERMODE=COLOR
+           ed:    @PJL SET RESOLUTION=600
+          106:    @PJL SET BITSPERPIXEL=2
+          11f:    @PJL SET COPIES=1
+          132:    @PJL ENTER LANGUAGE=HBPL
+          14c:    RECTYPE JP [Job Parameters]
+       00000000: 1b 4a 50 04 01 00 00 01  00 00 00 00 00 00 00 00  .JP..... ........
+       00000010: b0 bd ac 43 00 f0 cf 08  f4 9f ac 43 59 ba a0 43  ...C.... ...CY..C
+       00000020: f4 9f ac 43 00 e0 cd 08  9c ba a0 43 00 f0 cf 08  ...C.... ...C....
+       00000030: 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ........ ........
+          18c:    RECTYPE PS [Page Start]
+       00000000: 1b 50 53 3c 00 14 00 00  06 19 00 00 00 78 f4 01  .PS<.... .....x..
+       00000010: 90 03 00 00 04 01 01 00  58 02 e0 00 00 00 e0 00  ........ X.......
+       00000020: 00 00 e0 00 00 00 f0 00  00 00 00 00 00 00 00 00  ........ ........
+       00000030: 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ........ ........
+                       w,h=5120x6406 res=600 color=1
+                       mediatype=Plain(1) papersize=Letter(4)
+          1cc:    Cyan BIH:
+                       DL = 0, D = 0, P = 1, - = 0, XY = 10240 x 6406
+                       L0 = 128, MX = 0, MY = 0
+                       Order   = 0
+                       Options = 64  LRLTWO
+                       51 stripes, 0 layers, 1 planes
+                       ...cyan data skipped...
+          2ac:    Magenta BIH:
+                       DL = 0, D = 0, P = 1, - = 0, XY = 10240 x 6406
+                       L0 = 128, MX = 0, MY = 0
+                       Order   = 0
+                       Options = 64  LRLTWO
+                       51 stripes, 0 layers, 1 planes
+                       ...magenta data skipped...
+          38c:    Yellow BIH:
+                       DL = 0, D = 0, P = 1, - = 0, XY = 10240 x 6406
+                       L0 = 128, MX = 0, MY = 0
+                       Order   = 0
+                       Options = 64  LRLTWO
+                       51 stripes, 0 layers, 1 planes
+                       ...yellow data skipped...
+          46c:    Black BIH:
+                       DL = 0, D = 0, P = 1, - = 0, XY = 10240 x 6406
+                       L0 = 128, MX = 0, MY = 0
+                       Order   = 0
+                       Options = 64  LRLTWO
+                       51 stripes, 0 layers, 1 planes
+                       ...black data skipped...
+          55c:    RECTYPE PE [Page End]
+       00000000: 1b 50 45 3c 00 00 00 00  77 00 00 00 7c 00 00 00  .PE<.... w...|...
+       00000010: 08 e0 cd 08 00 00 00 00  9c 55 ac bf f4 9f ac 43  ........ .U.....C
+       00000020: e0 a3 ac 43 00 00 00 00  19 00 00 00 75 9e 99 43  ...C.... ....u..C
+       00000030: 00 21 99 43 00 00 00 00  01 00 00 00 9a 0e 99 43  .!.C.... .......C
+          59c:    \033%-12345X@PJL EOJ
+
+
+
+FILES
+       /usr/bin/hbpldecode
+
+SEE ALSO
+       foo2hbpl2-wrapper(1), foo2hbpl2(1)
+
+AUTHOR
+       Rick Richardson <rick.richardson@comcast.net>
+       Peter Korf <peter@niendo.de>
+       http://foo2hbpl.rkkda.com/
+
+
+
+
+
+
+
