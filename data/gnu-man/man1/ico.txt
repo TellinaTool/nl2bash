@@ -1,0 +1,79 @@
+ICO(1)                                         General Commands Manual                                        ICO(1)
+
+
+
+NAME
+       ico - animate an icosahedron or other polyhedron
+
+SYNOPSIS
+       ico  [-display  display]  [-geometry  geometry]  [-r] [-d pattern] [-i] [-dbl] [-faces] [-noedges] [-sleep n]
+       [-obj object] [-objhelp] [-colors color-list]
+
+DESCRIPTION
+       Ico displays a wire-frame rotating polyhedron, with hidden lines removed, or  a  solid-fill  polyhedron  with
+       hidden  faces  removed.   There are a number of different polyhedra available; adding a new polyhedron to the
+       program is quite simple.
+
+OPTIONS
+       -r     Display on the root window instead of creating a new window.
+
+       -d pattern
+              Specify a bit pattern for drawing dashed lines for wire frames.
+
+       -i     Use inverted colors for wire frames.
+
+       -dbl   Use double buffering on the display.  This works for either wire frame or solid  fill  drawings.   For
+              solid  fill  drawings,  using  this switch results in substantially smoother movement.  Note that this
+              requires twice as many bit planes as without double buffering.  Since some colors are typically  allo‐
+              cated  by  other programs, most eight-bit-plane displays will probably be limited to eight colors when
+              using double buffering.
+
+       -faces Draw filled faces instead of wire frames.
+
+       -noedges
+              Don't draw the wire frames.  Typically used only when -faces is used.
+
+       -sleep n
+              Sleep n seconds between each move of the object.
+
+       -obj object
+              Specify what object to draw.  If no object is specified, an icosahedron is drawn.
+
+       -objhelp
+              Print out a list of the available objects, along with information about each object.
+
+       -colors color color ...
+              Specify what colors should be used to draw the filled faces of the object.  If less colors than  faces
+              are given, the colors are reused.
+
+PROGRAM TERMINATION
+       Pressing  "q"  will  close  a  window.  If compiled with threads support, the program will stop only when all
+       threads terminate. You can also close an animation window using the ICCCM delete message (depending  on  your
+       window manager, you will have a decoration button or menu to send such message).
+
+ADDING POLYHEDRA
+       If  you  have  the  source  to  ico, it is very easy to add more polyhedra.  Each polyhedron is defined in an
+       include file by the name of objXXX.h, where XXX is something related to the name of the polyhedron.  The for‐
+       mat  of the include file is defined in the file polyinfo.h.  Look at the file objcube.h to see what the exact
+       format of an objXXX.h file should be, then create your objXXX.h file in that format.
+
+       After making the new objXXX.h file (or copying in a new one from elsewhere), simply do a 'make depend'.  This
+       will  recreate  the  file  allobjs.h,  which lists all of the objXXX.h files.  Doing a 'make' after this will
+       rebuild ico with the new object information.
+
+SEE ALSO
+       X(7)
+
+BUGS
+       Pyramids and tetrahedrons with filled faces do not display correctly.
+
+       A separate color cell is allocated for each name in the -colors list, even when the same name may  be  speci‐
+       fied twice.  Color allocation fails in TrueColor displays and option -faces does not work well.
+
+COPYRIGHT
+       Copyright 1994 X Consortium
+       See X(7) for a full statement of rights and permissions.
+
+
+
+X Version 11                                          ico 1.0.4                                               ICO(1)

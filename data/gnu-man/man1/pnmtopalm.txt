@@ -1,0 +1,87 @@
+pnmtopalm(1)                                   General Commands Manual                                  pnmtopalm(1)
+
+
+
+NAME
+       pnmtopalm - convert a portable anymap into a Palm pixmap
+
+
+SYNOPSIS
+       pnmtopalm [-verbose] [-depth N] [-maxdepth N] [-colormap] [-transparent color] [-offset]
+       [-rle-compression|-scanline-compression] [pnmfile]
+
+
+DESCRIPTION
+       Reads a PNM image as input, from stdin or pnmfile.  Produces a Palm pixmap as output.
+
+       Palm  pixmap  files are either greyscale files 1, 2, or 4 bits wide, or color files 8 bits wide, so pnmtopalm
+       automatically scales colors to have an appropriate maxval, unless you specify a depth or  max  depth.   Input
+       files  must  have  an  appropriate  number and set of colors for the selected output constraints.  This often
+       means that you should run the PNM image through ppmquant before you pass it to pnmtopalm.  Netpbm comes  with
+       several  colormap files you can use with ppmquant for this purpose.  They are palmgray2.map (4 shades of gray
+       for a depth of 2), palmgray4.map (16 shades of gray for a depth of 4),  and  palmcolor8.map  (232  colors  in
+       default Palm colormap).
+
+
+OPTIONS
+       -verbose
+              Display the format of the output file.
+
+       -depth N
+              Produce  a  file  of depth N, where N must be either 1, 2, 4, 8, or 16.  Any depth greater than 1 will
+              produce a version 1 or 2 bitmap.  Because the default Palm 8-bit colormap is  not  grayscale,  if  the
+              input  is a grayscale or monochrome pixmap, the output will never be more than 4 bits deep, regardless
+              of the specified depth.  Note that 8-bit color works only in  PalmOS  3.5  (and  higher),  and  16-bit
+              direct  color  works only in PalmOS 4.0 (and higher).  However, the 16-bit direct color format is also
+              compatible with the various PalmOS 3.x versions used in the Handspring Visor, so these images may also
+              work in that device.
+
+       -maxdepth N
+              Produce  a  file  of minimal depth, but in any case less than N bits wide.  If you specify 16-bit, the
+              output will always be 16-bit direct color.
+
+       -offset
+              Fill in the nextDepthOffset field in the file header, to provide for multiple renditions of the pixmap
+              in the same file.
+
+       -colormap
+              Build a custom colormap and include it in the output file.  This is not recommended by Palm, for effi‐
+              ciency reasons.  Otherwise, pnmtopalm uses the default Palm colormap for color output.
+
+       -transparent color
+              Marks one particular color as fully transparent.  The format to specify the color is either (when  for
+              example  orange)  "1.0,0.5,0.0",  where the values are floats between zero and one, or with the syntax
+              "#RGB", "#RRGGBB" or "#RRRRGGGGBBBB" where R, G and B are hexadecimal numbers.  This  also  makes  the
+              output bitmap a version 2 bitmap.  Transparency works only on Palm OS 3.5 and higher.
+
+       -rle-compression
+              Specifies  that the output Palm bitmap will use the Palm RLE compression scheme, and will be a version
+              2 bitmap.  RLE compression works only with Palm OS 3.5 and higher.
+
+       -scanline-compression
+              Specifies that the output Palm bitmap will use the Palm scanline compression scheme,  and  will  be  a
+              version 2 bitmap.  Scanline compression works only in Palm OS 2.0 and higher.
+
+
+SEE ALSO
+       palmtopnm(1), ppmquant(1), pnm(5)
+
+
+NOTES
+       An  additional compression format, packbits, was added with PalmOS 4.0.  This package should be updated to be
+       able to generate that.
+
+       Palm pixmaps may contains multiple renditions of the same pixmap, in different depths.  To  construct  an  N-
+       multiple-rendition  Palm  pixmap  with  pnmtopalm, first construct renditions 1 through N-1 using the -offset
+       option, then construct the Nth pixmap without the -offset option.  Then concatenate the individual renditions
+       together in a single file using cat.
+
+
+AUTHORS
+       This  program  was  originally written as ppmtoTbmp.c, by Ian Goldberg and George Caswell.  It was completely
+       re-written by Bill Janssen to add color, compression, and transparency function.
+       Copyright 1995-2001 by Ian Goldberg, George Caswell, and Bill Janssen.
+
+
+
+                                                   7 December 2000                                      pnmtopalm(1)

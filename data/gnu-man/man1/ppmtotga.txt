@@ -1,0 +1,41 @@
+ppmtotga(1)                                    General Commands Manual                                   ppmtotga(1)
+
+
+
+NAME
+       ppmtotga - convert portable pixmap into a TrueVision Targa file
+
+SYNOPSIS
+       ppmtotga [-mono|-cmap|-rgb] [-norle] [ppmfile]
+
+DESCRIPTION
+       Reads a portable pixmap as input.  Produces a TrueVision Targa file as output.
+
+OPTIONS
+       -mono  Forces  Targa  file  to  be  of  type 8 bit monochrome.  Input must be a portable bitmap or a portable
+              graymap.
+
+       -cmap  Forces Targa file to be of type 24 bit colormapped.  Input must  be  a  portable  bitmap,  a  portable
+              graymap or a portable pixmap containing no more than 256 distinct colors.
+
+       -rgb   Forces Targa file to be of type 24 bit unmapped color.
+
+       -norle Disables  run-length  encoding,  in  case  you have a Targa reader which can't read run-length encoded
+              files.
+
+       All flags can be abbreviated to their shortest unique prefix.  If no file type is specified the  most  highly
+       constained  compatible  type  is  used, where monochrome is more constained than colormapped which is in turn
+       more constained than unmapped.
+
+BUGS
+       Does not support all possible Targa file types.  Should really be in PNM, not PPM.
+
+SEE ALSO
+       tgatoppm(1), ppm(5)
+
+AUTHOR
+       Copyright (C) 1989, 1991 by Mark Shand and Jef Poskanzer.
+
+
+
+                                                   28 October 1991                                       ppmtotga(1)

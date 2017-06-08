@@ -225,6 +225,8 @@ def ast2tokens(node, loose_constraints=False, ignore_flag_order=False,
                 token = node.value
             if wp and node.is_open_vocab():
                 token = node.simple_prefix + token
+                # if ato:
+                #     print('atowp: ' + token)
             if wat:
                 token = token + "_" + node.arg_type
             if ia and node.to_index():

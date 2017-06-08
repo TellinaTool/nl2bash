@@ -1,0 +1,55 @@
+pbmtolj(1)                                     General Commands Manual                                    pbmtolj(1)
+
+
+
+NAME
+       pbmtolj - convert a portable bitmap into HP LaserJet format
+
+
+SYNOPSIS
+       pbmtolj [-resolution N] [-float] [-noreset] [-packbits] [-delta] [-compress] [pbmfile] [-copies N]
+
+
+DESCRIPTION
+       Reads a PBM image as input.  Produces HP LaserJet data as output.
+
+       Note that there is no ljtopbm tool.
+
+
+OPTIONS
+       -resolution
+              Specifies the resolution of the output device, in dpi.  Typical values are 75, 100, 150, 300, and 600.
+              The default is 75.
+
+       -float Suppresses positioning information.  The default is to write the sequence ESC & l 0 E  to  the  output
+              file.
+
+       -noreset
+              Prevents pbmtolj from writing the reset sequences to the beginning and end of the output file.
+
+       -packbits
+              Enables use of TIFF packbits compression.
+
+       -delta Enables use of delta-between-rows compression.
+
+       -compress
+              Enables use of both TIFF packbits, and delta-between-rows compression.
+
+       -copies
+              Specifies  the  the  number  of copies. The default is 1.  This option controls the "number of copies"
+              printer control; pbmtolj generates only one copy of the image.
+
+       All flags can be abbreviated to their shortest unique prefix.
+
+
+SEE ALSO
+       pbm(5)
+
+
+AUTHOR
+       Copyright (C) 1988 by Jef Poskanzer and Michael Haberler.  -float and -noreset options added  by  Wim  Lewis.
+       -delta, -packbits, and -compress options added by Dave Platt.
+
+
+
+                                                    22 April 2000                                         pbmtolj(1)

@@ -1,0 +1,29 @@
+EXTRACT(1)                                          User Commands                                         EXTRACT(1)
+
+
+
+NAME
+       Extract - Extract a text tag from an ICC profile.
+
+DESCRIPTION
+       Extract a text tag from an ICC profile, Version 1.5.1 Author: Graeme W. Gill, licensed under the AGPL Version
+       3 Diagnostic: Too few parameters usage: extractttag  [-v] infile.icc outfile
+
+       -v     Verbose
+
+       -t tag Extract this tag rather than default 'targ'
+
+       -c     Extract calibration file from 'targ' tag
+
+       Author: Graeme W. Gill, licensed under the AGPL Version 3 Diagnostic: Too few parameters  usage:  extractttag
+       [-v] infile.icc outfile
+
+       -v     Verbose
+
+       -t tag Extract this tag rather than default 'targ'
+
+       -c     Extract calibration file from 'targ' tag
+
+
+
+Extract a text tag from an ICC profile, Version 1.5.1August 2013                                          EXTRACT(1)

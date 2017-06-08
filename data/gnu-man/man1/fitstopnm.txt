@@ -1,0 +1,43 @@
+fitstopnm(1)                                   General Commands Manual                                  fitstopnm(1)
+
+
+
+NAME
+       fitstopnm - convert a FITS file into a portable anymap
+
+SYNOPSIS
+       fitstopnm [-image N] [-noraw] [-scanmax] [-printmax] [-min f] [-max f] [FITSfile]
+
+DESCRIPTION
+       Reads  a FITS file as input.  Produces a portable pixmap if the FITS file consists of 3 image planes (NAXIS =
+       3 and NAXIS3 = 3), a portable graymap if the FITS file consists of 2 image planes (NAXIS =  2),  or  whenever
+       the -image flag is specified.  The results may need to be flipped top for bottom; if so, just pipe the output
+       through pnmflip -tb.
+
+OPTIONS
+       The -image option is for FITS files with three axes.  The assumption is that the third axis is  for  multiple
+       images, and this option lets you select which one you want.
+
+       Flags  -min and -max can be used to override the min and max values as read from the FITS header or the image
+       data if no DATAMIN and DATAMAX keywords are found.  Flag -scanmax can be used to force the  program  to  scan
+       the  data  even when DATAMIN and DATAMAX are found in the header. If -printmax is specified, the program will
+       just print the min and max values and quit.  Flag -noraw can be used to force the program to produce an ASCII
+       portable anymap.
+
+       The  program will tell what kind of anymap is writing.  All flags can be abbreviated to their shortest unique
+       prefix.
+
+REFERENCES
+       FITS stands for Flexible Image Transport System.  A full description can be found in Astronomy & Astrophysics
+       Supplement Series 44 (1981), page 363.
+
+SEE ALSO
+       pnmtofits(1), pgm(5), pnmflip(1)
+
+AUTHOR
+       Copyright (C) 1989 by Jef Poskanzer, with modifications by Daniel Briggs (dbriggs@nrao.edu) and Alberto Acco‐
+       mazzi (alberto@cfa.harvard.edu).
+
+
+
+                                                   20 September 89                                      fitstopnm(1)

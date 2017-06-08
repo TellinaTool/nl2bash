@@ -1,0 +1,64 @@
+jmc(1)                                     Java Troubleshooting, Profilin                                     jmc(1)
+
+
+
+NAME
+       jmc - Java Mission Control is a Profiling, Monitoring, and Diagnostics Tools Suite.
+
+SYNOPSIS
+           jmc [ options ]
+
+
+
+       Options, if used, should follow immediately after the command name. Options may be in any order. For more
+       information about the options used with the jmc command, see Options.
+
+DESCRIPTION
+       Java Mission Control is a tool for production time profiling and diagnostics for the HotSpot JVM. The two
+       main features of Java Mission Control are the Management Console and Java Flight Recorder, but several more
+       features are offered as plug-ins, which can be downloaded from the tool. Java Mission Control is also
+       available as a set of plug-ins for the Eclipse IDE.
+
+OPTIONS
+       The following options are available when you launch Java Mission Control.
+
+       -help
+           Prints jmc command help.
+
+       -version
+           Prints the version of Java Mission Control and exit.
+
+       -showversion
+           Prints the version of Java Mission Control and continue.
+
+       -debug
+           Enables debug output.
+
+       -consoleLog
+           Prints the Eclipse log on the console. (Flag from Eclipse).
+
+       -data workspace
+           Sets the workspace used while running Java Mission Control. The default workspace is $HOME/.jmc. (Flag
+           from Eclipse).
+
+       -open file
+           Opens the file in Java Mission Control. For example, to open a Flight Recording file (.jfr file).
+
+       eclipse-option
+           Passes this eclipse option to the underlying Eclipse platform. Eg.  -nosplash
+
+       -vmargs jvm-arguments
+           Overrides the JVM arguments specified in the jmc.ini file located in JAVA_HOME/bin.
+
+       --launcher.appendVmargs
+           Appends JVM arguments from the -vmargs flag to those in the jmc.ini file.
+
+SEE ALSO
+       ·   Oracle Java SE Advanced and Oracle Java SE Suite at
+           http://www.oracle.com/us/technologies/java/standard-edition/advanced-suite/overview/index.html
+
+       ·   Java Mission Control User’s Guide at http://docs.oracle.com/javacomponents/jmc.htm
+
+
+
+JDK 8                                               03 March 2015                                             jmc(1)

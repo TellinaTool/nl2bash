@@ -1,0 +1,24 @@
+DCONF-SERVICE(1)                                    User Commands                                   DCONF-SERVICE(1)
+
+
+
+NAME
+       dconf-service - D-Bus service for writes to the dconf database
+
+SYNOPSIS
+       dconf-service
+
+DESCRIPTION
+       The dconf-service program provides the ca.desrt.dconf name on the session or system bus. Users or
+       administrators should never need to start the service, as it will be automatically started by dbus-daemon(1)
+       whenever an application tries to write settings.
+
+       Reading values from the dconf database does not involve the service; it is only needed for writes. The
+       service is stateless and can exit freely at any time (and is therefore robust against crashes).
+
+SEE ALSO
+       dconf(7), dbus-daemon(1), systemd(1)
+
+
+
+dconf                                                                                               DCONF-SERVICE(1)

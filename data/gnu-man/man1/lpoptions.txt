@@ -1,0 +1,75 @@
+lpoptions(1)                                         Apple Inc.                                         lpoptions(1)
+
+
+
+NAME
+       lpoptions - display or set printer options and defaults
+
+SYNOPSIS
+       lpoptions  [  -E ] [ -U username ] [ -h server[:port] ] -d destination[/instance] [ -o option[=value] ] ... [
+       -o option[=value] ]
+       lpoptions [ -E ] [ -U username ] [ -h server[:port] ] [ -p destination[/instance] ] -l
+       lpoptions [ -E ] [ -U username ] [ -h server[:port] ] [ -o option[=value] ] ... [ -o option[=value]  ]  [  -p
+       destination[/instance] ] -r option
+       lpoptions [ -E ] [ -U username ] [ -h server[:port] ] -x destination[/instance]
+
+DESCRIPTION
+       lpoptions  displays  or  sets printer options and defaults.  lpoptions shows the default printer options when
+       run with no arguments. Other options include:
+
+       -E
+            Enables encryption when communicating with the CUPS server.
+
+       -U username
+            Uses an alternate username.
+
+       -d destination[/instance]
+            Sets the user default printer to destination. If instance is supplied then that particular  instance  is
+            used. This option overrides the system default printer for the current user.
+
+       -h server[:port]
+            Uses an alternate server.
+
+       -l
+            Lists the printer specific options and their current settings.
+
+       -o option[=value]
+            Specifies a new option for the named destination.
+
+       -p destination[/instance]
+            Sets the destination and instance, if specified, for any options that follow. If the named instance does
+            not exist then it is created.
+
+       -r option
+            Removes the specified option for the named destination.
+
+       -x destination[/instance]
+            Removes the options for the named destination and instance, if specified. If the named instance does not
+            exist then this does nothing.
+
+       If  no options are specified using the -o option, then the current options for the named printer are reported
+       on the standard output.
+
+       Options set with the lpoptions command are used by the lp(1) and lpr(1) commands when submitting jobs.
+
+ROOT ACCOUNT OPTIONS
+       When run by the root user, lpoptions gets and sets default  options  and  instances  for  all  users  in  the
+       /etc/cups/lpoptions file.
+
+COMPATIBILITY
+       The lpoptions command is unique to CUPS.
+
+FILES
+       ~/.cups/lpoptions - user defaults and instances created by non-root users.
+       /etc/cups/lpoptions - system-wide defaults and instances created by the root user.
+
+SEE ALSO
+       cancel(1), lp(1), lpadmin(8), lpr(1),
+       http://localhost:631/help
+
+COPYRIGHT
+       Copyright 2007-2013 by Apple Inc.
+
+
+
+8 July 2013                                             CUPS                                            lpoptions(1)

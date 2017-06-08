@@ -1,0 +1,81 @@
+FLOCK(1)                                            User Commands                                           FLOCK(1)
+
+
+
+NAME
+       flock - manage locks from shell scripts
+
+SYNOPSIS
+       flock [-sxon] [-w timeout] lockfile [-c] command...
+
+       flock [-sxon] [-w timeout] lockdir [-c] command...
+
+       flock [-sxun] [-w timeout] fd
+
+DESCRIPTION
+       This utility manages flock(2) locks from within shell scripts or the command line.
+
+       The  first  and  second  forms wraps the lock around the executing a command, in a manner similar to su(1) or
+       newgrp(1).  It locks a specified file or directory, which is created (assuming appropriate  permissions),  if
+       it does not already exist.
+
+       The third form is convenient inside shell scripts, and is usually used the following manner:
+
+       (
+         flock -n 9 || exit 1
+         # ... commands executed under lock ...
+       ) 9>/var/lock/mylockfile
+
+       The mode used to open the file doesn't matter to flock; using > or >> allows the lockfile to be created if it
+       does not already exist, however, write permission is required; using < requires that the file already  exists
+       but only read permission is required.
+
+       By default, if the lock cannot be immediately acquired, flock waits until the lock is available.
+
+OPTIONS
+       -s, --shared
+              Obtain a shared lock, sometimes called a read lock.
+
+       -x, -e, --exclusive
+              Obtain an exclusive lock, sometimes called a write lock.  This is the default.
+
+       -u, --unlock
+              Drop  a  lock.   This  is usually not required, since a lock is automatically dropped when the file is
+              closed.  However, it may be required in special cases, for example if the enclosed command  group  may
+              have forked a background process which should not be holding the lock.
+
+       -n, --nb, --nonblock
+              Fail (with an exit code of 1) rather than wait if the lock cannot be immediately acquired.
+
+       -w, --wait, --timeout seconds
+              Fail  (with  an  exit code of 1) if the lock cannot be acquired within seconds seconds.  Decimal frac‐
+              tional values are allowed.
+
+       -o, --close
+              Close the file descriptor on which the lock is held before executing command.  This is useful if  com‐
+              mand spawns a child process which should not be holding the lock.
+
+       -c, --command command
+              Pass a single command to the shell with -c.
+
+       -h, --help
+              Print a help message.
+
+AUTHOR
+       Written by H. Peter Anvin <hpa@zytor.com>.
+
+COPYRIGHT
+       Copyright © 2003-2006 H. Peter Anvin.
+       This  is  free  software;  see  the  source  for copying conditions.  There is NO warranty; not even for MER‐
+       CHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+SEE ALSO
+       flock(2)
+
+AVAILABILITY
+       The  flock  command  is  part  of   the   util-linux   package   and   is   available   from   ftp://ftp.ker‐
+       nel.org/pub/linux/utils/util-linux/.
+
+
+
+util-linux                                          February 2006                                           FLOCK(1)

@@ -1,0 +1,32 @@
+st4topgm(1)                                    General Commands Manual                                   st4topgm(1)
+
+
+
+NAME
+       st4topgm - convert an SBIG ST4 format file into a portable graymap
+
+SYNOPSIS
+       st4topgm [st4file]
+
+DESCRIPTION
+       Reads  an  an  image  file in the native format used by the SBIG ST-4 astronomical CCD camera, and produces a
+       portable graymap as output.  Additional information on SBIG cameras and documentation of the file  format  is
+       available at the Web site: http://www.sbig.com/
+
+SEE ALSO
+       pgm(5) sbigtopgm(1)
+
+
+AUTHOR
+       Copyright (C) 2003 by Justin Pryzby <justinpryzby@users.sf.net>.
+
+
+COPYRIGHT
+       Permission to use, copy, modify, and distribute this software and its documentation for any purpose and with‐
+       out fee is hereby granted, provided that the above copyright notice appear in all copies and that  both  that
+       copyright  notice  and  this permission notice appear in supporting documentation.  This software is provided
+       "as is" without express or implied warranty.
+
+
+
+netpbm                                               2003-12-15                                          st4topgm(1)

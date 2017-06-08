@@ -1,0 +1,77 @@
+GNOME-KEYRING-DAEM(1)                               User Commands                              GNOME-KEYRING-DAEM(1)
+
+
+
+NAME
+       gnome-keyring-daemon - The gnome-keyring daemon
+
+SYNOPSIS
+       gnome-keyring [--replace] [--unlock]
+
+DESCRIPTION
+       The gnome-keyring-daemon is a service that stores your passwords and secrets. It is normally started
+       automatically when a user logs into a desktop session.
+
+       The gnome-keyring-daemon implements the DBus Secret Service API, and you can use tools like seahorse or
+       secret-tool to interact with it.
+
+       The daemon also implements a GnuPG and SSH agent both of which automatically load the user's keys, and prompt
+       for passwords when necessary.
+
+       The daemon will print out various environment variables which should be set in the user's environment, in
+       order to interact with the daemon.
+
+OPTIONS
+       The various startup arguments below can be used:
+
+       --components=ssh,secrets,gpg,pkcs11
+           Ask the daemon to only initialize certain components. Valid components are ssh, gpg, secrets, pkcs11.
+
+           By default all components are initialized.
+
+       --control-directory=/path/to/directory
+           Use this directory for creating communication sockets. By default a temporary directory is automatically
+           created.
+
+       --daemonize
+           Run as a real daemon, disconnected from the terminal.
+
+       --foreground
+           Run in the foreground, and do not fork or become a daemon.
+
+       --login
+           This argument tells the daemon it is being run by PAM. It reads all of stdin (including any newlines) as
+           a login password and does not complete actual initialization.
+
+           The daemon should later be initialized with a gnome-keyring-daemon --start invocation.
+
+           This option may not be used together with either the --replace or --start arguments.
+
+       --replace
+           Try to replace a running keyring daemon, and assume its environment avriables. A successful replacement
+           depends on the GNOMKE_KEYRING_CONTROL environment variable being set by an earlier daemon.
+
+           This option may not be used together with either the --login or --start arguments.
+
+       --start
+           Connect to an already running daemon and initialize it. This is often used to complete initialization of
+           a daemon that was started by PAM using the --login argument.
+
+           This option may not be used together with either the --login or --replace arguments.
+
+       --version
+           Print out the gnome-keyring version and then exit.
+
+BUGS
+       Please send bug reports to either the distribution bug tracker or the upstream bug tracker at
+       https://bugzilla.gnome.org/enter_bug.cgi?product=gnome-keyring
+
+SEE ALSO
+       secret-tool(1), seahorse(1)
+
+       Further details available in the realmd online documentation at
+       http://standards.freedesktop.org/secret-service/
+
+
+
+gnome-keyring                                                                                  GNOME-KEYRING-DAEM(1)

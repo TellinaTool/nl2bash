@@ -1,0 +1,31 @@
+DOCKER(1)                                                                                                  DOCKER(1)
+
+
+
+NAME
+       docker-container-export - Export a container's filesystem as a tar archive
+
+
+
+SYNOPSIS
+       docker container export [OPTIONS] CONTAINER
+
+
+
+DESCRIPTION
+       Export a container's filesystem as a tar archive
+
+
+
+OPTIONS
+       -o, --output=""
+           Write to a file, instead of STDOUT
+
+
+
+SEE ALSO
+       docker-container(1)
+
+
+
+Docker Community                                      Mar 2017                                             DOCKER(1)

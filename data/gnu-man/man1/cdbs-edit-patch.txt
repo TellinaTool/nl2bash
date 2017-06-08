@@ -1,0 +1,39 @@
+CDBS-EDIT-PATCH(1)                               CDBS Documentation                               CDBS-EDIT-PATCH(1)
+
+
+
+NAME
+       cdbs-edit-patch - create or edit a CDBS simple-patchsys.mk patch
+
+
+SYNOPSIS
+       cdbs-edit-patch patchname
+
+
+DESCRIPTION
+       cdbs-edit-patch  creates  or  edits  patches  for  use by the CDBS simple-patchsys.mk patch system.  For more
+       information about CDBS please see the documentation under /usr/share/doc/cdbs/.
+
+       When patchname exists, cdbs-edit-patch will set up a temporary working source tree, apply all patches  up  to
+       and including patchname in lexicographic order, and spawn an interactive shell for the developer.  The devel‐
+       oper can then edit  files  in  this  working  tree.   When  the  developer  is  done  and  exits  the  shell,
+       cdbs-edit-patch  updates  patchname  to  reflect the changes made.  To abort the process from the interactive
+       shell, exit with a nonzero exit value.
+
+       When patchname does not exist, cdbs-edit-patch will assume that a new patch should be created.  As  with  the
+       above scenario, cdbs-edit-patch will first create a temporary working source tree and apply all patches up to
+       the new patch in lexicographic order.  When the shell is quit, cdbs-edit-patch will create patchname.
+
+
+AUTHOR
+       CDBS was written by Colin Walters and others.  cdbs-edit-patch was written by Martin Pitt.  This manual  page
+       was written by Peter Eisentraut based on the dpatch-edit-patch(1) manual page.
+
+
+SEE ALSO
+       CDBS documentation in /usr/share/doc/cdbs/, /usr/share/cdbs/1/rules/simple-patchsys.mk, dpatch-edit-patch(1),
+       quilt(1)
+
+
+
+Debian                                               5 Feb 2006                                   CDBS-EDIT-PATCH(1)

@@ -1,0 +1,37 @@
+ZNEW(1)                                        General Commands Manual                                       ZNEW(1)
+
+
+
+NAME
+       znew -   recompress .Z files to .gz files
+
+SYNOPSIS
+       znew [ -ftv9PK] [ name.Z ...  ]
+
+DESCRIPTION
+       Znew  recompresses  files  from  .Z (compress) format to .gz (gzip) format.  If you want to recompress a file
+       already in gzip format, rename the file to force a .Z extension then apply znew.
+
+OPTIONS
+       -f     Force recompression from .Z to .gz format even if a .gz file already exists.
+
+       -t     Tests the new files before deleting originals.
+
+       -v     Verbose. Display the name and percentage reduction for each file compressed.
+
+       -9     Use the slowest compression method (optimal compression).
+
+       -P     Use pipes for the conversion to reduce disk space usage.
+
+       -K     Keep a .Z file when it is smaller than the .gz file; implies -t.
+
+SEE ALSO
+       gzip(1), zmore(1), zdiff(1), zgrep(1), zforce(1), gzexe(1), compress(1)
+
+BUGS
+       Znew does not maintain the time stamp with the -P option if cpmod(1) is not available and touch(1)  does  not
+       support the -r option.
+
+
+
+                                                                                                             ZNEW(1)

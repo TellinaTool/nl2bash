@@ -1,0 +1,27 @@
+IPCLUSTER(1)                                                                                            IPCLUSTER(1)
+
+
+
+NAME
+       ipcluster - start a cluster for IPython parallel computing
+
+SYNOPSIS
+       ipcluster subcommand [options]
+
+
+DESCRIPTION
+       Start an IPython cluster for parallel computing.
+
+       For  more  information  on  how  to  use ipcluster, see 'ipcluster --help', or 'ipcluster --help-all' for all
+       available command‐line options.
+
+
+SEE ALSO
+       ipython(1), ipcontroller(1), ipengine(1),
+
+AUTHORS
+       ipcluster ships with IPython, maintained by the IPython Development Team.
+
+
+
+                                                    June 10, 2012                                       IPCLUSTER(1)

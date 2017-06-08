@@ -1,0 +1,215 @@
+TRANSLATE(1)                                        User Commands                                       TRANSLATE(1)
+
+
+
+NAME
+       Translate - Translate colors through an xicc.
+
+DESCRIPTION
+       Translate  colors  through  an  xicc, Version 1.5.1 Author: Graeme W. Gill, licensed under the AGPL Version 3
+       usage: xicclu [-options] profile Diagnostic: Unknown flag
+
+       -v level
+              Verbosity level 0 - 2 (default = 1)
+
+       -g     Plot slice instead of looking colors up. (Default white to black)
+
+       -G s:L:a:b
+              Override plot slice start with Lab or Jab co-ordinate
+
+       -G e:L:a:b
+              Override plot slice end with Lab or Jab co-ordinate
+
+       -f function
+              f = forward, b = backwards, g = gamut, p = preview if = inverted forward, ib = inverted backwards
+
+       -i intent
+              a = absolute, r = relative colorimetric p = perceptual, s = saturation
+
+       -o order
+              n = normal (priority: lut > matrix > monochrome) r = reverse (priority: monochrome > matrix > lut)
+
+       -p oride
+              x = XYZ_PCS, X = XYZ * 100, l = Lab_PCS, L = LCh, y = Yxy j = CIECAM02 Appearance Jab,  J  =  CIECAM02
+              Appearance JCh
+
+       -s scale
+              Scale device range 0.0 - scale rather than 0.0 - 1.0
+
+       -k [zhxrlv]
+              Black  value  target: z = zero K, h = 0.5 K, x = max K, r = ramp K (def.)  l = extra PCS input is por‐
+              tion of K locus v = extra PCS input is K target value
+
+       -k p stle stpo enpo enle shape
+
+              stle: K level at White 0.0 - 1.0 stpo: start point of transition Wh 0.0 - Bk 1.0 enpo:  End  point  of
+              transition  Wh  0.0  - Bk 1.0 enle: K level at Black 0.0 - 1.0 shape: 1.0 = straight, 0.0-1.0 concave,
+              1.0-2.0 convex
+
+       -k q stle0 stpo0 enpo0 enle0 shape0 stle2 stpo2 enpo2 enle2 shape2
+
+              Transfer extra PCS input to dual curve limits
+
+       -K parameters
+              Same as -k, but target is K locus rather than K value itself
+
+       -l tlimit
+              set total ink limit, 0 - 400% (estimate by default)
+
+       -L klimit
+              set black ink limit, 0 - 100% (estimate by default)
+
+       -a     show actual target values if clipped
+
+       -u     warn if output PCS is outside the spectrum locus
+
+       -m     merge output processing into clut
+
+       -b     use CAM Jab for clipping
+
+       -c viewcond
+              set viewing conditions for CIECAM97s, either an enumerated choice, or a parameter:value changes
+
+              pp - Practical Reflection Print (ISO-3664 P2) pe - Print evaluation environment (CIE  116-1995)  pc  -
+              Critical  print  evaluation  environment  (ISO-3664  P1) mt - Monitor in typical work environment mb -
+              Bright monitor in bright work environment md - Monitor in darkened work environment jm - Projector  in
+              dim environment jd - Projector in dark environment
+
+              pcd - Photo CD - original scene outdoors
+
+              ob - Original scene - Bright Outdoors cx - Cut Sheet Transparencies on a viewing box
+
+       s:surround
+              n = auto, a = average, m = dim, d = dark, c = transparency (default average)
+
+       w:X:Y:Z
+              Adapted white point as XYZ (default media white, Abs: D50)
+
+       w:x:y  Adapted white point as x, y
+
+       a:adaptation
+              Adaptation luminance in cd.m^2 (default 50.0)
+
+       b:background
+              Background % of image luminance (default 20)
+
+       l:scenewhite
+              Scene white in cd.m^2 if surround = auto (default 250)
+
+       f:flare
+              Flare light % of image luminance (default 1)
+
+       f:X:Y:Z
+              Flare color as XYZ (default media white, Abs: D50)
+
+       f:x:y  Flare color as x, y
+
+              The colors to be translated should be fed into standard in, one input color per line, white space sep‐
+              arated.  A line starting with a # will be ignored.  A line not starting with a number  will  terminate
+              the program.  Use -v0 for just output colors.
+
+       Author:  Graeme  W.  Gill,  licensed  under  the  AGPL Version 3 usage: xicclu [-options] profile Diagnostic:
+       Unknown flag
+
+       -v level
+              Verbosity level 0 - 2 (default = 1)
+
+       -g     Plot slice instead of looking colors up. (Default white to black)
+
+       -G s:L:a:b
+              Override plot slice start with Lab or Jab co-ordinate
+
+       -G e:L:a:b
+              Override plot slice end with Lab or Jab co-ordinate
+
+       -f function
+              f = forward, b = backwards, g = gamut, p = preview if = inverted forward, ib = inverted backwards
+
+       -i intent
+              a = absolute, r = relative colorimetric p = perceptual, s = saturation
+
+       -o order
+              n = normal (priority: lut > matrix > monochrome) r = reverse (priority: monochrome > matrix > lut)
+
+       -p oride
+              x = XYZ_PCS, X = XYZ * 100, l = Lab_PCS, L = LCh, y = Yxy j = CIECAM02 Appearance Jab,  J  =  CIECAM02
+              Appearance JCh
+
+       -s scale
+              Scale device range 0.0 - scale rather than 0.0 - 1.0
+
+       -k [zhxrlv]
+              Black  value  target: z = zero K, h = 0.5 K, x = max K, r = ramp K (def.)  l = extra PCS input is por‐
+              tion of K locus v = extra PCS input is K target value
+
+       -k p stle stpo enpo enle shape
+
+              stle: K level at White 0.0 - 1.0 stpo: start point of transition Wh 0.0 - Bk 1.0 enpo:  End  point  of
+              transition  Wh  0.0  - Bk 1.0 enle: K level at Black 0.0 - 1.0 shape: 1.0 = straight, 0.0-1.0 concave,
+              1.0-2.0 convex
+
+       -k q stle0 stpo0 enpo0 enle0 shape0 stle2 stpo2 enpo2 enle2 shape2
+
+              Transfer extra PCS input to dual curve limits
+
+       -K parameters
+              Same as -k, but target is K locus rather than K value itself
+
+       -l tlimit
+              set total ink limit, 0 - 400% (estimate by default)
+
+       -L klimit
+              set black ink limit, 0 - 100% (estimate by default)
+
+       -a     show actual target values if clipped
+
+       -u     warn if output PCS is outside the spectrum locus
+
+       -m     merge output processing into clut
+
+       -b     use CAM Jab for clipping
+
+       -c viewcond
+              set viewing conditions for CIECAM97s, either an enumerated choice, or a parameter:value changes
+
+              pp - Practical Reflection Print (ISO-3664 P2) pe - Print evaluation environment (CIE  116-1995)  pc  -
+              Critical  print  evaluation  environment  (ISO-3664  P1) mt - Monitor in typical work environment mb -
+              Bright monitor in bright work environment md - Monitor in darkened work environment jm - Projector  in
+              dim environment jd - Projector in dark environment
+
+              pcd - Photo CD - original scene outdoors
+
+              ob - Original scene - Bright Outdoors cx - Cut Sheet Transparencies on a viewing box
+
+       s:surround
+              n = auto, a = average, m = dim, d = dark, c = transparency (default average)
+
+       w:X:Y:Z
+              Adapted white point as XYZ (default media white, Abs: D50)
+
+       w:x:y  Adapted white point as x, y
+
+       a:adaptation
+              Adaptation luminance in cd.m^2 (default 50.0)
+
+       b:background
+              Background % of image luminance (default 20)
+
+       l:scenewhite
+              Scene white in cd.m^2 if surround = auto (default 250)
+
+       f:flare
+              Flare light % of image luminance (default 1)
+
+       f:X:Y:Z
+              Flare color as XYZ (default media white, Abs: D50)
+
+       f:x:y  Flare color as x, y
+
+              The colors to be translated should be fed into standard in, one input color per line, white space sep‐
+              arated.  A line starting with a # will be ignored.  A line not starting with a number  will  terminate
+              the program.  Use -v0 for just output colors.
+
+
+
+Translate colors through an xicc, Version 1.5.1      August 2013                                        TRANSLATE(1)

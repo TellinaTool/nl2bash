@@ -1,0 +1,238 @@
+TROFF(1)                                       General Commands Manual                                      TROFF(1)
+
+
+
+NAME
+       troff - the troff processor of the groff text formatting system
+
+SYNOPSIS
+       troff [-abcivzCERU] [-d cs] [-f fam] [-F dir] [-I dir] [-m name] [-M dir] [-n num] [-o list] [-r cn]
+             [-T name] [-w name] [-W name] [file ...]
+
+DESCRIPTION
+       This manual page describes the GNU version of troff.  It is part of the groff document formatting system.  It
+       is functionally compatible with UNIX troff, but has many extensions, see groff_diff(7).  Usually it should be
+       invoked using the groff(1) command which will also run preprocessors and postprocessors  in  the  appropriate
+       order and with the appropriate options.
+
+OPTIONS
+       It is possible to have whitespace between a command line option and its parameter.
+
+       -a        Generate an ASCII approximation of the typeset output.
+
+       -b        Print  a  backtrace  with each warning or error message.  This backtrace should help track down the
+                 cause of the error.  The line numbers given in the backtrace may not always be correct, for troff's
+                 idea of line numbers gets confused by as or am requests.
+
+       -c        Disable color output (always disabled in compatibility mode).
+
+       -C        Enable compatibility mode.
+
+       -dcs
+       -dname=s  Define c or name to be a string s; c must be a one letter name.
+
+       -E        Inhibit  all  error  messages  of troff.  Note that this doesn't affect messages output to standard
+                 error by macro packages using the tm or tm1 requests.
+
+       -ffam     Use fam as the default font family.
+
+       -Fdir     Search in directory (or directory path) dir for subdirectories devname (name is  the  name  of  the
+                 device)  and there for the DESC file and font files.  dir is scanned before all other font directo‐
+                 ries.
+
+       -i        Read the standard input after all the named input files have been processed.
+
+       -Idir     This option may be used to add a directory to the search path for files (both those on the  command
+                 line  and  those  named in .psbb requests).  The search path is initialized with the current direc‐
+                 tory.  This option may be specified more than once; the directories are then searched in the  order
+                 specified  (but  before  the current directory).  If you want to make the current directory be read
+                 before other directories, add -I. at the appropriate place.
+
+                 No directory search is performed for files with an absolute file name.
+
+       -mname    Read in the file name.tmac.  If it isn't found, try tmac.name instead.  It will be  first  searched
+                 for  in  directories  given  with  the  -M  command  line  option, then in directories given in the
+                 GROFF_TMAC_PATH environment variable, then in the current directory (only if in unsafe  mode),  the
+                 home        directory,        /usr/lib/groff/site-tmac,       /usr/share/groff/site-tmac,       and
+                 /usr/share/groff/1.22.2/tmac.
+
+       -Mdir     Search directory (or directory path) dir for macro files.  This is scanned before all  other  macro
+                 directories.
+
+       -nnum     Number the first page num.
+
+       -olist    Output  only  pages  in list, which is a comma-separated list of page ranges; n means print page n,
+                 m-n means print every page between m and n, -n means print every page up to n, n- means print every
+                 page from n.  troff will exit after printing the last page in the list.
+
+       -rcn
+       -rname=n  Set  number  register  c  or  name to n; c must be a one character name; n can be any troff numeric
+                 expression.
+
+       -R        Don't load troffrc and troffrc-end.
+
+       -Tname    Prepare output for device name, rather than the default  ps;  see  groff(1)  for  a  more  detailed
+                 description.
+
+       -U        Unsafe  mode.  This will enable the following requests: open, opena, pso, sy, and pi.  For security
+                 reasons, these potentially dangerous requests are disabled otherwise.  It will also add the current
+                 directory to the macro search path.
+
+       -v        Print the version number.
+
+       -wname    Enable warning name.  Available warnings are described in the section WARNINGS below.  For example,
+                 to enable all warnings, use -w all.  Multiple -w options are allowed.
+
+       -Wname    Inhibit warning name.  Multiple -W options are allowed.
+
+       -z        Suppress formatted output.
+
+WARNINGS
+       The warnings that can be given by troff are divided into the following categories.  The name associated  with
+       each  warning is used by the -w and -W options; the number is used by the warn request, and by the .warn reg‐
+       ister; it is always a power of 2 to allow bitwise composition.
+
+                                   ┌─────────────────────┬─────────────────────────────┐
+                                   │Bit   Code   Warning │ Bit    Code       Warning   │
+                                   ├─────────────────────┼─────────────────────────────┤
+                                   │  0      1   char    │  10      1024   reg         │
+                                   │  1      2   number  │  11      2048   tab         │
+                                   │  2      4   break   │  12      4096   right-brace │
+                                   │  3      8   delim   │  13      8192   missing     │
+                                   │  4     16   el      │  14     16384   input       │
+                                   │  5     32   scale   │  15     32768   escape      │
+                                   │  6     64   range   │  16     65536   space       │
+                                   │  7    128   syntax  │  17    131072   font        │
+                                   │  8    256   di      │  18    262144   ig          │
+                                   │  9    512   mac     │  19    524288   color       │
+                                   │                     │  20   1048576   file        │
+                                   └─────────────────────┴─────────────────────────────┘
+       break           4   In fill mode, lines which could not be broken so that their length was less than the line
+                           length.  This is enabled by default.
+
+       char            1   Non-existent characters.  This is enabled by default.
+
+       color      524288   Color related warnings.
+
+       delim           8   Missing or mismatched closing delimiters.
+
+       di            256   Use of di or da without an argument when there is no current diversion.
+
+       el             16   Use of the el request with no matching ie request.
+
+       escape      32768   Unrecognized  escape sequences.  When an unrecognized escape sequence is encountered, the
+                           escape character is ignored.
+
+       file      1048576   Indicates a missing file for the mso request.  Enabled by default.
+
+       font       131072   Non-existent fonts.  This is enabled by default.
+
+       ig         262144   Invalid escapes in text ignored with the ig  request.   These  are  conditions  that  are
+                           errors when they do not occur in ignored text.
+
+       input       16384   Invalid input characters.
+
+       mac           512   Use  of  undefined  strings,  macros  and diversions.  When an undefined string, macro or
+                           diversion is used, that string is automatically defined as empty.  So, in most cases,  at
+                           most one warning will be given for each name.
+
+       missing      8192   Requests that are missing non-optional arguments.
+
+       number          2   Invalid numeric expressions.  This is enabled by default.
+
+       range          64   Out of range arguments.
+
+       reg          1024   Use  of undefined number registers.  When an undefined number register is used, that reg‐
+                           ister is automatically defined to have a value of 0.  So, in  most  cases,  at  most  one
+                           warning will be given for use of a particular name.
+
+       right-brace  4096   Use of \} where a number was expected.
+
+       scale          32   Meaningless scaling indicators.
+
+       space       65536   Missing  space  between  a request or macro and its argument.  This warning will be given
+                           when an undefined name longer than two characters is encountered, and the first two char‐
+                           acters  of the name make a defined name.  The request or macro will not be invoked.  When
+                           this warning is given, no macro is automatically defined.  This is  enabled  by  default.
+                           This warning will never occur in compatibility mode.
+
+       syntax        128   Dubious syntax in numeric expressions.
+
+       tab          2048   Inappropriate  use  of a tab character.  Either use of a tab character where a number was
+                           expected, or use of tab character in an unquoted macro argument.
+
+       There are also names that can be used to refer to groups of warnings:
+
+       all    All warnings except di, mac, and reg.  It is intended that this covers all warnings  that  are  useful
+              with traditional macro packages.
+
+       w      All warnings.
+
+ENVIRONMENT
+       GROFF_TMAC_PATH
+              A colon separated list of directories in which to search for macro files.  troff will scan directories
+              given in the -M option before these, and in standard directories (current directory if in unsafe mode,
+              home  directory,  /usr/lib/groff/site-tmac,  /usr/share/groff/site-tmac, /usr/share/groff/1.22.2/tmac)
+              after these.
+
+       GROFF_TYPESETTER
+              Default device.
+
+       GROFF_FONT_PATH
+              A colon separated list of directories in which to search for the devname directory.  troff  will  scan
+              directories  given  in the -F option before these, and in standard directories (/usr/share/groff/site-
+              font, /usr/share/groff/1.22.2/font, /usr/lib/font) after these.
+
+FILES
+       /usr/share/groff/1.22.2/tmac/troffrc
+              Initialization file (called before any other macro package).
+
+       /usr/share/groff/1.22.2/tmac/troffrc-end
+              Initialization file (called after any other macro package).
+
+       /usr/share/groff/1.22.2/tmac/name.tmac
+       /usr/share/groff/1.22.2/tmac/tmac.name
+              Macro files
+
+       /usr/share/groff/1.22.2/font/devname/DESC
+              Device description file for device name.
+
+       /usr/share/groff/1.22.2/font/devname/F
+              Font file for font F of device name.
+
+       Note that troffrc and troffrc-end are neither searched in the current nor in the home  directory  by  default
+       for security reasons (even if the -U option is given).  Use the -M command line option or the GROFF_TMAC_PATH
+       environment variable to add these directories to the search path if necessary.
+
+AUTHOR
+       Copyright (C) 1989, 2001, 2002, 2003, 2007, 2008, 2009 Free Software Foundation, Inc.
+
+       This document is distributed under the terms of the FDL (GNU  Free  Documentation  License)  version  1.3  or
+       later.   You  should  have received a copy of the FDL on your system, it is also available on-line at the GNU
+       copyleft site ⟨http://www.gnu.org/copyleft/fdl.html⟩.  This document was written by James Clark, with modifi‐
+       cations from Werner Lemberg ⟨wl@gnu.org⟩ and Bernd Warken ⟨groff-bernd.warken-72@web.de⟩.
+
+       This document is part of groff, the GNU roff distribution.
+
+SEE ALSO
+       groff(1)
+              The main program of the groff system, a wrapper around troff.
+
+       groff(7)
+              A  description  of  the  groff  language,  including  a short but complete reference of all predefined
+              requests, registers, and escapes of plain groff.  From the command line, this is called by
+
+                     man 7 groff
+
+       groff_diff(7)
+              The differences of the groff language and the classical troff language.  Currently, this is  the  most
+              actual document of the groff system.
+
+       roff(7)
+              An overview over groff and other roff systems, including pointers to further related documentation.
+
+       The groff info file, cf. info(1), presents all groff documentation within a single document.
+
+
+
+Groff Version 1.22.2                               22 January 2014                                          TROFF(1)

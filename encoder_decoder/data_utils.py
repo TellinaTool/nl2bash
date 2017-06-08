@@ -129,7 +129,7 @@ def create_vocabulary(vocab_path, data, max_vocabulary_size, min_word_frequency,
       (used for simplifying testing sentences with unseen tokens).
     """
 
-    MIN_ARG_FREQ = 10
+    MIN_ARG_FREQ = 30
 
     vocab = {}
 
@@ -1169,7 +1169,7 @@ def load_vocab(FLAGS):
         elif FLAGS.use_copy and FLAGS.copy_fun == 'copynet':
             cm_ext = ".cm"
         else:
-            cm_ext = ".cm.norm" if FLAGS.dataset.startswith('.cm') \
+            cm_ext = ".cm.norm" if FLAGS.dataset.startswith('bash') \
                 else '.cm'
     elif FLAGS.decoder_topology in ['basic_tree']:
         if FLAGS.normalized or FLAGS.canonical:

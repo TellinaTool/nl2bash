@@ -217,6 +217,7 @@ def decode(encoder_full_inputs, model_outputs, FLAGS, vocabs, sc_fillers=None,
                     token = r_sc_vocab[encoder_full_inputs
                         [len(encoder_full_inputs) - 1 
                          - (output - FLAGS.tg_vocab_size)][batch_id]]
+                    print(output, token)
                 else:
                     return data_utils._UNK
             return token
@@ -390,8 +391,15 @@ def decode_set(sess, model, dataset, top_k, FLAGS, verbose=True):
     """
     nl2bash = FLAGS.dataset.startswith('bash') and not FLAGS.explain
 
+<<<<<<< HEAD
     grouped_dataset = data_utils.group_data(dataset,
         use_bucket=model.buckets, use_temp=FLAGS.normalized)
+=======
+    tokenizer_selector = 'cm' if FLAGS.explain else 'nl'
+    grouped_dataset = data_utils.group_data(
+        dataset, use_bucket=model.buckets, use_temp=FLAGS.normalized,
+        tokenizer_selector=tokenizer_selector)
+>>>>>>> 1ee0ce6f2be2aac74942a62b59819bddaffd7ea2
     vocabs = data_utils.load_vocab(FLAGS)
     rev_sc_vocab = vocabs.rev_sc_vocab
 
@@ -460,6 +468,7 @@ def decode_set(sess, model, dataset, top_k, FLAGS, verbose=True):
                 pred_file.write('\n')
         else:
             print(APOLOGY_MSG)
+            pred_file.write('\n')
     pred_file.close()
     shutil.copyfile(pred_file_path, os.path.join(FLAGS.model_dir,
         'predictions.{}.latest'.format(model.decode_sig)))

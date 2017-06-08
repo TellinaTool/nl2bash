@@ -1,0 +1,26 @@
+DOCKER(1)                                                                                                  DOCKER(1)
+
+
+
+NAME
+       docker-stack - Manage Docker stacks
+
+
+
+SYNOPSIS
+       docker stack
+
+
+
+DESCRIPTION
+       Manage Docker stacks
+
+
+
+SEE ALSO
+       docker(1), docker-stack-deploy(1), docker-stack-ls(1), docker-stack-ps(1), docker-stack-rm(1),
+       docker-stack-services(1)
+
+
+
+Docker Community                                      Mar 2017                                             DOCKER(1)

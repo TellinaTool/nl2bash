@@ -8,12 +8,12 @@ export PYTHONPATH=`pwd`'/..'
 ARGS=${@:1}
 
 python3 -m encoder_decoder.translate \
-    --nl_known_vocab_size 700 \
+    --nl_known_vocab_size 630 \
     --cm_known_vocab_size 400 \
     --nl_vocab_size 3100 \
-    --cm_vocab_size 3400 \
+    --cm_vocab_size 3000 \
     --encoder_topology birnn \
-    --batch_size 32 \
+    --batch_size 128 \
     --num_epochs 100 \
     --num_samples 256 \
     --variational_recurrent_dropout \

@@ -1,0 +1,21 @@
+PSFSTRIPTABLE(1)                               General Commands Manual                              PSFSTRIPTABLE(1)
+
+
+
+NAME
+       psfstriptable - remove the embedded Unicode character table from a console font
+
+SYNOPSIS
+       psfstriptable fontfile outfile
+
+DESCRIPTION
+       psfstriptable  reads  a  .psf  format  console font from fontfile, removes the embedded Unicode font table if
+       there is one, and writes the result to outfile.  An input file name of "-" denotes  standard  input,  and  an
+       output file name of "-" denotes standard output.
+
+SEE ALSO
+       setfont(8), psfaddtable(1), psfgettable(1), psfxtable(1)
+
+
+
+                                                     25 Oct 1994                                    PSFSTRIPTABLE(1)

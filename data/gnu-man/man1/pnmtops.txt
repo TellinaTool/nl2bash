@@ -1,0 +1,124 @@
+pnmtops(1)                                     General Commands Manual                                    pnmtops(1)
+
+
+
+NAME
+       pnmtops - convert portable anymap to PostScript
+
+SYNOPSIS
+       pnmtops  [-scale  s]  [-dpi  n]  [-imagewidth  n]  [-imageheight  n]  [-width=N]  [-height=N]  [-equalpixels]
+       [-turn|-noturn] [-rle|-runlength] [-nocenter] [-setpage] [-nosetpage] [pnmfile]
+
+
+       All options can be abbreviated to their shortest unique prefix.  You may use two hyphens instead of one.  You
+       may separate an option name and its value with white space instead of an equals sign.
+
+
+DESCRIPTION
+       Reads a Netpbm image as input.  Produces Encapsulated PostScript as output.
+
+       If the input file is in color (PPM), pnmtops generates a color PostScript file.  Some PostScript interpreters
+       can't handle color PostScript.  If you have one of these you will need to run  your  image  through  ppmtopgm
+       first.
+
+       If  you  specify  no  output  dimensioning  options,  the output image is dimensioned as if you had specified
+       -scale=1.0, which means aproximately 72 pixels of the input image generate one inch of output (if  that  fits
+       the page).
+
+       Use -imagewidth, -imageheight, -equalpixels, -width, -height, and -scale to adjust that.
+
+
+
+OPTIONS
+       -imagewidth
+              -imageheight  Tells  how wide and high you want the image on the page, in inches.  The aspect ratio of
+              the image is preserved, so if you specify both of these, the image on the page  will  be  the  largest
+              image that will fit within the box of those dimensions.
+
+              If these dimensions are greater than the page size, you get Postscript output that runs off the page.
+
+              You cannot use imagewidth or imageheight with -scale or -equalpixels.
+
+
+       -equalpixels
+              This  option  causes the output image to have the same number of pixels as the input image.  So if the
+              output device is 600 dpi and your image is 3000 pixels wide, the output image would be 5 inches wide.
+
+              You cannot use -equalpixels with -imagewidth, -imageheight, or -scale.
+
+
+       -scale tells how big you want the image on the page.  The value is the number of inches of output image  that
+              you want 72 pixels of the input to generate.
+
+              But  pnmtops  rounds the number to something that is an integral number of output device pixels.  E.g.
+              if the output device is 300 dpi and you specify -scale=1.0, then 75 (not 72) pixels of  input  becomes
+              one inch of output (4 output pixels for each input pixel).  Note that the -dpi option tell pnmtops how
+              many pixels per inch the output device generates.
+
+              If the size so specified does not fit on the page (as  measured  either  by  the  -width  and  -height
+              options  or  the  default  page  size  of 8.5 inches by 11 inches), pnmtops ignores the -scale option,
+              issues a warning, and scales the image to fit on the page.
+
+
+       -dpi   This option specifies the dots per inch of your output device.  The default is  300  dpi.   In  theory
+              PostScript  is  device-independent  and you don't have to worry about this, but in practice its raster
+              rendering can have unsightly bands if the device pixels and the image pixels aren't in sync.
+
+              Also this option is crucial to the working of the equalpixels option.
+
+
+       -width
+              -height These options specify the dimensions of the page on which the output is to be  printed.   This
+              can affect the size of the output image.
+
+              The  page size has no effect, however, when you specify the -imagewidth, -imageheight, or -equalpixels
+              options.
+
+              These options may also affect positioning of the image on the page and even  the  paper  selected  (or
+              cut) by the printer/plotter when the output is printed.  See the -nosetpage option.
+
+              The default is 8.5 inches by 11 inches.
+
+
+       -turn  -noturn  These  options  control whether the image gets turned 90 degrees.  Normally, if an image fits
+              the page better when turned (e.g. the image is wider than it is tall, but the page is taller  than  it
+              is  wide), it gets turned automatically to better fit the page.  If you specify the -turn option, pnm‐
+              tops turns the image no matter what its shape; If you specify -noturn, pnmtops does  not  turn  it  no
+              matter what its shape.
+
+       -rle   -runlength These identical options specify run-length compression.  This may save time if the host-to-
+              printer link is slow; but normally the printer's processing  time  dominates,  so  -rle  makes  things
+              slower.
+
+       -nocenter
+              By  default,  pnmtops  centers the image on the output page.  You can cause pnmtops to instead put the
+              image against the upper left corner of the page with the -nocenter option.  This is  useful  for  pro‐
+              grams which can include PostScript files, but can't cope with pictures which are not positioned in the
+              upper left corner.
+
+              For backward compatibility, pnmtops accepts the option -center, but it has no effect.
+
+
+       -setpage
+              pnmtops can generate a "setpagedevice" directive to tell the printer/plotter what size  paper  to  use
+              (or  cut).  The dimensions it specifies on this directive are those selected or defaulted by the width
+              and height options or defaulted.  If you want a "setpagedevice" directive in the output, specify -set‐
+              page.   This can be useful if your printer chokes on this directive, which has not always been defined
+              in Postscript, or you want to fake out the printer and print on one size paper as if  you're  printing
+              on another.
+
+              Before release 10.0 the default was to generate the "setpagedevice" directive, and there is the switch
+              -nosetpage to supress it, but that's actually a no-op now.
+
+
+SEE ALSO
+       pnm(5), gs(1), psidtopgm(1), pstopnm(1), pbmtolps(1), pbmtoepsi(1), pbmtopsg3(1), ppmtopgm(1),
+
+
+AUTHOR
+       Copyright (C) 1989, 1991 by Jef Poskanzer.
+       Modified November 1993 by Wolfgang Stuerzlinger, wrzl@gup.uni-linz.ac.at
+
+
+
+                                                     25 May 2001                                          pnmtops(1)

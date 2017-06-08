@@ -1,0 +1,31 @@
+iproxy(1)                                      General Commands Manual                                     iproxy(1)
+
+
+
+NAME
+       iproxy - proxy that enables tcp service access to iPhone/iPod
+
+SYNOPSIS
+       iproxy [LOCAL_TCP_PORT] [DEVICE_TCP_PORT]
+
+
+DESCRIPTION
+       iproxy  allows  you  to forward localhost ports to the device---allows SSH over USB on jailbroken devices, or
+       allowing access the lockdown daemon (and then to all of the file access, sync, notification and  backup  ser‐
+       vices running on the device).
+
+       Example :
+        ./iproxy 2222 22 &
+        ssh -p 2222 root@localhost
+
+
+AUTHORS
+       Nikias Bassen <nikias@gmx.li>
+
+       Paul Sladen <libiphone@paul.sladen.org>
+
+       Man page written to conform with Debian by Julien Lavergne.
+
+
+
+                                                                                                           iproxy(1)

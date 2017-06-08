@@ -1,0 +1,20 @@
+NM-TOOL(1)                                     General Commands Manual                                    NM-TOOL(1)
+
+
+
+NAME
+       nm-tool - utility to report NetworkManager state and devices
+
+SYNOPSIS
+       nm-tool
+
+DESCRIPTION
+       The nm-tool utility provides information about NetworkManager, device, and wireless networks.
+
+SEE ALSO
+       NetworkManager(8), nm-applet(1), nm-connection-editor(1).
+
+
+
+
+                                                                                                          NM-TOOL(1)

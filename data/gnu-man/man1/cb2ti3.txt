@@ -1,0 +1,36 @@
+CONVERT(1)                                          User Commands                                         CONVERT(1)
+
+
+
+NAME
+       Convert - Convert Colorblind raw device profile data to Argyll data.
+
+DESCRIPTION
+       Convert  Colorblind  raw  device  profile data to Argyll data, Version 1.5.1 Author: Graeme W. Gill, licensed
+       under the AGPL Version 3 usage: cb2ti3 [-v] [-l limit] infile outfile
+
+       -v     Verbose mode
+
+       -l limit
+              Set inklimit in .ti3 file
+
+       infile Base name for input.CMY and input.nCIE file
+
+       outfile
+              Base name for output.ti3 file
+
+       Author: Graeme W. Gill, licensed under the AGPL Version 3 usage: cb2ti3 [-v] [-l limit] infile outfile
+
+       -v     Verbose mode
+
+       -l limit
+              Set inklimit in .ti3 file
+
+       infile Base name for input.CMY and input.nCIE file
+
+       outfile
+              Base name for output.ti3 file
+
+
+
+Convert Colorblind raw device profile data to Argyll AugustV2013on 1.5.1                                  CONVERT(1)

@@ -1,0 +1,139 @@
+captoinfo(1)                                   General Commands Manual                                  captoinfo(1)
+
+
+
+NAME
+       captoinfo - convert a termcap description into a terminfo description
+
+SYNOPSIS
+       captoinfo [-vn width]  [-V] [-1] [-w width] file . . .
+
+DESCRIPTION
+       captoinfo looks in each given text file for termcap descriptions.  For each one found, an equivalent terminfo
+       description is written to standard output.  Termcap tc capabilities are translated directly to  terminfo  use
+       capabilities.
+
+       If  no file is given, then the environment variable TERMCAP is used for the filename or entry.  If TERMCAP is
+       a full pathname to a file, only the terminal whose name is specified in  the  environment  variable  TERM  is
+       extracted  from  that  file.   If the environment variable TERMCAP is not set, then the file /etc/terminfo is
+       read.
+
+       -v   print out tracing information on standard error as the program runs.
+
+       -V   print out the version of the program in use on standard error and exit.
+
+       -1   cause the fields to print out one to a line.  Otherwise, the fields will be printed several to a line to
+            a maximum width of 60 characters.
+
+       -w   change the output to width characters.
+
+FILES
+       /etc/terminfo       Compiled terminal description database.
+
+TRANSLATIONS FROM NONSTANDARD CAPABILITIES
+       Some  obsolete nonstandard capabilities will automatically be translated into standard (SVr4/XSI Curses) ter‐
+       minfo capabilities by captoinfo.  Whenever one of these automatic translations  is  done,  the  program  will
+       issue  an  notification  to  stderr,  inviting the user to check that it has not mistakenly translated a com‐
+       pletely unknown and random capability and/or syntax error.
+
+       Nonstd   Std    From           Terminfo
+        name    name                 capability
+       ───────────────────────────────────────────────
+       BO       mr     AT&T    enter_reverse_mode
+       CI       vi     AT&T    cursor_invisible
+       CV       ve     AT&T    cursor_normal
+       DS       mh     AT&T    enter_dim_mode
+       EE       me     AT&T    exit_attribute_mode
+       FE       LF     AT&T    label_on
+       FL       LO     AT&T    label_off
+       XS       mk     AT&T    enter_secure_mode
+       EN       @7     XENIX   key_end
+       GE       ae     XENIX   exit_alt_charset_mode
+       GS       as     XENIX   enter_alt_charset_mode
+       HM       kh     XENIX   key_home
+       LD       kL     XENIX   key_dl
+       PD       kN     XENIX   key_npage
+       PN       po     XENIX   prtr_off
+       PS       pf     XENIX   prtr_on
+       PU       kP     XENIX   key_ppage
+       RT       @8     XENIX   kent
+       UP       ku     XENIX   kcuu1
+       KA       k;     Tek     key_f10
+       KB       F1     Tek     key_f11
+       KC       F2     Tek     key_f12
+       KD       F3     Tek     key_f13
+       KE       F4     Tek     key_f14
+
+       KF       F5     Tek     key_f15
+       BC       Sb     Tek     set_background
+       FC       Sf     Tek     set_foreground
+       HS       mh     Iris    enter_dim_mode
+
+       XENIX termcap also used to have a set of extension capabilities for forms drawing, designed to take advantage
+       of the IBM PC high-half graphics.  They were as follows:
+
+       Cap          Graphic
+       ─────────────────────────────
+       G2    upper left
+       G3    lower left
+       G1    upper right
+       G4    lower right
+       GR    pointing right
+       GL    pointing left
+       GU    pointing up
+       GD    pointing down
+       GH    horizontal line
+       GV    vertical line
+       GC    intersection
+       G6    upper left
+       G7    lower left
+       G5    upper right
+       G8    lower right
+       Gr    tee pointing right
+       Gr    tee pointing left
+       Gu    tee pointing up
+       Gd    tee pointing down
+       Gh    horizontal line
+       Gv    vertical line
+       Gc    intersection
+       GG    acs magic cookie count
+
+       If  the  single-line capabilities occur in an entry, they will automatically be composed into an acsc string.
+       The double-line capabilities and GG are discarded with a warning message.
+
+       IBM's AIX has a terminfo facility descended from SVr1 terminfo but incompatible with the  SVr4  format.   The
+       following AIX extensions are automatically translated:
+
+        IBM    XSI
+       ─────────────
+       ksel    kslt
+       kbtab   kcbt
+       font0   s0ds
+       font1   s1ds
+       font2   s2ds
+       font3   s3ds
+
+       Additionally, the AIX box1 capability will be automatically translated to an acsc string.
+
+       Hewlett-Packard's terminfo library supports two nonstandard terminfo capabilities meml (memory lock) and memu
+       (memory unlock).  These will be discarded with a warning message.
+
+NOTES
+       This utility is actually a link to tic(1), running in -I mode.  You can use other tic options such as -f  and
+       -x.
+
+       The  trace  option is not identical to SVr4's.  Under SVr4, instead of following the -v with a trace level n,
+       you repeat it n times.
+
+SEE ALSO
+       infocmp(1), ncurses(3NCURSES), terminfo(5)
+
+       This describes ncurses version 5.9 (patch 20140118).
+
+AUTHOR
+       Eric S. Raymond <esr@snark.thyrsus.com> and
+       Thomas E. Dickey <dickey@invisible-island.net>
+
+
+
+                                                                                                        captoinfo(1)

@@ -1,0 +1,74 @@
+ICONV(1)                                          Debian GNU/Linux                                          ICONV(1)
+
+
+
+NAME
+       iconv - Convert encoding of given files from one encoding to another
+
+SYNOPSIS
+       iconv -f encoding [-t encoding] [inputfile]...
+
+DESCRIPTION
+       The iconv program converts the encoding of characters in inputfile, or from the standard input if no filename
+       is specified, from one coded character set to another. The result is written to standard output unless
+       otherwise specified by the --output option.
+
+       --from-code, -f encoding
+              Convert characters from encoding.
+
+       --to-code, -t encoding
+              Convert characters to encoding. If not specified the encoding corresponding to the current locale is
+              used.
+
+       --list, -l
+              List known coded character sets.
+
+       -c     Omit invalid characters from output.
+
+       --output, -o file
+              Specify output file (instead of stdout).
+
+       --silent, -s
+              Suppress warnings, but not errors.
+
+       --verbose
+              Print progress information.
+
+       --help, -?
+              Give help list.
+
+       --usage
+              Give a short usage message.
+
+       --version, -V
+              Print program version.
+
+ENCODINGS
+       The values permitted for --from-code and --to-code can be listed by the iconv --list command, and all
+       combinations of the listed values are supported. Furthermore the following two suffixes are supported:
+
+       //TRANSLIT
+              When the string "//TRANSLIT" is appended to --to-code, transliteration is activated.  This means that
+              when a character cannot be represented in the target character set, it can be approximated through one
+              or several similarly looking characters.
+
+       //IGNORE
+              When the string "//IGNORE" is appended to --to-code, characters that cannot be represented in the
+              target character set will be silently discarded.
+
+
+AUTHOR
+       iconv was written by Ulrich Drepper as part of the GNU C Library.
+
+       This man page was written by Joel Klecker <espy@debian.org>, for the Debian GNU/Linux system.
+
+
+
+
+
+
+
+
+
+
+3rd Berkeley Distribution                               lenny                                               ICONV(1)
