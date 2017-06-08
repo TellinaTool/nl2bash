@@ -29,4 +29,16 @@ public class ManParserInterfaceTest {
         Main.main(args);
     }
 
+    @Test
+    public void fastTestGrammar() throws IOException, ParseException {
+        String[] args = {"-gen-primitive-cmd-json", "./testdata/test_grammar.txt", "../grammar/optionwords.txt"};
+        Main.main(args);
+    }
+
+    @Test
+    public void fastGenG4Grammar() throws IOException, ParseException {
+        String[] args = {"-make_grammar"};
+        Main.main(args);
+    }
+
 }
