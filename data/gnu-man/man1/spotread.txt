@@ -1,0 +1,189 @@
+MEASURE(1)                                          User Commands                                         MEASURE(1)
+
+
+
+NAME
+       Measure - Read Print Spot values.
+
+DESCRIPTION
+       Measure spot values, Version 1.5.1 Author: Graeme W. Gill, licensed under the GPL Version 2 or later Diagnos‐
+       tic: Flag -- not recognised usage: spotread [-options] [logfile]
+
+       -v     Verbose mode
+
+       -s     Print spectrum for each reading
+
+       -S     Plot spectrum for each reading
+
+       -c listno
+              Set communication port from the following list (default 1)
+
+              ** No ports found **
+
+       -t     Use transmission measurement mode
+
+       -e     Use emissive measurement mode (absolute results)
+
+       -eb    Use display white brightness relative measurement mode
+
+       -ew    Use display white relative measurement mode
+
+       -p     Use telephoto measurement mode (absolute results)
+
+       -pb    Use projector white brightness relative measurement mode
+
+       -pw    Use projector white relative measurement mode
+
+       -a     Use ambient measurement mode (absolute results)
+
+       -f     Use ambient flash measurement mode (absolute results)
+
+       -I illum
+              Set simulated instrument illumination using FWA (def -i illum): M0, M1, M2, A, C, D50, D50M2, D65, F5,
+              F8, F10 or file.sp]
+
+       -i illum
+              Choose  illuminant  for computation of CIE XYZ from spectral data & FWA: A, C, D50 (def.), D50M2, D65,
+              F5, F8, F10 or file.sp
+
+       -Q observ
+              Choose CIE Observer for spectral data or CCSS instrument: 1931_2 (def), 1964_10, S&B 1955_2, shaw, J&V
+              1978_2 (Choose FWA during operation)
+
+       -F filter
+              Set filter configuration (if aplicable):
+
+       n      None
+
+       p      Polarising filter
+
+       6      D65
+
+       u      U.V. Cut
+
+       -E extrafilterfile
+              Apply extra filter compensation file
+
+       -x     Display Yxy instead of Lab
+
+       -h     Display LCh instead of Lab
+
+       -V     Show running average and std. devation from ref.
+
+       -T     Display correlated color temperatures and CRI
+
+       -N     Disable auto calibration of instrument
+
+       -H     Start in high resolution spectrum mode (if available)
+
+       -X file.ccmx
+              Apply Colorimeter Correction Matrix
+
+       -X file.ccss
+              Use Colorimeter Calibration Spectral Samples for calibration
+
+       -Y r|n Override refresh, non-refresh display mode
+
+       -Y A   Use non-adaptive integration time mode (if available).
+
+       -W n|h|x
+              Override serial port flow control: n = none, h = HW, x = Xon/Xoff
+
+       -D [level]
+              Print debug diagnostics to stderr
+
+       logfile
+              Optional file to save reading results as text
+
+       Author:  Graeme  W. Gill, licensed under the GPL Version 2 or later Diagnostic: Flag -- not recognised usage:
+       spotread [-options] [logfile]
+
+       -v     Verbose mode
+
+       -s     Print spectrum for each reading
+
+       -S     Plot spectrum for each reading
+
+       -c listno
+              Set communication port from the following list (default 1)
+
+              ** No ports found **
+
+       -t     Use transmission measurement mode
+
+       -e     Use emissive measurement mode (absolute results)
+
+       -eb    Use display white brightness relative measurement mode
+
+       -ew    Use display white relative measurement mode
+
+       -p     Use telephoto measurement mode (absolute results)
+
+       -pb    Use projector white brightness relative measurement mode
+
+       -pw    Use projector white relative measurement mode
+
+       -a     Use ambient measurement mode (absolute results)
+
+       -f     Use ambient flash measurement mode (absolute results)
+
+       -I illum
+              Set simulated instrument illumination using FWA (def -i illum): M0, M1, M2, A, C, D50, D50M2, D65, F5,
+              F8, F10 or file.sp]
+
+       -i illum
+              Choose  illuminant  for computation of CIE XYZ from spectral data & FWA: A, C, D50 (def.), D50M2, D65,
+              F5, F8, F10 or file.sp
+
+       -Q observ
+              Choose CIE Observer for spectral data or CCSS instrument: 1931_2 (def), 1964_10, S&B 1955_2, shaw, J&V
+              1978_2 (Choose FWA during operation)
+
+       -F filter
+              Set filter configuration (if aplicable):
+
+       n      None
+
+       p      Polarising filter
+
+       6      D65
+
+       u      U.V. Cut
+
+       -E extrafilterfile
+              Apply extra filter compensation file
+
+       -x     Display Yxy instead of Lab
+
+       -h     Display LCh instead of Lab
+
+       -V     Show running average and std. devation from ref.
+
+       -T     Display correlated color temperatures and CRI
+
+       -N     Disable auto calibration of instrument
+
+       -H     Start in high resolution spectrum mode (if available)
+
+       -X file.ccmx
+              Apply Colorimeter Correction Matrix
+
+       -X file.ccss
+              Use Colorimeter Calibration Spectral Samples for calibration
+
+       -Y r|n Override refresh, non-refresh display mode
+
+       -Y A   Use non-adaptive integration time mode (if available).
+
+       -W n|h|x
+              Override serial port flow control: n = none, h = HW, x = Xon/Xoff
+
+       -D [level]
+              Print debug diagnostics to stderr
+
+       logfile
+              Optional file to save reading results as text
+
+
+
+Measure spot values, Version 1.5.1                   August 2013                                          MEASURE(1)

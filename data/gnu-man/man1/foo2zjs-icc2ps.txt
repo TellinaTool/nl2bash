@@ -1,0 +1,66 @@
+foo2zjs-icc2ps(1)                              General Commands Manual                             foo2zjs-icc2ps(1)
+
+
+
+
+
+NAME
+       foo2zjs-icc2ps - little cms PostScript converter.
+
+SYNOPSIS
+       foo2zjs-icc2ps [options]
+
+DESCRIPTION
+       lcms  is a standalone CMM engine, which deals with the color management.  It implements a fast transformation
+       between ICC profiles.  foo2zjs-icc2ps is little cms PostScript converter.
+
+COMMAND LINE OPTIONS
+       -b     Black point compensation (CRD only).
+
+       -c <0,1,2>
+              Precision (0=LowRes, 1=Normal (default), 2=Hi-res) (CRD only)
+
+       -i profile
+              Input profile: Generates Color Space Array (CSA).
+
+       -n <gridpoints>
+              Alternate way to set precision, number of CLUT points (CRD only)
+
+       -o profile
+              Output profile: Generates Color Rendering Dictionary(CRD).
+
+       -t <0,1,2,3>
+              Intent (0=Perceptual, 1=Colorimetric, 2=Saturation, 3=Absolute).
+
+       -u     Do NOT generate resource name on CRD.
+
+FILES
+       /usr/share/foo2*/icm/*
+
+SEE ALSO
+       foo2hiperc-wrapper(1), foo2hp2600-wrapper(1), foo2lava-wrapper(1),  foo2oak-wrapper(1),  foo2qpdl-wrapper(1),
+       foo2zjs-wrapper(1),
+
+AUTHOR
+       Rick Richardson <rick.richardson@comcast.net>
+       http://foo2zjs.rkkda.com/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

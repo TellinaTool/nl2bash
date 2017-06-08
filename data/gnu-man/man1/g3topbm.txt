@@ -1,0 +1,44 @@
+g3topbm(1)                                     General Commands Manual                                    g3topbm(1)
+
+
+
+NAME
+       g3topbm - convert a Group 3 fax file into a portable bitmap
+
+SYNOPSIS
+       g3topbm [-kludge] [-reversebits] [-stretch] [g3file]
+
+DESCRIPTION
+       Reads a Group 3 fax file as input.  Produces a portable bitmap as output.
+
+OPTIONS
+       -kludge
+              Tells  g3topbm  to  ignore  the first few lines of the file; sometimes fax files have some junk at the
+              beginning.
+
+       -reversebits
+              Tells g3topbm to interpret bits least-significant  first,  instead  of  the  default  most-significant
+              first.   Apparently  some fax modems do it one way and others do it the other way.  If you get a whole
+              bunch of "bad code word" messages, try using this flag.
+
+       -stretch
+              Tells g3topbm to stretch the image vertically by duplicating each row.  This is  for  the  low-quality
+              transmission mode.
+
+       All flags can be abbreviated to their shortest unique prefix.
+
+REFERENCES
+       The standard for Group 3 fax is defined in CCITT Recommendation T.4.
+
+BUGS
+       Probably.
+
+SEE ALSO
+       pbmtog3(1), pbm(5)
+
+AUTHOR
+       Copyright (C) 1989 by Paul Haeberli <paul@manray.sgi.com>.
+
+
+
+                                                   02 October 1989                                        g3topbm(1)

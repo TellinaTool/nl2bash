@@ -1,0 +1,46 @@
+TAILF(1)                                            User Commands                                           TAILF(1)
+
+
+
+NAME
+       tailf - follow the growth of a log file
+
+SYNOPSIS
+       tailf [OPTION] file
+
+DESCRIPTION
+       tailf  will  print out the last 10 lines of a file and then wait for the file to grow.  It is similar to tail
+       -f but does not access the file when it is not growing.  This has the side effect of not updating the  access
+       time for the file, so a filesystem flush does not occur periodically when no log activity is happening.
+
+       tailf  is  extremely  useful  for  monitoring  log  files on a laptop when logging is infrequent and the user
+       desires that the hard disk spin down to conserve battery life.
+
+       Mandatory arguments to long options are mandatory for short options too.
+
+       -n, --lines=N, -N
+              output the last N lines, instead of the last 10.
+
+       -V, --version
+              Output version information and exit.
+
+       -h, --help
+              Display help and exit.
+
+
+AUTHOR
+       This program was originally written by Rik Faith (faith@acm.org) and may  be  freely  distributed  under  the
+       terms of the X11/MIT License.  There is ABSOLUTELY NO WARRANTY for this program.
+
+       The latest inotify based implementation was written by Karel Zak (kzak@redhat.com).
+
+SEE ALSO
+       tail(1), less(1)
+
+AVAILABILITY
+       The   tailf   command   is   part   of   the   util-linux   package  and  is  available  from  ftp://ftp.ker‐
+       nel.org/pub/linux/utils/util-linux/.
+
+
+
+util-linux                                          February 2003                                           TAILF(1)

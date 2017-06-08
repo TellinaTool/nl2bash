@@ -1,0 +1,22 @@
+ZFORCE(1)                                      General Commands Manual                                     ZFORCE(1)
+
+
+
+NAME
+       zforce - force a '.gz' extension on all gzip files
+
+SYNOPSIS
+       zforce [ name ...  ]
+
+DESCRIPTION
+       zforce  forces a .gz extension on all gzip files so that gzip will not compress them twice.  This can be use‐
+       ful for files with names truncated after a file transfer.  On systems with  a  14  char  limitation  on  file
+       names, the original name is truncated to make room for the .gz suffix. For example, 12345678901234 is renamed
+       to 12345678901.gz. A file name such as foo.tgz is left intact.
+
+SEE ALSO
+       gzip(1), znew(1), zmore(1), zgrep(1), zdiff(1), gzexe(1)
+
+
+
+                                                                                                           ZFORCE(1)

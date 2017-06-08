@@ -1,0 +1,42 @@
+ppmdist(1)                                     General Commands Manual                                    ppmdist(1)
+
+
+
+NAME
+       ppmdist - simplistic grayscale assignment for machine generated, color images
+
+SYNOPSIS
+       ppmdist [-intensity|-frequency] [ppmfile]
+
+DESCRIPTION
+       Reads  a portable pixmap as input, performs a simplistic grayscale assignment intended for use with grayscale
+       or bitmap printers.
+
+       Often conversion from ppm to pgm will yield an image with contrast too low for good printer output.  The pro‐
+       gram maximizes contrast between the gray levels output.
+
+       A  ppm  input of n colors is read, and a pgm of n gray levels is written.  The gray levels take on the values
+       0..n-1, while maxval takes on n-1.
+
+       The mapping from color to stepped grayscale can be performed in order of  input  pixel  intensity,  or  input
+       pixel frequency (number of repetitions).
+
+OPTIONS
+       -frequency    Sort input colors by the number of times a color appears in the input, before mapping to
+                     evenly distributed  graylevels  of  output.   -intensity  Sort  input  colors  by  their
+                     grayscale intensity, before mapping to evenly distributed graylevels of output.  This is
+                     the default.
+
+BUGS
+       Helpful only for images with a very small number of colors.  Perhaps should have  been  an  option  to
+       ppmtopgm(1).
+
+SEE ALSO
+       ppmtopgm(1), ppmhist(1), ppm(5)
+
+AUTHOR
+       Copyright (C) 1993 by Dan Stromberg.
+
+
+
+                                                    22 July 1992                                          ppmdist(1)

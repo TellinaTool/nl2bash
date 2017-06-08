@@ -1,0 +1,117 @@
+pnmgamma(1)                                    General Commands Manual                                   pnmgamma(1)
+
+
+
+NAME
+       pnmgamma - perform gamma correction on a portable anymap
+
+
+SYNOPSIS
+       pnmgamma [-ungamma] [-cieramp|-srgbramp] [value [pnmfile]]
+       pnmgamma [-ungamma] [-cieramp|-srgbramp] redgamma greengamma bluegamma [pnmfile]
+
+
+DESCRIPTION
+       Performs gamma correction on pseudo-PNM images.
+
+       The PPM format specification specify that certain sample values in a file represent certain light intensities
+       in an image.  In particular, they specify that the sample values are directly proportional to gamma-corrected
+       intensity values.  The gamma correction they specify is CIE Rec. 709.
+
+       However,  people  sometimes  work with approximations of PPM and PGM where the relationship between the image
+       intensities and the sample values are something else.  For example, the sample value might be  directly  pro‐
+       portional  to the intensity with no gamma correction (often called "linear intensity").  Or a different gamma
+       transfer function may be used.
+
+       pnmgamma allows you to manipulate the transfer function, thus working with and/or creating  pseudo-PPM  files
+       that are useful for various things.
+
+       For  example,  if you feed a true PPM to pnmgamma -cieramp -ungamma, you get as output a file which is PPM in
+       every respect except that the sample values are directly proportional to the light intensities in the  image.
+       If you feed such a file to pnmgamma -cieramp, you get out a true PPM.
+
+       The situation for PGM images is analogous.  And pnmgamma treats PBM images as PGM images.
+
+       When  you  feed  a  linear PPM image to a display program that expects a true PPM, the display appears darker
+       than it should, so pnmgamma has the effect of lightening the image.  When you feed a true PPM  to  a  display
+       program that expects linear sample values, and therefore does a gamma correction of its own on them, the dis‐
+       play appears lighter than it should, so pnmgamma with a gamma value less than one (the multiplicative inverse
+       of whatever gamma value the display program uses) has the effect of darkening the image.
+
+
+PARAMETERS
+       The only parameters are the specification of the input image file and the gamma values.  Every gamma transfer
+       function pnmgamma uses contains an exponent, which is the gamma value, and you can choose that value.
+
+       Furthermore, you can choose different values for each of the three RGB components.  If you specify  only  one
+       gamma value, pnmgamma uses that value for all three RGB components.
+
+       If you don't specify any gamma parameters, pnmgamma chooses a default.  For the transfer functions defined by
+       standards, the default is the value defined by the standard.  If you specify anything else, you will be vary‐
+       ing from the standard.  For the simple power function transfer function, the default gamma is 1/.45.
+
+
+OPTIONS
+       -ungamma
+              Apply  the inverse of the specified transfer function (i.e. go from gamma-corrected nonlinear intensi‐
+              ties to linear intensities).
+
+
+       -cieramp
+              Use the CIE Rec. 709 gamma transfer function.  Note that it is true CIE Rec. 709 only if you  use  the
+              default  gamma  value  (i.e.  don't  specify any gamma parameters).  This transfer function is a power
+              function modified with a linear ramp near black.
+
+              If you specify neither -cieramp nor -srgbramp, the transfer function defaults to a simple power  func‐
+              tion.
+
+       -srgbramp
+              Use  the  Internation  Electrotechnical Commission (IEC) SRGB gamma transfer function (as specified in
+              the standard IEC 61966-2-1).  Note that it is true SRGB only if you use the default gamma value  (i.e.
+              don't specify any gamma parameters).  This transfer function is like the one selected by -cieramp, but
+              with different constants in it.
+
+              Note that SRGB is often spelled "sRGB".  In this document, we use standard English typography, though,
+              which doesn't allow for that kind of capitalization.
+
+              If  you specify neither -cieramp nor -srgbramp, the transfer function defaults to a simple power func‐
+              tion.
+
+
+WHAT IS GAMMA?
+       A good explanation of gamma is in Charles  Poynton's  GammaFAQ   at  <http://www.inforamp.net/~poynton/Color‐
+       FAQ.html> and ColorFAQ at <http://www.inforamp.net/~poynton/GammaFAQ.html>
+
+       In  brief:  The simplest way to code an image is by using sample values that are directly proportional to the
+       intensity of the color components.  But that wastes the sample space because the human eye can't discern dif‐
+       ferences  between  low-intensity colors as well as it can between high-intensity colors.  So instead, we pass
+       the light intensity values through a transfer function that makes it so that changing a  sample  value  by  1
+       causes  the same level of perceived color change anywhere in the sample range.  We store those resulting val‐
+       ues in the image file.  That transfer function is called the gamma transfer function and  the  transformation
+       is called gamma correcting.
+
+       Virtually  all  image formats, either specified or de facto, use gamma-corrected values for their sample val‐
+       ues.
+
+       What's really nice about gamma is that by coincidence, the inverse function that you have to  do  to  convert
+       the  gamma-corrected  values  back to real light intensities is done automatically by CRTs.  You just apply a
+       voltage to the CRT's electron gun that is proportional to the gamma-corrected sample value, and the intensity
+       of  light  that  comes out of the screen is close to the intensity value you had before you applied the gamma
+       transfer function!
+
+       And when you consider that computer video devices usually want you to store in video memory a  value  propor‐
+       tional to the signal voltage you want to go to the monitor, which the monitor turns into a proportional drive
+       voltage on the electron gun, it is really convenient to work with gamma-corrected sample values.
+
+
+
+SEE ALSO
+       pnm(5)
+
+
+AUTHOR
+       Copyright (C) 1991 by Bill Davidson and Jef Poskanzer.
+
+
+
+                                                    11 June 2001                                         pnmgamma(1)

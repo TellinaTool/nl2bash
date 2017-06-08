@@ -1,0 +1,25 @@
+DOCKER(1)                                                                                                  DOCKER(1)
+
+
+
+NAME
+       docker-container-pause - Pause all processes within one or more containers
+
+
+
+SYNOPSIS
+       docker container pause CONTAINER [CONTAINER...]
+
+
+
+DESCRIPTION
+       Pause all processes within one or more containers
+
+
+
+SEE ALSO
+       docker-container(1)
+
+
+
+Docker Community                                      Mar 2017                                             DOCKER(1)

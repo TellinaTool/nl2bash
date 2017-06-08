@@ -1,0 +1,282 @@
+ASY(1)                                         General Commands Manual                                        ASY(1)
+
+
+
+NAME
+       asy - Asymptote: a script-based vector graphics language
+
+SYNOPSIS
+       asy [options] [file ...]
+
+DESCRIPTION
+       Asymptote is a powerful descriptive vector graphics language for technical drawings, inspired by MetaPost but
+       with an improved C++-like syntax.  Asymptote provides for figures the same high-quality level of  typesetting
+       that LaTeX does for scientific text.
+
+OPTIONS
+       If no arguments are given, Asymptote runs in interactive mode.
+
+       If "-" is given as the file argument, Asymptote reads from standard input.
+
+       A  summary  of  options  is included below. The effect of most options can be negated by prepending no to the
+       option name.  Default values for most options may also be entered in the file .asy/config.asy in  the  user's
+       home directory using the long form:
+
+            import settings;
+            batchView=true;
+
+       For a complete description, see the Info files.
+
+       -V,-View
+              View output; command-line only.
+
+       -a,-align C|B|T|Z
+              Center, Bottom, Top, or Zero page alignment [C].
+
+       -antialias n
+              Antialiasing width for rasterized output [2].
+
+       -arcballradius pixels
+              Arcball radius [750].
+
+       -auto3D
+              Automatically activate 3D scene [true].
+
+       -autobillboard
+              3D labels always face viewer by default [true].
+
+       -autoimport string
+              Module to automatically import.
+
+       -autoplain
+              Enable automatic importing of plain [true].
+
+       -autoplay
+              Autoplay 3D animations [false].
+
+       -autorotate
+              Enable automatic PDF page rotation [false].
+
+       -batchMask
+              Mask fpu exceptions in batch mode [false].
+
+       -batchView
+              View output in batch mode [false].
+
+       -bw    Convert all colors to black and white [false].
+
+       -cd directory
+              Set current directory; command-line only.
+
+       -cmyk  Convert rgb colors to cmyk [false].
+
+       -c,-command string
+              Command to autoexecute.
+
+       -compact
+              Conserve memory at the expense of speed [false].
+
+       -d,-debug
+              Enable debugging messages [false].
+
+       -divisor n
+              Garbage collect using purge(divisor=n) [2].
+
+       -doubleclick ms
+              Emulated double-click timeout [200].
+
+       -embed Embed rendered preview image [true].
+
+       -exitonEOF
+              Exit interactive mode on EOF [true].
+
+       -fitscreen
+              Fit rendered image to screen [true].
+
+       -framedelay ms
+              Additional frame delay [0].
+
+       -framerate frames/s
+              Animation speed [30].
+
+       -globalwrite
+              Allow write to other directory [false].
+
+       -gray  Convert all colors to grayscale [false].
+
+       -h,-help
+              Show summary of options; command-line only.
+
+       -historylines n
+              Retain n lines of history [1000].
+
+       -iconify
+              Iconify rendering window [false].
+
+       -inlineimage
+              Generate inline embedded image [false].
+
+       -inlinetex
+              Generate inline TeX code [false].
+
+       -interactiveMask
+              Mask fpu exceptions in interactive mode [true].
+
+       -interactiveView
+              View output in interactive mode [true].
+
+       -interactiveWrite
+              Write expressions entered at the prompt to stdout [true].
+
+       -k,-keep
+              Keep intermediate files [false].
+
+       -keepaux
+              Keep intermediate LaTeX .aux files [false].
+
+       -level n
+              Postscript level [3].
+
+       -l,-listvariables
+              List available global functions and variables [false].
+
+       -localhistory
+              Use a local interactive history file [false].
+
+       -loop  Loop 3D animations [false].
+
+       -m,-mask
+              Mask fpu exceptions; command-line only.
+
+       -maxtile pair
+              Maximum rendering tile size [(1024,768)].
+
+       -maxviewport pair
+              Maximum viewport size [(2048,2048)].
+
+       -multiline
+              Input code over multiple lines at the prompt [false].
+
+       -multipleView
+              View output from multiple batch-mode files [false].
+
+       -multisample n
+              Multisampling width for screen images [4].
+
+       -offscreen
+              Use offscreen rendering [false].
+
+       -O,-offset pair
+              PostScript offset [(0,0)].
+
+       -f,-outformat format
+              Convert each output file to specified format.
+
+       -o,-outname name
+              Alternative output directory/filename.
+
+       -p,-parseonly
+              Parse file [false].
+
+       -pdfreload
+              Automatically reload document in pdfviewer [false].
+
+       -pdfreloaddelay usec
+              Delay before attempting initial pdf reload [750000].
+
+       -position pair
+              Initial 3D rendering screen position [(0,0)].
+
+       -prc   Embed 3D PRC graphics in PDF output [true].
+
+       -prompt string
+              Prompt [> ].
+
+       -prompt2 string
+              Continuation prompt for multiline input  [..].
+
+       -q,-quiet
+              Suppress welcome message [false].
+
+       -render n
+              Render 3D graphics using n pixels per bp (-1=auto) [-1].
+
+       -resizestep step
+              Resize step [1.2].
+
+       -reverse
+              reverse 3D animations [false].
+
+       -rgb   Convert cmyk colors to rgb [false].
+
+       -safe  Disable system call [true].
+
+       -scroll n
+              Scroll standard output n lines at a time [0].
+
+       -spinstep deg/s
+              Spin speed [60].
+
+       -svgemulation
+              Emulate unimplemented SVG shading [false].
+
+       -tabcompletion
+              Interactive prompt auto-completion [true].
+
+       -tex engine
+              latex|pdflatex|xelatex|tex|pdftex|context|none [latex].
+
+       -thick Render thick 3D lines [true].
+
+       -thin  Render thin 3D lines [true].
+
+       -threads
+              Use POSIX threads for 3D rendering [true].
+
+       -toolbar
+              Show 3D toolbar in PDF output [true].
+
+       -s,-translate
+              Show translated virtual machine code [false].
+
+       -twice Run LaTeX twice (to resolve references) [false].
+
+       -twosided
+              Use two-sided 3D lighting model for rendering [true].
+
+       -u,-user string
+              General purpose user string.
+
+       -v,-verbose
+              Increase verbosity level (can specify multiple times) [0].
+
+       -version
+              Show version; command-line only.
+
+       -wait  Wait for child processes to finish before exiting [false].
+
+       -warn string
+              Enable warning; command-line only.
+
+       -where Show where listed variables are declared [false].
+
+       -zoomfactor factor
+              Zoom step factor [1.05].
+
+       -zoomstep step
+              Mouse motion zoom step [0.1].
+
+
+SEE ALSO
+       Asymptote  is  documented  fully  in the asymptote Info page.  The manual can also be accessed in interactive
+       mode with the "help" command.
+
+
+AUTHOR
+       Asymptote was written by Andy Hammerlindl, John Bowman, and Tom Prince.
+
+       This manual page was written by Hubert Chan for the Debian project (but may be used by others).
+
+
+
+                                                     1 Dec 2004                                               ASY(1)

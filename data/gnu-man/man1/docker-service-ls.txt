@@ -1,0 +1,35 @@
+DOCKER(1)                                                                                                  DOCKER(1)
+
+
+
+NAME
+       docker-service-ls - List services
+
+
+
+SYNOPSIS
+       docker service ls [OPTIONS]
+
+
+
+DESCRIPTION
+       List services
+
+
+
+OPTIONS
+       -f, --filter=
+           Filter output based on conditions provided
+
+
+       -q, --quiet[=false]
+           Only display IDs
+
+
+
+SEE ALSO
+       docker-service(1)
+
+
+
+Docker Community                                      Mar 2017                                             DOCKER(1)

@@ -1,0 +1,251 @@
+DOCKER(1)                                                                                                  DOCKER(1)
+
+
+
+NAME
+       docker-service-update - Update a service
+
+
+
+SYNOPSIS
+       docker service update [OPTIONS] SERVICE
+
+
+
+DESCRIPTION
+       Update a service
+
+
+
+OPTIONS
+       --args=""
+           Service command args
+
+
+       --constraint-add=[]
+           Add or update a placement constraint
+
+
+       --constraint-rm=[]
+           Remove a constraint
+
+
+       --container-label-add=[]
+           Add or update a container label
+
+
+       --container-label-rm=[]
+           Remove a container label by its key
+
+
+       --dns-add=[]
+           Add or update a custom DNS server
+
+
+       --dns-option-add=[]
+           Add or update a DNS option
+
+
+       --dns-option-rm=[]
+           Remove a DNS option
+
+
+       --dns-rm=[]
+           Remove a custom DNS server
+
+
+       --dns-search-add=[]
+           Add or update a custom DNS search domain
+
+
+       --dns-search-rm=[]
+           Remove a DNS search domain
+
+
+       --endpoint-mode=""
+           Endpoint mode (vip or dnsrr)
+
+
+       --env-add=[]
+           Add or update an environment variable
+
+
+       --env-rm=[]
+           Remove an environment variable
+
+
+       --force[=false]
+           Force update even if no changes require it
+
+
+       --group-add=[]
+           Add an additional supplementary user group to the container
+
+
+       --group-rm=[]
+           Remove a previously added supplementary user group from the container
+
+
+       --health-cmd=""
+           Command to run to check health
+
+
+       --health-interval=
+           Time between running the check (ns|us|ms|s|m|h)
+
+
+       --health-retries=0
+           Consecutive failures needed to report unhealthy
+
+
+       --health-timeout=
+           Maximum time to allow one check to run (ns|us|ms|s|m|h)
+
+
+       --host-add=[]
+           Add or update a custom host-to-IP mapping (host:ip)
+
+
+       --host-rm=[]
+           Remove a custom host-to-IP mapping (host:ip)
+
+
+       --hostname=""
+           Container hostname
+
+
+       --image=""
+           Service image tag
+
+
+       --label-add=[]
+           Add or update a service label
+
+
+       --label-rm=[]
+           Remove a label by its key
+
+
+       --limit-cpu=0.000
+           Limit CPUs
+
+
+       --limit-memory=0 B
+           Limit Memory
+
+
+       --log-driver=""
+           Logging driver for service
+
+
+       --log-opt=[]
+           Logging driver options
+
+
+       --mount-add=
+           Add or update a mount on a service
+
+
+       --mount-rm=[]
+           Remove a mount by its target path
+
+
+       --no-healthcheck[=false]
+           Disable any container-specified HEALTHCHECK
+
+
+       --publish-add=
+           Add or update a published port
+
+
+       --publish-rm=
+           Remove a published port by its target port
+
+
+       --replicas=
+           Number of tasks
+
+
+       --reserve-cpu=0.000
+           Reserve CPUs
+
+
+       --reserve-memory=0 B
+           Reserve Memory
+
+
+       --restart-condition=""
+           Restart when condition is met (none, on-failure, or any)
+
+
+       --restart-delay=
+           Delay between restart attempts (ns|us|ms|s|m|h)
+
+
+       --restart-max-attempts=
+           Maximum number of restarts before giving up
+
+
+       --restart-window=
+           Window used to evaluate the restart policy (ns|us|ms|s|m|h)
+
+
+       --rollback[=false]
+           Rollback to previous specification
+
+
+       --secret-add=
+           Add or update a secret on a service
+
+
+       --secret-rm=[]
+           Remove a secret
+
+
+       --stop-grace-period=
+           Time to wait before force killing a container (ns|us|ms|s|m|h)
+
+
+       -t, --tty[=false]
+           Allocate a pseudo-TTY
+
+
+       --update-delay=0s
+           Delay between updates (ns|us|ms|s|m|h) (default 0s)
+
+
+       --update-failure-action="pause"
+           Action on update failure (pause|continue)
+
+
+       --update-max-failure-ratio=0
+           Failure rate to tolerate during an update
+
+
+       --update-monitor=0s
+           Duration after each task update to monitor for failure (ns|us|ms|s|m|h) (default 0s)
+
+
+       --update-parallelism=1
+           Maximum number of tasks updated simultaneously (0 to update all at once)
+
+
+       -u, --user=""
+           Username or UID (format: <name|uid>[:<group|gid>])
+
+
+       --with-registry-auth[=false]
+           Send registry authentication details to swarm agents
+
+
+       -w, --workdir=""
+           Working directory inside the container
+
+
+
+SEE ALSO
+       docker-service(1)
+
+
+
+Docker Community                                      Mar 2017                                             DOCKER(1)

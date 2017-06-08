@@ -1,0 +1,119 @@
+TWISTD(1)                                                                                                  TWISTD(1)
+
+
+
+NAME
+       twistd - run Twisted applications (TACs, TAPs)
+
+SYNOPSIS
+       twistd [options]
+
+DESCRIPTION
+       Read a twisted.application.service.Application out of a file and run it.
+
+OPTIONS
+       -n, --nodaemon Don't daemonize (stay in foreground).
+
+       -q, --quiet
+              No-op for backwards compatibility.
+
+       -p, --profile <profile output>
+              Run the application under the profiler, dumping results to the specified file.
+
+       --profiler <profiler name>
+              Specify the profiler to use. Defaults to the 'hotshot' profiler.
+
+       --savestats
+              Save the Stats object rather than the text output of the profiler.
+
+       -b, --debug
+              Run  the  application in the Python Debugger (implies --nodaemon option).  Sending a SIGINT or SIGUSR2
+              signal to the process will drop it into the debugger.
+
+       -e, --encrypted <file>
+              The specified tap/aos file is encrypted.
+
+       --euid Set only effective user-id rather than real user-id. This option has no effect unless  the  server  is
+              running  as root, in which case it means not to shed all privileges after binding ports, retaining the
+              option to regain privileges in cases such as spawning processes. Use with caution.
+
+       -o, --no_save
+              Do not save shutdown state.
+
+       --originalname
+              Behave as though the specified Application has no process name set, and run with the standard  process
+              name (the Python binary in most cases).
+
+       -l, --logfile <logfile>
+              Log to a specified file, - for stdout (default: twistd.log).  The log file will be rotated on SIGUSR1.
+
+       -l, --logger <fully qualified python name>
+              A fully-qualified name to a log observer factory to use for the initial log observer. Takes precedence
+              over --logfile and --syslog.
+
+       --pidfile <pidfile>
+              Save pid in specified file (default: twistd.pid).
+
+       --chroot <directory>
+              Chroot to a supplied directory before running (default:  don't  chroot).   Chrooting  is  done  before
+              changing the current directory.
+
+       -d, --rundir <directory>
+              Change to a supplied directory before running (default: .).
+
+       -u, --uid <uid>
+              The uid to run as (default: don't change).
+
+       -g, --gid <gid>
+              The gid to run as (default: don't change).
+
+       --umask <mask>
+              The (octal) file creation mask to apply. (default: 0077 for daemons, no change otherwise).
+
+       -r, --reactor <reactor>
+              Choose which reactor to use. See --help-reactors for a list of possibilities.
+
+       --help-reactors
+              List the names of possibly available reactors.
+
+       --spew Write  an  extremely  verbose log of everything that happens. Useful for debugging freezes or locks in
+              complex code.
+
+       -f, --file <tap file>
+              Read the given .tap file (default: twistd.tap).
+
+       -s, --source <tas file>
+              Load an Application from the given .tas (AOT Python source) file.
+
+       -y, --python <python file>
+              Use the variable "application" from the given Python file.  This  option  overrides  -f.  This  option
+              implies --no_save.
+
+       --syslog
+              Log to syslog instead of a file.
+
+       --version
+              Print version information and exit.
+
+       --prefix <prefix>
+              Use the specified prefix when logging to logfile. Default is "twisted".
+
+       Note that if twistd is run as root, the working directory is not searched for Python modules.
+
+SIGNALS
+       A running twistd accepts SIGINT for a clean shutdown and SIGUSR1 to rotate log files.
+
+AUTHOR
+       Written by Moshe Zadka, based on twistd's help messages.
+
+REPORTING BUGS
+       To report a bug, visit http://twistedmatrix.com/trac/wiki/TwistedDevelopment#DevelopmentProcess
+
+COPYRIGHT
+       Copyright © 2001-2011 Twisted Matrix Laboratories.
+       This  is  free  software;  see  the  source  for  copying conditions. There is NO warranty; not even for MER‐
+       CHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+
+
+                                                      Dec 2011                                             TWISTD(1)

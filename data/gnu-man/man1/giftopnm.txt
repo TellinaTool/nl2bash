@@ -1,0 +1,80 @@
+giftopnm(1)                                    General Commands Manual                                   giftopnm(1)
+
+
+
+NAME
+       giftopnm - convert a GIF file into a portable anymap
+
+SYNOPSIS
+       giftopnm [--alphaout={alpha-filename,-}] [-verbose] [-comments] [-image N] [GIFfile]
+
+
+DESCRIPTION
+       This is a graphics format converter from the GIF format to the PNM (i.e. PBM, PGM, or PPM) format.
+
+       If  the  image contains only black and maximally bright white, the output is PBM.  If the image contains more
+       than those two colors, but only grays, the output is PGM.  If the image contains other colors, the output  is
+       PPM.
+
+       If  you  have  an animated GIF file, you can extract individual frames from it with gifsicle and then convert
+       those using giftopnm.
+
+       A GIF image contains rectangular pixels.  They all have the same aspect ratio, but may not  be  square  (it's
+       actually  quite  unusual  for  them not to be square, but it could happen).  The pixels of a Netpbm image are
+       always square.  Because of the engineering complexity to do otherwise, giftopnm converts a  GIF  image  to  a
+       Netpbm  image  pixel-for-pixel.  This means if the GIF pixels are not square, the Netpbm output image has the
+       wrong aspect ratio.  In this case, giftopnm issues an informational message telling you to  run  pnmscale  to
+       correct the output.
+
+
+OPTIONS
+       --alphaout=alpha-filename
+              giftopnm creates a PGM (portable graymap) file containing the alpha channel values in the input image.
+              If the input image doesn't contain an alpha channel, the alpha-filename file contains all zero (trans‐
+              parent)  alpha values.  If you don't specify --alphaout, giftopnm does not generate an alpha file, and
+              if the input image has an alpha channel, giftopnm simply discards it.
+
+              If you specify - as the filename, giftopnm writes the alpha output to Standard Output and discards the
+              image.
+
+              See pnmcomp(1) for one way to use the alpha output file.
+
+       -verbose
+              Produce verbose output about the GIF file input.
+
+       -comments
+              Only output GIF89 comment fields.
+
+       -image N
+              Output  the  specified  gif image from the input GIF archive (where N is '1', '2', '20'...).  Normally
+              there is only one image per file, so this option is not needed.
+
+       All flags can be abbreviated to their shortest unique prefix.
+
+
+RESTRICTIONS
+       This does not correctly handle the Plain Text Extension of the GIF89 standard, since I did not have any exam‐
+       ple input files containing them.
+
+
+SEE ALSO
+       ppmtogif(1), ppmcolormask(1), pnmcomp(1), gifsicle(1) <http://www.lcdf.org/gifsicle>, ppm(5).
+
+AUTHOR
+       Copyright (c) 1993 by David Koblas (koblas@netcom.com)
+
+
+LICENSE
+       If  you  use  giftopnm, you are using a patent on the LZW compression method which is owned by Unisys, and in
+       all probability you do not have a license from Unisys to do so.  Unisys typically asks $5000  for  a  license
+       for  trivial  use  of  the  patent.  Unisys has never enforced the patent against trivial users, and has made
+       statements that it is much less concerned about people using the patent  for  decompression  (which  is  what
+       giftopnm does than for compression.  The patent expires in 2003 / 2004, depending on the country.
+
+       Rumor has it that IBM also owns a patent covering giftopnm.
+
+       A replacement for the GIF format that does not require any patents to use is the PNG format.
+
+
+
+                                                   13 January 2001                                       giftopnm(1)

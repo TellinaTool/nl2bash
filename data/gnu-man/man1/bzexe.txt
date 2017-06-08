@@ -1,0 +1,39 @@
+BZEXE(1)                                       General Commands Manual                                      BZEXE(1)
+
+
+
+NAME
+       bzexe - compress executable files in place
+
+SYNOPSIS
+       bzexe [ name ...  ]
+
+DESCRIPTION
+       The bzexe utility allows you to compress executables in place and have them automatically uncompress and exe‐
+       cute when you run them (at a penalty in performance).  For example if you execute ``bzexe /bin/cat'' it  will
+       create the following two files:
+           -r-xr-xr-x  1 root  bin   9644 Feb 11 11:16 /bin/cat
+           -r-xr-xr-x  1 bin   bin  24576 Nov 23 13:21 /bin/cat~
+       /bin/cat~  is  the  original  file  and  /bin/cat  is the self-uncompressing executable file.  You can remove
+       /bin/cat~ once you are sure that /bin/cat works properly.
+
+       This utility is most useful on systems with very small disks.
+
+OPTIONS
+       -d     Decompress the given executables instead of compressing them.
+
+SEE ALSO
+       bzip2(1), znew(1), zmore(1), zcmp(1), zforce(1)
+
+CAVEATS
+       The compressed executable is a shell script. This may create some security holes.  In  particular,  the  com‐
+       pressed  executable  relies  on  the  PATH  environment variable to find gzip and some other utilities (tail,
+       chmod, ln, sleep).
+
+BUGS
+       bzexe attempts to retain the original file attributes on the compressed executable, but you may have  to  fix
+       them manually in some cases, using chmod or chown.
+
+
+
+                                                                                                            BZEXE(1)

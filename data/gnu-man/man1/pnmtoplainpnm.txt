@@ -1,0 +1,22 @@
+pnmtoplainpnm(1)                               General Commands Manual                              pnmtoplainpnm(1)
+
+
+
+NAME
+       pnmtoplainpnm - convert portable any map to plain (ASCII) anymap format
+
+SYNOPSIS
+       pnmtoplainpnm [pnmfile]
+
+DESCRIPTION
+       Reads  a  portable  anymap  as  input,  either  from the named file or if no file named, from Standard Input.
+       Writes out the image in plain (ASCII) anymap format to Standard Output.  Of the three plain  anymap  formats,
+       this  program generates the one that corresponds naturally to the one of the three anymap formats that is the
+       input (PBM for PBM, etc.).
+
+SEE ALSO
+       pnm(5)
+
+
+
+                                                    05 March 2000                                   pnmtoplainpnm(1)

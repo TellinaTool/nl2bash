@@ -1,0 +1,31 @@
+BLUEZ-SIMPLE=AGENT(1)                            bluez-simple-agent                            BLUEZ-SIMPLE=AGENT(1)
+
+
+
+NAME
+       bluez-simple-agent - A PIN management and agent program for pairing to Bluetooth device.
+
+SYNOPSIS
+       bluez-simple-agent [<hciX>] [<bdaddr>] [remove]
+
+DESCRIPTION
+       bluez-simple-agent is pass agent program for bluetooth.
+
+OPTIONS
+       <hciX>
+           The command is applied to device hciX , which must be the name of an installed Blue‐ tooth device. If not
+           specified, the command will be sent to the first available Blue‐ tooth device.
+
+       <bdaddr>
+           bdaddr of device doing pairing.
+
+       remove
+           Remove intended bdaddr from database.
+
+AUTHOR
+       Nobuhiro Iwamatsu <iwamatsu@nigauri.org>
+           Wrote this manpage for the Debian system.
+
+
+
+http://bluez.org                                     09/09/2010                                BLUEZ-SIMPLE=AGENT(1)

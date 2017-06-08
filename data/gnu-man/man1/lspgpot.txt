@@ -1,0 +1,27 @@
+lspgpot(1)                                     General Commands Manual                                    lspgpot(1)
+
+
+
+NAME
+       lspgpot - extracts the ownertrust values from PGP keyrings and list them in GnuPG ownertrust format.
+
+
+
+SYNOPSIS
+       lspgpot
+
+
+
+DESCRIPTION
+       lspgpot extracts the ownertrust values from PGP keyrings and list them in GnuPG ownertrust format.
+
+
+AUTHOR
+       Copyright (C) 2002 Free Software Foundation, Inc. Please report bugs to <bug-gnupg@gnu.org>.
+
+       This manpage was written by Francois Wendling <frwendling@free.fr>.
+
+
+
+
+                                                    December 2005                                         lspgpot(1)

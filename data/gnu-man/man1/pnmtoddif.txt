@@ -1,0 +1,42 @@
+pnmtoddif(1)                                   General Commands Manual                                  pnmtoddif(1)
+
+
+
+Name
+       pnmtoddif - Convert a portable anymap to DDIF format
+
+Syntax
+       pnmtoddif pnmtoddif [-resolution x y] [pnmfile [ddiffile]]
+
+OPTIONS
+       resolution x y The  horizontal  and  vertical resolution of the output image in dots per inch. Defaults to 78
+                      dpi.
+
+       pnmfile        The filename for the image file in pnm format.  If this argument is  omitted,  input  is  read
+                      from stdin.
+
+       ddiffile       The  filename  for  the image file to be created in DDIF format.  If this argument is omitted,
+                      the ddiffile is written to standard output. It can only specified if a pnmfile is also  speci‐
+                      fied.
+
+DESCRIPTION
+       pnmtoddif takes a portable anymap from standard input and converts it into a DDIF image file on standard out‐
+       put or the specified DDIF file.
+
+       pbm format (bitmap) data is written as 1 bit DDIF, pgm format data (greyscale) as 8 bit greyscale  DDIF,  and
+       ppm  format  data  is  written as 8,8,8 bit color DDIF. All DDIF image files are written as uncompressed. The
+       data plane organization is interleaved by pixel.
+
+       In addition to the number of pixels in the width and height dimension, DDIF  images  also  carry  information
+       about  the size that the image should have, that is, the physical space that a pixel occupies. PBMPLUS images
+       do not carry this information, hence it has to be externally supplied.  The default of 78 dpi has the benefi‐
+       cial property of not causing a resize on most Digital Equipment Corporation color monitors.
+
+AUTHOR
+       Burkhard Neidecker-Lutz
+       Digital Equipment Corporation, CEC Karlsruhe
+       neideck@nestvx.enet.dec.com
+
+
+
+                                                                                                        pnmtoddif(1)

@@ -1,0 +1,42 @@
+EPSFFIT(1)                                     General Commands Manual                                    EPSFFIT(1)
+
+
+
+NAME
+       epsffit - fit encapsulated PostScript file (EPSF) into constrained size
+
+SYNOPSIS
+       epsffit [ -c ] [ -r ] [ -a ] [ -m ] [ -s ] llx lly urx ury [ infile [ outfile ] ]
+
+DESCRIPTION
+       Epsffit  fits an EPSF file (encapsulated PostScript) to a given bounding box.  The coordinates of the box are
+       given by (llx,lly) for the lower left, and (urx,ury) for the upper right, in PostScript units (points).
+
+       If no input or output files are specified, epsffit read from the standard input and writes  to  the  standard
+       output.
+
+OPTIONS
+       -c        Center the image in the given bounding box.
+
+       -r        Rotate the image by 90 degrees counter-clockwise.
+
+       -a        Adjust the aspect ratio to fit the bounding box. The default is to preserve the aspect ratio.
+
+       -m        Rotates the image to maximise the size if it would fit the specified bounding box better.
+
+       -s        Add a showpage at the end of the file to force the image to print.
+
+AUTHOR
+       Copyright (C) Angus J. C. Duggan 1991-1995
+
+SEE ALSO
+       psbook(1),  psselect(1), pstops(1), epsffit(1), psnup(1), psresize(1), psmerge(1), fixscribeps(1), getafm(1),
+       fixdlsrps(1),  fixfmps(1),  fixpsditps(1),  fixpspps(1),  fixtpps(1),  fixwfwps(1),  fixwpps(1),  fixwwps(1),
+       extractres(1), includeres(1), showchar(1)
+
+TRADEMARKS
+       PostScript is a trademark of Adobe Systems Incorporated.
+
+
+
+                                           PSUtils Release 1 Patchlevel 17                                EPSFFIT(1)

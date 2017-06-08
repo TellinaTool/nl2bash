@@ -1,0 +1,35 @@
+DH_GTKMODULES(1)                                         Gtk                                        DH_GTKMODULES(1)
+
+
+
+NAME
+       dh_gtkmodules - create Gtk module files for Gtk modules
+
+SYNOPSIS
+       dh_gtkmodules [debhelper options]
+
+DESCRIPTION
+       dh_gtkmodules is a debhelper program that handles correctly generating a dependency on the versionned Gtk+
+       module ABI and indexes for GdkPixbuf loaders and IM modules that it finds in the Gtk+ module directories.
+
+       This command automatically adds a "<package>.loaders" file to the current package with the package name or
+       "<package>.immodules" if it finds any GdkPixbuf loaders or IM modules.
+
+       If this command finds the versionned standard module directory in the current package, it will generate a
+       dependency on the earliest Gtk version that Gtk currently has compatibility for in ${misc:Depends} ("binary
+       version").
+
+OPTIONS
+       -k  Do not generate any dependencies in ${misc:Depends}.
+
+SEE ALSO
+       debhelper
+
+       This program relies on Debhelper, but is shipped with the Gtk development files.
+
+AUTHOR
+       Loic Minier <lool@dooz.org>
+
+
+
+2.24.23-0ubuntu1.4                                   2016-02-12                                     DH_GTKMODULES(1)

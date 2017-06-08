@@ -1,0 +1,42 @@
+obex-data-server(1)                            General Commands Manual                           obex-data-server(1)
+
+
+
+NAME
+       obex-data-server - D-Bus service providing OBEX functionality
+
+SYNOPSIS
+       obex-data-server [OPTIONS]
+
+DESCRIPTION
+       obex-data-server  is  D-Bus  service  providing high-level OBEX client and server side functionality. It cur‐
+       rently supports OPP (Object Push Profile), FTP (File Transfer profile) and partially BIP (Basic Imaging  pro‐
+       file).  Supported transports are Bluetooth, USB (client only) or TTY. obex-data-server exposes it's function‐
+       ality through 'org.openobex' namespace in D-Bus.
+
+OPTIONS
+       -n, --no-daemon
+              Do not daemonize the service
+
+       -s, --system-bus
+              Use D-Bus System bus instead of the default Session bus
+
+       -l, --log
+              Log all messages to syslog
+
+       -d, --debug
+              Enable debugging messages
+
+       -v, --version
+              Show version of obex-data-server and exit immediately
+
+AUTHOR
+       This manual page was written by Tadas Dailyda <tadas@dailyda.com>.
+
+REPORTING BUGS
+       Report bugs to http://bugs.muiline.com (obex-data-server project).
+
+
+
+
+                                                   18 October 2009                               obex-data-server(1)

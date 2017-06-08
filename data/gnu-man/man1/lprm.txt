@@ -1,0 +1,43 @@
+lprm(1)                                              Apple Inc.                                              lprm(1)
+
+
+
+NAME
+       lprm - cancel print jobs
+
+SYNOPSIS
+       lprm [ -E ] [ -U username ] [ -h server[:port] ] [ -P destination[/instance] ] [ - ] [ job ID(s) ]
+
+DESCRIPTION
+       lprm cancels print jobs that have been queued for printing.  If no arguments are supplied, the current job on
+       the default destination is cancelled. You can specify one or more job ID numbers to cancel those jobs or  use
+       the - option to cancel all jobs.
+
+OPTIONS
+       The lprm command supports the following options:
+
+       -E
+            Forces encryption when connecting to the server.
+
+       -P destination[/instance]
+            Specifies the destination printer or class.
+
+       -U username
+            Specifies an alternate username.
+
+       -h server[:port]
+            Specifies an alternate server.
+
+COMPATIBILITY
+       The CUPS version of lprm is compatible with the standard Berkeley lprm command.
+
+SEE ALSO
+       cancel(1), lp(1), lpq(1), lpr(1), lpstat(1),
+       http://localhost:631/help
+
+COPYRIGHT
+       Copyright 2007-2013 by Apple Inc.
+
+
+
+28 August 2009                                          CUPS                                                 lprm(1)
