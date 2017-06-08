@@ -10,7 +10,7 @@
 *.out
 *.dvi
 
-# Ignore the uncompressed StackOverflow data
+# uncompressed StackOverflow data
 *.sqlite
 
 # IDE junk
@@ -21,6 +21,10 @@
 
 # Java
 *.class
+
+# moses files
+*.final
+*.vcb
 
 # auto-generated files
 parsetab.py
