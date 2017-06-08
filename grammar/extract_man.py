@@ -13,8 +13,10 @@ def main():
     for cmd in top_cmds:
         try:
             output = subprocess.check_output([cmd,'--help'])
-            print output
+            with open(os.path.join(output_dir, cmd), 'w') as o_f:
+                o_f.write(output)
         except:
+            print cmd
             continue
 
 if __name__ == '__main__':
