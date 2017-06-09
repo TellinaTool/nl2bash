@@ -19,7 +19,7 @@ DESCRIPTION
        deprecated, but is provided to allow historical applications that rely on them to run unmodified.
 
 OPTIONS
-   Generic Program Information
+
        --help Print  a  usage  message briefly summarizing these command-line options and the bug-reporting address,
               then exit.
 
@@ -27,7 +27,6 @@ OPTIONS
               Print the version number of grep to the  standard  output  stream.   This  version  number  should  be
               included in all bug reports (see below).
 
-   Matcher Selection
        -E, --extended-regexp
               Interpret PATTERN as an extended regular expression (ERE, see below).  (-E is specified by POSIX.)
 
@@ -42,7 +41,6 @@ OPTIONS
               Interpret PATTERN as a Perl regular expression (PCRE, see below).  This  is  highly  experimental  and
               grep -P may warn of unimplemented features.
 
-   Matching Control
        -e PATTERN, --regexp=PATTERN
               Use  PATTERN  as  the  pattern.  This can be used to specify multiple search patterns, or to protect a
               pattern beginning with a hyphen (-).  (-e is specified by POSIX.)
@@ -68,7 +66,6 @@ OPTIONS
 
        -y     Obsolete synonym for -i.
 
-   General Output Control
        -c, --count
               Suppress normal output; instead print a count of matching lines for each input  file.   With  the  -v,
               --invert-match option (see below), count non-matching lines.  (-c is specified by POSIX.)
@@ -113,7 +110,6 @@ OPTIONS
               shell  scripts  should avoid both -q and -s and should redirect standard and error output to /dev/null
               instead.  (-s is specified by POSIX.)
 
-   Output Line Prefix Control
        -b, --byte-offset
               Print  the  0-based  byte  offset  within  the  input  file  before  each  line  of  output.   If   -o
               (--only-matching) is specified, print the offset of the matching part itself.
@@ -154,7 +150,6 @@ OPTIONS
               characters  like newlines.  This option can be used with commands like find -print0, perl -0, sort -z,
               and xargs -0 to process arbitrary file names, even those that contain newline characters.
 
-   Context Line Control
        -A NUM, --after-context=NUM
               Print NUM lines of trailing context after matching lines.  Places a line containing a group  separator
               (--)  between contiguous groups of matches.  With the -o or --only-matching option, this has no effect
@@ -169,7 +164,6 @@ OPTIONS
               Print NUM lines of output context.  Places a line containing a group separator (--) between contiguous
               groups of matches.  With the -o or --only-matching option, this has no effect and a warning is given.
 
-   File and Directory Selection
        -a, --text
               Process a binary file as if it were text; this is equivalent to the --binary-files=text option.
 
@@ -217,7 +211,6 @@ OPTIONS
        -R, --dereference-recursive
               Read all files under each directory, recursively.  Follow all symbolic links, unlike -r.
 
-   Other Options
        --line-buffered
               Use line buffering on output.  This can cause a performance penalty.
 

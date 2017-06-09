@@ -271,9 +271,11 @@ public class ManParserInterface {
                     boolean added = false;
                     for (int k = 0; k < optionPart.length(); k ++) {
                         if (optionPart.charAt(k) == ',' && inOuterLevel == 0) {
+
                             try {
-                                manpage.optionDesc.add(
-                                    new Cmd.DescriptionPair(parseSynopsisInstance(optionPart.substring(0, k)), desc.getValue()));
+                                Cmd.DescriptionPair d = new Cmd.DescriptionPair(parseSynopsisInstance(optionPart.substring(0, k)), optionPart, desc.getValue());
+                                manpage.optionDesc.add(d);
+
                                 added = true;
                             } catch (ParseException e) {
                                 continue;
@@ -287,7 +289,7 @@ public class ManParserInterface {
                     if (! added) {
                         try {
                             manpage.optionDesc.add(
-                                    new Cmd.DescriptionPair(parseSynopsisInstance(optionPart), desc.getValue()));
+                                    new Cmd.DescriptionPair(parseSynopsisInstance(optionPart), optionPart, desc.getValue()));
                         } catch (ParseException e) {
                             continue;
                         }
@@ -314,7 +316,7 @@ public class ManParserInterface {
                         if (optionPart.charAt(k) == ',' && inOuterLevel == 0) {
                             try {
                                 manpage.optionDesc.add(
-                                        new Cmd.DescriptionPair(parseSynopsisInstance(optionPart.substring(0, k)), desc.getValue()));
+                                        new Cmd.DescriptionPair(parseSynopsisInstance(optionPart.substring(0, k)), optionPart, desc.getValue()));
                                 added = true;
                             } catch (ParseException e) {
                                 continue;
@@ -328,7 +330,7 @@ public class ManParserInterface {
                     if (! added) {
                         try {
                             manpage.optionDesc.add(
-                                    new Cmd.DescriptionPair(parseSynopsisInstance(optionPart), desc.getValue()));
+                                    new Cmd.DescriptionPair(parseSynopsisInstance(optionPart), optionPart, desc.getValue()));
                         } catch (ParseException e) {
                             continue;
                         }
