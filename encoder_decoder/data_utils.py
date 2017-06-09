@@ -361,28 +361,31 @@ def sentence_to_token_ids(sentence, vocabulary, tokenizer, base_tokenizer,
     def get_index(w, vocab):
         if w in vocab:
             return vocab[w]
-        if is_low_frequency(w):
-            base_w = remove_low_frequency_prefix(w)
-            if base_w in vocab:
-                return vocab[base_w]
-            if add_type_prefix:
-                if '__ARG__' + base_w in vocabulary:
-                    return vocab['__ARG__' + base_w]
-                elif '__FLAG__' + w in vocabulary:
-                    return vocab['__FLAG__' + base_w]
-            if remove_type_prefix:
-                if base_w.startswith('__ARG__') \
-                        and base_w[len('__ARG__'):] in vocabulary:
-                    return vocab[base_w[len('__ARG__'):]]
-                elif base_w.startswith('__FLAG__') \
-                        and base_w[len('__FLAG__'):] in vocabulary:
-                    return vocab[base_w[len('__FLAG__'):]]
-        else:
-            if w.startswith('__ARG__'):
-                return ARG_UNK_ID
-            if w.startswith('__FLAG__'):
-                return FLAG_UNK_ID
-            return UNK_ID
+
+        if add_type_prefix:
+            if '__ARG__' + w in vocabulary:
+                return vocab['__ARG__' + w]
+            elif '__FLAG__' + w in vocabulary:
+                return vocab['__FLAG__' + w]
+        if remove_type_prefix:
+            if w.startswith('__ARG__') and w[len('__ARG__'):] in vocabulary:
+                return vocab[w[len('__ARG__'):]]
+            elif w.startswith('__FLAG__') and w[len('__FLAG__'):] in vocabulary:
+                return vocab[w[len('__FLAG__'):]]
+
+        if '__LF__' + w in vocabulary:
+            return vocab['__LF__' + w]
+        elif '__LF____ARG__' + w in vocabulary:
+            return vocab['__LF____ARG__' + w]
+        elif '__LF____FLAG__' + w in vocabulary:
+            return vocab['__LF____FLAG__' + w]
+
+        if w.startswith('__ARG__'):
+            return ARG_UNK_ID
+        if w.startswith('__FLAG__'):
+            return FLAG_UNK_ID
+
+        return UNK_ID
 
     if use_source_placeholder:
         assert(parallel_vocab_size != -1)
