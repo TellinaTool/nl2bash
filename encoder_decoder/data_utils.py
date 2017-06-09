@@ -249,10 +249,10 @@ def initialize_vocabulary(vocab_path):
 
 
 def data_to_token_ids(data, tg_id_path, vocab_path, tokenizer=None,
-                      base_tokenizer=None, use_unk=True,
-                      parallel_data=None, use_source_placeholder=False,
-                      parallel_vocab_size=None, coarse_typing=False,
-                      add_type_prefix=False, remove_type_prefix=False):
+        base_tokenizer=None, use_unk=True, parallel_data=None,
+        use_source_placeholder=False, use_unk_placeholder=False,
+        parallel_vocab_path=None, parallel_vocab_size=None,
+        coarse_typing=False, add_type_prefix=False, remove_type_prefix=False):
     """Tokenize data file and turn into token-ids using given vocabulary file.
 
     This function loads data line-by-line from data_path, calls the above
@@ -281,11 +281,15 @@ def data_to_token_ids(data, tg_id_path, vocab_path, tokenizer=None,
     """
     max_token_num = 0
     if not tf.gfile.Exists(tg_id_path):
+        print("Tokenizing data {} ({})".format(tg_id_path, len(data)))
+        tokens_file = tf.gfile.GFile(tg_id_path, mode="w")
+        vocab, _ = initialize_vocabulary(vocab_path)
+
+        if parallel_vocab_path is not None:
+            parallel_vocab, _ = initialize_vocabulary(parallel_vocab_path)
         if parallel_data is not None:
             assert(len(data) == len(parallel_data))
-        print("Tokenizing data {} ({})".format(tg_id_path, len(data)))
-        vocab, _ = initialize_vocabulary(vocab_path)
-        tokens_file = tf.gfile.GFile(tg_id_path, mode="w")
+
         counter = 0
         for i in xrange(len(data)):
             counter += 1
@@ -300,6 +304,8 @@ def data_to_token_ids(data, tg_id_path, vocab_path, tokenizer=None,
                 use_typed_unk=('bash' in vocab_path and '.cm' in vocab_path),
                 parallel_sequence=parallel_line,
                 use_source_placeholder=use_source_placeholder,
+                use_unk_placeholder=use_unk_placeholder,
+                parallel_vocab=parallel_vocab,
                 parallel_vocab_size=parallel_vocab_size,
                 coarse_typing=coarse_typing,
                 add_type_prefix=add_type_prefix,
@@ -313,8 +319,9 @@ def data_to_token_ids(data, tg_id_path, vocab_path, tokenizer=None,
 
 def sentence_to_token_ids(sentence, vocabulary, tokenizer, base_tokenizer,
         use_unk=True, use_typed_unk=False, parallel_sequence=None,
-        use_source_placeholder=False, parallel_vocab_size=-1, coarse_typing=False,
-        add_type_prefix=False, remove_type_prefix=False):
+        use_source_placeholder=False, use_unk_placeholder=False,
+        parallel_vocabulary=None, parallel_vocab_size=-1,
+        coarse_typing=False, add_type_prefix=False, remove_type_prefix=False):
     """
     Convert a string to a list of integers representing token-ids.
 
@@ -387,11 +394,25 @@ def sentence_to_token_ids(sentence, vocabulary, tokenizer, base_tokenizer,
 
         return UNK_ID
 
+    def get_unk_symbol(w):
+        if use_typed_unk:
+            if '__ARG__' in w:
+                return ARG_UNK_ID
+            elif '__FLAG__' in w:
+                return FLAG_UNK_ID
+            else:
+                return UNK_ID
+        else:
+            return UNK_ID
+
     if use_source_placeholder:
         assert(parallel_vocab_size != -1)
 
     for (i, w) in enumerate(words):
-        word_id = get_index(w, vocabulary)
+        if parallel_vocabulary:
+            word_id = get_index(w, parallel_vocabulary)
+        else:
+            word_id = get_index(w, vocabulary)
         if parallel_sequence is not None and (
                 (w.startswith('__ARG__') and w[len('__ARG__'):] in parallel_sequence)
                 or (w.startswith('__FLAG__') and w[len('__FLAGS__'):] in parallel_sequence)
@@ -401,8 +422,9 @@ def sentence_to_token_ids(sentence, vocabulary, tokenizer, base_tokenizer,
             # vocabulary index. Used to compute the CopyNet training objective.
             token_ids.append(word_id)
         else:
+            is_unk = not w in vocabulary or is_low_frequency(w)
             if word_id == -1 or \
-                    ((not w in vocabulary or is_low_frequency(w)) and use_unk):
+                    (is_unk and use_unk):
                 # out-of-vocabulary word
                 if coarse_typing:
                     if is_low_frequency(w):
@@ -416,17 +438,12 @@ def sentence_to_token_ids(sentence, vocabulary, tokenizer, base_tokenizer,
                     else:
                         token_ids.append(UNK_ID)
                 elif use_source_placeholder:
-                    token_ids.append(parallel_vocab_size + i)
-                else:
-                    if use_typed_unk:
-                        if '__ARG__' in w:
-                            token_ids.append(ARG_UNK_ID)
-                        elif '__FLAG__' in w:
-                            token_ids.append(FLAG_UNK_ID)
-                        else:
-                            token_ids.append(UNK_ID)
+                    if use_unk_placeholder and is_unk:
+                        tokens_ids.append(get_unk_symbol(w))
                     else:
-                        token_ids.append(UNK_ID)
+                        token_ids.append(parallel_vocab_size + i)
+                else:
+                    tokens_ids.append(get_unk_symbol(w))
             else:
                 # in-vocabulary word
                 token_ids.append(word_id)
@@ -548,7 +565,9 @@ def prepare_dataset(data, data_dir, suffix, vocab_size, vocab_path,
                     if split == 'train' else None
                 # compute CopyNet source indices
                 data_to_token_ids(getattr(data, split), data_path + suffix + '.sc',
-                    vocab_path=parallel_vocab_path, use_source_placeholder=True,
+                    vocab_path=vocab_path, use_source_placeholder=True,
+                    use_unk_placeholder=(split == 'train'),
+                    parallel_vocab_path=parallel_vocab_path,
                     parallel_vocab_size=parallel_vocab_size,
                     parallel_data=parallel_split,
                     add_type_prefix=is_bash_nl,
