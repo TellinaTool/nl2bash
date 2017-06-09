@@ -378,7 +378,11 @@ def sentence_to_token_ids(sentence, vocabulary, tokenizer, base_tokenizer,
                         and base_w[len('__FLAG__'):] in vocabulary:
                     return vocab[base_w[len('__FLAG__'):]]
         else:
-            return -1
+            if w.startswith('__ARG__'):
+                return ARG_UNK_ID
+            if w.startswith('__FLAG__'):
+                return FLAG_UNK_ID
+            return UNK_ID
 
     if use_source_placeholder:
         assert(parallel_vocab_size != -1)
