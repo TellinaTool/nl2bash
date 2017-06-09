@@ -116,7 +116,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
         # Our targets are decoder inputs shifted by one.
         if self.use_copy and self.copy_fun == 'copy':
-            self.targets = [self.decoder_full_inputs[i + 1]
+            self.targets = [self.decoder_copy_targets[i + 1]
                             for i in xrange(self.max_target_length)]
         else:
             self.targets = [self.decoder_inputs[i + 1]
@@ -515,7 +515,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
             batch_decoder_full_inputs = load_channel(
                 decoder_channel_inputs[1], decoder_size, reversed_output=False)
         if len(decoder_channel_inputs) > 2:
-            batch_decoder_copy_inputs = load_channel(
+            batch_decoder_copy_targets = load_channel(
                 decoder_channel_inputs[2], decoder_size, reversed_output=False)
         
         batch_encoder_input_masks = []
@@ -552,7 +552,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
         if len(decoder_channel_inputs) > 1:
             E.decoder_full_inputs = batch_decoder_full_inputs
         if len(decoder_channel_inputs) > 2:
-            E.decoder_copy_inputs = batch_decoder_copy_inputs
+            E.decoder_copy_targets = batch_decoder_copy_targets
         E.target_weights = batch_decoder_input_masks
 
         if self.sc_char:
@@ -614,7 +614,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
           the constructed batch that has the proper format to call step(...) later.
         """
         encoder_inputs, encoder_full_inputs, encoder_copy_inputs = [], [], []
-        decoder_inputs, decoder_full_inputs, decoder_copy_inputs = [], [], []
+        decoder_inputs, decoder_full_inputs, decoder_copy_targets = [], [], []
         pointer_targets = []
 
         # Get a random batch of encoder and decoder inputs from data,
@@ -628,7 +628,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
             encoder_copy_inputs.append(dp.sc_copy_ids)
             decoder_inputs.append(dp.tg_ids)
             decoder_full_inputs.append(dp.tg_full_ids)
-            decoder_copy_inputs.append(dp.tg_copy_ids)
+            decoder_copy_targets.append(dp.tg_copy_ids)
 
             if self.use_copy and self.copy_fun == 'supervised':
                 pointer_targets.append(dp.pointer_targets)
@@ -637,7 +637,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
         decoder_channel_inputs = [decoder_inputs, decoder_full_inputs]
         if self.use_copy and self.copy_fun != 'supervised':
             encoder_channel_inputs.append(encoder_copy_inputs)
-            decoder_channel_inputs.append(decoder_copy_inputs)
+            decoder_channel_inputs.append(decoder_copy_targets)
 
         return self.format_example(encoder_channel_inputs, decoder_channel_inputs,
             pointer_targets=pointer_targets, bucket_id=bucket_id)
@@ -660,9 +660,9 @@ class EncoderDecoderModel(graph_utils.NNModel):
             input_feed[self.encoder_attn_masks[l].name] = E.encoder_attn_masks[l]
         for l in xrange(decoder_size):
             input_feed[self.decoder_inputs[l].name] = E.decoder_inputs[l]
-            input_feed[self.decoder_full_inputs[l].name] = E.decoder_copy_inputs[l] \
+            input_feed[self.decoder_full_inputs[l].name] = E.decoder_copy_targets[l] \
                 if (self.use_copy and self.copy_fun == 'copynet' 
-                    and E.decoder_copy_inputs is not None) \
+                    and E.decoder_copy_targets is not None) \
                 else E.decoder_full_inputs[l]
             input_feed[self.target_weights[l].name] = E.target_weights[l]
         # Since our targets are decoder inputs shifted by one, we need one more.
@@ -797,7 +797,7 @@ class Example(object):
         self.encoder_attn_masks = None
         self.decoder_inputs = None
         self.decoder_full_inputs = None
-        self.decoder_copy_inputs = None
+        self.decoder_copy_targets = None
         self.target_weights = None
         self.char_decoder_inputs = None
         self.char_target_weights = None
