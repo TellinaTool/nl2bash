@@ -606,6 +606,10 @@ class NNModel(object):
         return self.hyperparams["copy_fun"]
 
     @property
+    def use_copynet(self):
+        return self.use_copy and self.copy_fun == 'copynet'
+
+    @property
     def copy_vocab_size(self):
         return self.hyperparams["copy_vocab_size"]
 

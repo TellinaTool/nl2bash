@@ -46,7 +46,7 @@ class Decoder(graph_utils.NNModel):
         self.decoding_algorithm = decoding_algorithm
 
         self.vocab_size = self.target_vocab_size
-        if self.use_copy and self.copy_fun == 'copynet':
+        if self.use_copynet:
             self.vocab_size += self.max_source_length
         
         # variable sharing
@@ -106,6 +106,7 @@ class CopyCellWrapper(tf.nn.rnn_cell.RNNCell):
         self.tg_vocab_size = tg_vocab_size
 
         self.encoder_size = len(encoder_inputs)
+        # [batch_size x max_source_length]
         self.encoder_inputs = \
             tf.concat(axis=1, values=[tf.expand_dims(x, 1) for x in encoder_inputs])
 
@@ -122,7 +123,11 @@ class CopyCellWrapper(tf.nn.rnn_cell.RNNCell):
         # <generation probability, copying probability>
         W, b = self.output_project
         gen_logit = tf.matmul(output, W) + b - 1e12 * (1 - self.generation_mask)
-        copy_logit = alignments[1]
+        pointers = alignments[1]
+        copy_logit = pointers - 1e12 * tf.cast(
+            (self.encoder_inputs == data_utils.UNK_ID) or
+            (self.encoder_inputs == data_utils.ARG_UNK_ID) or
+            (self.encoder_inputs == data_utils.FLAG_UNK_ID), tf.float32)
 
         prob = tf.nn.softmax(tf.concat([gen_logit, copy_logit], axis=1))
         gen_prob = tf.slice(prob, [0, 0], [-1, self.tg_vocab_size])
