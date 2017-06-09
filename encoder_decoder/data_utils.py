@@ -741,26 +741,26 @@ def prepare_bash(FLAGS, verbose=False):
                     nl_tokens, _ = tokenizer.basic_tokenizer(nl)
                     cm_tokens = data_tools.ast2tokens(
                         ast, with_parent=True, with_prefix=True)
-                    cm_seq = data_tools.ast2list(ast, list=[], with_parent=True)
+                    cm_seq = data_tools.ast2list(ast, _list=[], with_parent=True)
                     pruned_ast = normalizer.prune_ast(ast)
                     cm_pruned_tokens = data_tools.ast2tokens(
                         pruned_ast, loose_constraints=True, with_parent=True)
                     cm_pruned_seq = data_tools.ast2list(
-                        pruned_ast, list=[], with_parent=True)
+                        pruned_ast, _list=[], with_parent=True)
                     nl_normalized_tokens, _ = tokenizer.ner_tokenizer(nl)
                     cm_normalized_tokens = data_tools.ast2tokens(
                         ast, arg_type_only=True, keep_common_args=False,
                         with_parent=True, with_prefix=True)
                     cm_normalized_seq = data_tools.ast2list(
                         ast, arg_type_only=True, keep_common_args=False,
-                        list=[], with_parent=True, with_prefix=True)
+                        _list=[], with_parent=True, with_prefix=True)
                     cm_canonical_tokens = data_tools.ast2tokens(
                         ast, arg_type_only=True, keep_common_args=False,
                         with_parent=True, ignore_flag_order=True,
                         with_prefix=True)
                     cm_canonical_seq = data_tools.ast2list(
                         ast, arg_type_only=True, keep_common_args=False,
-                        list=[], with_parent=True, ignore_flag_order=True,
+                        _list=[], with_parent=True, ignore_flag_order=True,
                         with_prefix=True)
                     nl_partial_tokens, cm_partial_tokens = split_arguments(
                         nl_tokens, cm_tokens, cm_normalized_tokens)
