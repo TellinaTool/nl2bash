@@ -1,6 +1,9 @@
 package man_parser.cmd;
 
 import javafx.util.Pair;
+import man_parser.ManParserInterface;
+import man_parser.parser.ParseException;
+import man_parser.parser.SynopParser;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -171,7 +174,9 @@ public class Cmd {
         public String type = "compound_options";
         public List<CmdOp> commands = new ArrayList<>();
         public Compound(List<CmdOp> cmds) { this.commands = cmds; }
-        public String toString() { return commands.stream().map(cmd -> cmd.toString()).reduce(" ", (x,y) -> x + " " + y); }
+        public String toString() {
+            return commands.stream().map(cmd -> cmd.toString()).reduce(" ", (x,y) -> x + " " + y);
+        }
         @Override
         public String getType() {
             return type;
@@ -198,16 +203,39 @@ public class Cmd {
         String type = "option_description_pair";
         public String name;
         public CmdOp option;
+        public List<CmdOp> allOptions = new ArrayList<>();
         public String description;
 
-        public DescriptionPair(CmdOp fst, String desc) {
+        public DescriptionPair(CmdOp fst, String wholeOpPart, String desc) {
             this.name = fst.toString().trim();
             this.option = fst;
             this.description = desc;
+            this.addAllOptions(wholeOpPart);
         }
 
+        public void addAllOptions(String allOptions) {
+            for (String s : allOptions.split(",")) {
+                try {
+                    this.allOptions.add(new SynopParser(new java.io.StringReader(s)).compoundOp());
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
         public String toString() {
             return  option.toString() + " :: " + description;
+        }
+
+        public String pureOptions() {
+            String synOp = "[";
+            for (int i = 0; i < allOptions.size(); i ++) {
+                if (i != 0)
+                    synOp += "|";
+                synOp += " " + allOptions.get(i).toString() + " ";
+
+            }
+            synOp += "]";
+            return synOp;
         }
     }
 

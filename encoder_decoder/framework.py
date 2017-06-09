@@ -256,8 +256,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
         else:
             attention_states = None
 
-        num_heads = 2 if (self.tg_token_use_attention and
-            (self.use_copynet)) else 1
+        num_heads = 2 if (self.tg_token_use_attention and 
+                          self.use_copynet) else 1
 
         # --- Run encode-decode steps --- #
         output_symbols, output_logits, outputs, states, attn_alignments, \
@@ -629,7 +629,6 @@ class EncoderDecoderModel(graph_utils.NNModel):
             decoder_inputs.append(dp.tg_ids)
             decoder_full_inputs.append(dp.tg_full_ids)
             decoder_copy_targets.append(dp.tg_copy_ids)
-
             if self.use_copy and self.copy_fun == 'supervised':
                 pointer_targets.append(dp.pointer_targets)
 
