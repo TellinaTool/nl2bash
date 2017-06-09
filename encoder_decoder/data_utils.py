@@ -554,9 +554,13 @@ def prepare_dataset(data, data_dir, suffix, vocab_size, vocab_path,
         # save indexed token sequences
         is_bash_nl = 'bash' in data_dir and suffix.endswith('.nl')
         is_bash_cm = 'bash' in data_dir and suffix.endswith('.cm')
+        is_regex_turk_nl = 'regex-turk' in data_dir and suffix.endswith('.nl')
+        is_regex_kb13_nl = 'regex-kb13' in data_dir and suffix.endswith('.nl')
 
         if create_vocab:
-            MIN_WORD_FREQ = 2 if "bash" in data_dir else 1
+            MIN_WORD_FREQ = 2 if is_bash_nl or is_bash_cm \
+                or is_regex_turk_nl or is_regex_kb13_nl \
+                else 1
             create_vocabulary(vocab_path, data.train, vocab_size,
                               min_word_frequency=MIN_WORD_FREQ)
         for split in _data_splits:
