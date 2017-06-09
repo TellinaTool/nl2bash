@@ -1281,6 +1281,8 @@ def load_data(FLAGS, buckets=None, load_mappings=False, load_pointers=False):
         nl_full_ext = ".nl.break.full"
         nl_copy_sc_ext = ".nl.break.copy.sc"
         nl_copy_tg_ext = ".nl.break.copy.tg"
+    elif FLAGS.full:
+        nl_ext = ".nl.full"
     elif FLAGS.normalized or FLAGS.canonical:
         nl_ext = ".nl.norm"
 
@@ -1296,6 +1298,8 @@ def load_data(FLAGS, buckets=None, load_mappings=False, load_pointers=False):
         cm_full_ext = ".cm.break.full"
         cm_copy_sc_ext = ".cm.break.copy.sc"
         cm_copy_tg_ext = ".cm.break.copy.tg"
+    elif FLAGS.full:
+        cm_ext = ".cm.full"
     elif FLAGS.use_copy and FLAGS.copy_fun == 'copynet':
         cm_ext = ".cm"
     elif FLAGS.normalized:
