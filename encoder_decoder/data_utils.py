@@ -426,7 +426,7 @@ def sentence_to_token_ids(sentence, vocabulary, tokenizer, base_tokenizer,
             # vocabulary index. Used to compute the CopyNet training objective.
             token_ids.append(word_id)
         else:
-            if word_id == -1 or (use_unk and is_unk):
+            if use_unk and is_unk:
                 # out-of-vocabulary word
                 if coarse_typing:
                     if is_low_frequency(w):
@@ -440,14 +440,14 @@ def sentence_to_token_ids(sentence, vocabulary, tokenizer, base_tokenizer,
                     else:
                         token_ids.append(UNK_ID)
                 elif use_source_placeholder:
-                    # if use_unk_placeholder and \
-                    #         (not w in vocabulary or is_low_frequency(w)):
-                    #     token_ids.append(get_unk_symbol(w))
-                    # else:
-                    if word_id == -1:
-                        token_ids.append(parallel_vocab_size + i)
+                    if (not w in vocabulary or is_low_frequency(w)) \
+                            and use_unk_placeholder:
+                        token_ids.append(get_unk_symbol(w))
                     else:
-                        token_ids.append(word_id)
+                        if word_id == -1:
+                            token_ids.append(parallel_vocab_size + i)
+                        else:
+                            token_ids.append(word_id)
                 else:
                     token_ids.append(get_unk_symbol(w))
             else:
