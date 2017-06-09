@@ -444,10 +444,7 @@ def sentence_to_token_ids(sentence, vocabulary, tokenizer, base_tokenizer,
                             and use_unk_placeholder:
                         token_ids.append(get_unk_symbol(w))
                     else:
-                        if word_id == -1:
-                            token_ids.append(parallel_vocab_size + i)
-                        else:
-                            token_ids.append(word_id)
+                        token_ids.append(parallel_vocab_size + i)
                 else:
                     token_ids.append(get_unk_symbol(w))
             else:
