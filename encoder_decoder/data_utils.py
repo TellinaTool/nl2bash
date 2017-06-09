@@ -287,6 +287,8 @@ def data_to_token_ids(data, tg_id_path, vocab_path, tokenizer=None,
 
         if parallel_vocab_path is not None:
             parallel_vocab, _ = initialize_vocabulary(parallel_vocab_path)
+        else:
+            parallel_vocab = None
         if parallel_data is not None:
             assert(len(data) == len(parallel_data))
 
@@ -305,7 +307,7 @@ def data_to_token_ids(data, tg_id_path, vocab_path, tokenizer=None,
                 parallel_sequence=parallel_line,
                 use_source_placeholder=use_source_placeholder,
                 use_unk_placeholder=use_unk_placeholder,
-                parallel_vocab=parallel_vocab,
+                parallel_vocabulary=parallel_vocab,
                 parallel_vocab_size=parallel_vocab_size,
                 coarse_typing=coarse_typing,
                 add_type_prefix=add_type_prefix,
@@ -370,21 +372,21 @@ def sentence_to_token_ids(sentence, vocabulary, tokenizer, base_tokenizer,
             return vocab[w]
 
         if add_type_prefix:
-            if '__ARG__' + w in vocabulary:
+            if '__ARG__' + w in vocab:
                 return vocab['__ARG__' + w]
-            elif '__FLAG__' + w in vocabulary:
+            elif '__FLAG__' + w in vocab:
                 return vocab['__FLAG__' + w]
         if remove_type_prefix:
-            if w.startswith('__ARG__') and w[len('__ARG__'):] in vocabulary:
+            if w.startswith('__ARG__') and w[len('__ARG__'):] in vocab:
                 return vocab[w[len('__ARG__'):]]
-            elif w.startswith('__FLAG__') and w[len('__FLAG__'):] in vocabulary:
+            elif w.startswith('__FLAG__') and w[len('__FLAG__'):] in vocab:
                 return vocab[w[len('__FLAG__'):]]
 
-        if '__LF__' + w in vocabulary:
+        if '__LF__' + w in vocab:
             return vocab['__LF__' + w]
-        elif '__LF____ARG__' + w in vocabulary:
+        elif '__LF____ARG__' + w in vocab:
             return vocab['__LF____ARG__' + w]
-        elif '__LF____FLAG__' + w in vocabulary:
+        elif '__LF____FLAG__' + w in vocab:
             return vocab['__LF____FLAG__' + w]
 
         if w.startswith('__ARG__'):
@@ -439,11 +441,11 @@ def sentence_to_token_ids(sentence, vocabulary, tokenizer, base_tokenizer,
                         token_ids.append(UNK_ID)
                 elif use_source_placeholder:
                     if use_unk_placeholder and is_unk:
-                        tokens_ids.append(get_unk_symbol(w))
+                        token_ids.append(get_unk_symbol(w))
                     else:
                         token_ids.append(parallel_vocab_size + i)
                 else:
-                    tokens_ids.append(get_unk_symbol(w))
+                    token_ids.append(get_unk_symbol(w))
             else:
                 # in-vocabulary word
                 token_ids.append(word_id)
