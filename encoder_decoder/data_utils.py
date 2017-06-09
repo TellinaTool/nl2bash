@@ -438,7 +438,7 @@ def sentence_to_token_ids(sentence, vocabulary, tokenizer, base_tokenizer,
                 elif not constants.is_english_word(w):
                     token_ids.append(NON_ENGLISH_ID)
                 else:
-                    if use_unk or word_id == -1:
+                    if use_unk:
                         token_ids.append(UNK_ID)
                     else:
                         token_ids.append(word_id)
@@ -449,7 +449,7 @@ def sentence_to_token_ids(sentence, vocabulary, tokenizer, base_tokenizer,
                 else:
                     token_ids.append(parallel_vocab_size + i)
             else:
-                if use_unk or word_id == -1:
+                if use_unk:
                     token_ids.append(get_unk_symbol(w))
                 else:
                     token_ids.append(word_id)
@@ -570,6 +570,8 @@ def prepare_dataset(data, data_dir, suffix, vocab_size, vocab_path,
                               min_word_frequency=MIN_WORD_FREQ)
             if suffix.endswith('.nl') or suffix.endswith('.cm'):
                 create_vocabulary(vocab_path, data.dev, vocab_size,
+                    min_word_frequency=MIN_WORD_FREQ, append_to_vocab=True)
+                create_vocabulary(vocab_path, data.test, vocab_size,
                     min_word_frequency=MIN_WORD_FREQ, append_to_vocab=True)
         for split in _data_splits:
             data_path = os.path.join(data_dir, split)
