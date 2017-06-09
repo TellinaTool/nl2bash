@@ -417,39 +417,45 @@ def sentence_to_token_ids(sentence, vocabulary, tokenizer, base_tokenizer,
         else:
             word_id = get_index(w, vocabulary)
             is_unk = not w in vocabulary or is_low_frequency(w)
-        if parallel_sequence is not None and (
+
+        if is_unk:
+            # out-of-vocabulary word
+            if parallel_sequence is not None and (
                 (w.startswith('__ARG__') and w[len('__ARG__'):] in parallel_sequence)
                 or (w.startswith('__FLAG__') and w[len('__FLAGS__'):] in parallel_sequence)
                 or (('__ARG__' + w) in parallel_sequence)
                 or (('__FLAG__' + w) in parallel_sequence)):
-            # If the token has appeared in the parallel sequence, store its
-            # vocabulary index. Used to compute the CopyNet training objective.
-            token_ids.append(word_id)
-        else:
-            if use_unk and is_unk:
-                # out-of-vocabulary word
-                if coarse_typing:
-                    if is_low_frequency(w):
-                        w = w[len('__LF__'):]
-                    if w.isdigit():
-                        token_ids.append(NUM_ID)
-                    elif re.match(re.compile('[0-9]+[A-Za-z]+'), w):
-                        token_ids.append(NUM_ALPHA_ID)
-                    elif not constants.is_english_word(w):
-                        token_ids.append(NON_ENGLISH_ID)
-                    else:
-                        token_ids.append(UNK_ID)
-                elif use_source_placeholder:
-                    if (not w in vocabulary or is_low_frequency(w)) \
-                            and use_unk_placeholder:
-                        token_ids.append(get_unk_symbol(w))
-                    else:
-                        token_ids.append(parallel_vocab_size + i)
-                else:
-                    token_ids.append(get_unk_symbol(w))
-            else:
-                # in-vocabulary word
+                # If the token has appeared in the parallel sequence, store its
+                # vocabulary index. Used to compute the CopyNet training objective.
                 token_ids.append(word_id)
+            elif coarse_typing:
+                if is_low_frequency(w):
+                    w = w[len('__LF__'):]
+                if w.isdigit():
+                    token_ids.append(NUM_ID)
+                elif re.match(re.compile('[0-9]+[A-Za-z]+'), w):
+                    token_ids.append(NUM_ALPHA_ID)
+                elif not constants.is_english_word(w):
+                    token_ids.append(NON_ENGLISH_ID)
+                else:
+                    if use_unk or word_id == -1:
+                        token_ids.append(UNK_ID)
+                    else:
+                        token_ids.append(word_id)
+            elif use_source_placeholder:
+                if (not w in vocabulary or is_low_frequency(w)) \
+                        and use_unk_placeholder:
+                    token_ids.append(get_unk_symbol(w))
+                else:
+                    token_ids.append(parallel_vocab_size + i)
+            else:
+                if use_unk or word_id == -1:
+                    token_ids.append(get_unk_symbol(w))
+                else:
+                    token_ids.append(word_id)
+        else:
+            # in-vocabulary word
+            token_ids.append(word_id)
 
     return token_ids, entities
 
@@ -572,7 +578,7 @@ def prepare_dataset(data, data_dir, suffix, vocab_size, vocab_path,
                 assert(parallel_vocab_path is not None)
                 assert(parallel_data is not None)
                 parallel_split = getattr(parallel_data, split) \
-                    if split == 'train' else None
+                    if split in ['train', 'dev'] else None
                 # compute CopyNet source indices
                 data_to_token_ids(getattr(data, split), data_path + suffix + '.sc',
                     vocab_path=vocab_path, use_source_placeholder=True,
