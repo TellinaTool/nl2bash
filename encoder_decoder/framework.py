@@ -115,7 +115,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
                     tf.float32, shape=[None], name="weight{0}".format(i)))
 
         # Our targets are decoder inputs shifted by one.
-        if self.use_copy and self.copy_fun == 'copynet':
+        if self.use_copynet:
             self.targets = [self.decoder_full_inputs[i + 1]
                             for i in xrange(self.max_target_length)]
         else:
@@ -257,7 +257,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
             attention_states = None
 
         num_heads = 2 if (self.tg_token_use_attention and
-            (self.use_copy and self.copy_fun == 'copynet')) else 1
+            (self.use_copynet)) else 1
 
         # --- Run encode-decode steps --- #
         output_symbols, output_logits, outputs, states, attn_alignments, \
@@ -278,7 +278,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
             if bs_decoding:
                 targets = graph_utils.wrap_inputs(
                     self.decoder.beam_decoder, targets)
-            if self.use_copy and self.copy_fun == 'copynet':
+            if self.use_copynet:
                 step_loss_fun = graph_utils.sparse_cross_entropy
             else:
                 step_loss_fun = graph_utils.softmax_loss(
@@ -348,7 +348,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
         self.encoder_hidden_states = tf.concat(axis=1,
             values=[tf.reshape(e_o, [-1, 1, self.encoder.output_dim])
                     for e_o in encoder_outputs])
-        if self.use_copy and self.copy_fun == 'copynet':
+        if self.use_copynet:
             top_states = []
             if self.rnn_cell == 'gru':
                 for state in states:
@@ -652,8 +652,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
         for l in xrange(encoder_size):
             input_feed[self.encoder_inputs[l].name] = E.encoder_inputs[l]
             input_feed[self.encoder_full_inputs[l].name] = E.encoder_copy_inputs[l] \
-                if (self.use_copy and self.copy_fun == 'copynet') \
-                else E.encoder_full_inputs[l]
+                if self.use_copynet else E.encoder_full_inputs[l]
             if self.sc_char:
                 input_feed[self.char_encoder_inputs[l].name] = \
                     E.char_encoder_inputs[l]
@@ -661,8 +660,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
         for l in xrange(decoder_size):
             input_feed[self.decoder_inputs[l].name] = E.decoder_inputs[l]
             input_feed[self.decoder_full_inputs[l].name] = E.decoder_copy_targets[l] \
-                if (self.use_copy and self.copy_fun == 'copynet' 
-                    and E.decoder_copy_targets is not None) \
+                if (self.use_copynet and E.decoder_copy_targets is not None) \
                 else E.decoder_full_inputs[l]
             input_feed[self.target_weights[l].name] = E.target_weights[l]
         # Since our targets are decoder inputs shifted by one, we need one more.

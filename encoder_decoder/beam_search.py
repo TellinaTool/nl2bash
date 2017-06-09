@@ -228,7 +228,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
                 self.cell(cell_inputs, past_cell_state, scope)
 
         # [batch_size*beam_size, num_classes]
-        if self.use_copy and self.copy_fun == 'copynet':
+        if self.use_copynet:
             logprobs = tf.log(cell_output)
         else:
             W, b = self.output_project
@@ -342,7 +342,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         )
         ranked_cell_output = tf.gather(cell_output, parent_refs)
 
-        if self.use_copy and self.copy_fun == 'copynet':
+        if self.use_copynet:
             return ranked_cell_output, compound_cell_state, ranked_alignments, \
                    ranked_attns, ranked_read_copy_source
         elif self.use_attention:
