@@ -115,8 +115,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
                     tf.float32, shape=[None], name="weight{0}".format(i)))
 
         # Our targets are decoder inputs shifted by one.
-        if self.use_copy and self.copy_fun == 'copy':
-            self.targets = [self.decoder_copy_targets[i + 1]
+        if self.use_copy and self.copy_fun == 'copynet':
+            self.targets = [self.decoder_full_inputs[i + 1]
                             for i in xrange(self.max_target_length)]
         else:
             self.targets = [self.decoder_inputs[i + 1]
