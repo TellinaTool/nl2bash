@@ -85,6 +85,7 @@ def define_input_flags():
                                                     "canonical option order.")
     tf.app.flags.DEFINE_boolean("lemmatized", True, "Set to True for learning with lemmatized natural language words.")
     tf.app.flags.DEFINE_boolean("normalized", False, "Set to True for learning with normalized command.")
+    tf.app.flags.DEFINE_boolean("full", False, "Set to True for learning with all tokens.")
 
     # training hyperparameters
     tf.app.flags.DEFINE_string("model_root_dir", 'model', "Directory to save trained models.")
