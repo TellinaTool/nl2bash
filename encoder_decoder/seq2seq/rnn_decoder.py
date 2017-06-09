@@ -137,7 +137,7 @@ class RNNDecoder(decoder.Decoder):
 
                 input_embedding = tf.nn.embedding_lookup(input_embeddings, input)
 
-                if self.use_copy and self.copy_fun == 'copynet':
+                if self.use_copynet:
                     if i == 0:
                         attn_dim = attention_states.get_shape()[2]
                         selective_reads = tf.zeros([self.batch_size, attn_dim])
@@ -170,7 +170,7 @@ class RNNDecoder(decoder.Decoder):
                 # Tensor list --> tenosr
                 attn_alignments = tf.concat(axis=1,
                     values=[tf.expand_dims(x[0], 1) for x in alignments_list])
-            if self.use_copy and self.copy_fun == 'copynet':
+            if self.use_copynet:
                 pointers = tf.concat(axis=1,
                     values=[tf.expand_dims(x[1], 1) for x in alignments_list])
             else:
@@ -247,7 +247,7 @@ class RNNDecoder(decoder.Decoder):
                 return top_k_outputs, top_k_logits, outputs, states, attn_alignments, pointers
             else:
                 # Greedy output
-                if self.use_copy and self.copy_fun == 'copynet':
+                if self.use_copynet:
                     epsilon = tf.constant(1e-12)
                     projected_output = tf.log(output + epsilon)
                 else:
