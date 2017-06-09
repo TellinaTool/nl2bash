@@ -1,0 +1,64 @@
+pgmtopbm(1)                                    General Commands Manual                                   pgmtopbm(1)
+
+
+
+NAME
+       pgmtopbm - convert a portable graymap into a portable bitmap
+
+SYNOPSIS
+       pgmtopbm  [-floyd|-fs|-threshold |-hilbert |-dither8|-d8|-cluster3 |-c3|-cluster4|-c4 |-cluster8|-c8] [-value
+       val] [-clump size] [pgmfile]
+
+DESCRIPTION
+       Reads a portable graymap as input.  Produces a portable bitmap as output.
+
+       Note that there is no pbmtopgm converter.  Any program that uses the Netpbm  libraries  to  read  PGM  files,
+       including  virtually  all  programs in the Netpbm package, will read a PBM file automatically as if it were a
+       PGM file.
+
+       If you are using a less intelligent program that expects PGM input, use pnmdepth to convert the PBM  file  to
+       PGM.   As  long  as  the  depth is greater than 1, pnmdepth will generate PGM.  This less intelligent program
+       quite probably is also not intelligent enough to deal with general maxvals, so you should specify a depth  of
+       255.
+
+
+OPTIONS
+       The  default  quantization  method  is boustrophedonic Floyd-Steinberg error diffusion (-floyd or -fs).  Also
+       available are simple thresholding (-threshold); Bayer's ordered dither (-dither8) with a  16x16  matrix;  and
+       three  different  sizes of 45-degree clustered-dot dither (-cluster3, -cluster4, -cluster8).  A space filling
+       curve halftoning method using the Hilbert curve is also available.  (-hilbert);
+
+       Floyd-Steinberg will almost always give the best looking results; however, looking good is  not  always  what
+       you  want.  For instance, thresholding can be used in a pipeline with the pnmconvol tool, for tasks like edge
+       and peak detection.  And clustered-dot dithering gives a newspaper-ish look, a useful special effect.
+
+       The -value flag alters the thresholding value for Floyd-Steinberg and simple thresholding.  It  should  be  a
+       real number between 0 and 1.  Above 0.5 means darker images; below 0.5 means lighter.
+
+       The  Hilbert  curve method is useful for processing images before display on devices that do not render indi‐
+       vidual pixels distinctly (like laser printers). This dithering  method  can  give  better  results  than  the
+       dithering  usually  done  by the laser printers themselves.  The -clump flag alters the number of pixels in a
+       clump. This is usually an integer between 2 and 100 (default 5). Smaller clump sizes smear the image less and
+       are less grainy, but seem to loose some grey scale linearity. Typically a PGM image will have to be scaled to
+       fit on a laser printer page (2400 x 3000 pixels for an A4 300 dpi page), and then dithered  to  a  PBM  image
+       before being converted to a postscript file.  A printing pipeline might look something like: pnmscale -xysize
+       2400 3000 image.pgm | pgmtopbm -hil | pnmtops -scale 0.25 > image.ps
+
+       All flags can be abbreviated to their shortest unique prefix.
+
+REFERENCES
+       The only reference you need for this stuff is "Digital  Halftoning"  by  Robert  Ulichney,  MIT  Press,  ISBN
+       0-262-21009-6.
+
+       The  Hilbert  curve space filling method is taken from "Digital Halftoning with Space Filling Curves" by Luiz
+       Velho, Computer Graphics Volume 25, Number 4, proceedings of SIGRAPH '91, page 81. ISBN 0-89791-436-8
+
+SEE ALSO
+       pbmreduce(1), pgm(5), pbm(5), pnmconvol(1), pnmscale(1), pnmtops(1)
+
+AUTHOR
+       Copyright (C) 1989 by Jef Poskanzer.
+
+
+
+                                                    26 July 1988                                         pgmtopbm(1)

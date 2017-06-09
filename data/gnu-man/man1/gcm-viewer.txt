@@ -1,0 +1,27 @@
+GCM-VIEWER(1)                                                                                          GCM-VIEWER(1)
+
+
+
+NAME
+       gcm-import - GNOME Color Manager Profile Viewer Tool
+
+SYNOPSIS
+       gcm-import [ --verbose ]
+
+
+DESCRIPTION
+       This manual page documents briefly the gcm-import command.
+
+       gcm-import allows you to view properties of ICC files.
+
+SEE ALSO
+       gcm-import
+
+       gnome-control-center
+
+AUTHOR
+       This manual page was written by Richard Hughes <richard@hughsie.com>.
+
+
+
+                                                    11 April,2008                                      GCM-VIEWER(1)

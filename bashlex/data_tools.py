@@ -86,7 +86,8 @@ def pretty_print(node, depth=0):
 
 
 def ast2tokens(node, loose_constraints=False, ignore_flag_order=False,
-               arg_type_only=False, with_arg_type=False, with_parent=False,
+               arg_type_only=False, keep_common_args=False,
+               with_arg_type=False, with_parent=False,
                index_arg=False, with_prefix=False):
     """
     Convert a bash ast into a list of tokens.
@@ -98,6 +99,7 @@ def ast2tokens(node, loose_constraints=False, ignore_flag_order=False,
     lc = loose_constraints
     ifo = ignore_flag_order
     ato = arg_type_only
+    kca = keep_common_args
     wat = with_arg_type
     wp = with_parent
     ia = index_arg
@@ -208,7 +210,7 @@ def ast2tokens(node, loose_constraints=False, ignore_flag_order=False,
         elif node.is_argument() or node.kind in ["t"]:
             assert(loose_constraints or node.get_num_of_children() == 0)
             if ato and node.is_open_vocab():
-                if node.value in bash.common_arguments:
+                if kca and node.value in bash.common_arguments:
                     # keep frequently-occurred arguments in the vocabulary
                     token = node.value
                 else:

@@ -129,7 +129,7 @@ def create_vocabulary(vocab_path, data, max_vocabulary_size, min_word_frequency,
       (used for simplifying testing sentences with unseen tokens).
     """
 
-    MIN_ARG_FREQ = 10
+    MIN_ARG_FREQ = 30
 
     vocab = {}
 
@@ -251,7 +251,8 @@ def initialize_vocabulary(vocab_path):
 def data_to_token_ids(data, tg_id_path, vocab_path, tokenizer=None,
                       base_tokenizer=None, use_unk=True,
                       parallel_data=None, use_source_placeholder=False,
-                      parallel_vocab_size=None, coarse_typing=False):
+                      parallel_vocab_size=None, coarse_typing=False,
+                      add_type_prefix=False, remove_type_prefix=False):
     """Tokenize data file and turn into token-ids using given vocabulary file.
 
     This function loads data line-by-line from data_path, calls the above
@@ -275,6 +276,8 @@ def data_to_token_ids(data, tg_id_path, vocab_path, tokenizer=None,
       parallel_vocab_size: Vocabulary size of the parallel language, used for
         creading dummy indices in CopyNet.
       coarse_typing: If set, replace tokens with coarse types.
+      add_type_prefix: If set, add type prefix of the token while indexing.
+      remove_type_prefix: If set, remove type prefix of the token while indexing.
     """
     max_token_num = 0
     if not tf.gfile.Exists(tg_id_path):
@@ -298,7 +301,9 @@ def data_to_token_ids(data, tg_id_path, vocab_path, tokenizer=None,
                 parallel_sequence=parallel_line,
                 use_source_placeholder=use_source_placeholder,
                 parallel_vocab_size=parallel_vocab_size,
-                coarse_typing=coarse_typing)
+                coarse_typing=coarse_typing,
+                add_type_prefix=add_type_prefix,
+                remove_type_prefix=remove_type_prefix)
             if len(token_ids) > max_token_num:
                 max_token_num = len(token_ids)
             tokens_file.write(" ".join([str(tok) for tok in token_ids]) + "\n")
@@ -308,7 +313,8 @@ def data_to_token_ids(data, tg_id_path, vocab_path, tokenizer=None,
 
 def sentence_to_token_ids(sentence, vocabulary, tokenizer, base_tokenizer,
         use_unk=True, use_typed_unk=False, parallel_sequence=None,
-        use_source_placeholder=False, parallel_vocab_size=-1, coarse_typing=False):
+        use_source_placeholder=False, parallel_vocab_size=-1, coarse_typing=False,
+        add_type_prefix=False, remove_type_prefix=False):
     """
     Convert a string to a list of integers representing token-ids.
 
@@ -335,6 +341,8 @@ def sentence_to_token_ids(sentence, vocabulary, tokenizer, base_tokenizer,
         parallel_vocab_size: Vocabulary size of the parallel data, used for
             creating dummy indices in CopyNet.
         coarse_typing: If set, replace tokens with coarse types.
+        add_type_prefix: If set, add type prefix of the token while indexing.
+        remove_type_prefix: If set, remove type prefix of the token while indexing.
     Returns:
         a list of integers, the token-ids for the sentence.
     """
@@ -353,16 +361,31 @@ def sentence_to_token_ids(sentence, vocabulary, tokenizer, base_tokenizer,
     def get_index(w, vocab):
         if w in vocab:
             return vocab[w]
-        if is_low_frequency(w):
-            base_w = remove_low_frequency_prefix(w)
-            if base_w in vocab:
-                return vocab[base_w]
-            elif '__ARG__' + base_w in vocabulary:
-                return vocab['__ARG__' + base_w]
+
+        if add_type_prefix:
+            if '__ARG__' + w in vocabulary:
+                return vocab['__ARG__' + w]
             elif '__FLAG__' + w in vocabulary:
-                return vocab['__FLAG__' + base_w]
-        else:
-            return -1
+                return vocab['__FLAG__' + w]
+        if remove_type_prefix:
+            if w.startswith('__ARG__') and w[len('__ARG__'):] in vocabulary:
+                return vocab[w[len('__ARG__'):]]
+            elif w.startswith('__FLAG__') and w[len('__FLAG__'):] in vocabulary:
+                return vocab[w[len('__FLAG__'):]]
+
+        if '__LF__' + w in vocabulary:
+            return vocab['__LF__' + w]
+        elif '__LF____ARG__' + w in vocabulary:
+            return vocab['__LF____ARG__' + w]
+        elif '__LF____FLAG__' + w in vocabulary:
+            return vocab['__LF____FLAG__' + w]
+
+        if w.startswith('__ARG__'):
+            return ARG_UNK_ID
+        if w.startswith('__FLAG__'):
+            return FLAG_UNK_ID
+
+        return UNK_ID
 
     if use_source_placeholder:
         assert(parallel_vocab_size != -1)
@@ -527,10 +550,14 @@ def prepare_dataset(data, data_dir, suffix, vocab_size, vocab_path,
                 data_to_token_ids(getattr(data, split), data_path + suffix + '.sc',
                     vocab_path=parallel_vocab_path, use_source_placeholder=True,
                     parallel_vocab_size=parallel_vocab_size,
-                    parallel_data=parallel_split)
+                    parallel_data=parallel_split,
+                    add_type_prefix=is_bash_nl,
+                    remove_type_prefix=is_bash_cm)
                 # compute CopyNet target indices
                 data_to_token_ids(getattr(data, split), data_path + suffix + '.tg',
-                    vocab_path, parallel_data=parallel_split)
+                    vocab_path, parallel_data=parallel_split,
+                    add_type_prefix=False,
+                    remove_type_prefix=False)
             else:
                 data_to_token_ids(getattr(data, split), data_path + suffix,
                     vocab_path, coarse_typing=is_bash_nl)
@@ -729,16 +756,19 @@ def prepare_bash(FLAGS, verbose=False):
                         pruned_ast, list=[], with_parent=True)
                     nl_normalized_tokens, _ = tokenizer.ner_tokenizer(nl)
                     cm_normalized_tokens = data_tools.ast2tokens(
-                        ast, arg_type_only=True, with_parent=True, with_prefix=True)
+                        ast, arg_type_only=True, keep_common_args=True,
+                        with_parent=True, with_prefix=True)
                     cm_normalized_seq = data_tools.ast2list(
-                        ast, arg_type_only=True, list=[], with_parent=True,
-                        with_prefix=True)
+                        ast, arg_type_only=True, keep_common_args=True,
+                        list=[], with_parent=True, with_prefix=True)
                     cm_canonical_tokens = data_tools.ast2tokens(
-                        ast, arg_type_only=True, with_parent=True,
-                        ignore_flag_order=True, with_prefix=True)
+                        ast, arg_type_only=True, keep_common_args=True,
+                        with_parent=True, ignore_flag_order=True,
+                        with_prefix=True)
                     cm_canonical_seq = data_tools.ast2list(
-                        ast, arg_type_only=True, list=[], with_parent=True,
-                        ignore_flag_order=True, with_prefix=True)
+                        ast, arg_type_only=True, keep_common_args=True,
+                        list=[], with_parent=True, ignore_flag_order=True,
+                        with_prefix=True)
                     nl_partial_tokens, cm_partial_tokens = split_arguments(
                         nl_tokens, cm_tokens, cm_normalized_tokens)
                     # Debugging
@@ -1169,7 +1199,7 @@ def load_vocab(FLAGS):
         elif FLAGS.use_copy and FLAGS.copy_fun == 'copynet':
             cm_ext = ".cm"
         else:
-            cm_ext = ".cm.norm" if FLAGS.dataset.startswith('.cm') \
+            cm_ext = ".cm.norm" if FLAGS.dataset.startswith('bash') \
                 else '.cm'
     elif FLAGS.decoder_topology in ['basic_tree']:
         if FLAGS.normalized or FLAGS.canonical:

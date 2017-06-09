@@ -1,0 +1,55 @@
+pnmindex(1)                                    General Commands Manual                                   pnmindex(1)
+
+
+
+NAME
+       pnmindex - build a visual index of a bunch of anymaps
+
+SYNOPSIS
+       pnmindex [-size N] [-across N] [-colors N] [-black] [-title T] [-quant|-noquant] pnmfile ...
+
+
+DESCRIPTION
+       pnmindex creates an index image containing thumbnail (small) versions of a bunch of PNM files you supply.
+
+       pnmindex labels each thumbnail and, optionally, contains a title.
+
+
+
+OPTIONS
+       -size N
+              The  size  of  each  thumbnail.  The image is scaled to fit maximally inside a N x N pixel box without
+              changing its aspect ratio.  Default is 100.
+
+       -across N
+              The number of thumbnails in each row.  Default is 6.
+
+       -colors N
+              The maximum number of colors allowed in the overall image.  If it would  otherwise  have  more  colors
+              than these, pnmindex quantizes the result.  The default is 256.
+
+              However, this value is meaningless if you specify the -noquant option.
+
+       -black This  controls  the  color  of  the padding between the images; normally it's white and the labels are
+              black lettering on white background, but the -black flag reverses this.
+
+       -title title
+              Specifies a title top place at the top of the image.  Default is no title.
+
+       -quant Enables quanization (to the number of colors specified by -colors ).  Quantization is  on  by  default
+              but you can disable it with -noquant.
+
+       -noquant
+              See -quant.
+
+
+SEE ALSO
+       pnmscale(1), pnmcat(1), pbmtext(1), ppmquant(1), pnm(5)
+
+
+AUTHOR
+       Copyright (C) 1991 by Jef Poskanzer.  -title and -noquant added 2000 by John Heidemann.
+
+
+
+                                                   9 January 1991                                        pnmindex(1)

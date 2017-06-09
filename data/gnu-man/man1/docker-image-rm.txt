@@ -1,0 +1,35 @@
+DOCKER(1)                                                                                                  DOCKER(1)
+
+
+
+NAME
+       docker-image-rm - Remove one or more images
+
+
+
+SYNOPSIS
+       docker image rm [OPTIONS] IMAGE [IMAGE...]
+
+
+
+DESCRIPTION
+       Remove one or more images
+
+
+
+OPTIONS
+       -f, --force[=false]
+           Force removal of the image
+
+
+       --no-prune[=false]
+           Do not delete untagged parents
+
+
+
+SEE ALSO
+       docker-image(1)
+
+
+
+Docker Community                                      Mar 2017                                             DOCKER(1)

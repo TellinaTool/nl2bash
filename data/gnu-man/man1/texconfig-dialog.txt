@@ -1,0 +1,17 @@
+texconfig-dialog(1)                                     teTeX                                    texconfig-dialog(1)
+
+
+
+NAME
+       texconfig-dialog - helper program for texconfig and texconfig-sys
+
+DESCRIPTION
+       texconfig-dialog  is  a  helper  program  for  texconfig  and texconfig-sys, see the respective man pages for
+       details.
+
+AUTHOR
+       Thomas Esser <te@dbs.uni-hannover.de>
+
+
+
+teTeX                                               February 2005                                texconfig-dialog(1)

@@ -1,0 +1,52 @@
+FC-PATTERN(1)                                                                                          FC-PATTERN(1)
+
+
+
+NAME
+       fc-pattern - parse and show pattern
+
+SYNOPSIS
+       fc-pattern [ -cdVh ]  [ --config ]  [ --default ]  [  [ -f format ]  [ --format format ]  ]  [ --version ]  [
+       --help ]
+
+        [ pattern  [ element... ]   ]
+
+DESCRIPTION
+       fc-pattern parses pattern (empty pattern by default) and shows the parsed result.  If --config is given, con‐
+       fig  substitution is performed on the pattern before being displayed.  If --default is given, default substi‐
+       tution is performed on the pattern before being displayed.
+
+       If any elements are specified, only those are printed.
+
+OPTIONS
+       This program follows the usual GNU command line syntax, with long options starting with two dashes  (`-').  A
+       summary of options is included below.
+
+       -c     Perform config substitution on pattern.
+
+       -d     Perform default substitution on pattern.
+
+       -f     Format output according to the format specifier format.
+
+       -V     Show version of the program and exit.
+
+       -h     Show summary of options.
+
+       pattern
+              Parses and displays pattern (uses empty pattern by default).
+
+       element
+              If set, the element property is displayed for parsed pattern.
+
+SEE ALSO
+       FcNameParse(3)  FcConfigSubstitute(3)  FcDefaultSubstitute(3)  FcPatternPrint(3) FcPatternFormat(3) fc-cat(1)
+       fc-cache(1) fc-list(1) fc-match(1) fc-query(1) fc-scan(1)
+
+       The fontconfig user's guide, in HTML format: /usr/share/doc/fontconfig/fontconfig-user.html.
+
+AUTHOR
+       This manual page was updated by Behdad Esfahbod <behdad@behdad.org>.
+
+
+
+                                                    Apr 20, 2010                                       FC-PATTERN(1)

@@ -1,0 +1,72 @@
+pngtopnm(1)                                    General Commands Manual                                   pngtopnm(1)
+
+
+
+NAME
+       pngtopnm - convert a Portable Network Graphics file into portable anymap
+
+SYNOPSIS
+       pngtopnm [-verbose] [-alpha | -mix] [-background color]
+       [-gamma value] [-text file] [-time] [pngfile]
+
+DESCRIPTION
+       Reads  a  Portable  Network Graphics as input.  Produces a portable anymap as output.  The type of the output
+       file depends on the input file - if it's black & white, a pbm file is written, else if it's grayscale  a  pgm
+       file, else a ppm file.
+
+OPTIONS
+       -verbose
+              Display  the  format  of the input file and the type of the output file. If the chunks are part of the
+              png-file, the alpha, transparency and gamma-values will be indicated.
+
+       -alpha Output the alpha channel or transparency mask of the image. The result is either a  pbm  file  or  pgm
+              file, depending on whether different levels of transparency appear.
+
+       -mix   Compose  the  image  with  the  transparency or alpha mask against a the background. When a background
+              chunk is available that color is taken, else black will do.
+
+       -background color
+              If no background color chunck is present in the png-file, or  when  another  color  is  required  this
+              parameter can be used to set the background color of images. This is especially useful for alpha-chan‐
+              nel images or those with transparency chunks. The format, to specify the color in, is either  (in  the
+              case  of  orange)  "1.0,0.5,0.0", where the values are floats between zero and one, or with the syntax
+              "#RGB", "#RRGGBB" or "#RRRRGGGGBBBB" where R, G and B are hexa-decimal numbers.
+
+       -gamma value
+              Converts the image to a new display-gamma value. When a gAMA chunk is present  in  the  png-file,  the
+              image-gamma value will be used. When not, the image-gamma is considered to be 1.0. Based on the image-
+              gamma and the display-gamma given with this  option  the  colors  written  to  the  pnm-file  will  be
+              adjusted.
+              Because the gamma's of uncompensated monitors are around 2.6, which results in an image-gamma of 0.45,
+              some typical situations are: when the image-gamma is 0.45 (use -verbose to check) and the  picture  is
+              too  light,  your  system  is  gamma-corrected,  so  convert with "-gamma 1.0".  When no gAMA chunk is
+              present or the image-gamma is 1.0, use 2.2 to make the picture lighter and 0.45 to  make  the  picture
+              darker.
+
+       -text file
+              Writes  the  tEXt and zTXt chunks to a file, in a format as described in the pnmtopng man-page.  These
+              chunks contain text comments or annotations.
+
+       -time  Prints the tIME chunk to stderr.
+
+       All flags can be abbreviated to their shortest unique prefix.
+
+SEE ALSO
+       pnmtopng(1), ptot(1), pnmgamma(1), pnm(5)
+
+NOTE
+       Instead of pngtopnm|pnmtoxxx, a specific converter should be used, if available. E.g.  ptot (PNG to TIFF con‐
+       version), etc.
+
+BUGS
+       There could be an option to read the comment text from pnm comments instead of a separate file.
+
+       The program could be much faster, with a bit of code optimizing.
+
+AUTHORS
+       Copyright (C) 1995-1997 by Alexander Lehmann
+                               and Willem van Schaik.
+
+
+
+                                                   6 January 1997                                        pngtopnm(1)

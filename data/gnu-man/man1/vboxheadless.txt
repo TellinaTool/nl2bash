@@ -1,0 +1,45 @@
+VBOXHEADLESS(1)                                     User Commands                                    VBOXHEADLESS(1)
+
+
+
+NAME
+       VBoxHeadless - x86 virtualization solution
+
+DESCRIPTION
+       Oracle VM VirtualBox Headless Interface (C) 2008-2013 Oracle Corporation All rights reserved.
+
+   Usage:
+       -s, -startvm, --startvm <name|uuid>
+              Start given VM (required argument)
+
+       -v, -vrde, --vrde on|off|config
+              Enable (default) or disable the VRDE server or don't change the setting
+
+       -e, -vrdeproperty, --vrdeproperty <name=[value]> Set a VRDE property:
+              "TCP/Ports"  -  comma-separated list of ports the VRDE server can bind to. Use a dash between two port
+              numbers to specify a range "TCP/Address" - interface IP the VRDE server will bind to
+
+       --settingspw <pw>
+              Specify the settings password
+
+       --settingspwfile <file>
+              Specify a file containing the settings password
+
+       -c, -capture, --capture
+              Record the VM screen output to a file
+
+       -w, --width
+              Frame width when recording
+
+       -h, --height
+              Frame height when recording
+
+       -r, --bitrate
+              Recording bit rate when recording
+
+       -f, --filename
+              File name when recording. The codec used will be chosen based on the file extension
+
+
+
+VBoxHeadless                                         March 2013                                      VBOXHEADLESS(1)

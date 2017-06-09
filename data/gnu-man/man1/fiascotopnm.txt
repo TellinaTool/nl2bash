@@ -1,0 +1,146 @@
+fiascotopnm(1)                                 General Commands Manual                                fiascotopnm(1)
+
+
+
+NAME
+       fiascotopnm - Convert compressed FIASCO image to PGM, or PPM
+
+
+SYNOPSIS
+       fiascotopnm [option]...  [filename]...
+
+
+DESCRIPTION
+       fiascotopnm  decompresses  the  named FIASCO files, or the Standard Input if no file is named, and writes the
+       images as PGM, or PPM files, depending on whether the FIASCO image is black and white or color.
+
+
+OPTIONS
+       All option names may be abbreviated; for example, --output may be written --outp or --ou. For all options  an
+       one letter short option is provided. Mandatory or optional arguments to long options are mandatory or option‐
+       al for short options, too. Both short and long options are case sensitive.
+
+
+       -o[name], --output=[name]
+              Write decompressed image to the file name.ppm (if PPM) or name.pgm (if PGM).  If name=-  then  produce
+              the image file on the standard output. The optional argument name can be omitted, then the input file‐
+              name is used as basename with the suffix .ppm or .pgm. In case of video streams, the frames are stored
+              in  the  files name.N.ppm where N is the frame number (of the form 00..0 - 99..9); output on the stan‐
+              dard output is not possible with video streams.
+
+              If name is a relative path and the environment variable FIASCO_IMAGES is a (colon-separated)  list  of
+              directories,  then the output file(s) are written to the first (writable) directory of this list. Oth‐
+              erwise, the current directory is used to store the output file(s).
+
+
+       -z, --fast
+              Decompress images in the 4:2:0 format; i.e., each chroma channel is decompressed to an image of halved
+              width  and  height.  Use this option on slow machines when the desired frame rate is not achieved; the
+              output quality is only slightly decreased.
+
+
+       -d, --double
+              Double the size of the X11 window both in width and height; no pixel interpolation is used, each pixel
+              is just replaced by four identical pixels.
+
+
+       -p, --panel
+              Show  a  panel  with play, stop, pause, record and exit buttons to control the display of videos. When
+              pressing the record button, all frames are decompressed and stored in memory. The other  buttons  work
+              in the usual way.
+
+
+       -m N, --magnify=N
+              Set  magnification  of  the decompressed image. Positive values enlarge and negative values reduce the
+              image width and height by a factor of 2^|N|.
+
+
+       -s N, --smooth=N
+              Smooth decompressed image(s) along the partitioning borders by the given amount N. N is 1 (minimum) to
+              100 (maximum); default is 70. When N=0, then the smoothing amount specified in the FIASCO file is used
+              (defined by the FIASCO coder).
+
+
+       -F N, --fps=N
+              Set number of frames per second to N. When using this option, the frame rate specified in  the  FIASCO
+              file is overridden.
+
+
+       -v, --version
+              Print fiascotopnm version number, then exit.
+
+
+       -f name, --config=name
+              Load  parameter  file  name to initialize the options of fiascotopnm.  See file system.fiascorc for an
+              example of the syntax. Options of fiascotopnm are set by any of the following methods (in  the  speci‐
+              fied order):
+
+              1) Global ressource file /etc/system.fiascorc
+
+              2) $HOME/.fiascorc
+
+              3) command line
+
+              4) --config=name
+
+
+       -h, --info
+              Print brief help, then exit.
+
+
+       -H, --help
+              Print detailed help, then exit.
+
+
+
+EXAMPLES
+       fiascotopnm foo.wfa >foo.ppm
+              Decompress the FIASCO file "foo.wfa" and store it as "foo.ppm".
+
+
+       fiascotopnm -o foo1.wfa foo2.wfa
+              Decompress  the  FIASCO  files  "foo1.wfa"  and  "foo2.wfa"  and  write  the frames to the image files
+              "foo1.wfa.ppm" and "foo2.wfa.ppm".
+
+
+       fiascotopnm -oimage foo1.wfa
+              Decompress the FIASCO file "foo1.wfa" and write all 15 frames to the image files "image.00.ppm", ... ,
+              "image.14.ppm".
+
+
+       fiascotopnm --fast --magnify=-1 --double video.wfa >stream.ppm
+              Decompress  the FIASCO file "video.wfa".  The decompression speed is as fast as possible: the image is
+              decompressed (in 4:2:0 format) at a quarter of its original size; then the image is enlarged again  by
+              pixel doubling.
+
+
+
+FILES
+       /etc/system.fiascorc
+              The systemwide initialization file.
+       $HOME/.fiascorc
+              The personal initialization file.
+
+
+ENVIRONMENT
+       FIASCO_IMAGES
+              Save path for image files. Default is "./".
+       FIASCO_DATA
+              Search path for FIASCO files. Default is "./".
+
+
+SEE ALSO
+       pnmtofiasco(1), pnm(5)
+
+       Ullrich Hafner, Juergen Albert, Stefan Frank, and Michael Unger.  Weighted Finite Automata for Video Compres‐
+       sion, IEEE Journal on Selected Areas In Communications, January 1998
+       Ullrich Hafner. Low Bit-Rate Image and Video Coding with Weighted Finite Automata,  Ph.D.  thesis,  Mensch  &
+       Buch Verlag, ISBN 3-89820-002-7, October 1999.
+
+
+AUTHOR
+       Ullrich Hafner <hafner@bigfoot.de>
+
+
+
+                                                    July 12, 2000                                     fiascotopnm(1)

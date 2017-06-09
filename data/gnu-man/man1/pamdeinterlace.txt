@@ -1,0 +1,54 @@
+pamdeinterlace(1)                              General Commands Manual                             pamdeinterlace(1)
+
+
+
+NAME
+       pamdeinterlace - remove ever other row from a PAM/PNM image
+
+
+SYNOPSIS
+       pamdeinterlace [-takeodd] [-takeeven] N [infile]
+
+       You can use the minimum unique abbreviation of the options.  You can use two hyphens instead of one.  You can
+       separate an option name from its value with white space instead of an equals sign.
+
+
+DESCRIPTION
+       pamdeinterlace Removes all the even-numbered or odd-numbered rows from the input PNM or PAM  image.   Specify
+       which with the -takeeven and -takeodd options.
+
+       This  can  be useful if the image is a video capture from an interlaced video source.  In that case, each row
+       shows the subject 1/60 second before or after the two rows that surround it.  If the subject is moving,  this
+       can detract from the quality of the image.
+
+       Because  the  resulting  image is half the height of the input image, you will then want to use pamstretch or
+       pnmscale to restore it to its normal height:
+
+       pamdeinterlace myimage.ppm | pamstretch -yscale=2 >newimage.ppm
+
+
+
+OPTIONS
+       -takeodd
+              Take the odd-numbered rows from the input and put them in the output.  The rows are numbered  starting
+              at  zero,  so  the  first row in the output is the second row from the input.  You cannot specify both
+              -takeeven and -takeodd.
+
+
+       -takeeven
+              Take the even-numbered rows from the input and put them in the output.  The rows are numbered starting
+              at  zero,  so  the first row in the output is the first row from the input.  This is the default.  You
+              cannot specify both -takeeven and -takeodd.
+
+
+
+SEE ALSO
+       pamstretch(1), pnmscale(1)
+
+
+AUTHOR
+       put by Bryan Henderson in the public domain in 2001
+
+
+
+                                                  11 November 2001                                 pamdeinterlace(1)

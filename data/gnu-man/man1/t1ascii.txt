@@ -1,0 +1,38 @@
+T1ASCII(1)                                     General Commands Manual                                    T1ASCII(1)
+
+
+
+NAME
+       t1ascii - convert PostScript Type 1 font from binary to ASCII
+
+SYNOPSIS
+       t1ascii [-l length] [input [output]]
+
+DESCRIPTION
+       t1ascii  converts  Adobe Type 1 font programs in PFB (binary) format to PFA (hexadecimal) format. If the file
+       output is not specified output goes to the standard output.  If the file input is not specified  input  comes
+       from the standard input.
+
+OPTIONS
+       --line-length=num, -l num
+            Set  the maximum length of encrypted lines in the output to num.  (These are the lines consisting wholly
+            of hexadecimal digits.) The default is 64.
+
+       --warnings, -w
+            Warn when the input font contains lines longer than 255 characters.  Long lines don't  strictly  conform
+            to Adobe's Document Structuring Conventions, and may cause problems with older software.
+
+SEE ALSO
+       t1binary(1), t1unmac(1), t1mac(1), t1asm(1), t1disasm(1)
+
+       Adobe Type 1 Font Format
+
+AUTHORS
+       Lee Hetherington (ilh@lcs.mit.edu)
+       Eddie Kohler (ekohler@gmail.com)
+
+       Ported to Microsoft C/C++ Compiler and MS-DOS operating system by Kai-Uwe Herbing (herbing@netmbx.netmbx.de).
+
+
+
+Version 1.37                                                                                              T1ASCII(1)

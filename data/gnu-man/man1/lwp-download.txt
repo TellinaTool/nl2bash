@@ -1,0 +1,45 @@
+LWP-DOWNLOAD(1p)                         User Contributed Perl Documentation                        LWP-DOWNLOAD(1p)
+
+
+
+NAME
+       lwp-download - Fetch large files from the web
+
+SYNOPSIS
+       lwp-download [-a] [-s] <url> [<local path>]
+
+DESCRIPTION
+       The lwp-download program will save the file at url to a local file.
+
+       If local path is not specified, then the current directory is assumed.
+
+       If local path is a directory, then the last segment of the path of the url is appended to form a local
+       filename.  If the url path ends with slash the name "index" is used.  With the -s option pick up the last
+       segment of the filename from server provided sources like the Content-Disposition header or any redirect
+       URLs.  A file extension to match the server reported Content-Type might also be appended.  If a file with the
+       produced filename already exists, then lwp-download will prompt before it overwrites and will fail if its
+       standard input is not a terminal.  This form of invocation will also fail is no acceptable filename can be
+       derived from the sources mentioned above.
+
+       If local path is not a directory, then it is simply used as the path to save into.  If the file already
+       exists it's overwritten.
+
+       The lwp-download program is implemented using the libwww-perl library.  It is better suited to down load big
+       files than the lwp-request program because it does not store the file in memory.  Another benefit is that it
+       will keep you updated about its progress and that you don't have much options to worry about.
+
+       Use the "-a" option to save the file in text (ascii) mode.  Might make a difference on dosish systems.
+
+EXAMPLE
+       Fetch the newest and greatest perl version:
+
+        $ lwp-download http://www.perl.com/CPAN/src/latest.tar.gz
+        Saving to 'latest.tar.gz'...
+        11.4 MB received in 8 seconds (1.43 MB/sec)
+
+AUTHOR
+       Gisle Aas <gisle@aas.no>
+
+
+
+perl v5.18.1                                         2012-01-14                                     LWP-DOWNLOAD(1p)

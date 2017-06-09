@@ -1,0 +1,38 @@
+pgmtolispm(1)                                  General Commands Manual                                 pgmtolispm(1)
+
+
+
+NAME
+       pgmtolispm - convert a portable graymap into Lisp Machine format
+
+SYNOPSIS
+       pgmtolispm [pgmfile]
+
+DESCRIPTION
+       Reads a portable graymap as input.  Produces a Lisp Machine bitmap as output.
+
+       This  is  the  file  format  read  by  the  tv:read-bit-array-file function on TI Explorer and Symbolics lisp
+       machines.
+
+       Given a pgm (instead of a pbm) a multi-plane image will be output.  This is probably not  useful  unless  you
+       have a color lisp machine.
+
+       Multi-plane bitmaps on lisp machines are color; but the lispm image file format does not include a color map,
+       so we must treat it as a graymap instead.  This is unfortunate.
+
+SEE ALSO
+       lispmtopgm(1), pgm(5)
+
+BUGS
+       Output width is always rounded up to the nearest multiple of 32; this might not always be what you want,  but
+       it probably is (arrays which are not modulo 32 cannot be passed to the Lispm BITBLT function, and thus cannot
+       easily be displayed on the screen).
+
+       No color.
+
+AUTHOR
+       Copyright (C) 1991 by Jamie Zawinski and Jef Poskanzer.
+
+
+
+                                                    06 March 1990                                      pgmtolispm(1)

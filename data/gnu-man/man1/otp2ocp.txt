@@ -1,0 +1,35 @@
+otp2ocp(1)                                              Omega                                             otp2ocp(1)
+
+
+
+NAME
+       otp2ocp - convert Omega Translation Process files to Omega Compiled Process files
+
+SYNOPSIS
+       otp2ocp OTPFILE[.otp] [OCPFILE[.ocp]]
+
+DESCRIPTION
+       otp2ocp  is  used  to create or recreate Omega Compiled Process files (binary) from Omega Translation Process
+       (text) files.
+
+       Omega Translation Processes are rules used to translate one character set to another and  to  choose  between
+       characters  with  one  or  more  context-sensitive  variants.   OTPs could also be used to change the case or
+       hyphenation of text.
+
+SEE ALSO
+       mkocp(1), omega(1).
+
+       Draft Manual for the Omega System (omega-manual.dvi).
+
+       Web page: <http://www.gutenberg.eu.org/omega/>
+
+AUTHOR
+       The primary authors of Omega are John Plaice <plaice@cse.unsw.edu.au> and Yannis Haralambous  <yannis@fluxus-
+       virus.com>.
+
+       This  manual  page was written by C.M. Connelly <cmc@debian.org>, for the Debian GNU/Linux system.  It may be
+       used by other distributions without contacting the author.  Any mistakes or omissions in the manual page  are
+       my fault; inquiries about or corrections to this manual page should be directed to me (and not to the primary
+       author).
+
+Omega                                              September 2000                                         otp2ocp(1)

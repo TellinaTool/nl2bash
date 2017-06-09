@@ -16,7 +16,6 @@ public class Cmd {
     public static Map<String, String> NameToTypeDict = new HashMap<>();
 
     public static class ManPage {
-        String type = "man_parser";
         public List<String> aliases = new ArrayList<>();
         public String description = "";
         public String rawSynopsis = "";
@@ -51,7 +50,6 @@ public class Cmd {
         public String type = "command";
         public String name = "";
         public CmdOp option;
-        public Command() {};
         public Command(String name, CmdOp op) {
             this.name = name;
             this.option = op;
@@ -62,7 +60,7 @@ public class Cmd {
     }
 
     public interface CmdOp {
-        public String getType();
+        String getType();
     }
     // flag of form -flagname
     public static class Fl implements CmdOp {
@@ -80,7 +78,6 @@ public class Cmd {
             if (this.flag_name.equals("DOLLAR")) this.flag_name = "$";
             if (this.flag_name.equals("AT")) this.flag_name = "@";
         }
-        public Fl() {}
         public String toString() {
             String flag = "-" + flag_name;
             return flag;
@@ -126,7 +123,6 @@ public class Cmd {
         public String type = "optional_option";
         public CmdOp cmd;
         public Opt(CmdOp cmd) { this.cmd = cmd; }
-        public Opt() {}
         public String toString() {
             return "[" + cmd.toString() + "]";
         }
@@ -159,7 +155,6 @@ public class Cmd {
         public String type = "argument_option";
         public String name;
         public boolean isList = false;
-        public NonTerminal() {}
         public NonTerminal(String s) {
             name = s;
         }

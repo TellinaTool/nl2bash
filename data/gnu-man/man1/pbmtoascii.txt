@@ -1,0 +1,32 @@
+pbmtoascii(1)                                  General Commands Manual                                 pbmtoascii(1)
+
+
+
+NAME
+       pbmtoascii - convert a portable bitmap into ASCII graphics
+
+SYNOPSIS
+       pbmtoascii [-1x2|-2x4] [pbmfile]
+
+DESCRIPTION
+       Reads a portable bitmap as input.  Produces a somewhat crude ASCII graphic as output.
+
+       Note that there is no asciitopbm tool - this transformation is one-way.
+
+OPTIONS
+       The  -1x2 and -2x4 flags give you two alternate ways for the bits to get mapped to characters.  With 1x2, the
+       default, each character represents a group of 1 bit across by 2 bits down.  With -2x4, each character  repre‐
+       sents  2  bits  across by 4 bits down.  With the 1x2 mode you can see the individual bits, so it's useful for
+       previewing small bitmaps on a non-graphics terminal.  The 2x4 mode lets you display larger bitmaps on a stan‐
+       dard  80-column  display, but it obscures bit-level details.  2x4 mode is also good for displaying graymaps -
+       "pnmscale -width 158 | pgmnorm | pgmtopbm -thresh" should give good results.
+
+SEE ALSO
+       pbm(5)
+
+AUTHOR
+       Copyright (C) 1988, 1992 by Jef Poskanzer.
+
+
+
+                                                    20 March 1992                                      pbmtoascii(1)

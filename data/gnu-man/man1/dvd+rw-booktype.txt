@@ -1,0 +1,36 @@
+dvd+rw-booktype(1)                             General Commands Manual                            dvd+rw-booktype(1)
+
+
+
+NAME
+       dvd+rw-booktype - format DVD+-RW/-RAM disk with a logical format
+
+
+SYNOPSIS
+       dvd+rw-booktype  [-dvd-rom-spec  |  -dvd+rw-spec  | -dvd+r-spec | -inq] [ -media | -unit| -unit+rw | -unit+r]
+       /dev/dvd
+
+
+DESCRIPTION
+       The dvd+rw-booktype command formats dvd disk in the specified dvd drive (e.g. /dev/dvd) with a specified log‐
+       ical format.  You can't expect this utility to work with all recorders.
+
+
+OPTIONS
+       -dvd-rom
+              This is useful for addressing DVD-ROM compatibility, or playability in legacy units.
+
+
+SEE ALSO
+       Most up-to-date information on dvd+rw-tools is available at http://fy.chalmers.se/~appro/linux/DVD+RW/.
+
+       The manpage for genisoimage(8),  growisofs(1), dvd+rw-mediainfo(1), dvd+rw-format(1).
+
+
+AUTHOR
+       dvd+rw-booktype  was  written by Andy Polyakov <appro@fy.chalmers.se>.  This manual page was written by Osamu
+       Aoki <osamu@debian.org> for the Debian project.
+
+
+
+                                            September 2004, version 4.10                          dvd+rw-booktype(1)

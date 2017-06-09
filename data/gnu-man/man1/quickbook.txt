@@ -1,0 +1,60 @@
+QUICKBOOK(1)                                        User Commands                                       QUICKBOOK(1)
+
+
+
+NAME
+       Quickbook - WikiWiki style documentation tool geared towards C++ documentation
+
+DESCRIPTION
+       QuickBook  is  a  WikiWiki  style  documentation tool geared towards C++ documentation using simple rules and
+       markup for simple formatting tasks.  QuickBook extends the WikiWiki concept.  Like  the  WikiWiki,  QuickBook
+       documents are simple text files. A single QuickBook document can generate a fully linked set of nice HTML and
+       PostScript/PDF documents complete with images and syntax- colorized source code.
+
+       Features include:
+
+           * generate BoostBook xml, to generate HTML, PostScript and PDF
+           * simple markup to link to Doxygen-generated entities
+           * macro system for simple text substitution
+           * simple markup for italics, bold, preformatted, blurbs, code samples,  tables,  URLs,  anchors,  images,
+       etc.
+           * automatic syntax coloring of code samples
+           * CSS support
+
+
+   Allowed options:
+       --help produce help message
+
+       --version
+              print version string
+
+       --no-pretty-print
+              disable XML pretty printing
+
+       --indent arg
+              indent spaces
+
+       --linewidth arg
+              line width
+
+       --input-file arg
+              input file
+
+       --output-file arg
+              output file
+
+       --debug
+              debug mode (for developers)
+
+       --ms-errors
+              use Microsoft Visual Studio style error & warn message format
+
+       -I [ --include-path ] arg include path
+
+SEE ALSO
+       The   full   documentation   for   Quickbook   is   maintained   in   HTML;  see  /usr/share/doc/libboostX.Y-
+       doc/HTML/doc/html/quickbook.html
+
+
+
+Quickbook Version 1.4                                 July 2009                                         QUICKBOOK(1)

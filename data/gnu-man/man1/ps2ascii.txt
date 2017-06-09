@@ -1,0 +1,37 @@
+PS2ASCII(1)                                       Ghostscript Tools                                      PS2ASCII(1)
+
+
+
+NAME
+       ps2ascii - Ghostscript translator from PostScript or PDF to ASCII
+
+SYNOPSIS
+       ps2ascii [ input.ps [ output.txt ] ]
+       ps2ascii input.pdf [ output.txt ]
+
+DESCRIPTION
+       ps2ascii  uses gs(1) to extract ASCII text from PostScript(tm) or Adobe Portable Document Format (PDF) files.
+       If no files are specified on the command line, gs reads from standard input; but PDF input must come from  an
+       explicitly-named  file,  not  standard  input.   If no output file is specified, the ASCII text is written to
+       standard output.
+
+       ps2ascii doesn't look at font encoding, and isn't very good at dealing with kerning, so for  PostScript  (but
+       not currently PDF), you might consider pstotext (see below).
+
+FILES
+       Run  "gs  -h"  to  find the location of Ghostscript documentation on your system, from which you can get more
+       details.
+
+SEE ALSO
+       pstotext(1), http://www.research.digital.com/SRC/virtualpaper/pstotext.html
+
+VERSION
+       This document was last revised for Ghostscript version 9.10.
+
+AUTHOR
+       Artifex  Software,  Inc.  are  the  primary  maintainers  of  Ghostscript.   David  M.  Jones   <dmjones@the‐
+       ory.lcs.mit.edu> made substantial improvements to ps2ascii.
+
+
+
+9.10                                               30 August 2013                                        PS2ASCII(1)

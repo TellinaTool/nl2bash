@@ -1,0 +1,60 @@
+RUN-MAILCAP(1)                                  Run Mailcap Programs                                  RUN-MAILCAP(1)
+
+
+
+NAME
+       run-mailcap, view, see, edit, compose, print - execute programs via entries in the mailcap file
+
+SYNOPSIS
+       run-mailcap --action=ACTION [--option[=value]] [MIME-TYPE:[ENCODING:]]FILE [...]
+
+       The see, edit, compose and print versions are just aliases that default to the view, edit, compose, and print
+       actions (respectively).
+
+
+DESCRIPTION
+       run-mailcap (or any of its aliases) will use the given action to process each mime-type/file in  turn.   Each
+       file  is  specified  as  its  mime-type, its encoding (e.g. compression), and filename together, separated by
+       colons.  If the mime-type is omitted, an attempt to determine the type is made by trying to match the  file's
+       extension  with  those  in the mime.types files.  If the encoding is omitted, it will also be determined from
+       the file's extensions.  Currently supported encodings are gzip (.gz), bzip (.bz), bzip2 (.bz2), and  compress
+       (.Z).  A filename of "-" can be used to mean "standard input", but then a mime-type must be specified.
+
+       Both  the  user's  files (~/.mailcap; ~/.mime.types) and the system files (/etc/mailcap; /etc/mime.types) are
+       searched in turn for information.
+
+   EXAMPLES
+         see picture.jpg
+         print output.ps.gz
+         compose text/html:index.htm
+         extract-mail-attachment msg.txt | see image/tiff:gzip:-
+
+   OPTIONS
+       All options are in the form --<opt>=<value>.
+
+       --action=<action>
+              Performs the specified action on the files.  Valid actions are view, cat  (uses  only  "copiousoutput"
+              rules and sends output to STDOUT) , compose, composetyped, edit and print.  If no action is specified,
+              the action will be determined by how the program was called.
+
+       --debug
+              Turns on extra information to find out what is happening.
+
+       --nopager
+              Ignores any "copiousoutput" directive and sends output to STDOUT.
+
+       --norun
+              Displays the found command without actually executing it.
+
+SEE ALSO
+       update-mime(8)
+
+AUTHOR
+       run-mailcap (and its aliases) was written by Brian White <bcwhite@pobox.com>.
+
+COPYRIGHT
+       run-mailcap (and its aliases) is in the public domain (the only true "free").
+
+
+
+Debian Project                                      1st Jan 2008                                      RUN-MAILCAP(1)

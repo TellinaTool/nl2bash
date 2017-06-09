@@ -1,0 +1,68 @@
+ppmquant(1)                                    General Commands Manual                                   ppmquant(1)
+
+
+
+NAME
+       ppmquant - quantize the colors in a portable pixmap down to a specified number
+
+SYNOPSIS
+       ppmquant [-floyd|-fs] ncolors [ppmfile]
+       ppmquant [-floyd|-fs] [-nofloyd|-nofs] -mapfile mapfile [ppmfile]
+
+       All  options  can  be abbreviated to their shortest unique prefix.  You may use two hyphens instead of one to
+       designate an option.  You may use either white space or equals signs between an option name and its value.
+
+
+DESCRIPTION
+       pnmquant is a newer, more general program that is backward compatible with ppmquant.  ppmquant may be faster,
+       though.
+
+       Reads  a PPM image as input.  Chooses ncolors colors to best represent the image, maps the existing colors to
+       the new ones, and writes a PPM image as output.
+
+       The quantization method is Heckbert's "median cut".
+
+       Alternately, you can skip the color-choosing step by specifying your own set  of  colors  with  the  -mapfile
+       option.   The  mapfile  is  just  a ppm file; it can be any shape, all that matters is the colors in it.  For
+       instance, to quantize down to the 8-color IBM TTL color set, you might use:
+           P3
+           8 1
+           255
+             0   0   0
+           255   0   0
+             0 255   0
+             0   0 255
+           255 255   0
+           255   0 255
+             0 255 255
+           255 255 255
+       If you want to quantize one image to use the colors in another one, just use the second one as  the  mapfile.
+       You don't have to reduce it down to only one pixel of each color, just use it as is.
+
+       If  you  use a mapfile, the output image has the same maxval as the mapfile.  Otherwise, the output maxval is
+       the same as the input maxval, or less in some cases where the quantization process reduces the necessary res‐
+       olution.
+
+
+       The  -floyd/-fs  option  enables a Floyd-Steinberg error diffusion step.  Floyd-Steinberg gives vastly better
+       results on images where the unmodified quantization has banding or other artifacts, especially when going  to
+       a  small  number  of colors such as the above IBM set.  However, it does take substantially more CPU time, so
+       the default is off.
+
+       -nofloyd/-nofs means not to use the Floyd-Steinberg error diffusion.  This is the default.
+
+
+REFERENCES
+       "Color Image Quantization for Frame Buffer Display" by Paul Heckbert, SIGGRAPH '82 Proceedings, page 297.
+
+
+SEE ALSO
+       pnmquant(1), ppmquantall(1), pnmdepth(1), ppmdither(1), ppm(5)
+
+
+AUTHOR
+       Copyright (C) 1989, 1991 by Jef Poskanzer.
+
+
+
+                                                   12 January 1991                                       ppmquant(1)

@@ -1,0 +1,78 @@
+MSGCMP(1)                                                GNU                                               MSGCMP(1)
+
+
+
+NAME
+       msgcmp - compare message catalog and template
+
+SYNOPSIS
+       msgcmp [OPTION] def.po ref.pot
+
+DESCRIPTION
+       Compare  two  Uniforum  style .po files to check that both contain the same set of msgid strings.  The def.po
+       file is an existing PO file with the translations.  The ref.pot file is the last created PO  file,  or  a  PO
+       Template file (generally created by xgettext).  This is useful for checking that you have translated each and
+       every message in your program.  Where an exact match cannot be found, fuzzy matching is used to produce  bet‐
+       ter diagnostics.
+
+       Mandatory arguments to long options are mandatory for short options too.
+
+   Input file location:
+       def.po translations
+
+       ref.pot
+              references to the sources
+
+       -D, --directory=DIRECTORY
+              add DIRECTORY to list for input files search
+
+   Operation modifiers:
+       -m, --multi-domain
+              apply ref.pot to each of the domains in def.po
+
+       -N, --no-fuzzy-matching
+              do not use fuzzy matching
+
+       --use-fuzzy
+              consider fuzzy entries
+
+       --use-untranslated
+              consider untranslated entries
+
+   Input file syntax:
+       -P, --properties-input
+              input files are in Java .properties syntax
+
+       --stringtable-input
+              input files are in NeXTstep/GNUstep .strings syntax
+
+   Informative output:
+       -h, --help
+              display this help and exit
+
+       -V, --version
+              output version information and exit
+
+AUTHOR
+       Written by Peter Miller.
+
+REPORTING BUGS
+       Report bugs to <bug-gnu-gettext@gnu.org>.
+
+COPYRIGHT
+       Copyright  ©  1995-1998, 2000-2010 Free Software Foundation, Inc.  License GPLv3+: GNU GPL version 3 or later
+       <http://gnu.org/licenses/gpl.html>
+       This is free software: you are free to change and redistribute it.  There is NO WARRANTY, to the extent  per‐
+       mitted by law.
+
+SEE ALSO
+       The  full  documentation  for  msgcmp is maintained as a Texinfo manual.  If the info and msgcmp programs are
+       properly installed at your site, the command
+
+              info msgcmp
+
+       should give you access to the complete manual.
+
+
+
+GNU gettext-tools 0.18.3                             August 2013                                           MSGCMP(1)

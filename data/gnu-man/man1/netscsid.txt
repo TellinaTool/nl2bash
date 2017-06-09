@@ -1,0 +1,1296 @@
+wodim(1)                                                                                                    wodim(1)
+
+
+
+NAME
+       wodim - write data to optical disk media
+
+SYNOPSIS
+       wodim [options] track1...trackn
+
+NOTE
+       There  may  be similarities and differences between this program and other disk recording application(s). See
+       the CREDITS and AUTHORS sections below to learn about the origin of wodim.
+
+
+DESCRIPTION
+       wodim is used to record data or audio Compact Discs on an Orange Book CD-Recorder or to write DVD media on  a
+       DVD-Recorder.
+
+       The  device  is  the  device  file  or label offered by the operating system to access the recorder with SCSI
+       GENERIC (sg) interface. Note that some operating systems may provide separate device nodes for block-oriented
+       and  sg  access.  For  example, on older Linux systems, the sg access was available through /dev/sg...  files
+       while the block oriented access was done through associated (but not identical)  /dev/hd...   and  /dev/sr...
+       (or /dev/scd...  ) files.
+
+       In any case, the user running wodim needs read and write access to the particular device file on a Linux sys‐
+       tem. It is recommended to be root or install the application as suid-root, because certain versions of  Linux
+       (kernel)  limit  the  set of SCSI commands allowed for non-root users. Even if usage without root identity is
+       possible in many cases, some device drivers still may fail, show unexplainable  problems  and  generally  the
+       problems  become harder to debug. The risk for buffer-underruns is also increased. See the PROCESS SCHEDULING
+       PRIORITY section below for more details.
+
+       There is an alternative way of specifying the device, using the traditional  SCSI  descriptions  in  form  of
+       devicetype:bus/target/lun  specification.  However,  the  success  of  this method is not guaranteed since it
+       requires an adaptation scheme for your architecture, and the numbers may  vary  depending  on  the  hardware-
+       internal  numbering or on the order of hot-plug device detection. If your operating system does not provide a
+       sufficient framework for keeping this numbers persistent, don't rely on  them.  See  -scanbus  and  --devices
+       options below for details.
+
+       There  are  emulated  SCSI compatible device systems, using the SCSI protocols transported over various hard‐
+       ware/media types. The most known examples is ATAPI ("IDE burners") or USB storage ("external USB  case").  If
+       the pseudo-SCSI b/t/l device address specification is used instead of the native one, you need to prepend the
+       "devicetype:" description to the emulated "bus/target/lun" device address.
+
+       If a file /etc/wodim.conf exists, the parameter to the dev= option may also be a drive  name  label  in  that
+       file (see FILES section).
+
+       As  a special exception, the device specification can be -1 or just omitted, which invokes automatic guessing
+       of an appropriate device for the selected operation. However, this guessing is not available  everywhere  and
+       is not reliable; it is only available for the user's convenience in simple environments.
+
+       In  Track  At  Once  mode,  each  track corresponds to a single file that contains the prepared data for that
+       track.  If the argument is `-', standard input is used for that track.  Only one  track  may  be  taken  from
+       stdin.   In the other write modes, the direct file to track relation may not be implemented.  In -clone mode,
+       a single file contains all data for the whole disk.  To allow DVD writing on platforms that do not  implement
+       large file support, wodim concatenates all file arguments to a single track when writing to DVD media.
+
+
+PROCESS SCHEDULING PRIORITY
+       Wodim  tries  to  get  higher  process  priority  using different methods. This is important because the burn
+       process is usually a realtime task, no long  delays  should  occur  while  transmitting  fresh  data  to  the
+       recorder.  This  is especially important on systems with insufficient RAM where swapping can create delays of
+       many seconds.
+
+       A possible workaround on underpowered systems is the use of the burnfree or  similar  feature,  allowing  the
+       recorder to resume.
+
+       Root permissions are usually required to get higher process scheduling priority.
+
+       On SVr4 compliant systems, wodim uses the real time class to get the highest scheduling priority that is pos‐
+       sible (higher than all kernel processes).  On systems with POSIX real time scheduling wodim  uses  real  time
+       scheduling too, but may not be able to gain a priority that is higher than all kernel processes.
+
+       In  order  to  be able to use the SCSI transport subsystem of the OS, run at highest priority and lock itself
+       into core wodim either needs to be run as root, needs to be installed suid root or must be called  via  RBACs
+       pfexec mechanism.
+
+
+GENERAL OPTIONS
+       General options must be before any track file name or track option.
+
+       -version
+              Print version information and exit.
+
+       -v     Increment  the  level  of  general verbosity by one.  This is used e.g. to display the progress of the
+              writing process.
+
+       -V     Increment the verbose level in respect of SCSI command transport by one.  This helps to debug problems
+              during the writing process, that occur in the CD/DVD-Recorder.  If you get incomprehensible error mes‐
+              sages you should use this flag to get more detailed output.  -VV will  show  data  buffer  content  in
+              addition.  Using -V or -VV slows down the process and may be the reason for a buffer underrun.
+
+       debug=#, -d
+              Set  the  misc  debug value to # (with debug=#) or increment the misc debug level by one (with -d). If
+              you specify -dd, this equals to debug=2.  This may help to find problems while opening  a  driver  for
+              libusal as well as with sector sizes and sector types.  Using -debug slows down the process and may be
+              the reason for a buffer underrun.
+
+       kdebug=#, kd=#
+              Tell the usal-driver to modify the kernel debug value while SCSI commands are running.
+
+       -silent, -s
+              Do not print out a status report for failed SCSI commands.
+
+       -force Force to continue on some errors. Be careful when using this option.  wodim implements several  checks
+              that  prevent you from doing unwanted things like damaging CD-RW media by improper drives. Many of the
+              sanity checks are disabled when the -force option is used.
+
+              This option also implements some tricks that will allow you to blank bad CD-RW disks.
+
+       -immed Tell wodim to set the SCSI IMMED flag  in  certain  commands  (load/eject/blank/close_track/close_ses‐
+              sion).   This can be useful on broken systems with ATAPI harddisk and CD/DVD writer on the same bus or
+              with SCSI systems that don't use disconnect/reconnect.  These systems will freeze  while  blanking  or
+              fixating  a  CD/DVD  or  while a DVD writer is filling up a session to the minimum amount (approx. 800
+              MB).  Setting the -immed flag will request the command to return immediately while the operation  pro‐
+              ceeds in background, making the bus usable for the other devices and avoiding the system freeze.  This
+              is an experimental feature which may work or not, depending on the model of the CD/DVD writer.  A cor‐
+              rect  solution  would  be  to set up a correct cabling but there seem to be notebooks around that have
+              been set up the wrong way by the manufacturer.  As it is impossible to fix this problem in  notebooks,
+              the -immed option has been added.
+
+              A  second  experimental  feature  of the -immed flag is to tell wodim to try to wait short times while
+              writing to the media. This is expected to free the IDE bus if the CD/DVD writer and  the  data  source
+              are connected to the same IDE cable. In this case, the CD/DVD writer would otherwise usually block the
+              IDE bus for nearly all the time making it impossible to fetch data from the  source  drive.  See  also
+              minbuf= and -v option.
+
+              Use  both  features  at  your  own  risk.  If it turns out that it would make sense to have a separate
+              option for the wait feature, write to the author and convince him.
+
+       minbuf=value
+              The # minbuf= option allows to define the minimum drive buffer fill ratio for the  experimental  ATAPI
+              wait  mode that is intended to free the IDE bus to allow hard disk and CD/DVD writer to be on the same
+              IDE cable.  As the wait mode currently only works when the verbose option -v has been specified, wodim
+              implies the verbose option in case the -immed or minbuf= option have been specified.  Valid values for
+              minbuf= are between 25 and 95 for 25%...95% minimum drive buffer fill ratio.
+
+       -dummy The CD/DVD-Recorder will go through all steps of the recording process, but the laser  is  turned  off
+              during  this  procedure.   It is recommended to run several tests before actually writing to a Compact
+              Disk or Digital Versatile Disk, if the timing and load response of the system is not known.
+
+       -clone Tells wodim to handle images created by readom -clone.  The -clone may only  be  used  in  conjunction
+              with  with  the -raw96r or with the -raw16 option.  Using -clone together with -raw96r is preferred as
+              it allows to write all subchannel data.  The option -raw16 should only be used with drives that do not
+              support to write in -raw96r mode.
+
+       -dao
+
+       -sao   Set  SAO  (Session At Once) mode which is usually called Disk At Once mode.  This currently only works
+              with MMC drives that support Session At Once mode.  Note that wodim needs to know  the  size  of  each
+              track  in  advance  for this mode (see the genisoimage -print-size option and the EXAMPLES section for
+              more information).
+
+       -tao   Set TAO (Track At Once) writing mode.  This is the default write  mode  in  previous  wodim  versions.
+              With most drives, this write mode is required for multi session recording.
+
+       -raw   Set  RAW writing mode.  Using this option defaults to -raw96r.  Note that wodim needs to know the size
+              of each track in advance for this mode (see the genisoimage -print-size option and the  EXAMPLES  sec‐
+              tion for more information).
+
+       -raw96r
+              Select  Set RAW writing mode with 2352 byte sectors plus 96 bytes of raw P-W subchannel data resulting
+              in a sector size of 2448 bytes.  This is the preferred raw writing mode as it gives best control  over
+              the  CD  writing process.  If you find any problems with the layout of a disk or with sub channel con‐
+              tent (e.g. wrong times on the display when playing the CD) and your drive supports to write in -raw96r
+              or  -raw16  mode, you should give it a try. There are several CD writers with bad firmware that result
+              in broken disks when writing in TAO or SAO mode.  Writing data disks in raw mode  needs  significantly
+              more  CPU  time  than other write modes. If your CPU is too slow, this may result in buffer underruns.
+              Note that wodim needs to know the size of each track in advance for this  mode  (see  the  genisoimage
+              -print-size option and the EXAMPLES section for more information).
+
+       -raw96p
+              Select Set RAW writing mode with 2352 byte sectors plus 96 bytes of packed P-W subchannel data result‐
+              ing in a sector size of 2448 bytes.  This is the less  preferred  raw  writing  mode  as  only  a  few
+              recorders  support it and some of these recorders have bugs in the firmware implementation.  Don't use
+              this mode if your recorder supports -raw96r or -raw16.  Writing data disks in raw mode needs  signifi‐
+              cantly more CPU time than other write modes. If your CPU is too slow, this may result in buffer under‐
+              runs.  Note that wodim needs to know the size of  each  track  in  advance  for  this  mode  (see  the
+              genisoimage -print-size option and the EXAMPLES section for more information).
+
+       -raw16 Select Set RAW writing mode with 2352 byte sectors plus 16 bytes of P-Q subchannel data resulting in a
+              sector size of 2368 bytes.  If a recorder does not support -raw96r, this is the preferred raw  writing
+              mode.   It does not allow to write CD-Text or CD+Graphics but it is the only raw writing mode in cheap
+              CD writers.  As these cheap writers in most cases do not support -dao mode.  Don't use  this  mode  if
+              your recorder supports -raw96r.  Writing data disks in raw mode needs significantly more CPU time than
+              other write modes. If your CPU is too slow, this may result in  buffer  underruns.   Note  that  wodim
+              needs  to know the size of each track in advance for this mode (see the genisoimage -print-size option
+              and the EXAMPLES section for more information).
+
+       -multi Allow multi session CDs to be made. This flag needs to be present on all sessions of a  multi  session
+              disk,  except  you  want to create a session that will be the last session on the media.  The fixation
+              will be done in a way that allows the CD/DVD-Recorder to append additional  sessions  later.  This  is
+              done by generation a TOC with a link to the next program area. The so generated media is not 100% com‐
+              patible to manufactured CDs (except for CDplus).  Use only for recording of  multi  session  CDs.   If
+              this  option is present, the default track type is CD-ROM XA mode 2 form 1 and the sector size is 2048
+              bytes.  The XA sector subheaders will be created by the drive.  The Sony drives have no hardware  sup‐
+              port  for CD-ROM XA mode 2 form 1.  You have to specify the -data option in order to create multi ses‐
+              sion disks on these drives.  As long as wodim does not have a coder for  converting  data  sectors  to
+              audio  sectors, you need to force CD-ROM sectors by including the -data option if you like to record a
+              multisession disk in SAO mode.  Not all drives allow multisession CDs in SAO mode.
+
+       -msinfo
+              Retrieve multi session info in a form suitable for genisoimage and print it to  standard  output.  See
+              msifile= option for another version.
+
+              This  option  makes  only  sense with a CD that contains at least one closed session and is appendable
+              (not finally closed yet).  Some drives create error messages if you try to get the multi session  info
+              for a disk that is not suitable for this operation.
+
+       msifile=filename
+              Like -msinfo option but also stores the multi session info in a file.
+
+       -toc   Retrieve  and  print  out the table of content or PMA of a CD.  With this option, wodim will work with
+              CD-R drives and with CD-ROM drives.
+
+       -atip  Retrieve and print out the ATIP (absolute Time in Pre-groove) info of a CD/DVD  recordable  or  CD/DVD
+              re-writable  media.   With  this option, wodim will try to retrieve the ATIP info. If the actual drive
+              does not support to read the ATIP info, it may be that only a reduced set of  information  records  or
+              even  nothing  is  displayed.  Only  a limited number of MMC compliant drives support to read the ATIP
+              info.
+
+              If wodim is able to retrieve the lead-in start time for the first session, it will try to  decode  and
+              print  the  manufacturer  info  from the media.  DVD media does not have ATIP information but there is
+              equivalent prerecorded information that is read out and printed.
+
+       -fix   The disk will only be fixated (i.e. a TOC for a CD-Reader will be written).  This may be used, if  for
+              some  reason  the  disk has been written but not fixated. This option currently does not work with old
+              TEAC drives (CD-R50S and CD-R55S).
+
+       -nofix Do not fixate the disk after writing the tracks. This may be used to create an audio disk in steps. An
+              un-fixated  disk  can usually not be used on a non CD-writer type drive but there are audio CD players
+              that will be able to play such a disk.
+
+       -waiti Wait for input to become available on standard input before trying  to  open  the  SCSI  driver.  This
+              allows  wodim  to  read its input from a pipe even when writing additional sessions to a multi session
+              disk.  When writing another session to a multi session disk, genisoimage needs to read the old session
+              from the device before writing output.  This cannot be done if wodim opens the SCSI driver at the same
+              time.
+
+       -load  Load the media and exit. This only works with a tray loading mechanism but seems  to  be  useful  when
+              using the Kodak disk transporter.
+
+       -lock  Load  the media, lock the door and exit. This only works with a tray loading mechanism but seems to be
+              useful when using the Kodak disk transporter.
+
+       -eject Eject disk after doing the work.  Some devices (e.g. Philips) need to eject the medium before creating
+              a new disk. Doing a -dummy test and immediately creating a real disk would not work on these devices.
+
+       speed=#
+              Set  the  speed  factor  of the writing process to #.  # is an integer, representing a multiple of the
+              audio speed.  This is about 150 KB/s for CD-ROM, about 172 KB/s for CD-Audio and about  1385 kB/s  for
+              DVD media.  If no speed option is present, wodim will try to get a drive specific speed value from the
+              file /etc/wodim.conf and if it cannot find one, it will try to get the speed value from the  CDR_SPEED
+              environment and later from the CDR_SPEED= entry in /etc/wodim.conf.  If no speed value could be found,
+              wodim uses a drive specific default speed.  The default for all new (MMC compliant) drives is  to  use
+              the  maximum supported by the drive.  If you use speed=0 with a MMC compliant drive, wodim will switch
+              to the lowest possible speed for drive and medium.  If you are using an old (non MMC) drive  that  has
+              problems with speed=2 or speed=4, you should try speed=0.
+
+       blank=type
+              Blank a CD-RW and exit or blank a CD-RW before writing. The blanking type may be one of:
+
+              help        Display a list of possible blanking types.
+
+              all         Blank the entire disk. This may take a long time.
+
+              fast        Minimally blank the disk. This results in erasing the PMA, the TOC and the pregap.
+
+              track       Blank a track.
+
+              unreserve   Unreserve a reserved track.
+
+              trtail      Blank the tail of a track.
+
+              unclose     Unclose last session.
+
+              session     Blank the last session.
+       Not  all  drives support all blanking types. It may be necessary to use blank=all if a drive reports a speci‐
+       fied command as being invalid.  If used together with the -force flag, this option may be used to blank CD-RW
+       disks  that otherwise cannot be blanked. Note that you may need to specify blank=all because some drives will
+       not continue with certain types of bad CD-RW disks. Note also that wodim does its best if the -force flag  is
+       used but it finally depends on the drive's firmware whether the blanking operation will succeed or not.
+
+       -format
+              Format  a  CD-RW/DVD-RW/DVD+RW  disc.   Formatting  is currently only implemented for DVD+RW media.  A
+              'maiden' DVD+RW media needs to be formatted before you may write to it.  However, as wodim autodetects
+              the need for formatting in this case and auto formats the medium before it starts writing, the -format
+              option is only needed if you like to forcibly reformat a DVD+RW medium.
+
+       fs=#   Set the FIFO (ring buffer) size to #.  You may use the same syntax as in  dd(1),  sdd(1)  or  star(1).
+              The  number  representing  the size is taken in bytes unless otherwise specified.  If a number is fol‐
+              lowed directly by the letter `b', `k', `m',  `s'  or  `f',  the  size  is  multiplied  by  512,  1024,
+              1024*1024,  2048  or 2352.  If the size consists of numbers separated by `x' or `*', multiplication of
+              the two numbers is performed.  Thus fs=10x63k will specify a FIFO size of 630 kBytes.
+
+              The size specified by the fs= argument includes the shared memory that is needed  for  administration.
+              This is at least one page of memory.  If no fs= option is present, wodim will try to get the FIFO size
+              value from the CDR_FIFOSIZE environment.  The default FIFO size is currently 4 MB.
+
+              The FIFO is used to increase buffering for the real time writing process.  It allows  to  run  a  pipe
+              from genisoimage directly into wodim.  If the FIFO is active and a pipe from genisoimage into wodim is
+              used to create a CD, wodim will abort prior to do any modifications on the disk  if  genisoimage  dies
+              before it starts writing.  The recommended FIFO size is between 4 and 128 MBytes.  As a rule of thumb,
+              the FIFO size should be at least equal to the size of the internal buffer of the  CD/DVD-Recorder  and
+              no  more  than  half  of the physical amount of RAM available in the machine.  If the FIFO size is big
+              enough, the FIFO statistics will print a FIFO empty count of zero and the FIFO min fill is  not  below
+              20%.  It is not wise to use too much space for the FIFO. If you need more than 8 MB to write a CD at a
+              speed less than 20x from an image on a local file system on an idle machine, your  machine  is  either
+              underpowered,  has hardware problems or is mis-configured.  If you like to write DVDs or CDs at higher
+              speed, it makes sense to use at least 16 MB for the FIFO.
+
+              On old and small machines, you need to be more careful with the FIFO size.  If your machine  has  less
+              than  256 MB  of  physical  RAM, you should not set up a FIFO size that is more than 32 MB.  The sun4c
+              architecture (e.g. a Sparcstation-2) has only MMU page table entries for 16 MBytes per process.  Using
+              more  than  14 MBytes  for  the FIFO may cause the operating system in this case to spend much time to
+              constantly reload the MMU tables. Newer machines from Sun do not have this  MMU  hardware  problem.  I
+              have no information on PC-hardware reflecting this problem.
+
+              Old  Linux  systems for non x86 platforms have broken definitions for the shared memory size. You need
+              to fix them and rebuild the kernel or manually tell wodim to use a smaller FIFO.
+
+              If you have buffer underruns or similar problems (like a constantly empty drive buffer) and observe  a
+              zero fifo empty count, you have hardware problems that prevents the data from flowing fast enough from
+              the kernel memory to the drive. The FIFO size in this case is sufficient, but you should check  for  a
+              working DMA setup.
+
+       ts=#   Set  the  maximum  transfer size for a single SCSI command to #.  The syntax for the ts= option is the
+              same as for wodim fs=# or sdd bs=#.
+
+              If no ts= option has been specified, wodim defaults to a transfer size of 63 kB. If libusal gets lower
+              values  from the operating system, the value is reduced to the maximum value that is possible with the
+              current operating system.  Sometimes, it may help to further reduce the transfer size  or  to  enhance
+              it, but note that it may take a long time to find a better value by experimenting with the ts= option.
+
+       dev=target
+              Sets  the  SCSI  target  for  the CD/DVD-Recorder, see notes above.  A typical device specification is
+              dev=6,0 .  A filename or virtual device name can be passed instead of the symbolic SCSI numbers.   The
+              correct device/filename in this case can be found in the system specific manuals of the target operat‐
+              ing system.  On a FreeBSD system without CAM support,  you  need  to  use  the  control  device  (e.g.
+              /dev/rcd0.ctl).  A correct device specification in this case may be dev=/dev/rcd0.ctl:@ .
+
+              On  Linux  and  Windows  2000/XP, drives are accessible with their device (or drive) names or with the
+              symbolic SCSI numbers (not recommended, mapping is not stable and could be completely removed  in  the
+              future).
+
+              If no dev option is present, wodim will try to get the device from the CDR_DEVICE environment.
+
+              If  the argument to the dev= option does not contain the characters ',', '/', '@' or ':', it is inter‐
+              preted as an label name that may be found in the file /etc/wodim.conf (see FILES section).
+
+       gracetime=#
+              Set the grace time before starting to write to # seconds.  Values below 2 seconds are not  recommended
+              to give the kernel or volume management a chance to learn the new state.
+
+       timeout=#
+              Set the default SCSI command timeout value to # seconds.  The default SCSI command timeout is the min‐
+              imum timeout used for sending SCSI commands.  If a SCSI command fails due to a timeout, you may try to
+              raise  the default SCSI command timeout above the timeout value of the failed command.  If the command
+              runs correctly with a raised command timeout, please report the better timeout value  and  the  corre‐
+              sponding  command to the author of the program.  If no timeout option is present, a default timeout of
+              40 seconds is used.
+
+       driver=name
+              Allows the user to manually select a driver for the device.  The  reason  for  the  existence  of  the
+              driver=name option is to allow users to use wodim with drives that are similar to supported drives but
+              not known directly by wodim.  All drives made after 1997 should be MMC  standard  compliant  and  thus
+              supported  by  one  of  the  MMC  drivers.  It is most unlikely that wodim is unable to find the right
+              driver automatically.  Use this option with extreme care. If a wrong driver is used for a device,  the
+              possibility  of  creating  corrupted  disks is high.  The minimum problem related to a wrong driver is
+              that the speed= or -dummy will not work.
+
+              The following driver names are supported:
+
+              help   To get a list of possible drivers together with a short description.
+
+              mmc_cd The generic SCSI-3/mmc CD-ROM driver is auto-selected whenever  wodim  finds  a  MMC  compliant
+                     drive  that does not identify itself to support writing at all, or that only identifies to sup‐
+                     port media or write modes not implemented in wodim.
+
+              mmc_cd_dvd
+                     The generic SCSI-3/mmc CD/DVD driver is auto-selected whenever wodim finds  a  MMC-2  or  MMC-3
+                     compliant  drive  that  seems  to  support more than one medium type and the tray is open or no
+                     medium could be found to select the right driver.  This driver tries to close the tray,  checks
+                     the medium found in the tray and then branches to the driver that matches the current medium.
+
+              mmc_cdr
+                     The  generic  SCSI-3/mmc CD-R/CD-RW driver is auto-selected whenever wodim find a MMC compliant
+                     drive that only supports to write CDs or a multi system drive that contains a CD as the current
+                     medium.
+
+              mmc_cdr_sony
+                     The generic SCSI-3/mmc CD-R/CD-RW driver is auto-selected whenever wodim would otherwise select
+                     the mmc_cdr driver but the device seems to be made by Sony.   The  mmc_cdr_sony  is  definitely
+                     needed  for  the  Sony CDU 928 as this drive does not completely implement the MMC standard and
+                     some of the MMC SCSI commands have to be replaced by Sony proprietary commands. It  seems  that
+                     all  Sony drives (even newer ones) still implement the Sony proprietary SCSI commands so it has
+                     not yet become a problem to use this driver for all Sony drives. If you find a newer Sony drive
+                     that does not work with this driver, please report.
+
+              mmc_dvd
+                     The  generic  SCSI-3/mmc-2 DVD-R/DVD-RW driver is auto-selected whenever wodim finds a MMC-2 or
+                     MMC-3 compliant drive that supports to write DVDs and an appropriate medium is  loaded.   There
+                     is no Track At Once mode for DVD writers.
+
+              mmc_dvdplus
+                     The  generic  SCSI-3/mmc-3  DVD+R/DVD+RW driver is auto-selected whenever one of the DVD+ media
+                     types that are incompatible to each other is found.  It checks media and then branches  to  the
+                     driver that matches the current medium.
+
+              mmc_dvdplusr
+                     The  generic  SCSI-3/mmc-3 DVD+R driver is auto-selected whenever a DVD+R medium is found in an
+                     appropriate writer.  Note that for unknown reason, the DVD-Plus alliance  does  not  like  that
+                     there  is a simulation mode for DVD+R media.  The author of wodim tries to convince manufactur‐
+                     ers to implement a simulation mode for DVD+R and implement support.  DVD+R  only  supports  one
+                     write mode that is somewhere between Track At Once and Packet writing; this mode is selected in
+                     wodim via a the -dao/-sao option.
+
+              mmc_dvdplusrw
+                     The generic SCSI-3/mmc-3 DVD+RW driver is auto-selected whenever a DVD+RW medium is found in an
+                     appropriate  writer.   As  DVD+RW media needs to be formatted before its first use, wodim auto-
+                     detects this media state and performs a format before  it  starts  to  write.   Note  that  for
+                     unknown  reason,  the DVD-Plus alliance does not like that there is a simulation mode nor a way
+                     to erase DVD+RW media.  DVD+RW only supports one write mode that is close  to  Packet  writing;
+                     this mode is selected in wodim via a the -dao/-sao option.
+
+              cw_7501
+                     The  driver for Matsushita/Panasonic CW-7501 is auto-selected when wodim finds this old pre MMC
+                     drive.  wodim supports all write modes for this drive type.
+
+              kodak_pcd_600
+                     The driver for Kodak PCD-600 is auto-selected when wodim finds this old pre MMC drive which has
+                     been  the  first  high  speed (6x) CD writer for a long time. This drive behaves similar to the
+                     Philips CDD-521 drive.
+
+              philips_cdd521
+                     The driver for Philips CDD-521 is auto-selected when wodim finds a Philips CDD-521 drive (which
+                     is  the  first CD writer ever made) or one of the other drives that are known to behave similar
+                     to this drive.  All Philips CDD-521 or similar drives (see other drivers in this list)  do  not
+                     support Session At Once recording.
+
+              philips_cdd521_old
+                     The  driver  for  Philips  old CDD-521 is auto-selected when wodim finds a Philips CDD-521 with
+                     very old firmware which has some known limitations.
+
+              philips_cdd522
+                     The driver for Philips CDD-522 is auto-selected when wodim finds a Philips CDD-522 which is the
+                     successor  of  the 521 or one of its variants with Kodak label.  wodim does not support Session
+                     At Once recording with these drives.
+
+              philips_dumb
+                     The driver for Philips CDD-521 with pessimistic assumptions is never auto-selected.  It may  be
+                     used by hand with drives that behave similar to the Philips CDD-521.
+
+              pioneer_dws114x
+                     The  driver  for  Pioneer  DW-S114X is auto-selected when wodim finds one of the old non MMC CD
+                     writers from Pioneer.
+
+              plasmon_rf4100
+                     The driver for Plasmon RF 4100 is auto-selected when wodim finds this specific variant  of  the
+                     Philips CDD-521.
+
+              ricoh_ro1060c
+                     The  driver  for  Ricoh RO-1060C is auto-selected when wodim finds this drive. There is no real
+                     support for this drive yet.
+
+              ricoh_ro1420c
+                     The driver for Ricoh RO-1420C is auto-selected when wodim finds  a  drive  with  this  specific
+                     variant of the Philips CDD-521 command set.
+
+              scsi2_cd
+                     The  generic  SCSI-2  CD-ROM  driver is auto-selected whenever wodim finds a pre MMC drive that
+                     does not support writing or a pre MMC writer that is not supported by wodim.
+
+              sony_cdu924
+                     The driver for Sony CDU-924 / CDU-948 is auto-selected whenever wodim finds one of the old  pre
+                     MMC CD writers from Sony.
+
+              teac_cdr50
+                     The  driver  for  Teac  CD-R50S, Teac CD-R55S, JVC XR-W2010, Pinnacle RCD-5020 is auto-selected
+                     whenever one of the drives is found that is known to the non MMC command set used by  TEAC  and
+                     JVC.   Note that many drives from JVC will not work because they do not correctly implement the
+                     documented command set and JVC has been unwilling to fix or document the  bugs.   There  is  no
+                     support for the Session At Once write mode yet.
+
+              tyuden_ew50
+                     The  driver  for Taiyo Yuden EW-50 is auto-selected when wodim finds a drive with this specific
+                     variant of the Philips CDD-521 command set.
+
+              yamaha_cdr100
+                     The driver for Yamaha CDR-100 / CDR-102 is auto-selected when wodim finds one of  the  old  pre
+                     MMC CD writers from Yamaha.  There is no support for the Session At Once write mode yet.
+
+              cdr_simul
+                     The  simulation CD-R driver allows to run timing and speed tests with parameters that match the
+                     behavior of CD writers.
+
+              dvd_simul
+                     The simulation DVD-R driver allows to run timing and speed tests with parameters that match the
+                     behavior of DVD writers.
+
+              There  are  two special driver entries in the list: cdr_simul and dvd_simul.  These driver entries are
+              designed to make timing tests at any speed or timing tests for drives that do not support  the  -dummy
+              option.   The  simulation drivers implement a drive with a buffer size of 1 MB that can be changed via
+              the CDR_SIMUL_BUFSIZE environment variable.  The simulation driver correctly simulates even  a  buffer
+              underrun  condition.  If the -dummy option is present, the simulation is not aborted in case of a buf‐
+              fer underrun.
+
+       driveropts=option list
+              Set driver specific options. The options are specified a comma separated list.  To get a list of valid
+              options  use  driveropts=help together with the -checkdrive option.  If you like to set driver options
+              without running a typical wodim task, you need to use the -setdropts option in addition, otherwise the
+              command line parser in wodim will complain.  Currently implemented driver options are:
+
+              burnfree
+                     Turn  the support for Buffer Underrun Free writing on.  This only works for drives that support
+                     Buffer Underrun Free technology, which is available on most drives manufactured in this millen‐
+                     nium.  This may be called: Sanyo BURN-Proof, Ricoh Just-Link, Yamaha Lossless-Link or similar.
+
+                     This  option is deprecated and is mentioned here for documentation purposes only. The BURN-Free
+                     feature is enabled by default if the drive supports it.  However, use of  BURN-Free  may  cause
+                     decreased  burning  quality. Therefore it can be useful to disable it for certain purposes, eg.
+                     when creating a master copy for mass CD production.
+
+              noburnfree
+                     Turn the support for Buffer Underrun Free writing off.
+
+              varirec=value
+                     Turn on the Plextor VariRec writing mode. The mandatory parameter value is the laser power off‐
+                     set and currently may be selected from -2, -1, 0, 1, 2.  In addition, you need to set the write
+                     speed to 4 in order to allow VariRec to work.
+
+              gigarec=value
+                     Manage the Plextor GigaRec writing mode. The mandatory parameter value  is  the  disk  capacity
+                     ratio  compared to normal recording and currently may be selected from 0.6, 0.7, 0.8, 1.0, 1.2,
+                     1.3, 1.4.  If values < 1.0 are used, then the effect is similar to the Yamaha Audio  Master  Q.
+                     R.  feature. If values > 1.0 are used, then the disk capacity is increased.
+
+                     Not  all  drives  support all GigaRec values.  When a drive uses the GigaRec feature, the write
+                     speed is limited to 8x.
+
+              audiomaster
+                     Turn on the Yamaha Audio Master Q. R.  feature which usually should result in high quality  CDs
+                     that  have  less reading problems in Hi-Fi players.  As this is implemented as a variant of the
+                     Session at Once write mode, it will only work if you select SAO write mode and there is no need
+                     to turn it off.  The Audio Master mode will work with a limited speed but may also be used with
+                     data CDs. In Audio Master mode, the pits on the CD will be written larger  then  usual  so  the
+                     capacity  of the medium is reduced when turning this feature on.  A 74 minute CD will only have
+                     a capacity of 63 minutes if Audio Master is active and the capacity of a 80 minute CD  will  be
+                     reduced to 68 minutes.
+
+              forcespeed
+                     Normally,  modern drives know the highest possible speed for different media and may reduce the
+                     speed in order to grant best write quality.  This technology may be called:  Plextor  PowerRec,
+                     Ricoh  Just-Speed,  Yamaha  Optimum Write Speed Control or similar.  Some drives (e.g. Plextor,
+                     Ricoh and Yamaha) allow to force the drive to use the selected speed even if the medium  is  so
+                     bad  that  the  write quality would be poor. This option tells such a drive to force to use the
+                     selected speed regardless of the medium quality.
+
+                     Use this option with extreme care and note that the drive should know better which medium  will
+                     work  at  full speed.  The default is to turn forcespeed off, regardless of the defaults of the
+                     drive.
+
+              noforcespeed
+                     Turn off the force speed feature.
+
+              speedread
+                     Some ultra high speed drives such as 48x and faster drives from Plextor limit  the  read  speed
+                     for  unknown  media  to e.g. 40x in order to avoid damaged disks and drives.  Using this option
+                     tells the drive to read any media as fast as possible.  Be very careful as this may  cause  the
+                     media to break in the drive while reading, resulting in a damaged media and drive!
+
+              nospeedread
+                     Turn off unlimited read speed.
+
+              singlesession
+                     Turn  the drive into a single session only drive.  This allows to read defective or non-compli‐
+                     ant (illegal) media with extremely non-standard additional (broken/illegal) TOC entries in  the
+                     TOC  from  the second or higher session. Some of these disks become usable if only the informa‐
+                     tion from the first session is used.  You need to enable Single Session mode before you  insert
+                     the defective disk!
+
+              nosinglesession
+                     Turn off single session mode. The drive will again behave as usual.
+
+              hidecdr
+                     Hide  the fact that a medium might be a recordable medium.  This allows to make CD-Rs look like
+                     CD-ROMs and applications believe that the media in the drive is not a CD-R.
+
+              nohidecdr
+                     Turn off hiding CD-R media.
+
+              tattooinfo
+                     Use this option together with -checkdrive to retrieve the image size information for the Yamaha
+                     DiskT@2  feature. The images always have a line length of 3744 pixel.  Line number 0 (radius 0)
+                     is mapped to the center of the disk.  If you know the inner and outer radius you will  be  able
+                     to create a pre distorted image that later may appear undistorted on the disk.
+
+              tattoofile=name
+                     Use  this  option  together  with -checkdrive to write an image prepared for the Yamaha DiskT@2
+                     feature to the medium.  The file must be a file with raw image B&W data (one byte per pixel) in
+                     a  size  as  retrieved by a previous call to tattoofile=name .  If the size of the image equals
+                     the maximum possible size (3744 x 320 pixel), wodim will use the first part of the  file.  This
+                     first part then will be written to the leftover space on the CD.
+
+                     Note that the image must be mirrored to be readable from the pick up side of the CD.
+
+       -setdropts
+              Set  the driveropts specified by driveropts=option list, the speed of the drive and the dummy flag and
+              exit.  This allows wodim to set drive specific parameters that are not directly  used  by  wodim  like
+              e.g.   single  session  mode,  hide cdr and similar.  It is needed in case that driveropts=option list
+              should be called without planning to run a typical wodim task.
+
+       -checkdrive
+              Checks if a driver for the current drive is present and exit.  If the drive is a  known  drive,  wodim
+              uses exit code 0.
+
+       -prcap Print  the  drive capabilities for SCSI-3/mmc compliant drives as obtained from mode page 0x2A. Values
+              marked with kB use 1000 bytes as kilo-byte, values marked with KB use 1024 bytes as Kilo-byte.
+
+       -inq   Do an inquiry for the drive, print the inquiry info and exit.
+
+       -scanbus
+              Scan all SCSI devices on all SCSI busses and print the inquiry strings. This option  may  be  used  to
+              find  SCSI  address  of the CD/DVD-Recorder on a system. If some device types are invisible, try using
+              dev=ATA: or similar option to give a hint about the device type you  are  looking  for.   The  numbers
+              printed  out  as  labels are computed by: bus * 100 + target.  On platforms and device systems without
+              persistent SCSI number management the results are not reliable. Use the .B --devices option instead.
+
+       --devices
+              Look for useable devices using the system specific functions, eg. probing with usual device  nodes  in
+              /dev/*, and display the detections using symbolic device names in OS specific syntax.
+
+       -reset Try to reset the SCSI bus where the CD recorder is located. This works not on all operating systems.
+
+       -abort Try  to  send an abort sequence to the drive.  If you use wodim only, this should never be needed; but
+              other software may leave a drive in an unusable condition.  Calling wodim -reset may be  needed  if  a
+              previous  write has been interrupted and the software did not tell the drive that it will not continue
+              to write.
+
+       -overburn
+              Allow wodim to write more than the official size of a medium. This feature is usually called overburn‐
+              ing  and  depends on the fact that most blank media may hold more space than the official size. As the
+              official size of the lead-out area on the disk is 90 seconds (6750 sectors) and a disk  usually  works
+              if  there  are  at  least  150 sectors of lead out, all media may be overburned by at least 88 seconds
+              (6600 sectors).  Most CD recorders only do overburning in SAO or RAW mode. Known exceptions  are  TEAC
+              CD-R50S,  TEAC CD-R55S and the Panasonic CW-7502.  Some drives do not allow to overburn as much as you
+              might like and limit the size of a CD to e.g. 76 minutes. This problem may be circumvented by  writing
+              the  CD in RAW mode because this way the drive has no chance to find the size before starting to burn.
+              There is no guarantee that your drive supports overburning at all.  Make a test to check if your drive
+              implements the feature.
+
+       -ignsize
+              Ignore  the known size of the medium. This option should be used with extreme care, it exists only for
+              debugging purposes don't use it for other reasons.  It is not needed to write disks with more than the
+              nominal capacity.  This option implies -overburn.
+
+       -useinfo
+              Use  *.inf  files  to overwrite audio options.  If this option is used, the pregap size information is
+              read from the *.inf file that is associated with the file that contains the audio data for a track.
+
+              If used together with the -audio option, wodim may be used to write audio CDs from a pipe from  icedax
+              if  you  call  wodim  with  the *.inf files as track parameter list instead of using audio files.  The
+              audio data is read from stdin in this case.  See EXAMPLES section below.  wodim  first  verifies  that
+              stdin is not connected to a terminal and runs some heuristic consistency checks on the *.inf files and
+              then sets the track lengths from the information in the *.inf files.
+
+              If you like to write from stdin, make sure that wodim is called with a large enough FIFO size,  reduce
+              the  write  speed  to a value below the read speed of the source drive and switch the burn-free option
+              for the recording drive on.
+
+       defpregap=#
+              Set the default pre-gap size for all tracks except track number 1.  This option currently  only  makes
+              sense  with  the TEAC drive when creating track-at-once disks without the 2 second silence before each
+              track.
+              This option may go away in future.
+
+       -packet
+              Set Packet writing mode.  This is an experimental interface.
+
+       pktsize=#
+              Set the packet size to #, forces fixed packet mode.  This is an experimental interface.
+
+       -noclose
+              Do not close the current track, useful only when in packet writing  mode.   This  is  an  experimental
+              interface.
+
+       mcn=med_cat_nr
+              Set the Media Catalog Number of the CD to med_cat_nr.
+
+       -text  Write  CD-Text  information based on information taken from a file that contains ascii information for
+              the text strings.  wodim supports CD-Text information based on the content of the *.inf files  created
+              by  icedax  and  CD-Text  information based on the content from a CUE sheet file.  If a CUE sheet file
+              contains both (binary CDTEXTFILE and text based SONGWRITER) entries, then the information based on the
+              CDTEXTFILE entry will win.
+
+              You need to use the -useinfo option in addition in order to tell wodim to read the *.inf files or cue‐
+              file=filename in order to tell wodim to read a CUE sheet file in addition.  If you like to write  your
+              own  CD-Text information, edit the *.inf files or the CUE sheet file with a text editor and change the
+              fields that are relevant for CD-Text.
+
+       textfile=filename
+              Write CD-Text based on information found in the binary file filename.  This file must contain informa‐
+              tion  in  a  data  format defined in the SCSI-3 MMC-2 standard and in the Red Book. The four byte size
+              header that is defined in the SCSI standard is optional and allows to make the recognition of  correct
+              data  less  ambiguous.  This is the best option to be used to copy CD-Text data from existing CDs that
+              already carry CD-Text information. To get data in a format suitable for this option use wodim -vv -toc
+              to  extract  the information from disk.  If both, textfile=filename and CD-Text information from *.inf
+              or *.cue files are present, textfile=filename will overwrite the other information.
+
+       cuefile=filename
+              Take all recording related information from a CDRWIN compliant CUE sheet file.   No  track  files  are
+              allowed when this option is present and the option -dao is currently needed in addition.
+
+
+TRACK OPTIONS
+       Track options may be mixed with track file names.
+
+       isrc=ISRC_number
+              Set the International Standard Recording Number for the next track to ISRC_number.
+
+       index=list
+              Sets  an  index  list for the next track.  In index list is a comma separated list of numbers that are
+              counting from index 1. The first entry in this list must contain a 0, the following numbers must be an
+              ascending list of numbers (counting in 1/75 seconds) that represent the start of the indices. An index
+              list in the form: 0,7500,15000 sets index 1 to the start of the track, index 2 100  seconds  from  the
+              start of the track and index 3 200 seconds from the start of the track.
+
+       -audio If  this  flag is present, all subsequent tracks are written in CD-DA (similar to Red Book) audio for‐
+              mat.  The file with data for this tracks should contain stereo, 16-bit digital audio with  44100  sam‐
+              ples/s.   The  byte  order should be the following: MSB left, LSB left, MSB right, LSB right, MSB left
+              and so on. The track should be a multiple of 2352 bytes. It is not possible to put the master image of
+              an  audio track on a raw disk because data will be read in multiple of 2352 bytes during the recording
+              process.
+
+              If a filename ends in .au or .wav the file is considered to be a structured audio  data  file.   wodim
+              assumes that the file in this case is a Sun audio file or a Microsoft .WAV file and extracts the audio
+              data from the files by skipping over the non-audio header information.  In all other cases, wodim will
+              only  work correctly if the audio data stream does not have any header.  Because many structured audio
+              files do not have an integral number of blocks (1/75th second) in length, it  is  often  necessary  to
+              specify  the  -pad option as well.  wodim recognizes that audio data in a .WAV file is stored in Intel
+              (little-endian) byte order, and will automatically byte-swap the data if the CD recorder requires big-
+              endian data.  wodim will reject any audio file that does not match the Red Book requirements of 16-bit
+              stereo samples in PCM coding at 44100 samples/second.
+
+              Using other structured audio data formats as input to wodim will usually work if the structure of  the
+              data  is  the structure described above (raw pcm data in big-endian byte order).  However, if the data
+              format includes a header, you will hear a click at the start of a track.
+
+              If neither -data nor -audio have been specified, wodim defaults to -audio for all filenames  that  end
+              in .au or .wav and to -data for all other files.
+
+       -swab  If  this  flag  is  present,  audio data is assumed to be in byte-swapped (little-endian) order.  Some
+              types of CD-Writers e.g. Yamaha, Sony and the new SCSI-3/mmc drives require audio data to be presented
+              in little-endian order, while other writers require audio data to be presented in the big-endian (net‐
+              work) byte order normally used by the SCSI protocol.  wodim knows if a CD-Recorder needs audio data in
+              big-  or little-endian order, and corrects the byte order of the data stream to match the needs of the
+              recorder.  You only need the -swab flag if your data stream is in Intel (little-endian) byte order.
+
+              Note that the verbose output of wodim will show you if swapping is necessary to make the byte order of
+              the input data fit the required byte order of the recorder.  wodim will not show you if the -swab flag
+              was actually present for a track.
+
+       -data  If this flag is present, all subsequent tracks are written in CD-ROM mode 1 (Yellow Book) format.  The
+              data  size  is  a multiple of 2048 bytes.  The file with track data should contain an ISO-9660 or Rock
+              Ridge filesystem image (see genisoimage for more details). If the track  data  is  an  ufs  filesystem
+              image, fragment size should be set to 2 KB or more to allow CD-drives with 2 KB sector size to be used
+              for reading.
+
+              -data is the default, if no other flag is present and the file does not appear to be  of  one  of  the
+              well known audio file types.
+
+              If  neither  -data nor -audio have been specified, wodim defaults to -audio for all filenames that end
+              in .au or .wav and to -data for all other files.
+
+       -mode2 If this flag is present, all subsequent tracks are written in CD-ROM mode 2 format. The data size is a
+              multiple of 2336 bytes.
+
+       -xa    If this flag is present, all subsequent tracks are written in CD-ROM XA mode 2 form 1 format. The data
+              size is a multiple of 2048 bytes.  The XA sector sub headers will be created by the drive.  With  this
+              option, the write mode is the same as with the -multi option.
+
+       -xa1   If this flag is present, all subsequent tracks are written in CD-ROM XA mode 2 form 1 format. The data
+              size is a multiple of 2056 bytes.  The XA sector sub headers are part of the user data and have to  be
+              supplied by the application that prepares the data to be written.
+
+       -xa2   If this flag is present, all subsequent tracks are written in CD-ROM XA mode 2 form 2 format. The data
+              is a multiple of 2324 bytes.  The XA sector sub headers will be created by the drive.
+
+       -xamix If this flag is present, all subsequent tracks are written in a way that allows a  mix  of  CD-ROM  XA
+              mode 2 form 1/2 format. The data size is a multiple of 2332 bytes.  The XA sector sub headers are part
+              of the user data and have to be supplied by the application that prepares the data to be written.  The
+              CRC  and  the P/Q parity ECC/EDC information (depending on the sector type) have to be supplied by the
+              application that prepares the data to be written.
+
+       -cdi   If this flag is present, the TOC type for the disk is set to CDI.   This  only  makes  sense  with  XA
+              disks.
+
+       -isosize
+              Use  the  ISO-9660  file system size as the size of the next track.  This option is needed if you want
+              wodim to directly read the image of a track from a raw disk partition or from a TAO master CD. In  the
+              first  case  the option -isosize is needed to limit the size of the CD to the size of the ISO filesys‐
+              tem.  In the second case the option -isosize is needed to prevent wodim from reading the two  run  out
+              blocks that are appended by each CD-recorder in track at once mode. These two run out blocks cannot be
+              read and would cause a buffer underrun that would cause a defective copy.  Do not use this  option  on
+              files  created  by  genisoimage and in case wodim reads the track data from stdin.  In the first case,
+              you would prevent wodim from writing the amount of padding that has been appended by  genisoimage  and
+              in the latter case, it will not work because stdin is not seekable.
+
+              If  -isosize  is  used for a track, wodim will automatically add padding for this track as if the -pad
+              option has been used but the amount of padding may be less than the padding  written  by  genisoimage.
+              Note  that  if  you use -isosize on a track that contains Sparc boot information, the boot information
+              will be lost.
+
+              Note also that this option cannot be used to determine the size of a file system if the multi  session
+              option is present.
+
+       -pad   If the track is a data track, 15 sectors of zeroed data will be added to the end of this and each sub‐
+              sequent data track.  In this case, the -pad option is superseded  by  the  padsize=  option.  It  will
+              remain  however  as  a  shorthand for padsize=15s.  If the -pad option refers to an audio track, wodim
+              will pad the audio data to be a multiple of 2352 bytes.  The audio data padding is  done  with  binary
+              zeroes which is equal to absolute silence.
+
+              -pad remains valid until disabled by -nopad.
+
+       padsize=#
+              Set  the  amount of data to be appended as padding to the next track to #.  Opposed to the behavior of
+              the -pad option, the value for padsize= is reset to zero for each new track.  wodim assumes  a  sector
+              size of 2048 bytes for the padsize= option, independent from the real sector size and independent from
+              the write mode.  The megabytes mentioned in the verbose mode output however are  counting  the  output
+              sector  size  which  is  e.g.  2448 bytes when writing in RAW/RAW96 mode.  See fs= option for possible
+              arguments.  To pad the equivalent of 20 minutes on a CD, you may write  padsize=20x60x75s.   Use  this
+              option  if  your CD-drive is not able to read the last sectors of a track or if you want to be able to
+              read the CD on a Linux system with the ISO-9660 filesystem read ahead bug.  If an empty file  is  used
+              for  track  data, this option may be used to create a disk that is entirely made of padding.  This may
+              e.g. be used to find out how much overburning is possible with a specific media.
+
+       -nopad Do not pad the following tracks - the default.
+
+       -shorttrack
+              Allow all subsequent tracks to violate the Red Book track length standard  which  requires  a  minimum
+              track  length  of 4 seconds.  This option is only useful when used in SAO or RAW mode.  Not all drives
+              support this feature. The drive must accept the resulting CUE sheet or support RAW writing.
+
+       -noshorttrack
+              Re-enforce the Red Book track length standard. Tracks must be at least 4 seconds.
+
+       pregap=#
+              Set the  pre-gap size for the next track.  This option currently only makes sense with the TEAC  drive
+              when creating track-at-once disks without the 2 second silence before each track.
+              This option may go away in future.
+
+       -preemp
+              If this flag is present, all TOC entries for subsequent audio tracks will indicate that the audio data
+              has been sampled with 50/15 microsec pre-emphasis.  The data,  however  is  not  modified  during  the
+              process of transferring from file to disk.  This option has no effect on data tracks.
+
+       -nopreemp
+              If this flag is present, all TOC entries for subsequent audio tracks will indicate that the audio data
+              has been mastered with linear data - this is the default.
+
+       -copy  If this flag is present, all TOC entries for subsequent audio tracks of the resulting CD will indicate
+              that  the  audio  data  has  permission to be copied without limit.  This option has no effect on data
+              tracks.
+
+       -nocopy
+              If this flag is present, all TOC entries for subsequent audio tracks of the resulting CD will indicate
+              that the audio data has permission to be copied only once for personal use - this is the default.
+
+       -scms  If this flag is present, all TOC entries for subsequent audio tracks of the resulting CD will indicate
+              that the audio data has no permission to be copied anymore.
+
+       tsize=#
+              If the master image for the next track has been stored on a raw disk, use this option to  specify  the
+              valid  amount  of  data  on this disk. If the image of the next track is stored in a regular file, the
+              size of that file is taken to determine the length of this track.  If the track contains an  ISO  9660
+              filesystem image use the -isosize option to determine the length of that filesystem image.
+              In  Disk  at  Once mode and with some drives that use the TEAC programming interface, even in Track at
+              Once mode, wodim needs to know the size of each track before starting to write the  disk.   wodim  now
+              checks  this  and  aborts  before starting to write.  If this happens you will need to run genisoimage
+              -print-size before and use the output (with `s' appended) as an argument to the tsize= option of wodim
+              (e.g. tsize=250000s).
+              See fs= option for possible arguments.
+
+
+EXAMPLES
+       For  all  examples below, it will be assumed that the CD/DVD-Recorder is connected to the primary SCSI bus of
+       the machine. The SCSI target id is set to 2.
+
+       To record a pure CD-ROM at double speed, using data from the file cdimage.raw:
+
+           wodim -v speed=2 dev=2,0 cdimage.raw
+
+       To create an image for a ISO 9660 filesystem with Rock Ridge extensions:
+
+           genisoimage -R -o cdimage.raw /home/joerg/master/tree
+
+       To check the resulting file before writing to CD on Solaris:
+
+           mount -r -F fbk -o type=hsfs /dev/fbk0:cdimage.raw /mnt
+
+       On Linux:
+
+           mount cdimage.raw -r -t iso9660 -o loop /mnt
+
+       Go on with:
+           ls -lR /mnt
+           umount /mnt
+
+       If the overall speed of the system is sufficient and the structure of the  filesystem  is  not  too  complex,
+       wodim will run without creating an image of the ISO 9660 filesystem. Simply run the pipeline:
+
+           genisoimage -R /master/tree | wodim -v fs=6m speed=2 dev=2,0 -
+
+       The  recommended  minimum FIFO size for running this pipeline is 4 MBytes.  As the default FIFO size is 4 MB,
+       the fs= option needs only be present if you want to use a different FIFO size.  If your system is loaded, you
+       should run genisoimage in the real time class too.  To raise the priority of genisoimage replace the command
+
+           genisoimage -R /master/tree
+       by
+           priocntl -e -c RT -p 59 genisoimage -R /master/tree
+
+       on Solaris and by
+
+           nice --18 genisoimage -R /master/tree
+
+       on systems that don't have UNIX International compliant real-time scheduling.
+
+       wodim  runs  at priority 59 on Solaris, you should run genisoimage at no more than priority 58. On other sys‐
+       tems, you should run genisoimage at no less than nice --18.
+
+       Creating a CD-ROM without file system image on disk has  been  tested  on  a  Sparcstation-2  with  a  Yamaha
+       CDR-400.  It did work up to quad speed when the machine was not loaded.  A faster machine may be able to han‐
+       dle quad speed also in the loaded case.
+
+       To record a pure CD-DA (audio) at single speed, with each track contained in a  file  named  track01.cdaudio,
+       track02.cdaudio, etc:
+
+           wodim -v speed=1 dev=/dev/cdrw -audio track*.cdaudio
+
+       To check if it will be ok to use double speed for the example above.  Use the dummy write option:
+
+           wodim -v -dummy speed=2 dev=/dev/cdrw -audio track*.cdaudio
+
+       To  record  a mixed-mode CD with an ISO 9660 filesystem from cdimage.raw on the first track, the other tracks
+       being audio tracks from the files track01.cdaudio, track02.cdaudio, etc:
+
+           wodim -v dev=2,0 cdimage.raw -audio track*.cdaudio
+
+       To handle drives that need to know the size of a track before starting to write, first run
+
+           genisoimage -R -q -print-size /master/tree
+
+       and then run
+
+           genisoimage -R /master/tree | wodim speed=2 dev=2,0 tsize=XXXs -
+
+       where XXX is replaced by the output of the previous run of genisoimage.
+
+       To copy an audio CD in the most accurate way, first run
+
+           icedax dev=/dev/cdrom -vall cddb=0 -B -Owav
+
+       and then run
+
+           wodim dev=/dev/cdrw -v -dao -useinfo -text  *.wav
+
+       This will try to copy track indices and to read CD-Text information from disk.  If there is no CD-Text infor‐
+       mation, icedax will try to get the information from freedb.org instead.
+
+       To copy an audio CD from a pipe (without intermediate files), first run
+
+           icedax dev=1,0 -vall cddb=0 -info-only
+
+       and then run
+
+           icedax dev=1,0 -no-infofile -B -Oraw - | \
+           wodim dev=2,0 -v -dao -audio -useinfo -text *.inf
+
+       This  will  get all information (including track size info) from the *.inf files and then read the audio data
+       from stdin.
+
+       If you like to write from stdin, make sure that  wodim  is  called  with  a  large  enough  FIFO  size  (e.g.
+       fs=128m),  reduce  the  write speed to a value below the read speed of the source drive (e.g.  speed=12), and
+       get a CD/DVD drive with BURN-Free feature if it is not available yet.
+
+       To set drive options without writing a CD (e.g. to switch a drive to single session mode), run
+
+           wodim dev=1,0 -setdropts driveropts=singlesession
+
+       If you like to do this when no CD is in the drive, call
+
+           wodim dev=1,0 -force -setdropts driveropts=singlesession
+
+       To copy a CD in clone mode, first read the master CD using:
+
+           readom dev=b,t,l -clone f=somefile
+
+       or (in case the CD contains many sectors that are unreadable by intention) by calling:
+
+           readom dev=1,0 -clone -nocorr f=somefile
+
+       will create the files somefile and somefile.toc.  Then write the CD using:
+
+           wodim dev=1,0 -raw96r -clone -v somefile
+
+
+
+ENVIRONMENT
+       CDR_DEVICE
+              This may either hold a device identifier that is suitable to the  open  call  of  the  SCSI  transport
+              library or a label in the file /etc/wodim.conf.
+
+       CDR_SPEED
+              Sets the default speed value for writing (see also speed= option).
+
+       CDR_FIFOSIZE
+              Sets the default size of the FIFO (see also fs=# option).
+
+       CDR_FORCERAWSPEED
+              If  this  environment  variable is set, wodim will allow you to write at the full RAW encoding speed a
+              single CPU supports.  This will create high potential of buffer underruns. Use with care.
+
+       CDR_FORCESPEED
+              If this environment variable is set, wodim will allow you to write at the full DMA  speed  the  system
+              supports.   There  is  no DMA reserve for reading the data that is to be written from disk.  This will
+              create high potential of buffer underruns. Use with care.
+
+       RSH    If the RSH environment is present, the remote connection will not be created via rcmd(3) but by  call‐
+              ing the program pointed to by RSH.  Use e.g.  RSH=/usr/bin/ssh to create a secure shell connection.
+
+              Note  that  this  forces  wodim to create a pipe to the rsh(1) program and disallows wodim to directly
+              access the network socket to the remote server.  This makes it impossible to set up performance param‐
+              eters and slows down the connection compared to a root initiated rcmd(3) connection.
+
+       RSCSI  If   the   RSCSI   environment   is   present,  the  remote  SCSI  server  will  not  be  the  program
+              /opt/schily/sbin/rscsi but the program pointed to by RSCSI.  Note that the remote SCSI server  program
+              name  will  be  ignored if you log in using an account that has been created with a remote SCSI server
+              program as login shell.
+
+
+FILES
+       /etc/wodim.conf
+              Default values can be set for the following options in /etc/wodim.conf.  For example:  CDR_FIFOSIZE=8m
+              or CDR_SPEED=2
+
+              CDR_DEVICE
+                     This  may  either hold a device identifier that is suitable to the open call of the SCSI trans‐
+                     port library or a label in the file /etc/wodim.conf that allows to identify a specific drive on
+                     the system.
+
+              CDR_SPEED
+                     Sets the default speed value for writing (see also speed= option).
+
+              CDR_FIFOSIZE
+                     Sets the default size of the FIFO (see also fs=# option).
+
+              CDR_MAXFIFOSIZE
+                     Sets the maximum size of the FIFO (see also fs=# option).
+
+              Any other keyword (label) is an identifier (symbolic name) for a specific drive
+                     on the system.  Such an identifier may not contain the characters ',', '/', '@' or ':'.
+
+                     Each  line that follows a label contains a whitespace separated list of items.  Currently, four
+                     items are recognized: the drive's target specification, the default speed that should  be  used
+                     for  this  drive,  the  default FIFO size that should be used for this drive and drive specific
+                     options. The values for speed and fifosize may be set to -1 to tell wodim  to  use  the  global
+                     defaults.  target can be -1 to use the auto-guessing of the drive (see above).
+
+                     The value for driveropts may be omitted or set to "" if no driveropts are used.  A typical line
+                     may look this way:
+
+                     plex760= 0,5,0 12   50m  varirec=1
+
+                     pioneer= /dev/hdd   -1   -1
+
+                     This tells wodim that a drive named plex760 is at scsibus 0, target 5, lun 0 and should be used
+                     with  speed 12 and a FIFO size of 50 MB. It also uses some device specific parameter.  A second
+                     drive may is accessible via the device file /dev/hdd and uses the default speed and the default
+                     FIFO size.
+
+
+SEE ALSO
+       icedax(1), readom(1), genisoimage(1), ssh(1).
+
+
+NOTES
+       On  Solaris you need to stop the volume management if you like to use the USCSI fallback SCSI transport code.
+       Even things like wodim -scanbus will not work if the volume management is running.
+
+       Disks made in Track At Once mode are not suitable as a master for direct mass production by CD manufacturers.
+       You  will  need  the  disk at once option to record such disks.  Nevertheless the disks made in Track At Once
+       will normally be read in all CD players. Some old audio CD players however may produce  a  two  second  click
+       between two audio tracks.
+
+       The  minimal  size  of a track is 4 seconds or 300 sectors. If you write smaller tracks, the CD-Recorder will
+       add dummy blocks. This is not an error, even though the SCSI-error message looks this way.
+
+       The Yamaha CDR-400 and all new SCSI-3/mmc conforming drives are supported in single and multi-session.
+
+       You should run several tests in all supported speeds of your drive with the -dummy option turned  on  if  you
+       are  using wodim on an unknown system. Writing a CD is a real-time process.  NFS, CIFS and other network file
+       systems won't always deliver constantly the needed data rates.  If you want to use wodim with CD-images  that
+       are  located on a NFS mounted filesystem, be sure that the FIFO size is big enough.  If you want to make sure
+       that buffer underruns are not caused by your source disk, you may use the command
+
+           wodim -dummy dev=2,0 padsize=600m /dev/null
+
+       to create a disk that is entirely made of dummy data.
+
+       There are also cases where you either need to be root or install wodim executable with suid-root permissions.
+       First,  if  you  are  using a device manufactured before 1999 which requires a non-MMC driver, you should run
+       wodim in dummy mode before writing data. If you find a problem doing this, please report  it  to  the  cdrkit
+       maintainers (see below).
+
+       Second, certain functionality may be unusable because of Linux's SCSI command filtering. When using wodim for
+       anything except of pure data writing, you should also test the process in dummy mode and  report  trouble  to
+       the contact address below.
+
+       If  you still want to run wodim with root permissions, you can set the permissions of the executable to suid-
+       root. See the additional notes of your system/program distribution or README.suidroot which is  part  of  the
+       cdrkit source.
+
+       You  should  not  connect  old drives that do not support disconnect/reconnect to either the SCSI bus that is
+       connected to the CD-Recorder or the source disk.
+
+       A Compact Disc can have no more than 99 tracks.
+
+       When creating a disc with both audio and data tracks, the data should be on track 1 otherwise you should cre‐
+       ate  a  CDplus  disk which is a multi session disk with the first session containing the audio tracks and the
+       following session containing the data track.
+
+       Many operating systems are not able to read more than a single data track, or need special software to do so.
+
+       If you have more information or SCSI command manuals for  currently  unsupported  CD/DVD/BR/HD-DVD-Recorders,
+       please contact the cdrkit maintainers (see below).
+
+       Many CD recorders have bugs and often require a firmware update to work correctly. If you experience problems
+       which cannot be solved or explained by the notes above, please look for instructions on the homepage  of  the
+       particular manufacturer.
+
+       Some bugs will force you to power cycle the device or to reboot the machine.
+
+       The  FIFO  percent output is computed just after a block of data has been written to the CD/DVD-Recorder. For
+       this reason, there will never be 100% FIFO fill ratio while the FIFO is in streaming mode.
+
+
+DIAGNOSTICS
+       You have 4 seconds to abort wodim start after you see the message:
+
+       Starting to write CD at speed %d in %s mode for %s session.  In most shells you can do that by pressing Ctrl-
+       C.
+
+       A typical error message for a SCSI command looks like:
+
+              wodim: I/O error. test unit ready: scsi sendcmd: no error
+              CDB:  00 20 00 00 00 00
+              status: 0x2 (CHECK CONDITION)
+              Sense Bytes: 70 00 05 00 00 00 00 0A 00 00 00 00 25 00 00 00 00 00
+              Sense Key: 0x5 Illegal Request, Segment 0
+              Sense Code: 0x25 Qual 0x00 (logical unit not supported) Fru 0x0
+              Sense flags: Blk 0 (not valid)
+              cmd finished after 0.002s timeout 40s
+
+       The  first  line  gives information about the transport of the command.  The text after the first colon gives
+       the error text for the system call from the view of the kernel. It usually is: I/O error unless  other  prob‐
+       lems happen. The next words contain a short description for the SCSI command that fails. The rest of the line
+       tells you if there were any problems for the transport of the command over the SCSI bus.  fatal  error  means
+       that it was not possible to transport the command (i.e. no device present at the requested SCSI address).
+
+       The second line prints the SCSI command descriptor block for the failed command.
+
+       The  third  line  gives  information on the SCSI status code returned by the command, if the transport of the
+       command succeeds.  This is error information from the SCSI device.
+
+       The fourth line is a hex dump of the auto request sense information for the command.
+
+       The fifth line is the error text for the sense key if available, followed by the segment number that is  only
+       valid if the command was a copy command. If the error message is not directly related to the current command,
+       the text deferred error is appended.
+
+       The sixth line is the error text for the sense code and the sense qualifier if available.  If the type of the
+       device  is  known,  the  sense data is decoded from tables in scsierrs.c .  The text is followed by the error
+       value for a field replaceable unit.
+
+       The seventh line prints the block number that is related to the failed command and  text  for  several  error
+       flags. The block number may not be valid.
+
+       The  eight  line  reports  the timeout set up for this command and the time that the command really needed to
+       complete.
+
+       The following message is not an error:
+
+              Track 01: Total bytes read/written: 2048/2048 (1 sectors).
+              wodim: I/O error. flush cache: scsi sendcmd: no error
+              CDB:  35 00 00 00 00 00 00 00 00 00
+              status: 0x2 (CHECK CONDITION)
+              Sense Bytes: F0 00 05 80 00 00 27 0A 00 00 00 00 B5 00 00 00 00 00
+              Sense Key: 0x5 Illegal Request, Segment 0
+              Sense Code: 0xB5 Qual 0x00 (dummy data blocks added) Fru 0x0
+              Sense flags: Blk -2147483609 (valid)
+              cmd finished after 0.002s timeout 40s
+
+       It simply notifies, that a track that is smaller than the minimum size has been expanded to 300 sectors.
+
+BUGS
+       netscsid does not work properly and is generally unmaintained. It is probably not compatible with rscsi  from
+       cdrtools either. Good bugfixes are welcome, talk to Cdrkit maintainers.
+
+       cuefile support is very limited, only one file is allowed. For volunteers, see TODO file in the source.
+
+       Specifying an audio file multiple times causes corruption of the second track (effectively no data plus mini‐
+       mum padding).
+
+       Some of the bugs may be fixed in Joerg Schilling's cdrtools. See there for details, URL attached below.
+
+
+CREDITS
+       Joerg Schilling (schilling@fokus.fhg.de)
+                      For writing cdrecord and libscg which represent the most parts of wodim's code.
+
+       Bill Swartz    (Bill_Swartz@twolf.com)
+                      For helping me with the TEAC driver support
+
+       Aaron Newsome  (aaron.d.newsome@wdc.com)
+                      For letting me develop Sony support on his drive
+
+       Eric Youngdale (eric@andante.jic.com)
+                      For supplying mkisofs
+
+       Gadi Oxman     (gadio@netvision.net.il)
+                      For tips on the ATAPI standard
+
+       Finn Arne Gangstad  (finnag@guardian.no)
+                      For the first FIFO implementation.
+
+       Dave Platt     (dplatt@feghoot.ml.org)
+                      For creating the experimental packet writing support, the first implementation of CD-RW blank‐
+                      ing support, the first .wav file decoder and many nice discussions on cdrecord.
+
+       Chris P. Ross (cross@eng.us.uu.net)
+                      For the first implementation of a BSDI SCSI transport.
+
+       Grant R. Guenther   (grant@torque.net)
+                      For creating the first parallel port transport implementation for Linux.
+
+       Kenneth D. Merry (ken@kdm.org)
+                      for providing the CAM port for FreeBSD together with Michael Smith (msmith@freebsd.org)
+
+       Heiko Eiszfeldt (heiko@hexco.de)
+                      for making libedc_ecc available (needed to write RAW data sectors).
+
+
+MAILING LISTS
+       If  you  want  to actively take part on the development of wodim, you may join the developer mailing list via
+       this URL:
+
+       https://alioth.debian.org/mail/?group_id=31006
+
+       The mail address of the list is: debburn-devel@lists.alioth.debian.org
+
+
+AUTHORS
+       wodim is currently maintained as part of the cdrkit project by its developers. Most of the code and this man‐
+       ual page was originally written by:
+
+       Joerg Schilling
+       Seestr. 110
+       D-13353 Berlin
+       Germany
+
+       This  application  is  derived  from  "cdrecord"  as  included  in  the cdrtools package [1] created by Joerg
+       Schilling, who deserves most of the credit for its success. However, he is not involved into the  development
+       of this spinoff and therefore he shall not be held responsible for any problems caused by it. Do not refer to
+       this application as "cdrecord", do not try to get support for wodim by contacting the original authors.
+
+       Additional information can be found on:
+       https://alioth.debian.org/projects/debburn/
+
+       If you have support questions, send them to
+
+       debburn-devel@lists.alioth.debian.org
+
+       If you have definitely found a bug, send a mail to this list or to
+
+       submit@bugs.debian.org
+
+       writing at least a short description into the Subject and "Package: cdrkit" in the first  line  of  the  mail
+       body.
+
+SOURCES
+       [1] Cdrtools 2.01.01a08 from May 2006, http://cdrecord.berlios.de
+
+
+
+
+                                                     Version 2.0                                            wodim(1)

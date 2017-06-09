@@ -1,0 +1,27 @@
+IPENGINE(1)                                                                                              IPENGINE(1)
+
+
+
+NAME
+       ipengine - IPython parallel computing engine
+
+SYNOPSIS
+       ipengine [options]
+
+
+DESCRIPTION
+       ipengine starts an engine for the IPython cluster
+
+       For  more  information on how to use ipengine, see 'ipengine --help', or 'ipengine --help-all' for all avail‐
+       able command‐line options.
+
+
+SEE ALSO
+       ipython(1), ipcontroller(1), ipcluster(1)
+
+AUTHORS
+       ipengine ships with IPython, maintained by the IPython Development Team.
+
+
+
+                                                    June 10, 2012                                        IPENGINE(1)

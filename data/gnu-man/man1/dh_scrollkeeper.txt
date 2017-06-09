@@ -1,0 +1,25 @@
+DH_SCROLLKEEPER(1)                                    Debhelper                                   DH_SCROLLKEEPER(1)
+
+
+
+NAME
+       dh_scrollkeeper - deprecated no-op
+
+SYNOPSIS
+       dh_scrollkeeper [debhelper options] [-n] [directory]
+
+DESCRIPTION
+       dh_scrollkeeper was a debhelper program that handled registering OMF files for ScrollKeeper. However, it no
+       longer does anything, and is now deprecated.
+
+SEE ALSO
+       debhelper
+
+       This program is a part of debhelper.
+
+AUTHOR
+       Ross Burton <ross@burtonini.com>
+
+
+
+9.20131227ubuntu1                                    2013-07-01                                   DH_SCROLLKEEPER(1)

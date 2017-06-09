@@ -1,0 +1,93 @@
+ACLOCAL(1)                                          User Commands                                         ACLOCAL(1)
+
+
+
+NAME
+       aclocal - manual page for aclocal 1.14.1
+
+SYNOPSIS
+       aclocal [OPTION]...
+
+DESCRIPTION
+       Generate 'aclocal.m4' by scanning 'configure.ac' or 'configure.in'
+
+OPTIONS
+       --automake-acdir=DIR
+              directory holding automake-provided m4 files
+
+       --system-acdir=DIR
+              directory holding third-party system-wide files
+
+       --diff[=COMMAND]
+              run COMMAND [diff -u] on M4 files that would be changed (implies --install and --dry-run)
+
+       --dry-run
+              pretend to, but do not actually update any file
+
+       --force
+              always update output file
+
+       --help print this help, then exit
+
+       -I DIR add directory to search list for .m4 files
+
+       --install
+              copy third-party files to the first -I directory
+
+       --output=FILE
+              put output in FILE (default aclocal.m4)
+
+       --print-ac-dir
+              print name of directory holding system-wide third-party m4 files, then exit
+
+       --verbose
+              don't be silent
+
+       --version
+              print version number, then exit
+
+       -W, --warnings=CATEGORY
+              report the warnings falling in CATEGORY
+
+   Warning categories include:
+       syntax dubious syntactic constructs (default)
+
+       unsupported
+              unknown macros (default)
+
+       all    all the warnings (default)
+
+       no-CATEGORY
+              turn off warnings in CATEGORY
+
+       none   turn off all the warnings
+
+       error  treat warnings as errors
+
+AUTHOR
+       Written by Tom Tromey <tromey@redhat.com>
+
+              and Alexandre Duret-Lutz <adl@gnu.org>.
+
+REPORTING BUGS
+       Report bugs to <bug-automake@gnu.org>.
+       GNU Automake home page: <http://www.gnu.org/software/automake/>.
+       General help using GNU software: <http://www.gnu.org/gethelp/>.
+
+COPYRIGHT
+       Copyright   ©   2013   Free   Software  Foundation,  Inc.   License  GPLv2+:  GNU  GPL  version  2  or  later
+       <http://gnu.org/licenses/gpl-2.0.html>
+       This is free software: you are free to change and redistribute it.  There is NO WARRANTY, to the extent  per‐
+       mitted by law.
+
+SEE ALSO
+       The  full  documentation for aclocal is maintained as a Texinfo manual.  If the info and aclocal programs are
+       properly installed at your site, the command
+
+              info aclocal
+
+       should give you access to the complete manual.
+
+
+
+aclocal 1.14.1                                      January 2014                                          ACLOCAL(1)

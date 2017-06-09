@@ -1,0 +1,77 @@
+RLETOPNM(1)                                    General Commands Manual                                   RLETOPNM(1)
+
+
+
+NAME
+       rletopnm - convert a Utah Raster Tools RLE image file into a PNM image file.
+
+SYNOPSIS
+       rletopnm [--alphaout={alpha-filename,-}] [--headerdump|-h] [--verbose|-v] [--plain|-p] [rlefile|-]
+
+       All  options  may be abbreviated to their minimum unique abbreviation and options and arguments may be in any
+       order.
+
+
+DESCRIPTION
+       This program converts Utah Raster Toolkit RLE image files into PNM image files.  rletopnm handles four  types
+       of  RLE files: Grayscale (8 bit data, no color map), Pseudocolor (8 bit data with a color map), Truecolor (24
+       bit data with color map), and Directcolor (24 bit data, no color map).  rletopnm generates a PPM file for all
+       these cases except for the Grayscale file, for which rletopnm generates a PGM file.
+
+       rlefile is the RLE input file.  If it is absent or -, the input comes from Standard Input.
+
+
+OPTIONS
+       --alphaout=alpha-filename
+              rletopnm creates a PGM (portable graymap) file containing the alpha channel values in the input image.
+              If the input image doesn't contain an alpha channel, the alpha-filename file contains all zero (trans‐
+              parent)  alpha values.  If you don't specify --alphaout, rletopnm does not generate an alpha file, and
+              if the input image has an alpha channel, rletopnm simply discards it.
+
+              If you specify - as the filename, rletopnm writes the alpha output to Standard Output and discards the
+              image.
+
+              See pnmcomp(1) for one way to use the alpha output file.
+
+       --verbose
+              This  option  causes  rletopnm  to operate in verbose mode.  It prints messages about what it's doing,
+              including the contents of the RLE image header, to Standard Error.
+
+       --headerdump
+              This option causes rletopnm to operate in header dump mode.  It prints the contents of the  RLE  image
+              header to Standard Error, but does not produce any other output.
+
+       --plain
+              This  option  causes  the  PNM  output file to be in the "plain" (text) format, instead of the default
+              "raw" (binary) format.  See ppm(5) and pgm(5) for details on the difference.
+
+
+EXAMPLES
+       rletopnm --verbose lenna.rle >lenna.ppm
+              While running in verbose mode, convert lenna.rle to PPM  format  and  store  the  resulting  image  as
+              lenna.ppm.
+
+       rletopnm --headerdump file.rle
+              Dump the header information of the RLE file called file.rle.
+
+       rletopnm --alphaout=dartalpha.pgm dart.rle >dart.ppm
+              Convert  RLE  file dart.rle to PPM format as dart.ppm.  Store the alpha channel of dart.rle as dartal‐
+              pha.pgm (if dart.rle doesn't have an alpha channel, store a fully transparent alpha  mask  as  dartal‐
+              pha.pgm).
+
+
+SEE ALSO
+       pnmtorle(1), pnmconvol(1), pnm(5), ppm(5), pgm(5), urt(1), RLE(5)
+
+AUTHOR
+       Wes Barris
+       Army High Performance Computing Research Center (AHPCRC)
+       Minnesota Supercomputer Center, Inc.
+
+       Modifications by Eric Haines to support raw and plain formats.
+
+       Modifications by Bryan Henderson to create alpha files and use mnemonic options.
+
+
+
+1                                                   13 April 2000                                        RLETOPNM(1)
