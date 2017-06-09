@@ -574,7 +574,7 @@ def prepare_dataset(data, data_dir, suffix, vocab_size, vocab_path,
                 # compute CopyNet source indices
                 data_to_token_ids(getattr(data, split), data_path + suffix + '.sc',
                     vocab_path=vocab_path, use_source_placeholder=True,
-                    use_unk_placeholder=(split == 'train'),
+                    use_unk_placeholder=(split in ['train', 'dev']),
                     parallel_vocab_path=parallel_vocab_path,
                     parallel_vocab_size=parallel_vocab_size,
                     parallel_data=parallel_split,
