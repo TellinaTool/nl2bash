@@ -413,8 +413,10 @@ def sentence_to_token_ids(sentence, vocabulary, tokenizer, base_tokenizer,
     for (i, w) in enumerate(words):
         if parallel_vocabulary:
             word_id = get_index(w, parallel_vocabulary)
+            is_unk = not w in parallel_vocabulary or is_low_frequency(w)
         else:
             word_id = get_index(w, vocabulary)
+            is_unk = not w in vocabulary or is_low_frequency(w)
         if parallel_sequence is not None and (
                 (w.startswith('__ARG__') and w[len('__ARG__'):] in parallel_sequence)
                 or (w.startswith('__FLAG__') and w[len('__FLAGS__'):] in parallel_sequence)
@@ -424,9 +426,8 @@ def sentence_to_token_ids(sentence, vocabulary, tokenizer, base_tokenizer,
             # vocabulary index. Used to compute the CopyNet training objective.
             token_ids.append(word_id)
         else:
-            is_unk = not w in vocabulary or is_low_frequency(w)
             if word_id == -1 or \
-                    (is_unk and use_unk):
+                    (use_unk and is_unk):
                 # out-of-vocabulary word
                 if coarse_typing:
                     if is_low_frequency(w):
@@ -440,7 +441,8 @@ def sentence_to_token_ids(sentence, vocabulary, tokenizer, base_tokenizer,
                     else:
                         token_ids.append(UNK_ID)
                 elif use_source_placeholder:
-                    if use_unk_placeholder and is_unk:
+                    if use_unk_placeholder and \
+                            (not w in vocabulary or is_low_frequency(w)):
                         token_ids.append(get_unk_symbol(w))
                     else:
                         token_ids.append(parallel_vocab_size + i)
