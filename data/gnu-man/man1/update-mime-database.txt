@@ -1,0 +1,46 @@
+
+update-mime-database(1)                            X Desktop Group                           update-mime-database(1)
+
+
+
+NAME
+       update-mime-database - a program to build the Shared MIME-Info database cache
+
+
+SYNOPSIS
+       update-mime-database -h | -v | [ -V ] MIME-DIR
+
+
+DESCRIPTION
+       update-mime-database  is  a program which is responsible for updating the shared mime-info cache according to
+       the      system      described      in      the      Shared      MIME-Info       Database       specification
+       ⟨http://www.freedesktop.org/wiki/Specifications/shared-mime-info-spec⟩ from the X Desktop Group.
+
+
+OPTIONS
+       -h     Print out a command summary.
+
+       -v     Print out the version information.
+
+       -V     Be verbose.
+
+
+ARGUMENTS
+       MIME-DIR
+              This  is  the  directory for which update-mime-database should rebuild the cache. Mandatory if none of
+              the options is provided.
+
+
+AUTHOR
+       Filip Van Raemdonck (mechanix@debian.org) wrote this manpage for the Debian GNU/Linux project, but it may  be
+       used by others.
+
+
+LICENCE
+       Copyright (C) 2002 Thomas Leonard.
+       You may redistribute copies of update-mime-database under the terms of the GNU General Public License.
+
+
+
+
+Filip Van Raemdonck                                  26 Jul 2002                             update-mime-database(1)

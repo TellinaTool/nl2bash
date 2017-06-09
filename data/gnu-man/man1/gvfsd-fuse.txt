@@ -1,0 +1,39 @@
+GVFSD-FUSE(1)                                       User Commands                                      GVFSD-FUSE(1)
+
+
+
+NAME
+       gvfsd-fuse - Fuse daemon for gvfs
+
+SYNOPSIS
+       gvfsd-fuse PATH
+
+DESCRIPTION
+       gvfsd-fuse maintains a fuse mount to make gvfs backends available to POSIX applications. The mount point for
+       the fuse filesystem is provided by the [PATH] argument.
+
+       gvfsd-fuse is normally started by gvfsd(1). In this case, the mount point is $XDG_RUNTIME_DIR/gvfs or
+       $HOME/.gvfs.
+
+OPTIONS
+       -d
+           Enable fuse debug output. This implies -f.
+
+       -f
+           Run in the foreground.
+
+       -s
+           Run single-threaded.
+
+       -o OPTION
+           Set a fuse-specific option. See the fuse documentation for a list of these.
+
+EXIT STATUS
+       On success 0 is returned, a non-zero failure code otherwise.
+
+SEE ALSO
+       gvfs(7)
+
+
+
+gvfs                                                                                                   GVFSD-FUSE(1)

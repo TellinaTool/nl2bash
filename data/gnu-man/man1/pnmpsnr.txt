@@ -1,0 +1,39 @@
+pnmpsnr(1)                                     General Commands Manual                                    pnmpsnr(1)
+
+
+
+NAME
+       pnmpsnr - compute the difference between two portable anymaps
+
+SYNOPSIS
+       pnmpsnr [pnmfile1] [pnmfile2]
+
+
+DESCRIPTION
+       Reads two PBM, PGM, or PPM files, or PAM equivalents, as input.  Prints the peak signal-to-noise ratio (PSNR)
+       difference between the two images.  This metric is typically used in image compression  papers  to  rate  the
+       distortion between original and decoded image.
+
+       If  the inputs are PBM or PGM, pnmpsnr prints the PSNR of the luminance only.  Otherwise, it prints the sepa‐
+       rate PSNRs of the luminance, and chrominance (Cb and Cr) components of the colors.
+
+       The PSNR of a given component is the ratio of the mean square difference of the component for the two  images
+       to  the  maximum  mean  square difference that can exist betwee any two images.  It is expressed as a decibel
+       value.
+
+       The mean square difference of a component for two images is the  mean  square  difference  of  the  component
+       value, comparing each pixel with the pixel in the same position of the other image.  For the purposes of this
+       computation, components are normalized to the scale [0..1].
+
+       The maximum mean square difference is identically 1.
+
+       So the higher the PSNR, the closer the images are.  A luminance PSNR of 20 means the mean  square  difference
+       of the luminances of the pixels is 100 times less than the maximum possible difference, i.e. 0.01.
+
+
+SEE ALSO
+       pnm(5)
+
+
+
+                                                    04 March 2001                                         pnmpsnr(1)

@@ -1,0 +1,66 @@
+pamstretch(1)                                  General Commands Manual                                 pamstretch(1)
+
+
+
+NAME
+       pamstretch - scale up a PNM or PAM image by interpolating between pixels
+
+SYNOPSIS
+       pamstretch [-xscale=X] [-yscale=Y]
+       [-blackedge] [-dropedge] N [infile]
+
+       You can use the minimum unique abbreviation of the options.  You can use two hyphens instead of one.  You can
+       separate an option name from its value with white space instead of an equals sign.
+
+
+DESCRIPTION
+       pamstretch scales up pictures by integer values, either vertically, horizontally, or both.   pamstretch  dif‐
+       fers  from pnmscale and pnmenlarge in that when it inserts the additional rows and columns, instead of making
+       the new row or column a copy of its neighbor, pamstretch makes the new row or column an interpolation between
+       its neighbors.  In some images, this produces better looking output.
+
+       To scale up to non-integer pixel sizes, e.g. 2.5, try pamstretch-gen(1) instead.
+
+       Options  let you select alternative methods of dealing with the right/bottom edges of the picture.  Since the
+       interpolation is done between the top-left corners of the scaled-up pixels, it's not obvious what to do  with
+       the  right/bottom  edges.   The default behaviour is to scale those up without interpolation (more precisely,
+       the right edge is only interpolated vertically, and the bottom edge is only interpolated  horizontally),  but
+       there are two other possibilities, selected by the blackedge and dropedge options.
+
+
+
+PARAMETERS
+       The  N  parameter  is  the  scale factor.  It is valid only if you don't specify -xscale or -yscale.  In that
+       case, pamstretch scales in both dimensions and by the scale factor N.
+
+
+OPTIONS
+       -xscale=X
+              This is the horizontal scale factor.  If you don't specify this, but do specify a vertical scale  fac‐
+              tor, the horizontal scale factor is 1.
+
+
+       -yscale=Y
+              This  is the vertical scale factor.  If you don't specify this, but do specify a horizontal scale fac‐
+              tor, the vertical scale factor is 1.
+
+
+       -blackedge
+              interpolate to black at right/bottom edges.
+       -dropedge
+              drop one (source) pixel at right/bottom edges. This is arguably more logical than the  default  behav‐
+              iour, but it means producing output which is a slightly odd size.
+
+BUGS
+       Usually  produces  fairly ugly output for PBMs. For most PBM input you'll probably want to reduce the `noise'
+       first using something like pnmnlfilt(1).
+
+SEE ALSO
+       pamstretch-gen(1), pnmenlarge(1), pnmscale(1), pnmnlfilt(1)
+
+AUTHOR
+       Russell Marks (russell.marks@ntlworld.com).
+
+
+
+                                                  11 November 2001                                     pamstretch(1)

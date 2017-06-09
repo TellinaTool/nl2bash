@@ -1,0 +1,111 @@
+nvidia-persistenced(1)                         General Commands Manual                        nvidia-persistenced(1)
+
+
+
+NAME
+       nvidia-persistenced - A daemon to maintain persistent software state in the NVIDIA driver.
+
+
+SYNOPSIS
+       nvidia-persistenced
+
+
+DESCRIPTION
+       The  nvidia-persistenced utility is used to enable persistent software state in the NVIDIA driver.  When per‐
+       sistence mode is enabled, the daemon prevents the driver from releasing device state when the device  is  not
+       in use.  This can improve the startup time of new clients in this scenario.
+
+OPTIONS
+       -v, --version
+              Print the utility version and exit.
+
+       -h, --help
+              Print usage information for the command line options and exit.
+
+       -V, --verbose
+              Controls  how  much information is printed. By default, nvidia-persistenced will only print errors and
+              warnings to syslog for unexpected events, as well as startup and  shutdown  notices.  Specifying  this
+              flag will cause nvidia-persistenced to also print notices to syslog on state transitions, such as when
+              persistence mode is enabled or disabled, and informational messages on startup and exit.
+
+       -u USERNAME, --user=USERNAME
+              Runs nvidia-persistenced with the user permissions of the user specified  by  the  USERNAME  argument.
+              This user must have write access to the /var/run/nvidia-persistenced directory. If this directory does
+              not exist, nvidia-persistenced will attempt to create it prior to changing the process user and  group
+              IDs.
+
+       --persistence-mode, --no-persistence-mode
+              By  default,  nvidia-persistenced starts with persistence mode enabled for all devices. Use '--no-per‐
+              sistence-mode' to force persistence mode off for all devices on startup.
+
+       --nvidia-cfg-path=PATH
+              The nvidia-cfg library is used to communicate with the NVIDIA kernel module to query and  manage  GPUs
+              in  the system. This library is required by nvidia-persistenced. This option tells nvidia-persistenced
+              where to look for this library (in case it cannot find it on its own). This option should normally not
+              be needed.
+
+
+INSTALLATION
+       When  installed  by nvidia-installer , sample init scripts to start the daemon for some of the more prevalent
+       init systems are installed  as  the  compressed  tarball  /usr/share/doc/NVIDIA_GLX-1.0/sample/nvidia-persis‐
+       tenced-init.tar.bz2.  These init scripts should be customized to the user's distribution and installed in the
+       proper location by the user to run nvidia-persistenced on system initialization.
+
+       Once the init script is installed so that the daemon is running, users should not normally need  to  manually
+       interact  with nvidia-persistenced: the NVIDIA management utilities, such as nvidia-smi, can communicate with
+       it automatically as necessary to manage persistence mode.
+
+       See the "Using the nvidia-persistenced Utility" section of the NVIDIA Linux Graphics Driver README  for  more
+       background, information about installing the nvidia-persistenced utility to run on system initialization, and
+       troubleshooting tips.
+
+PRIVILEGES
+       The daemon does not require root privileges to run, and may safely be run as an unprivileged user, given that
+       its  runtime directory, /var/run/nvidia-persistenced, is created for and owned by that user prior to starting
+       the daemon.  nvidia-persistenced also requires read and write access to the NVIDIA  character  device  files.
+       If  the  permissions  of  the  device  files  have  been  altered  through  any  of  the NVreg_DeviceFileUID,
+       NVreg_DeviceFile_GID, or NVreg_DeviceFileMode NVIDIA kernel module options, nvidia-persistenced will need  to
+       run as a suitable user.
+
+       If  the  daemon  is  started with root privileges, the --user option may be used instead to indicate that the
+       daemon should drop its privileges and run as the specified user  after  setting  up  its  runtime  directory.
+       Using this option may cause the daemon to be unable to remove the /var/run/nvidia-persistenced directory when
+       it is killed, if the specified user does not have write permissions to /var/run.   In  this  case,  directory
+       removal   should  be  handled  by  a  post-execution  script.   See  the  sample  init  scripts  provided  in
+       /usr/share/doc/NVIDIA_GLX-1.0/sample/nvidia-persistenced-init.tar.bz2 for examples of this behavior.
+
+       The daemon indirectly utilizes nvidia-modprobe via the nvidia-cfg library to load the  NVIDIA  kernel  module
+       and  create the NVIDIA character device files after the daemon has dropped its root privileges, if it had any
+       to begin with.  If nvidia-modprobe is not installed, the daemon may not be able to start properly  if  it  is
+       not run with root privileges.
+
+OTHER
+       The source code to nvidia-persistenced is available here: ⟨ftp://download.nvidia.com/XFree86/
+       nvidia-persistenced/⟩
+
+EXAMPLES
+       nvidia-persistenced
+              Starts the NVIDIA Persistence Daemon with persistence mode enabled for all NVIDIA devices.
+
+       nvidia-persistenced --no-persistence-mode
+              Starts the NVIDIA Persistence Daemon with persistence mode disabled for all NVIDIA devices.
+
+       nvidia-persistenced --user=foo
+              Starts the NVIDIA Persistence Daemon so that it will run as user 'foo'.
+
+
+AUTHOR
+       Will Davis
+       NVIDIA Corporation
+
+
+SEE ALSO
+       nvidia-smi(1), nvidia-modprobe(1)
+
+
+COPYRIGHT
+       Copyright © 2013-2016 NVIDIA Corporation.
+
+
+
+nvidia-persistenced 375.51                           2017-03-22                               nvidia-persistenced(1)

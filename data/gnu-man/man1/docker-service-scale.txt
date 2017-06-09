@@ -1,0 +1,25 @@
+DOCKER(1)                                                                                                  DOCKER(1)
+
+
+
+NAME
+       docker-service-scale - Scale one or multiple replicated services
+
+
+
+SYNOPSIS
+       docker service scale SERVICE=REPLICAS [SERVICE=REPLICAS...]
+
+
+
+DESCRIPTION
+       Scale one or multiple replicated services
+
+
+
+SEE ALSO
+       docker-service(1)
+
+
+
+Docker Community                                      Mar 2017                                             DOCKER(1)

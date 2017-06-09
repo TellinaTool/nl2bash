@@ -1,0 +1,311 @@
+LINK(1)                                             User Commands                                            LINK(1)
+
+
+
+NAME
+       Link - Link ICC profiles.
+
+DESCRIPTION
+       Link ICC profiles, Version 1.5.1 Author: Graeme W. Gill, licensed under the AGPL Version 3
+
+              Diagnostic: Too few arguments, got 1 expect at least 3
+
+       usage: collink [options] srcprofile dstprofile linkedprofile
+
+       -v     Verbose
+
+       -A manufacturer Manufacturer description string
+
+       -M model
+              Model description string
+
+       -D description
+              Profile Description string (Default "inoutfile")
+
+       -C copyright
+              Copyright string
+
+       -V     Verify existing profile, rather than link
+
+       -q lmhu
+              Quality - Low, Medium (def), High, Ultra
+
+       -r res Override clut res. set by -q
+
+       -n     Don't preserve device linearization curves in result
+
+       -f     Special :- Force neutral colors to be K only output
+
+       -fk    Special :- Force K only neutral colors to be K only output
+
+       -F     Special :- Force all colors to be K only output
+
+       -fcmy  Special :- Force 100% C,M or Y only to stay pure
+
+       -p absprof
+              Include abstract profile in link
+
+       -s     Simple Mode (default)
+
+       -g [src.gam]
+              Gamut Mapping Mode [optional source image gamut]
+
+       -G [src.gam]
+              Gamut Mapping Mode using inverse outprofile A2B
+
+              Simple Mode Options: -i in_intent    p = perceptual, r = relative colorimetric,
+
+              s = saturation, a = absolute colorimetric
+
+       -o out_intent
+              p = perceptual, r = relative colorimetric, s = saturation, a = absolute colorimetric
+
+       Gamut Mapping
+              Mode Options:
+
+       -i intent
+              set linking intent from the following choice:
+
+              a - Absolute Colorimetric (in Jab) [ICC Absolute Colorimetric]
+
+              aw - Absolute Colorimetric (in Jab) with scaling to fit white point aa - Absolute Appearance
+
+              r - White Point Matched Appearance [ICC Relative Colorimetric]
+
+              la - Luminance axis matched Appearance
+
+              p - Perceptual (Preferred) (Default) [ICC Perceptual]
+
+              pa - Perceptual Apperance ms - Saturation
+
+              s - Enhanced Saturation [ICC Saturation]
+
+              al - Absolute Colorimetric (Lab) rl - White Point Matched Appearance (Lab)
+
+       -w [J,a,b]
+              Use forced whitepoint hack [optional target point]
+
+       -c viewcond
+              set source viewing conditions for CIECAM02, either an enumerated choice, or a parameter
+
+       -d viewcond
+              set  destination  viewing  conditions  for  CIECAM02,  either an enumerated choice, or parameter:value
+              changes
+
+              pp - Practical Reflection Print (ISO-3664 P2) pe - Print evaluation environment (CIE  116-1995)  pc  -
+              Critical  print  evaluation  environment  (ISO-3664  P1) mt - Monitor in typical work environment mb -
+              Bright monitor in bright work environment md - Monitor in darkened work environment jm - Projector  in
+              dim environment jd - Projector in dark environment
+
+              pcd - Photo CD - original scene outdoors
+
+              ob - Original scene - Bright Outdoors cx - Cut Sheet Transparencies on a viewing box
+
+       s:surround
+              n = auto, a = average, m = dim, d = dark, c = transparency (default average)
+
+       w:X:Y:Z
+              Adapted white point as XYZ (default media white)
+
+       w:x:y  Adapted white point as x, y
+
+       a:adaptation
+              Adaptation luminance in cd.m^2 (default 50.0)
+
+       b:background
+              Background % of image luminance (default 20)
+
+       l:scenewhite
+              Scene white in cd.m^2 if surround = auto (default 250)
+
+       f:flare
+              Flare light % of image luminance (default 1)
+
+       f:X:Y:Z
+              Flare color as XYZ (default media white)
+
+       f:x:y  Flare color as x, y
+
+       -t tlimit
+              set source total ink limit, 0 - 400% (estimate by default)
+
+       -T klimit
+              set source black ink limit, 0 - 100% (estimate by default)
+
+              Inverse outprofile A2B Options: -k tezhxr       CMYK Black generation
+
+              t  =  transfer K from source to destination, e = retain K of destination B2A table z = zero K, h = 0.5
+              K, x = maximum K, r = ramp K (default)
+
+       -k p stle stpo enpo enle shape
+
+              p = black target generation curve parameters
+
+       -k q stle0 stpo0 enpo0 enle0 shape0 stle2 stpo2 enpo2 enle2 shape2
+
+              q = transfer source K to dual curve limits
+
+       -K parameters
+              Same as -k, but target is K locus rather than K value itself
+
+       -l tlimit
+              set destination total ink limit, 0 - 400% (estimate by default)
+
+       -L klimit
+              set destination black ink limit, 0 - 100% (estimate by default)
+
+       -P     Create gamut gammap.wrl diagostic
+
+       Author: Graeme W. Gill, licensed under the AGPL Version 3
+
+              Diagnostic: Too few arguments, got 1 expect at least 3
+
+       usage: collink [options] srcprofile dstprofile linkedprofile
+
+       -v     Verbose
+
+       -A manufacturer Manufacturer description string
+
+       -M model
+              Model description string
+
+       -D description
+              Profile Description string (Default "inoutfile")
+
+       -C copyright
+              Copyright string
+
+       -V     Verify existing profile, rather than link
+
+       -q lmhu
+              Quality - Low, Medium (def), High, Ultra
+
+       -r res Override clut res. set by -q
+
+       -n     Don't preserve device linearization curves in result
+
+       -f     Special :- Force neutral colors to be K only output
+
+       -fk    Special :- Force K only neutral colors to be K only output
+
+       -F     Special :- Force all colors to be K only output
+
+       -fcmy  Special :- Force 100% C,M or Y only to stay pure
+
+       -p absprof
+              Include abstract profile in link
+
+       -s     Simple Mode (default)
+
+       -g [src.gam]
+              Gamut Mapping Mode [optional source image gamut]
+
+       -G [src.gam]
+              Gamut Mapping Mode using inverse outprofile A2B
+
+              Simple Mode Options: -i in_intent    p = perceptual, r = relative colorimetric,
+
+              s = saturation, a = absolute colorimetric
+
+       -o out_intent
+              p = perceptual, r = relative colorimetric, s = saturation, a = absolute colorimetric
+
+       Gamut Mapping
+              Mode Options:
+
+       -i intent
+              set linking intent from the following choice:
+
+              a - Absolute Colorimetric (in Jab) [ICC Absolute Colorimetric]
+
+              aw - Absolute Colorimetric (in Jab) with scaling to fit white point aa - Absolute Appearance
+
+              r - White Point Matched Appearance [ICC Relative Colorimetric]
+
+              la - Luminance axis matched Appearance
+
+              p - Perceptual (Preferred) (Default) [ICC Perceptual]
+
+              pa - Perceptual Apperance ms - Saturation
+
+              s - Enhanced Saturation [ICC Saturation]
+
+              al - Absolute Colorimetric (Lab) rl - White Point Matched Appearance (Lab)
+
+       -w [J,a,b]
+              Use forced whitepoint hack [optional target point]
+
+       -c viewcond
+              set source viewing conditions for CIECAM02, either an enumerated choice, or a parameter
+
+       -d viewcond
+              set destination viewing conditions for CIECAM02,  either  an  enumerated  choice,  or  parameter:value
+              changes
+
+              pp  -  Practical  Reflection Print (ISO-3664 P2) pe - Print evaluation environment (CIE 116-1995) pc -
+              Critical print evaluation environment (ISO-3664 P1) mt - Monitor in  typical  work  environment  mb  -
+              Bright  monitor in bright work environment md - Monitor in darkened work environment jm - Projector in
+              dim environment jd - Projector in dark environment
+
+              pcd - Photo CD - original scene outdoors
+
+              ob - Original scene - Bright Outdoors cx - Cut Sheet Transparencies on a viewing box
+
+       s:surround
+              n = auto, a = average, m = dim, d = dark, c = transparency (default average)
+
+       w:X:Y:Z
+              Adapted white point as XYZ (default media white)
+
+       w:x:y  Adapted white point as x, y
+
+       a:adaptation
+              Adaptation luminance in cd.m^2 (default 50.0)
+
+       b:background
+              Background % of image luminance (default 20)
+
+       l:scenewhite
+              Scene white in cd.m^2 if surround = auto (default 250)
+
+       f:flare
+              Flare light % of image luminance (default 1)
+
+       f:X:Y:Z
+              Flare color as XYZ (default media white)
+
+       f:x:y  Flare color as x, y
+
+       -t tlimit
+              set source total ink limit, 0 - 400% (estimate by default)
+
+       -T klimit
+              set source black ink limit, 0 - 100% (estimate by default)
+
+              Inverse outprofile A2B Options: -k tezhxr       CMYK Black generation
+
+              t = transfer K from source to destination, e = retain K of destination B2A table z = zero K, h  =  0.5
+              K, x = maximum K, r = ramp K (default)
+
+       -k p stle stpo enpo enle shape
+
+              p = black target generation curve parameters
+
+       -k q stle0 stpo0 enpo0 enle0 shape0 stle2 stpo2 enpo2 enle2 shape2
+
+              q = transfer source K to dual curve limits
+
+       -K parameters
+              Same as -k, but target is K locus rather than K value itself
+
+       -l tlimit
+              set destination total ink limit, 0 - 400% (estimate by default)
+
+       -L klimit
+              set destination black ink limit, 0 - 100% (estimate by default)
+
+       -P     Create gamut gammap.wrl diagostic
+
+
+
+Link ICC profiles, Version 1.5.1                     August 2013                                             LINK(1)

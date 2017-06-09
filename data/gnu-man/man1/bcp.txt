@@ -1,0 +1,109 @@
+BCP(1)                                    Boost C++ Libraries Documentation                                   BCP(1)
+
+
+
+NAME
+       bcp - extract subsets of Boost
+
+SYNOPSIS
+       bcp --list [options] module-list
+       bcp [options] module-list output-path
+       bcp --report [options] module-list html-file
+       bcp --help
+
+DESCRIPTION
+       Copies  all  the  files,  including dependencies, found in module-list to output-path. output-path must be an
+       existing path.
+
+       With --list, prints the list of all the files in module-list, including dependencies.
+
+       With --report, writes the HTML report to html-file.
+
+       With --help, prints a quick usage reminder.
+
+       It is useful for Boost authors who want to distribute their library separately from Boost and for Boost users
+       who want to distribute a subset of Boost with their application.
+
+   module-list
+       When the --scan option is not used, a list of Boost files or library names to copy. It can be:
+
+              - The name of a tool: for example "build" will find "tools/build".
+
+              - The name of a library: for example "regex".
+
+              - The title of a header: for example "scoped_ptr" will find "boost/scoped_ptr.hpp".
+
+              - The name of a header: for example "scoped_ptr.hpp" will find "boost/scoped_ptr.hpp".
+
+              - The name of a file: for example "boost/regex.hpp".
+
+       When  the  --scan  option  is  used, a list of (probably non-boost) files to scan for Boost dependencies, the
+       files in the module list are not therefore copied/listed.
+
+   File dependencies
+       C++ source files are scanned for #includes, all #includes present in the  Boost  source  tree  will  then  be
+       scanned for their dependencies and so on.
+
+       C++  source  files  are  associated with the name of a library, if that library has source code (and possibly
+       build data), then include that source in the dependencies.
+
+       C++ source files are checked for dependencies on Boost.Test (for example to see if they use  cpp_main  as  an
+       entry point).
+
+       HTML files are scanned for immediate dependencies (images and style sheets, but not links).
+
+   HTML report contains:
+       - all the licenses in effect, plus the files using each license, and the copyright holders using each license
+
+       - any files with no recognizable license (please report these to the Boost mailing lists)
+
+       - any files with no recognizable copyright holders (please report these to the Boost mailing lists)
+
+       - all the copyright holders and the files on which they hold copyright
+
+       -  file  dependency information - indicates the reason for the inclusion of any particular file in the depen‐
+       dencies found
+
+OPTIONS
+       --boost=path
+              sets the location of the Boost tree to path
+
+       --scan treat the module list as a list of (possibly non-boost) files to scan for Boost dependencies
+
+       --cvs  only copy files under CVS version control
+
+       --unix-lines
+              make sure that all copied files use Unix style line endings
+
+EXAMPLES
+       bcp scoped_ptr /foo
+              Copies boost/scoped_ptr.hpp and dependencies to /foo.
+
+       bcp boost/regex.hpp /foo
+              Copies boost/regex.hpp and all dependencies including the regex source code  (in  libs/regex/src)  and
+              build  files  (in  libs/regex/build)  to /foo.  Does not copy the regex documentation, test or example
+              code.
+
+       bcp regex /foo
+              Copies the full regex lib (in libs/regex)  including  dependencies  (such  as  the  Boost.Test  source
+              required by the regex test programs) to /foo.
+
+       bcp regex config build /foo
+              Copies  the  full  regex  lib  (in  libs/regex) plus the config lib (libs/config) and the build system
+              (tools/build) to /foo including all the dependencies.
+
+       bcp --scan --boost=/boost foo.cpp bar.cpp boost
+              Scans the [non-boost] files foo.cpp and bar.cpp for Boost dependencies and copies  those  dependencies
+              to the sub-directory boost.
+
+       bcp --report regex.hpp boost-regex-report.html
+              Creates a HTML report called boost-regex-report.html for the Boost module regex.hpp.
+
+AUTHORS
+       Author of bcp is John Maddock.
+
+       Author of this manpage is Domenico Andreoli, who copied stuff from bcp --help and the HTML documentation.
+
+
+
+Boost C++ Libraries                                  March 2006                                               BCP(1)

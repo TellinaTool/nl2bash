@@ -1,0 +1,45 @@
+DH_INSTALLUDEV(1)                                     Debhelper                                    DH_INSTALLUDEV(1)
+
+
+
+NAME
+       dh_installudev - install udev rules files
+
+SYNOPSIS
+       dh_installudev [debhelper options] [-n] [--name=name] [--priority=priority]
+
+DESCRIPTION
+       dh_installudev is a debhelper program that is responsible for installing udev rules files.
+
+       Code is added to the preinst and postinst to handle the upgrade from the old udev rules file location.
+
+FILES
+       debian/package.udev
+           Installed into lib/udev/rules.d/ in the package build directory.
+
+OPTIONS
+       --name=name
+           When this parameter is used, dh_installudev looks for and installs files named debian/package.name.udev
+           instead of the usual debian/package.udev.
+
+       --priority=priority
+           Sets the priority the file. Default is 40.
+
+       -n, --noscripts
+           Do not modify preinst/postinst scripts.
+
+NOTES
+       Note that this command is not idempotent. dh_prep(1) should be called between invocations of this command.
+       Otherwise, it may cause multiple instances of the same text to be added to maintainer scripts.
+
+SEE ALSO
+       debhelper(7)
+
+       This program is a part of debhelper.
+
+AUTHOR
+       Joey Hess <joeyh@debian.org>
+
+
+
+9.20131227ubuntu1                                    2014-02-19                                    DH_INSTALLUDEV(1)

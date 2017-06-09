@@ -1,0 +1,253 @@
+pnmmtofiasco(1)                                General Commands Manual                               pnmmtofiasco(1)
+
+
+
+NAME
+       pnmtofiasco - Convert a portable anymap to FIASCO compressed file
+
+
+SYNOPSIS
+       pnmtofiasco [option]...  [filename]...
+
+
+DESCRIPTION
+       pnmtofiasco  compresses  the  named  pbm, pgm, or ppm image files, or Standard Input if no file is named, and
+       produces a FIASCO file on Standard Output.
+
+
+OPTIONS
+       All option names may be abbreviated; for example, --optimize may  be  written  --optim  or  --opt.  For  most
+       options a one letter short option is provided.  Mandatory or optional arguments to long options are mandatory
+       or optional for short options, too.  Both short and long options are case sensitive.
+
+       The basic options are:
+
+
+       -i name, --input-name=name
+              Compress the named images, not Standard Input.  If name is -, read Standard Input.   name  has  to  be
+              either an image filename or a template of the form:
+
+                                                 prefix[start-end{+,-}step]suffix
+
+              Templates   are   useful   when   compressing  video  streams:  e.g.,  if  you  specify  the  template
+              img0[12-01-2].pgm, then pnmtofiasco compresses the images img012.pgm, img010.pgm, ..., img002.pgm.
+
+              If name is a relative path, pnmtofiasco searches for the image files in the current directory  and  in
+              the (colon-separated) list of directories given by the environment variable FIASCO_IMAGES.
+
+
+       -o output-file, --output-name=name
+              Write FIASCO output to the named file, not to Standard Output.
+
+              If  name  is  a  relative path and the environment variable FIASCO_DATA is a (colon-separated) list of
+              directories, then pnmtofiasco writes the output file to the first (writable) directory of  this  list.
+              Otherwise, pnmtofiasco write it to the current directory.
+
+
+       -q N, --quality=N
+              Set quality of compression to N.  Quality is 1 (worst) to 100 (best); default is 20.
+
+
+       -v, --version
+              Print pnmtofiasco version number, then exit.
+
+
+       -V N, --verbose N
+              Set  level  of  verbosity  to  N.   Level is 0 (no output at all), 1 (show progress meter), or 2 (show
+              detailed compression statistics); default is 1.
+
+
+       -B N, --progress-meter N
+              Set type of progress-meter to N.  The following types are available; default is 1:
+
+              0: no progress meter
+
+              1: RPM style progress bar using 50 hash marks
+
+              2: percentage meter
+
+
+       -f name, --config=name
+              Load parameter file name to initialize the options of pnmtofiasco.  See file  system.fiascorc  for  an
+              example  of  the syntax. Options of pnmtofiasco are set by any of the following methods (in the speci‐
+              fied order):
+
+              1) Global ressource file /etc/system.fiascorc
+
+              2) $HOME/.fiascorc
+
+              3) command line
+
+              4) --config=name
+
+
+       -h, --info
+              Print brief help, then exit.
+
+
+       -H, --help
+              Print detailed help, then exit.
+
+
+       The options for advanced users are:
+
+
+       -b name, --basis-name=name
+              Preload compression basis name into FIASCO. The basis name provides the  initial  compression  dictio‐
+              nary.   Either  use one of the files "small.fco", "medium.fco", or "large.fco" that come with pnmtofi‐
+              asco or create a new ASCII basis file.
+
+
+       -z N, --optimize=N Set optimization level to
+              N. Level is 0 (fastes) to 3 (slowest); default  is  1.  Be  warned,  the  encoding  time  dramatically
+              increased when N=2 or N=3 while the compression performance only slightly improves.
+
+
+       -P, --prediction
+              Use  additional predictive coding. If this optimization is enabled then the image is compressed in two
+              steps. In the first step, a coarse approximation of  the  image  is  computed  using  large  unichrome
+              blocks.  Finally, the delta image is computed and the prediction error is approximated using the stan‐
+              dard FIASCO algorithm.
+
+
+       -D N, --dictionary-size=N
+              Set size of dictionary that is used when coding the luminance band to N; default is 10000,  i.e.,  the
+              dictionary is not restricted.
+
+
+       -C N, --chroma-dictionary=N
+              Set size of dictionary that is used when coding chroma bands to N; default is 40.
+
+
+       -Q N, --chroma-qfactor=N
+              Reduce  the  quality  of chroma band compression N-times with respect to the user defined quality q of
+              the luminance band compression (--quality=q); default is 2.
+
+
+       -t N, --tiling-exponent=N
+              Subdivide the image into 2^N tiles prior coding; default is 4, i.e. the image is  subdivided  into  16
+              tiles. The processing order of the individual tiles is defined by the option --tiling-method=name.
+
+
+       -T name, --tiling-method=name
+              Order  the  individual  image  tiles (the image is subdivided into; see option --tiling-exponent=N) by
+              method name; default is "desc-variance".
+
+              desc-variance: Tiles with small variances are processed first.
+
+              asc-variance: Tiles with large variances are processed first.
+
+              desc-spiral: Tiles are process in spiral order starting in the middle.
+
+              asc-spiral: Tiles are process in spiral order starting at the border.
+
+
+       --rpf-mantissa=N
+              Use N mantissa bits for quantized coefficients.
+
+
+       --dc-rpf-mantissa=N
+              Use N mantissa bits for quantized DC coefficients.
+
+
+       --rpf-range=N
+              Coefficients outside the quantization interval [-N,+N] are set to zero.
+
+
+       --dc-rpf-range=N
+              DC coefficients outside the quantization interval [-N,+N] are set to zero.
+
+
+       Additional options for video compression are:
+
+
+       -s N, --smooth=N
+              Smooth decompressed reference frames along the partitioning borders by the given amount N. N is 0  (no
+              smoothing) to 100; default is 70. This factor is stored in the FIASCO file.
+
+
+       -m N, --min-level=N
+              Start prediction (motion compensated prediction or additional prediction) on block level N; default is
+              level 6. I.e., motion compensation is applied to all image blocks of at least 8x8 pixels (binary  tree
+              level N=6), 16x8 (N=7), 16x16 (N=8), etc.
+
+
+       -M N, --max-level=N
+              Stop  prediction (motion compensated prediction or additional prediction) on block level N; default is
+              level 10. I.e., motion compensation is applied to all image blocks of  at  most  16x16  pixels  (N=8),
+              32x16 (N=9), 32x32 (N=10), etc.
+
+
+       -2, --half-pixel
+              Use half pixel precise motion compensation.
+
+
+       -F N, --fps=N
+              Set  number  of  frames per second to N. This value is stored in the FIASCO output file and is used in
+              the decoder dfiasco(1) to control the framerate.
+
+
+       -p type, --pattern=type
+              Defines the type of inter frame compression which should be applied to individual frames  of  a  video
+              stream.  type is a sequence of characters; default is "IPPPPPPPPP". Element N defines the type of pre‐
+              dicting which should be used for frame N; the frame type pattern is periodically extended. Valid char‐
+              acters are:
+
+              I: intra frame, i.e., no motion compensated prediction is used at all.
+
+              P: predicted frame, i.e., a previously encoded frame is used for prediction (forward prediction).
+
+              B:  bidirectional  predicted  frame,  i.e.,  not only a previously shown frame but also a frame of the
+              future is used for prediction (forward, backward or interpolated prediction).
+
+
+       --cross-B-search
+              Instead of using exhaustive search the "Cross-B-Search" algorithm is used to find  the  best  interpo‐
+              lated prediction of B-frames.
+
+
+       --B-as-past-ref
+              Also  use  previously  encoded  B-frames when prediction the current frame. If this option is not set,
+              only I- and P-frames are used to predict the current frame.
+
+
+EXAMPLES
+       pnmtofiasco < foo.ppm >foo.wfa
+              Compress the still image "foo.ppm" to the FIASCO file "foo.wfa" using the default options.
+
+
+       pnmtofiasco -2 -p "IBBPBBPBB" -fps 15 -o video.wfa foo0*.ppm
+              Compress the video frames "foo0*.ppm" to the FIASCO file "video.wfa" using half pixel  precise  motion
+              compensation  at  a  frame  rate  of 15 frames per second. Intra frame 1 is used to predict P-frame 4,
+              frames 1 and 4 are used to predict B-frames 2 and 3, and so on. Frame 10 is again an intra-frame.
+
+
+FILES
+       /etc/system.fiascorc
+              The systemwide initialization file.
+       $HOME/.fiascorc
+              The personal initialization file.
+
+
+ENVIRONMENT
+       FIASCO_IMAGES
+              Search path for image files. Default is "./".
+       FIASCO_DATA
+              Search and save path for FIASCO files. Default is "./".
+
+
+SEE ALSO
+       fiascotopnm(1), ppmtojpeg(1), pnmtojbig(1), ppmtogif(1), pnm(5)
+
+       Ullrich Hafner, Juergen Albert, Stefan Frank, and Michael Unger.  Weighted Finite Automata for Video Compres‐
+       sion, IEEE Journal on Selected Areas In Communications, January 1998
+       Ullrich  Hafner.  Low  Bit-Rate  Image and Video Coding with Weighted Finite Automata, Ph.D. thesis, Mensch &
+       Buch Verlag, ISBN 3-89820-002-7, October 1999.
+
+
+AUTHOR
+       Ullrich Hafner <hafner@bigfoot.de>
+
+
+
+                                                    July 12, 2000                                    pnmmtofiasco(1)

@@ -1,0 +1,37 @@
+FCITX(1)                                       General Commands Manual                                      FCITX(1)
+
+
+
+NAME
+       fcitx-remote - Tool for control fcitx state via console
+
+SYNOPSIS
+       fcitx-remote [OPTION]
+
+OPTIONS
+       -c     inactivate input method
+
+       -o     activate input method
+
+       -r     reload fcitx config
+
+       -t     switch between active/inactive
+
+       -s imname
+              switch to the input method uniquely identified by imname
+
+       [no option]
+              display fcitx state, 0 for close, 1 for inactive, 2 for active
+
+       -h     display help and exit
+
+FILES
+       fcitx  will  create  socket  at  /tmp/fcitx-socket-<displayname>, so user must have permission to access /tmp
+       folder.
+
+SEE ALSO
+       Please see the homepage at http://www.fcitx.org/ and http://fcitx.googlecode.com/
+
+
+
+                                                     2010-12-16                                             FCITX(1)

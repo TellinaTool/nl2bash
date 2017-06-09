@@ -1,0 +1,53 @@
+ppmcolors(1)                                   General Commands Manual                                  ppmcolors(1)
+
+
+
+NAME
+       ppmcolors - generate a color map of all colors of a certain maxval
+
+
+SYNOPSIS
+       ppmcolors [-maxval=maxval]
+
+       All  options  can  be abbreviated to their shortest unique prefix.  You may use two hyphens instead of one to
+       designate an option.  You may use either white space or an equals sign between an option name and its value.
+
+
+DESCRIPTION
+       ppmcolors generates a PPM color map containing all the colors representable with a certain maxval.
+
+       A PPM color map is a regular PPM image that is used by some programs to define a set of colors.
+
+       ppmcolors generates a one row PPM image that contains one pixel of each color representable by the maxval you
+       choose.  The maxval of the PPM image is that maxval.  Note that you can change the maxval of the color map by
+       running the output of ppmcolors through pnmdepth.  As long as the new maxval is a multiple of  the  original,
+       the  resulting  set  of  colors will be identical.  If the new maxval is not a multiple, the resulting set of
+       colors will be slightly different.
+
+       When you select a maxval of 5 (which is the default), you get a color map of the set of "web safe" colors  as
+       defined  by  Netscape.  Most web browsers guarantee that they can produce at least these 216 colors (215 plus
+       black).
+
+       pnmcolormap is another program to generate a color map.  It chooses a set of colors designed to represent the
+       colors in a specified image (or simply the set of all the colors in that image, if you choose).
+
+       pgmramp performs a similar function for PGM images.
+
+
+OPTIONS
+       -maxval=maxval
+              This is the maxval of the generated color map.  Default is 5.
+
+
+SEE ALSO
+       pnmdepth(1), pnmcolormap(1), ppmcie(1), ppmrainbow(1), pgmramp(1), ppm(5)
+
+
+AUTHOR
+       By Bryan Henderson, December 2001.
+
+
+
+
+
+                                                  20 December 2001                                      ppmcolors(1)

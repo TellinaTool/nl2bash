@@ -1,0 +1,102 @@
+FAKE(1)                                             User Commands                                            FAKE(1)
+
+
+
+NAME
+       Fake - Fake test chart reader - lookup values in ICC/MPP profile.
+
+DESCRIPTION
+       Fake  test  chart  reader  - lookup values in ICC/MPP profile, Version 1.5.1 Author: Graeme W. Gill, licensed
+       under the AGPL Version 3
+
+              Diagnostic: Too few arguments
+
+       usage: fakeread [-v] [-s] [separation.icm] profile.[icc|mpp|ti3] outfile
+
+       -v     Verbose mode
+
+       -s     Lookup MPP spectral values
+
+       -p     Use separation profile
+
+       -l     Output Lab rather than XYZ
+
+       -k file.cal
+              Apply calibration (after sep.) and include in .ti3
+
+       -i file.cal
+              Include calibration in .ti3 (but don't apply it)
+
+       -r level
+              Add average random deviation of <level>% to input device values (after sep. & cal.)
+
+       -0 pow Apply power to input device chanel 0-9 (after sep. cal. & rand)
+
+       -R level
+              Add average random deviation of <level>% to output PCS values
+
+       -u     Make random deviations have uniform distributions rather than normal
+
+       -S seed
+              Set random seed
+
+       -b L,a,b
+              Scale black point to target Lab value
+
+       -I intent
+              r = relative colorimetric, a = absolute (default)
+
+       [separation.icc]
+              Device link separation profile
+
+              profile.[icc|mpp|ti3] ICC, MPP profile or TI3 to use outfile           Base name  for  input[ti1]/out‐
+              put[ti3] file
+
+       Author: Graeme W. Gill, licensed under the AGPL Version 3
+
+              Diagnostic: Too few arguments
+
+       usage: fakeread [-v] [-s] [separation.icm] profile.[icc|mpp|ti3] outfile
+
+       -v     Verbose mode
+
+       -s     Lookup MPP spectral values
+
+       -p     Use separation profile
+
+       -l     Output Lab rather than XYZ
+
+       -k file.cal
+              Apply calibration (after sep.) and include in .ti3
+
+       -i file.cal
+              Include calibration in .ti3 (but don't apply it)
+
+       -r level
+              Add average random deviation of <level>% to input device values (after sep. & cal.)
+
+       -0 pow Apply power to input device chanel 0-9 (after sep. cal. & rand)
+
+       -R level
+              Add average random deviation of <level>% to output PCS values
+
+       -u     Make random deviations have uniform distributions rather than normal
+
+       -S seed
+              Set random seed
+
+       -b L,a,b
+              Scale black point to target Lab value
+
+       -I intent
+              r = relative colorimetric, a = absolute (default)
+
+       [separation.icc]
+              Device link separation profile
+
+              profile.[icc|mpp|ti3]  ICC,  MPP profile or TI3 to use outfile           Base name for input[ti1]/out‐
+              put[ti3] file
+
+
+
+Fake test chart reader - lookup values in ICC/MPP proAugustV2013on 1.5.1                                     FAKE(1)

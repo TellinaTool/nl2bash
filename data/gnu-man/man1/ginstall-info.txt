@@ -1,0 +1,130 @@
+INSTALL-INFO(1)                                     User Commands                                    INSTALL-INFO(1)
+
+
+
+NAME
+       ginstall-info - update info/dir entries
+
+SYNOPSIS
+       ginstall-info [OPTION]... [INFO-FILE [DIR-FILE]]
+
+DESCRIPTION
+       Add  or  remove  entries  in INFO-FILE from the Info directory DIR-FILE.  INFO-FILE and DIR-FILE are required
+       unless the --info-file or --dir-file (or --info-dir) options are given, respectively.
+
+OPTIONS
+       --add-once
+              add only to first matching section, not all.
+
+       --align=COL
+              start description of new entries at column COL.
+
+       --calign=COL
+              format second and subsequent description lines to start at column COL.
+
+       --debug
+              report what is being done.
+
+       --delete
+              delete existing entries for INFO-FILE from DIR-FILE; don't insert any new entries.
+
+       --description=TEXT
+              the description of the entry is TEXT; used with the  --name  option  to  become  synonymous  with  the
+              --entry option.
+
+       --dir-file=NAME
+              specify file name of Info directory file; equivalent to using the DIR-FILE argument.
+
+       --dry-run
+              same as --test.
+
+       --entry=TEXT
+              insert  TEXT  as  an  Info directory entry, overriding any corresponding entry from DIR-FILE.  TEXT is
+              written as an Info menu item line followed
+
+              by zero or more extra lines starting with whitespace.
+
+              If you specify more than one entry, all are added.  If you don't specify any entries, they are  deter‐
+              mined
+
+              from information in the Info file itself.
+
+       --help display this help and exit.
+
+       --info-dir=DIR
+              same as --dir-file=DIR/dir.
+
+       --info-file=FILE
+              specify Info file to install in the directory; equivalent to using the INFO-FILE argument.
+
+       --item=TEXT
+              same as --entry=TEXT.
+
+       --keep-old
+              do not replace entries, or remove empty sections.
+
+       --maxwidth, --max-width=COL
+              wrap description at column COL.
+
+       --menuentry=TEXT
+              same as --name=TEXT.
+
+       --name=TEXT
+              the name of the entry is TEXT; used with --description to become synonymous with the --entry option.
+
+       --no-indent
+              do not format new entries in the DIR file.
+
+       --quiet
+              suppress warnings.
+
+       --regex=R
+              put this file's entries in all sections that match the regular expression R (ignoring case).
+
+       --remove
+              same as --delete.
+
+       --remove-exactly
+              only remove if the info file name matches exactly; suffixes such as .info and .gz are not ignored.
+
+       --section=SEC
+              put entries in section SEC of the directory.  If you specify more than one section, all the entries
+
+              are added in each of the sections.
+
+              If you don't specify any sections, they are determined
+
+              from information in the Info file itself.
+
+       --section R SEC
+              equivalent to --regex=R --section=SEC --add-once.
+
+       --silent
+              suppress warnings.
+
+       --test suppress updating of DIR-FILE.
+
+       --version
+              display version information and exit.
+
+REPORTING BUGS
+       Email bug reports to bug-texinfo@gnu.org, general questions and discussion to help-texinfo@gnu.org.
+       Texinfo home page: http://www.gnu.org/software/texinfo/
+
+COPYRIGHT
+       Copyright   ©   2013   Free   Software  Foundation,  Inc.   License  GPLv3+:  GNU  GPL  version  3  or  later
+       <http://gnu.org/licenses/gpl.html>
+       This is free software: you are free to change and redistribute it.  There is NO WARRANTY, to the extent  per‐
+       mitted by law.
+
+SEE ALSO
+       The  full  documentation  for ginstall-info is maintained as a Texinfo manual.  If the info and ginstall-info
+       programs are properly installed at your site, the command
+
+              info ginstall-info
+
+       should give you access to the complete manual.
+
+
+
+ginstall-info 5.2                                  September 2013                                    INSTALL-INFO(1)

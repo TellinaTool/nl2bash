@@ -1,0 +1,253 @@
+CALIBRATE(1)                                        User Commands                                       CALIBRATE(1)
+
+
+
+NAME
+       Calibrate - Calibrate a Display.
+
+DESCRIPTION
+       Calibrate  a  Display,  Version  1.5.1  Author: Graeme W. Gill, licensed under the AGPL Version 3 Diagnostic:
+       Usage requested usage: dispcal [options] outfile
+
+       -v [n] Verbose mode
+
+       -display displayname Choose X11 display name
+
+       -d n[,m]
+              Choose the display n from the following list (default 1) Optionally choose  different  display  m  for
+              VideoLUT access
+
+              1 = 'Screen 1, Output VBOX0 at 0, 0, width 1605, height 1079'
+
+       -dweb[:port]
+              Display via a web server at port (default 8080)
+
+       -c listno
+              Set communication port from the following list (default 1)
+
+              ** No ports found **
+
+       -r     Report on the calibrated display then exit
+
+       -R     Report on the uncalibrated display then exit
+
+       -m     Skip adjustment of the monitor controls
+
+       -o [profile.icc]
+              Create fast matrix/shaper profile [different filename to outfile.icc]
+
+       -O "description"
+              Fast ICC Profile Description string (Default "outfile")
+
+       -u     Update previous calibration and (if -o used) ICC profile VideoLUTs
+
+       -q [vlmh]
+              Quality - Very Low, Low, Medium (def), High
+
+       -p     Use telephoto mode (ie. for a projector) (if available)
+
+       -t [temp]
+              White Daylight locus target, optional target temperaturee in deg. K (deflt.)
+
+       -T [temp]
+              White Black Body locus target, optional target temperaturee in deg. K
+
+       -w x,y Set the target white point as chromaticity coordinates
+
+       -b bright
+              Set the target white brightness in cd/m^2
+
+       -g gamma
+              Set  the  target  response  curve advertised gamma (Def. 2.4) Use "-gl" for L*a*b* curve Use "-gs" for
+              sRGB curve Use "-g709" for REC 709 curve (should use -a as well!)  Use "-g240" for  SMPTE  240M  curve
+              (should use -a as well!)  Use "-G2.4 -f0" for BT.1886
+
+       -G gamma
+              Set the target response curve actual technical gamma
+
+       -f [degree]
+              Amount of black level accounted for with output offset (default all output offset)
+
+       -a ambient
+              Use viewing condition adjustment for ambient in Lux
+
+       -k factor
+              Amount to correct black hue, 0 = none, 1 = full, Default = Automatic
+
+       -A rate
+              Rate of blending from neutral to black point. Default 4.0
+
+       -B blkbright
+              Set the target black brightness in cd/m^2
+
+       -e [n] Run n verify passes on final curves
+
+       -E     Run only verify pass on installed calibration curves
+
+       -P ho,vo,ss[,vs]
+              Position  test  window  and scale it ho,vi: 0.0 = left/top, 0.5 = center, 1.0 = right/bottom etc.  ss:
+              0.5 = half, 1.0 = normal, 2.0 = double etc.
+
+       -F     Fill whole screen with black background
+
+       -n     Don't set override redirect on test window
+
+       -J     Run instrument calibration first (used rarely)
+
+       -N     Disable initial calibration of instrument if possible
+
+       -H     Use high resolution spectrum mode (if available)
+
+       -X file.ccmx
+              Apply Colorimeter Correction Matrix
+
+       -X file.ccss
+              Use Colorimeter Calibration Spectral Samples for calibration
+
+       -Q observ
+              Choose CIE Observer for spectrometer or CCSS colorimeter data:  1931_2  (def),  1964_10,  S&B  1955_2,
+              shaw, J&V 1978_2, 1964_10c
+
+       -I b|w Drift compensation, Black: -Ib, White: -Iw, Both: -Ibw
+
+       -Y A   Use non-adaptive integration time mode (if available).
+
+       -C "command"
+              Invoke shell "command" each time a color is set
+
+       -M "command"
+              Invoke shell "command" each time a color is measured
+
+       -W n|h|x
+              Override serial port flow control: n = none, h = HW, x = Xon/Xoff
+
+       -D [level]
+              Print debug diagnostics to stderr
+
+       inoutfile
+              Base name for created or updated .cal and .icc output files
+
+       Author:  Graeme  W.  Gill,  licensed  under  the  AGPL  Version  3 Diagnostic: Usage requested usage: dispcal
+       [options] outfile
+
+       -v [n] Verbose mode
+
+       -display displayname Choose X11 display name
+
+       -d n[,m]
+              Choose the display n from the following list (default 1) Optionally choose  different  display  m  for
+              VideoLUT access
+
+              1 = 'Screen 1, Output VBOX0 at 0, 0, width 1605, height 1079'
+
+       -dweb[:port]
+              Display via a web server at port (default 8080)
+
+       -c listno
+              Set communication port from the following list (default 1)
+
+              ** No ports found **
+
+       -r     Report on the calibrated display then exit
+
+       -R     Report on the uncalibrated display then exit
+
+       -m     Skip adjustment of the monitor controls
+
+       -o [profile.icc]
+              Create fast matrix/shaper profile [different filename to outfile.icc]
+
+       -O "description"
+              Fast ICC Profile Description string (Default "outfile")
+
+       -u     Update previous calibration and (if -o used) ICC profile VideoLUTs
+
+       -q [vlmh]
+              Quality - Very Low, Low, Medium (def), High
+
+       -p     Use telephoto mode (ie. for a projector) (if available)
+
+       -t [temp]
+              White Daylight locus target, optional target temperaturee in deg. K (deflt.)
+
+       -T [temp]
+              White Black Body locus target, optional target temperaturee in deg. K
+
+       -w x,y Set the target white point as chromaticity coordinates
+
+       -b bright
+              Set the target white brightness in cd/m^2
+
+       -g gamma
+              Set  the  target  response  curve advertised gamma (Def. 2.4) Use "-gl" for L*a*b* curve Use "-gs" for
+              sRGB curve Use "-g709" for REC 709 curve (should use -a as well!)  Use "-g240" for  SMPTE  240M  curve
+              (should use -a as well!)  Use "-G2.4 -f0" for BT.1886
+
+       -G gamma
+              Set the target response curve actual technical gamma
+
+       -f [degree]
+              Amount of black level accounted for with output offset (default all output offset)
+
+       -a ambient
+              Use viewing condition adjustment for ambient in Lux
+
+       -k factor
+              Amount to correct black hue, 0 = none, 1 = full, Default = Automatic
+
+       -A rate
+              Rate of blending from neutral to black point. Default 4.0
+
+       -B blkbright
+              Set the target black brightness in cd/m^2
+
+       -e [n] Run n verify passes on final curves
+
+       -E     Run only verify pass on installed calibration curves
+
+       -P ho,vo,ss[,vs]
+              Position  test  window  and scale it ho,vi: 0.0 = left/top, 0.5 = center, 1.0 = right/bottom etc.  ss:
+              0.5 = half, 1.0 = normal, 2.0 = double etc.
+
+       -F     Fill whole screen with black background
+
+       -n     Don't set override redirect on test window
+
+       -J     Run instrument calibration first (used rarely)
+
+       -N     Disable initial calibration of instrument if possible
+
+       -H     Use high resolution spectrum mode (if available)
+
+       -X file.ccmx
+              Apply Colorimeter Correction Matrix
+
+       -X file.ccss
+              Use Colorimeter Calibration Spectral Samples for calibration
+
+       -Q observ
+              Choose CIE Observer for spectrometer or CCSS colorimeter data:  1931_2  (def),  1964_10,  S&B  1955_2,
+              shaw, J&V 1978_2, 1964_10c
+
+       -I b|w Drift compensation, Black: -Ib, White: -Iw, Both: -Ibw
+
+       -Y A   Use non-adaptive integration time mode (if available).
+
+       -C "command"
+              Invoke shell "command" each time a color is set
+
+       -M "command"
+              Invoke shell "command" each time a color is measured
+
+       -W n|h|x
+              Override serial port flow control: n = none, h = HW, x = Xon/Xoff
+
+       -D [level]
+              Print debug diagnostics to stderr
+
+       inoutfile
+              Base name for created or updated .cal and .icc output files
+
+
+
+Calibrate a Display, Version 1.5.1                   August 2013                                        CALIBRATE(1)

@@ -1,0 +1,144 @@
+pstopnm(1)                                     General Commands Manual                                    pstopnm(1)
+
+
+
+NAME
+       pstopnm - convert a PostScript file into a portable anymap
+
+SYNOPSIS
+       pstopnm  [-stdout]  [-forceplain]  [-help]  [-llx  s] [-lly s] [-landscape] [-portrait] [-nocrop] [-pbm |-pgm
+       |-ppm] [-urx s] [-ury s] [-verbose] [-xborder n] [-xmax n] [-xsize f]  [-yborder  f]  [-ymax  n]  [-ysize  n]
+       psfile[.ps]
+
+DESCRIPTION
+       Reads  a  PostScript  file  as  input.   Produces PBM, PGM, or PPM files as output.  This program simply uses
+       GhostScript to render a PostScript file with its PNM device drivers.  If you don't have GhostScript installed
+       (invoked by a gs command), or the version you have installed was not built with the relevant PNM device driv‐
+       ers, pstopnm will fail.  You can see if you have the proper environment by issuing the command  gs  --help  .
+       If  it  responds  and  lists under "Available Devices" pbm, pbmraw, pgm, pgmraw, pnm, pnmraw, ppm, or ppmraw,
+       you're in business.
+
+       pstopnm does not use the Netpbm libraries to generate the output files, so may  not  be  entirely  consistent
+       with most Netpbm programs.
+
+       psfile[.ps] is the name of the input file.  .pstopnm will add the ps to the end of the name you specify if no
+       file exists by the exact name you specify, but one with added does.  Use - to indicate Standard Input.
+
+       If you use the -stdout option, pstopnm outputs images of all the pages as a multi-image file to Standard Out‐
+       put.   Otherwise,  pstopnm creates one file for each page in the Postscript document.  The files are named as
+       follows: If the input file is named psfile.ps, the name of the files will  be  psfile001.ppm,  psfile002.ppm,
+       etc.   The  filetype  suffix  is  .ppm, .pgm, or .pbm, depending on which kind of output you choose with your
+       invocation options.  If the input file name does not end in .ps, the whole file name is used  in  the  output
+       file  name.   For  example, if the input file is named psfile.old, the output file name is psfile.old001.ppm,
+       etc.
+
+       Note that the output file selection is inconsistent with most Netpbm programs, because it does not default to
+       Standard  Output.   This  is for historical reasons, based on the fact that the Netpbm formats did not always
+       provide for a sequence of images in a single file.
+
+
+       Each output file contains the image of a rectangular part of the page to which  it  pertains.   The  selected
+       area  will  always  be  centered  in  the  output file, and may have borders around it.  The image area to be
+       extracted from the PostScript file and rendered into a portable anymap is defined by four numbers, the  lower
+       left  corner  and the upper right corner x and y coordinates.  These coordinates are usually specified by the
+       BoundingBox comment in the PostScript file header, but they can be overridden by the user by  specifying  one
+       or  more  of the following options: -llx, -lly, -urx, and -ury.  The presence and thickness of a border to be
+       left around the image area is controlled by the use of the options -xborder and -yborder.   If  pstopnm  does
+       not  find  BoundingBox  parameters  in the input, and you don't specify image area coordinates on the command
+       line, pstopnm uses default values.  If your input is from Standard Input, pstopnm does not use the  Bounding‐
+       Box  parameters (due to the technical difficulty of extracting that information and still feeding the file to
+       Ghostscript), so you either have to specify the image area coordinates or take the default.
+
+       Unless you specify both output file width and height, via the -xsize and -ysize  options,  pstopnm  maps  the
+       document into the output image by preserving its aspect ratio.
+
+       It has been reported that on some Postscript Version 1 input, Ghostscript, and therefore pstopnm, produces no
+       output.  To solve this problem, you can convert the file to Postscript Version 3 with the program ps2ps.   It
+       is reported that the program pstops does not work.
+
+
+OPTIONS
+       -forceplain
+              forces  the  output  file to be in plain (text) format.  Otherwise, it is in raw (binary) format.  See
+              pbm(1), etc.
+
+       -llx bx
+              selects bx as the lower left corner x coordinate (in inches).
+
+       -lly by
+              selects by as the lower left corner y coordinate (in inches).
+
+       -landscape
+              renders the image in landscape mode.
+
+       -portrait
+              renders the image in portrait mode.
+
+       -nocrop
+              does not crop the output image dimensions to match the PostScript image area dimensions.
+
+       -pbm -pgm -ppm
+              selects the format of the output file.  By default, all files are rendered as  portable  pixmaps  (ppm
+              format).
+
+       -stdout
+              causes  output  to go to Standard Output instead of to regular files, one per page (see description of
+              output files above).  Use pnmsplit to extract individual pages from Standard Output.
+
+       -urx tx
+              selects tx as the upper right corner x coordinate (in inches).
+
+       -ury ty
+              selects ty as the upper right corner y coordinate (in inches).
+
+       -verbose
+              prints processing information to stdout.
+
+       -xborder frac
+              specifies that the border width along the Y axis should be frac times the document width as  specified
+              by the bounding box comment in the PostScript file header.  The default value is 0.1.
+
+       -xmax xs
+              specifies  that the maximum output image width should have a size less or equal to xs pixels (default:
+              612).
+
+       -xsize xsize
+              specifies that the output image width must be exactly xs pixels.
+
+       -yborder frac
+              specifies that the border width along the X axis should be frac times the document width as  specified
+              by the bounding box comment in the PostScript file header.  The default value is 0.1.
+
+       -ymax ys
+              specifies that the maximum output image height should have a size less or equal to ys pixels (default:
+              792).
+
+       -ysize ys
+              specifies that the output image height must be exactly ys pixels.
+
+
+BUGS
+       The program will produce incorrect results with PostScript files that initialize the  current  transformation
+       matrix.   In  these  cases,  page  translation and rotation will not have any effect.  To render these files,
+       probably the best bet is to use the following options:
+
+          pstopnm -xborder 0 -yborder 0 -portrait -nocrop file.ps
+
+       Additional options may be needed if the document is supposed to be rendered on a medium different  from  let‐
+       ter-size paper.
+
+SEE ALSO
+       gs(1), pstofits(1), pnmtops(1), psidtopgm(1), pbmtolps(1), pbmtoepsi(1), pnmsplit(1)
+
+
+COPYRIGHT
+       Copyright (c) 1992 Smithsonian Astrophysical Observatory
+       PostScript is a Trademark of Adobe Systems Incorporated.
+
+AUTHOR
+       Alberto Accomazzi, WIPL, Center for Astrophysics.
+
+
+
+
+                                                    28 June 2000                                          pstopnm(1)

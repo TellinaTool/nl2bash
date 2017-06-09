@@ -1,0 +1,35 @@
+MESG(1)                                          Linux User's Manual                                         MESG(1)
+
+
+
+NAME
+       mesg - control write access to your terminal
+
+SYNOPSIS
+       mesg [y|n]
+
+DESCRIPTION
+       Mesg controls the access to your terminal by others.  It's typically used to allow or disallow other users to
+       write to your terminal (see write(1)).
+
+OPTIONS
+       y      Allow write access to your terminal.
+
+       n      Disallow write access to your terminal.
+
+       If no option is given, mesg prints out the current access state of your terminal.
+
+NOTES
+       Mesg assumes that its standard input is connected to your terminal. That also means that if you are logged in
+       multiple  times, you can get/set the mesg status of other sessions by using redirection.  For example "mesg n
+       < /dev/pts/46".
+
+AUTHOR
+       Miquel van Smoorenburg (miquels@cistron.nl)
+
+SEE ALSO
+       talk(1), write(1), wall(1)
+
+
+
+                                                    Feb 26, 2001                                             MESG(1)

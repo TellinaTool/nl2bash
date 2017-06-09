@@ -1,0 +1,43 @@
+PLOT(1)                                             User Commands                                            PLOT(1)
+
+
+
+NAME
+       Plot - Plot spectrum and calculate CCT and VCT.
+
+DESCRIPTION
+       Plot spectrum and calculate CCT and VCT Author: Graeme W. Gill usage: specplot [infile.sp]
+
+       -v     verbose
+
+       -c     combine multiple files into one plot
+
+       -z     don't make range cover zero
+
+       -u level
+              plot effect of adding estimated UV level
+
+       -U     plot effect of adding range of estimated UV level
+
+       [infile.sp ...]
+              spectrum files to plot default is all built in illuminants
+
+       Author: Graeme W. Gill usage: specplot [infile.sp]
+
+       -v     verbose
+
+       -c     combine multiple files into one plot
+
+       -z     don't make range cover zero
+
+       -u level
+              plot effect of adding estimated UV level
+
+       -U     plot effect of adding range of estimated UV level
+
+       [infile.sp ...]
+              spectrum files to plot default is all built in illuminants
+
+
+
+Plot spectrum and calculate CCT and VCT              August 2013                                             PLOT(1)

@@ -1,0 +1,51 @@
+xpmtoppm(1)                                    General Commands Manual                                   xpmtoppm(1)
+
+
+
+NAME
+       xpmtoppm - convert an X11 pixmap into a portable pixmap
+
+
+SYNOPSIS
+       xpmtoppm [--alphaout={alpha-filename,-}] [-verbose] [xpmfile]
+
+
+DESCRIPTION
+       Reads an X11 pixmap (XPM version 1 or 3) as input.  Produces a PPM file as output.
+
+
+OPTIONS
+       --alphaout=alpha-filename
+              xpmtoppm  creates  a  PBM  file  containing  the  transparency mask for the image.  If the input image
+              doesn't contain transparency information, the alpha-filename file contains all  white  (opaque)  alpha
+              values.   If  you don't specify --alphaout, xpmtoppm does not generate an alpha file, and if the input
+              image has transparency information, xpmtoppm simply discards it.
+
+              If you specify - as the filename, xpmtoppm writes the alpha output to Standard Output and discards the
+              image.
+
+              See pnmcomp(1) for one way to use the alpha output file.
+
+       --verbose
+              xpmtoppm prints information about its processing on Standard Error.
+
+
+LIMITATIONS
+       The  support to XPM version 3 is limited. Comments can only be single lines and there must be for every pixel
+       a default colorname for a color type visual.
+
+
+SEE ALSO
+       ppmtoxpm(1), pnmcomp(1), ppm(5)
+
+
+AUTHOR
+       Copyright (C) 1991 by Jef Poskanzer.
+
+       Upgraded to support XPM version 3 by
+           Arnaud Le Hors (lehors@mirsa.inria.fr)
+           Tue Apr 9 1991
+
+
+
+                                                     06 May 2001                                         xpmtoppm(1)

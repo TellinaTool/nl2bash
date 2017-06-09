@@ -1,0 +1,43 @@
+NM-ONLINE(1)                                   General Commands Manual                                  NM-ONLINE(1)
+
+
+
+NAME
+       nm-online - ask NetworkManager whether the network is connected
+
+SYNOPSIS
+       nm-online  [ OPTIONS ]
+
+
+DESCRIPTION
+       nm-online  is a utility to find out whether we are online. It is done by asking NetworkManager about its sta‐
+       tus. When run, nm-online waits until NetworkManager  reports  an  active  connection,  or  specified  timeout
+       expires. On exit, the returned status code should be checked (see the return codes bellow).
+
+
+OPTIONS
+       -t, --timeout <timeout_value>
+              Time  to  wait for a connection, in seconds.  If the option is not provided, the default timeout is 30
+              seconds.
+
+       -x, --exit
+              Exit immediately if NetworkManager is not running or connecting.
+
+       -q, --quiet
+              Don't print anything.
+
+
+EXIT STATUS
+       0   Success - already online or connection established within given timeout
+
+       1   Offline or not online within given timeout
+
+       2   Unspecified error
+
+
+SEE ALSO
+       nm-tool(1), nmcli(1), NetworkManager(8).
+
+
+
+                                                    11 July 2013                                        NM-ONLINE(1)

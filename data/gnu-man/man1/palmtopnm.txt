@@ -1,0 +1,62 @@
+palmtopnm(1)                                   General Commands Manual                                  palmtopnm(1)
+
+
+
+NAME
+       palmtopnm - convert a Palm pixmap into a portable anymap
+
+SYNOPSIS
+       palmtopnm [-verbose] [-rendition N] [-showhist]
+       [-forceplain] [pnmfile]
+       palmtopnm -transparent [-verbose] [pnmfile]
+
+
+DESCRIPTION
+       Reads  a Palm pixmap as input, from stdin or pnmfile.  Produces either a portable pixmap as output, or writes
+       the value of the transparent color in the Palm pixmap to stdout.
+
+OPTIONS
+       -verbose
+              Display various interesting information about the input file and process.
+
+       -transparent
+              If the Palm pixmap has a transparent color set, the RGB value for that color will be written to stdout
+              as  in  the  form  #RRGGBB,  where RR, GG, and BB are two-digit hexadecimal numbers indicating a value
+              between 0 and 255.  If no transparent color is set in the bitmap, nothing will be  output.   No  addi‐
+              tional output will be generated; no anymap will be output.
+
+       -rendition N
+              Palm  pixmaps  may contain several different renditions of the same pixmap, with different depths.  By
+              default, palmtopnm operates on the first rendition (rendition number 1) in the  pixmap.   This  switch
+              allows  you to operate on a different rendition.  The value must be between 1 and the number of rendi‐
+              tions in the pixmap, inclusive.
+
+       -showhist
+              Writes a histogram of colors in the input file to stderr.
+
+       -forceplain
+              Force the output anymap to be in ASCII 'plain' netpbm format.
+
+
+SEE ALSO
+       pnmtopalm(1), pnm(5)
+
+
+BUGS
+       An additional compression format, "packbits," has been added with PalmOS 4.0.  This package should be updated
+       to handle it.
+
+       You  currently  cannot  generate  an alpha mask if the Palm pixmap has a transparent color.  However, you can
+       still do this with ppmcolormask with a Netpbm pipe similar to:
+
+       palmtopnm pixmap.palm | ppmcolormask `palmtopnm -transparent pixmap.palm`
+
+
+AUTHORS
+       This program was originally written as Tbmptopnm.c, by Ian Goldberg.  It was heavily modified by Bill Janssen
+       to add color, compression, and transparency function.
+       Copyright 1995-2001 by Ian Goldberg and Bill Janssen.
+
+
+
+                                                  15 December 2000                                      palmtopnm(1)

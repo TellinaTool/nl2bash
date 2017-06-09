@@ -1,0 +1,78 @@
+xlsfonts(1)                                    General Commands Manual                                   xlsfonts(1)
+
+
+
+NAME
+       xlsfonts - server font list displayer for X
+
+SYNOPSIS
+       xlsfonts [-display host:dpy] [-l] [-ll] [-lll] [-m] [-C] [-1] [-w width] [-n columns] [-u] [-o] [-fn pattern]
+
+DESCRIPTION
+       xlsfonts lists the fonts that match the given pattern.  The wildcard character "*" may be used to match any
+       sequence of characters (including none), and "?" to match any single character.  If no pattern is given, "*"
+       is assumed.
+
+       The "*" and "?" characters must be quoted to prevent them from being expanded by the shell.
+
+OPTIONS
+       -display host:dpy
+              This option specifies the X server to contact.
+
+       -d host:dpy
+              Same as -display host:dpy.
+
+       -l     Lists some attributes of the font on one line in addition to its name.
+
+       -ll    Lists font properties in addition to -l output.
+
+       -lll   Lists character metrics in addition to -ll output.
+
+       -m     This option indicates that long listings should also print the minimum and maximum bounds of each
+              font.
+
+       -C     This option indicates that listings should use multiple columns.  This is the same as -n 0.
+
+       -1     This option indicates that listings should use a single column.  This is the same as -n 1.
+
+       -w width
+              This option specifies the width in characters that should be used in figuring out how many columns to
+              print.  The default is 79.
+
+       -n columns
+              This option specifies the number of columns to use in displaying the output. By default, it will
+              attempt to fit as many columns of font names into the number of character specified by -w width.
+
+       -u     This option indicates that the output should be left unsorted.
+
+       -o     This option indicates that xlsfonts should do an OpenFont (and QueryFont, if appropriate) rather than
+              a ListFonts.  This is useful if ListFonts or ListFontsWithInfo fail to list a known font (as is the
+              case with some scaled font systems).
+
+       -fn pattern
+              This option specifies the font name pattern to match.
+
+SEE ALSO
+       X(7), Xserver(1), xset(1), xfd(1), X Logical Font Description Conventions
+
+ENVIRONMENT
+       DISPLAY
+              DISPLAY must be set to get the default host and display to use.
+
+BUGS
+       Doing ``xlsfonts -l'' can tie up your server for a very long time.  This is really a bug with single-threaded
+       non-preemptable servers, not with this program.
+
+AUTHOR
+       Mark Lillibridge
+
+       Jim Fulton
+
+       Phil Karlton
+
+       Roland Mainz
+
+
+
+
+X Version 11                                       xlsfonts 1.0.4                                        xlsfonts(1)

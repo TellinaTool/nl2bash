@@ -6,8 +6,8 @@ ARGS=${@:1}
 
 ./bash-run.sh \
     --dataset bash \
-    --learning_rate 0.0001 \
     --sc_token_dim 150 \
+    --learning_rate 0.0001 \
     --steps_per_epoch 4000 \
     --tg_token_use_attention \
     --tg_token_attn_fun non-linear \

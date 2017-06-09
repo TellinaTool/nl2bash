@@ -1,0 +1,38 @@
+411toppm(1)                                    General Commands Manual                                   411toppm(1)
+
+
+
+NAME
+       411toppm - convert Sony Mavica .411 image to ppm
+
+SYNOPSIS
+       411toppm [-width width] [-height height] [411file]
+
+       All options may be abbreviated to the shortest unique prefix.
+
+
+DESCRIPTION
+       Reads a .411 file, such as from a Sony Mavic camera, and converts it to a PPM image as output.
+
+       Output is to Standard Output.
+
+       The  originator  of this program and decipherer of the .411 format, Steve Allen <sla@alumni.caltech.edu>, has
+       this to say about the utility of this program: "There's so little image in a 64x48 thumbnail (especially when
+       you have the full size JPG file) that the only point in doing this was to answer the implicit challenge posed
+       by the manual stating that only the camera can use these files."
+
+
+OPTIONS
+       -width The width (number of columns) of the input image.  Default is 64.
+
+       -height
+              The height (number of rows) of the input image.  Default is 48.
+
+
+SEE ALSO
+       ppm(5)
+
+
+
+
+                                                    03 March 2001                                        411toppm(1)

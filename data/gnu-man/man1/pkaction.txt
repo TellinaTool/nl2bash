@@ -1,0 +1,36 @@
+PKACTION(1)                                           pkaction                                           PKACTION(1)
+
+
+
+NAME
+       pkaction - Get details about a registered action
+
+SYNOPSIS
+       pkaction [--version] [--help]
+
+       pkaction [--verbose]
+
+       pkaction --action-id action [--verbose]
+
+DESCRIPTION
+       pkaction is used to obtain information about registered PolicyKit actions. If called with --action-id then
+       all actions are displayed. Otherwise the action action. If called without the --verbose option only the name
+       of the action is shown. Otherwise details about the actions are shown.
+
+RETURN VALUE
+       On success pkaction returns 0. Otherwise a non-zero value is returned and a diagnostic message is printed on
+       standard error.
+
+AUTHOR
+       Written by David Zeuthen <davidz@redhat.com> with a lot of help from many others.
+
+BUGS
+       Please send bug reports to either the distribution or the polkit-devel mailing list, see the link
+       http://lists.freedesktop.org/mailman/listinfo/polkit-devel on how to subscribe.
+
+SEE ALSO
+       polkit(8), pkcheck(1), pkexec(1), pkttyagent(1)
+
+
+
+polkit                                                May 2009                                           PKACTION(1)

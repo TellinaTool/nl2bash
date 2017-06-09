@@ -1,0 +1,22 @@
+spctoppm(1)                                    General Commands Manual                                   spctoppm(1)
+
+
+
+NAME
+       spctoppm - convert an Atari compressed Spectrum file into a portable pixmap
+
+SYNOPSIS
+       spctoppm [spcfile]
+
+DESCRIPTION
+       Reads an Atari compressed Spectrum file as input.  Produces a portable pixmap as output.
+
+SEE ALSO
+       sputoppm(1), ppm(5)
+
+AUTHOR
+       Copyright (C) 1991 by Steve Belczyk (seb3@gte.com) and Jef Poskanzer.
+
+
+
+                                                    19 July 1990                                         spctoppm(1)

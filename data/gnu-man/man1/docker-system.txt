@@ -1,0 +1,25 @@
+DOCKER(1)                                                                                                  DOCKER(1)
+
+
+
+NAME
+       docker-system - Manage Docker
+
+
+
+SYNOPSIS
+       docker system
+
+
+
+DESCRIPTION
+       Manage Docker
+
+
+
+SEE ALSO
+       docker(1), docker-system-df(1), docker-system-events(1), docker-system-info(1), docker-system-prune(1)
+
+
+
+Docker Community                                      Mar 2017                                             DOCKER(1)

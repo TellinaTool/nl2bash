@@ -1,0 +1,50 @@
+T1MAC(1)                                       General Commands Manual                                      T1MAC(1)
+
+
+
+NAME
+       t1mac - translate a PFA or PFB PostScript Type 1 font into Macintosh format
+
+SYNOPSIS
+       t1mac [--macbinary | --applesingle | --appledouble | --binhex | --raw] [--filename name] [input [output]]
+
+DESCRIPTION
+       t1mac  reads a PFA (hexadecimal) or PFB (binary) PostScript Type 1 font file and generates an equivalent Mac‐
+       intosh Type 1 font file. The output file can be in MacBinary II, AppleSingle, AppleDouble, or BinHex  format,
+       or it can be a raw resource fork. The default is MacBinary II; use an option to choose a different format. If
+       the output file is not specified output goes to the standard output.
+
+       WARNING: The output of t1mac is not sufficient to use the font, since  Macintoshes  can't  read  raw  Type  1
+       fonts. You will need to create a font suitcase containing bitmap fonts if you do not have such a suitcase for
+       the font already.  t1mac cannot help you do this.
+
+OPTIONS
+       --raw, -r
+            Indicates that output should be a raw resource fork.
+
+       --macbinary
+            Indicates that output should be in MacBinary I or II format. This is the default.
+
+       --applesingle
+            Indicates that output should be in AppleSingle format.
+
+       --appledouble
+            Indicates that output should be in AppleDouble format.
+
+       --binhex
+            Indicates that output should be in BinHex 4.0 format.
+
+       --filename=name, -n name
+            Sets the Macintosh filename of the output font to name. The default is to construct  the  filename  from
+            the  font's name using established Macintosh conventions. This option is not useful when output is a raw
+            resource fork.
+
+SEE ALSO
+       t1unmac(1), t1ascii(1), t1binary(1), t1asm(1), t1disasm(1)
+
+AUTHORS
+       Eddie Kohler (ekohler@gmail.com)
+
+
+
+Version 1.37                                                                                                T1MAC(1)

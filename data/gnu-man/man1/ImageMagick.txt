@@ -1,0 +1,107 @@
+ImageMagick(1)                                 General Commands Manual                                ImageMagick(1)
+
+
+
+NAME
+       ImageMagick - is a free software suite for the creation, modification and display of bitmap images.
+
+SYNOPSIS
+       convert input-file [options] output-file
+
+OVERVIEW
+       ImageMagick®,  is a software suite to create, edit, and compose bitmap images. It can read, convert and write
+       images in a variety of formats (about 100) including GIF, JPEG, JPEG-2000, PNG, PDF, PhotoCD, TIFF, and  DPX.
+       Use  ImageMagick  to translate, flip, mirror, rotate, scale, shear and transform images, adjust image colors,
+       apply various special effects, or draw text, lines, polygons, ellipses and B\['e]zier curves.
+
+       ImageMagick is free software delivered as a ready-to-run binary distribution or as source code that  you  can
+       freely  use, copy, modify, and distribute. Its license is compatible with the GPL. It runs on all major oper‐
+       ating systems.
+
+       The functionality of ImageMagick is typically utilized from the command line or you can use the features from
+       programs written in your favorite programming language. Choose from these interfaces: MagickCore (C), Magick‐
+       Wand (C), ChMagick (Ch), Magick++ (C++), JMagick (Java), L-Magick (Lisp), PascalMagick  (Pascal),  PerlMagick
+       (Perl),  MagickWand  for PHP (PHP), PythonMagick (Python), RMagick (Ruby), or TclMagick (Tcl/TK). With a lan‐
+       guage interface, use ImageMagick to modify or create images automagically and dynamically.
+
+       ImageMagick includes a number of command-line utilities for manipulating images. Most  of  you  are  probably
+       accustom  to editing images one at a time with a graphical user interface (GUI) with such programs as gimp or
+       Photoshop. However, a GUI is not always convenient. Suppose you want to process an image dynamically  from  a
+       web  script or you want to apply the same operations to many images or repeat a specific operation at differ‐
+       ent times to the same or different image. For these types of operations, the  command-line  image  processing
+       utility is appropriate.
+
+       In  the  paragraphs  below, find a short description for each command-line tool.Cl ick on the program name to
+       get details on the program usage and a list of comman d-line options that alters how the program performs. If
+       you are just getting acq uainted with ImageMagick, start at the top of the list, the convert program, and
+        work your way down. Also be sure to peruse Anthony Thyssen's tutorial on how to
+        use ImageMagick utilities to convert, compose, or edit images from the command- line.
+
+       convert
+
+              convert  between  image  formats  as  well as resize an image, blur, crop, despeckle, dither, draw on,
+              flip, join, re-sample, and much more.
+
+       identify
+
+              describes the format and characteristics of one or more image files.
+
+       mogrify
+
+              resize an image, blur, crop, despeckle, dither, draw on, flip, join, re-sample, and much more. Mogrify
+              overwrites the original image file, whereas, convert writes to a different image file.
+
+       composite
+
+              overlaps one image over another.
+
+       montage
+
+              create  a  composite image by combining several separate images. The images are tiled on the composite
+              image optionally adorned with a border, frame, image name, and more.
+
+       compare
+
+              mathematically and visually annotate the difference between an image and its reconstruction..
+
+
+       stream
+
+              is a lightweight tool to stream one or more pixel components of the image or portion of the  image  to
+              your choice of storage formats. It writes the pixel components as they are read from the input image a
+              row at a time making stream desirable when working with large images or when  you  require  raw  pixel
+              components.
+
+
+       display
+
+              displays an image or image sequence on any X server.
+
+       animate
+
+              animates an image sequence on any X server.
+
+       import
+
+              saves any visible window on an X server and outputs it as an image file. You can capture a single win‐
+              dow, the entire screen, or any rectangular portion of the screen.
+
+       conjure
+
+              interprets and executes scripts written in the Magick Scripting Language (MSL).
+
+       For  more  information  about  the  ImageMagick,  point  your  browser   to   file:///usr/share/doc/imagemag‐
+       ick/index.html or http://www.imagemagick.org/.
+
+SEE ALSO
+       convert(1), identify(1), composite(1), montage(1), compare(1), display(1), animate(1), import(1), conjure(1),
+       quantize(5), miff(4)
+
+
+COPYRIGHT
+       Copyright (C) 1999-2012 ImageMagick Studio LLC. Additional copyrights and licenses apply  to  this  software,
+       see file:///usr/share/doc/imagemagick/www/license.html or http://www.imagemagick.org/script/license.php
+
+
+
+ImageMagick                                   Date: 2009/01/10 01:00:00                               ImageMagick(1)

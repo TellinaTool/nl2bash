@@ -1,0 +1,153 @@
+HOSTNAME(1)                                   Linux Programmer's Manual                                  HOSTNAME(1)
+
+
+
+NAME
+       hostname - show or set the system's host name
+       domainname - show or set the system's NIS/YP domain name
+       ypdomainname - show or set the system's NIS/YP domain name
+       nisdomainname - show or set the system's NIS/YP domain name
+       dnsdomainname - show the system's DNS domain name
+
+
+SYNOPSIS
+       hostname  [-a|--alias]  [-d|--domain]  [-f|--fqdn|--long]  [-A|--all-fqdns]  [-i|--ip-address]  [-I|--all-ip-
+       addresses] [-s|--short] [-y|--yp|--nis]
+       hostname [-b|--boot] [-F|--file filename] [hostname]
+       hostname [-h|--help] [-V|--version]
+
+       domainname [nisdomain] [-F file]
+       ypdomainname [nisdomain] [-F file]
+       nisdomainname [nisdomain] [-F file]
+
+       dnsdomainname
+
+
+DESCRIPTION
+       Hostname is used to display the system's DNS name, and to display or set its hostname or NIS domain name.
+
+
+   GET NAME
+       When called without any arguments, the program displays the current names:
+
+       hostname will print the name of the system as returned by the gethostname(2) function.
+
+       domainname will print the NIS domainname of the system.  domainname uses the gethostname(2)  function,  while
+       ypdomainname and nisdomainname use the yp_get_default_domain(3).
+
+       dnsdomainname  will print the domain part of the FQDN (Fully Qualified Domain Name). The complete FQDN of the
+       system is returned with hostname --fqdn (but see the warnings in section THE FQDN below).
+
+
+   SET NAME
+       When called with one argument or with the --file option, the commands set the host name or the NIS/YP  domain
+       name.   hostname uses the sethostname(2) function, while all of the three domainname, ypdomainname and nisdo‐
+       mainname use setdomainname(2).  Note, that this is effective only until the next reboot.  Edit  /etc/hostname
+       for permanent change.
+
+       Note, that only the super-user can change the names.
+
+       It  is  not  possible  to  set  the  FQDN or the DNS domain name with the dnsdomainname command (see THE FQDN
+       below).
+
+       The host name is usually set once at system startup in /etc/init.d/hostname.sh (normally by reading the  con‐
+       tents of a file which contains the host name, e.g.  /etc/hostname).
+
+
+   THE FQDN
+       The  FQDN  (Fully  Qualified Domain Name) of the system is the name that the resolver(3) returns for the host
+       name, such as, ursula.example.com.  It is usually the hostname followed by the  DNS  domain  name  (the  part
+       after the first dot).  You can check the FQDN using hostname --fqdn or the domain name using dnsdomainname.
+
+       You cannot change the FQDN with hostname or dnsdomainname.
+
+       The  recommended  method of setting the FQDN is to make the hostname be an alias for the fully qualified name
+       using /etc/hosts, DNS, or NIS. For example, if the hostname was "ursula", one might have a line in /etc/hosts
+       which reads
+
+              127.0.1.1    ursula.example.com ursula
+
+       Technically:  The  FQDN is the name getaddrinfo(3) returns for the host name returned by gethostname(2).  The
+       DNS domain name is the part after the first dot.
+
+       Therefore it depends on the configuration of the resolver (usually in /etc/host.conf) how you can change  it.
+       Usually the hosts file is parsed before DNS or NIS, so it is most common to change the FQDN in /etc/hosts.
+
+       If a machine has multiple network interfaces/addresses or is used in a mobile environment, then it may either
+       have multiple FQDNs/domain names or none at all. Therefore avoid using hostname --fqdn, hostname --domain and
+       dnsdomainname.  hostname --ip-address is subject to the same limitations so it should be avoided as well.
+
+
+OPTIONS
+       -a, --alias
+              Display  the  alias  name of the host (if used). This option is deprecated and should not be used any‐
+              more.
+
+       -A, --all-fqdns
+              Displays all FQDNs of the machine. This option enumerates all configured network addresses on all con‐
+              figured  network  interfaces, and translates them to DNS domain names. Addresses that cannot be trans‐
+              lated (i.e. because they do not have an appropriate reverse IP entry) are skipped. Note that different
+              addresses  may  resolve  to  the same name, therefore the output may contain duplicate entries. Do not
+              make any assumptions about the order of the output.
+
+       -b, --boot
+              Always set a hostname; this allows the file specified by -F to be non-existant or empty, in which case
+              the default hostname localhost will be used if none is yet set.
+
+       -d, --domain
+              Display  the  name  of  the  DNS  domain.  Don't use the command domainname to get the DNS domain name
+              because it will show the NIS domain name and not the DNS domain name. Use dnsdomainname  instead.  See
+              the warnings in section THE FQDN above, and avoid using this option.
+
+       -f, --fqdn, --long
+              Display  the  FQDN  (Fully  Qualified  Domain  Name). A FQDN consists of a short host name and the DNS
+              domain name. Unless you are using bind or NIS for host lookups you can change the  FQDN  and  the  DNS
+              domain  name  (which is part of the FQDN) in the /etc/hosts file. See the warnings in section THE FQDN
+              above und use hostname --all-fqdns instead wherever possible.
+
+       -F, --file filename
+              Read the host name from the specified file. Comments (lines starting with a `#') are ignored.
+
+       -i, --ip-address
+              Display the network address(es) of the host name. Note that this works only if the host  name  can  be
+              resolved. Avoid using this option; use hostname --all-ip-addresses instead.
+
+       -I, --all-ip-addresses
+              Display all network addresses of the host. This option enumerates all configured addresses on all net‐
+              work interfaces. The loopback interface and IPv6 link-local addresses are omitted. Contrary to  option
+              -i, this option does not depend on name resolution. Do not make any assumptions about the order of the
+              output.
+
+       -s, --short
+              Display the short host name. This is the host name cut at the first dot.
+
+       -V, --version
+              Print version information on standard output and exit successfully.
+
+       -y, --yp, --nis
+              Display the NIS domain name. If a parameter is given (or --file name ) then root can also  set  a  new
+              NIS domain.
+
+       -h, --help
+              Print a usage message and exit.
+
+NOTES
+       The  address  families hostname tries when looking up the FQDN, aliases and network addresses of the host are
+       determined by the configuration of your resolver.  For instance, on GNU Libc systems,  the  resolver  can  be
+       instructed to try IPv6 lookups first by using the inet6 option in /etc/resolv.conf.
+
+FILES
+       /etc/hostname  Historically  this  file  was supposed to only contain the hostname and not the full canonical
+       FQDN. Nowadays most software is able to cope with a full FQDN here. This file is read at  boot  time  by  the
+       system initialization scripts to set the hostname.
+
+       /etc/hosts Usually, this is where one sets the domain name by aliasing the host name to the FQDN.
+
+AUTHORS
+       Peter Tobias, <tobias@et-inf.fho-emden.de>
+       Bernd Eckenfels, <net-tools@lina.inka.de> (NIS and manpage).
+       Michael Meskes, <meskes@debian.org>
+
+
+
+net-tools                                            2009-09-16                                          HOSTNAME(1)

@@ -1,0 +1,93 @@
+PPMFADE(1)                                     General Commands Manual                                    PPMFADE(1)
+
+
+
+NAME
+       ppmfade - generate a transition between two image files using special effects.
+
+SYNOPSIS
+       ppmfade  [  -f first.ppm ] [ -l last.ppm ] [ -mix|-spread|-shift|-relief|-oil|-edge|-bentley|-block ] [ -base
+       name ]
+
+
+DESCRIPTION
+       This program generates a transition between either two input images or between one  input  image  and  black.
+       You  can  use  the  30 intermediate images generated to show a smooth transition between segments of a movie.
+       The input and output images are in the Portable Pixmap (PPM) format.  If you specify both input images,  they
+       should  both  be the same size.  If you want to fade from black to an image, specify only the last image.  If
+       you want to fade from an image to black, specify only the first image.  ppmfade  names  the  resulting  image
+       files  base.nnnn .ppm, where nnnn is a number varying between 0001 and 0030 and base is what you specify with
+       via the -base option (default fade).
+
+       Another way to convert by steps from one image to another is morphing.  You can use xmorph to do that.
+
+
+OPTIONS
+       -f first.ppm
+              This is the image file (PPM format) to be used at the beginning of the transition.  If not  specified,
+              the fade will start from black.
+
+       -l last.ppm
+              This is the image file (PPM format) to be used at the ending of the transition.  If not specified, the
+              fade will end with black.
+
+       -mix   The two images are superimposed with the brightness of the first image decreasing from  full  to  none
+              and  the  brightness  of the final image increasing from none to full.  The transition is quadratic in
+              brightness with faster transition in the beginning and slower at the end.
+
+       -spread
+              The pixels in the first image will be moved (spread) further and further from their original  location
+              and then moved into the proper location in the final image.  This is the default transition.
+
+       -shift The  pixels  in  the  first image will be shifted further and further horizontally from their original
+              location and then moved into the proper location in the final image.
+
+       -relief
+              The first image is faded to a Laplacian relief filtered version of the  first  image.   This  is  then
+              faded to a Laplacian relief filtered version of the second image and finally faded to the final image.
+
+       -oil   The  first  image  is faded to an "oil transfer" version of the first image.  This is then faded to an
+              "oil transfer" version of the second image and finally faded to the final image.
+
+       -edge  The first image is faded to an edge detected version of the first image.  This is  then  faded  to  an
+              edge detected version of the second image and finally faded to the final image.
+
+       -bentley
+              The  first  image  is faded to a "Bentley Effect" version of the first image.  This is then faded to a
+              "Bentley Effect" version of the second image and finally faded to the final image.
+
+       -block The first image is defocused to small blocks.  The small blocks are converted  to  match  a  defocused
+              version of the last image.  The block version of the last image is then focused to the final image.
+
+       -basename
+              This forms part of the output filenames, as described above.
+
+
+
+       EXAMPLES
+              ppmfade -f teapot.ppm -l pyr.ppm
+
+              Fade  from  teapot.ppm to pyr.ppm generating fade.0001.ppm to fade.0030.ppm using the "spread" transi‐
+              tion.
+
+              ppmfade -l teapot.ppm
+
+              Fade from black to teapot.ppm generating fade.0001.ppm to fade.0030.ppm.
+
+              ppmfade -f teapot.ppm -base end
+
+              Fade from teapot.ppm to black generating end.0001.ppm to end.0030.ppm.
+
+
+SEE ALSO
+       tontsc(1), sgifade(1), smart_vfr(1), xmorph(1), ppm(5),
+
+
+AUTHOR
+       Wesley C. Barris (wesb@msc.edu)
+       Army High Performance Computing Research Center (AHPCRC)
+       Minnesota Supercomputer Center, Inc.
+
+
+
+1                                                   April 1, 2000                                         PPMFADE(1)

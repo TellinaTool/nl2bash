@@ -1,0 +1,63 @@
+APT-SORTPKGS(1)                                          APT                                         APT-SORTPKGS(1)
+
+
+
+NAME
+       apt-sortpkgs - Utility to sort package index files
+
+SYNOPSIS
+       apt-sortpkgs [-s] [-o=config_string] [-c=config_file] filename... {-v | --version} {-h | --help}
+
+DESCRIPTION
+       apt-sortpkgs will take an index file (source index or package index) and sort the records so that they are
+       ordered by the package name. It will also sort the internal fields of each record according to the internal
+       sorting rules.
+
+       All output is sent to standard output; the input must be a seekable file.
+
+OPTIONS
+       All command line options may be set using the configuration file, the descriptions indicate the configuration
+       option to set. For boolean options you can override the config file by using something like -f-,--no-f, -f=no
+       or several other variations.
+
+       -s, --source
+           Use source index field ordering. Configuration Item: APT::SortPkgs::Source.
+
+       -h, --help
+           Show a short usage summary.
+
+       -v, --version
+           Show the program version.
+
+       -c, --config-file
+           Configuration File; Specify a configuration file to use. The program will read the default configuration
+           file and then this configuration file. If configuration settings need to be set before the default
+           configuration files are parsed specify a file with the APT_CONFIG environment variable. See apt.conf(5)
+           for syntax information.
+
+       -o, --option
+           Set a Configuration Option; This will set an arbitrary configuration option. The syntax is -o
+           Foo::Bar=bar.  -o and --option can be used multiple times to set different options.
+
+SEE ALSO
+       apt.conf(5)
+
+DIAGNOSTICS
+       apt-sortpkgs returns zero on normal operation, decimal 100 on error.
+
+BUGS
+       APT bug page[1]. If you wish to report a bug in APT, please see /usr/share/doc/debian/bug-reporting.txt or
+       the reportbug(1) command.
+
+AUTHORS
+       Jason Gunthorpe
+
+       APT team
+
+NOTES
+        1. APT bug page
+           http://bugs.debian.org/src:apt
+
+
+
+APT 1.0.1ubuntu2                                    09 June 2012                                     APT-SORTPKGS(1)
