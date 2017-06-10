@@ -328,6 +328,7 @@ def decode(encoder_full_inputs, model_outputs, FLAGS, vocabs, sc_fillers=None,
                         output_example = True
 
             if output_example:
+                print(target)
                 if FLAGS.token_decoding_algorithm == 'greedy':
                     batch_outputs.append((target_ast, target))
                 else:
