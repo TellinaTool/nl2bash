@@ -283,6 +283,7 @@ def decode(encoder_full_inputs, model_outputs, FLAGS, vocabs, sc_fillers=None,
                     output_tokens = merged_output_tokens
 
                 target = ' '.join(output_tokens)
+                print(target)
             
             # Step 2: check if the predicted command template is grammatical
             if FLAGS.grammatical_only and not FLAGS.explain:
