@@ -283,7 +283,6 @@ def decode(encoder_full_inputs, model_outputs, FLAGS, vocabs, sc_fillers=None,
                     output_tokens = merged_output_tokens
 
                 target = ' '.join(output_tokens)
-                print(target)
             
             # Step 2: check if the predicted command template is grammatical
             if FLAGS.grammatical_only and not FLAGS.explain:
@@ -329,6 +328,7 @@ def decode(encoder_full_inputs, model_outputs, FLAGS, vocabs, sc_fillers=None,
                         output_example = True
 
             if output_example:
+                print(target)
                 if FLAGS.token_decoding_algorithm == 'greedy':
                     batch_outputs.append((target_ast, target))
                 else:
