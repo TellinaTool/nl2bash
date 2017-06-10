@@ -32,18 +32,15 @@ class KNearestNeighborModel():
         """
         :param X: [size, dim]
         """
+        # [size, size]
         sim_scores = np.matmul(X, self.train_X.T)
+        # [size, self.k]
         nn = np.argpartition(sim_scores, -self.k, axis=1)[:, -self.k:]
-        # print(self.k)
-        # print(nn)
-        nn_weights = np.concatenate([np.expand_dims(sim_scores[i][nn[i]], 0)
-                                     for i in xrange(len(nn))], axis=0)
-        # print(nn_weights.shape)
-        # print(np.expand_dims(nn_weights, 2).shape)
-        # print((np.expand_dims(nn_weights, 2) * self.train_Y[nn]).shape)
+        # [size, self.k]
+        nn_weights = np.partition(sim_scores, -self.k, axis=1)[:, -self.k:]
+
         nn_prediction = np.sum(
-            np.expand_dims(nn_weights, 2) * self.train_Y[nn], axis=1) # \
-        #     / np.sum(nn_weights, axis=1)[:, None]
+            np.expand_dims(nn_weights, 2) * self.train_Y[nn], axis=1) 
         return nn_prediction
 
     def eval(self, X, Y, verbose=True):
