@@ -70,17 +70,17 @@ def stable_slot_filling(template_tokens, sc_fillers, tg_slots, pointer_targets,
                 ff = len(encoder_outputs) - f - 1
                 cm_slots_keys = list(tg_slots.keys())
                 for s in cm_slots_keys:
-                    X.append(np.concatenate(
-                        [encoder_outputs[ff:ff+1], decoder_outputs[s:s+1]], axis=1))
+                    X.append(np.concatenate([encoder_outputs[ff:ff+1],
+                                             decoder_outputs[s:s+1]], axis=1))
                 X = np.concatenate(X, axis=0)
                 X = X / norm(X, axis=1)[:, None]
                 raw_scores = slot_filling_classifier.predict(X)
                 for ii in xrange(len(raw_scores)):
                     s = cm_slots_keys[ii]
-                    pointer_targets[f, s] = raw_scores[ii][0]
+                    pointer_targets[f, s] = raw_scores[ii]
                     if verbose:
                         print('• alignment ({}, {}): {}\t{}\t{}'.format(
-                            f, s, sc_fillers[f], tg_slots[s], raw_scores[ii][0]))
+                            f, s, sc_fillers[f], tg_slots[s], raw_scores[ii]))
 
     M = M + M * pointer_targets
     # convert M into a dictinary representation of a sparse matrix
