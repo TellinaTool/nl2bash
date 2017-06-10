@@ -34,6 +34,7 @@ class KNearestNeighborModel():
         """
         # [size, size]
         sim_scores = np.matmul(X, self.train_X.T)
+        print(sim_scores.shape)
         # [size, self.k]
         nn = np.argpartition(sim_scores, -self.k, axis=1)[:, -self.k:]
         # [size, self.k]
