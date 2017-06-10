@@ -248,15 +248,17 @@ def decode(encoder_full_inputs, model_outputs, FLAGS, vocabs, sc_fillers=None,
                 for token_id in xrange(len(outputs)):
                     output = outputs[token_id]
                     pred_token = as_str(output, rev_sc_vocab, rev_tg_vocab)
-                    if pred_token.startswith('__LF__'):
-                        pred_token = pred_token[len('__LF__'):]
                     if pred_token.startswith('__ARG__'):
                         pred_token = pred_token[len('__ARG__'):]
                     if '@@' in pred_token:
                         pred_token = pred_token.split('@@')[-1]
                     # process argument slots
                     if pred_token in constants._ENTITIES:
-                        pred_token_type = pred_token
+                        if token_id > 0 and slot_filling.is_min_flag(
+                            rev_tg_vocab[outputs[token_id-1]]):
+                            pred_token_type = 'Timespan'
+                        else:
+                            pred_token_type = pred_token
                         tg_slots[token_id] = (pred_token, pred_token_type)
                     output_tokens.append(pred_token)
 
