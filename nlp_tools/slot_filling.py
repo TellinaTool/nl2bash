@@ -71,7 +71,7 @@ def stable_slot_filling(template_tokens, sc_fillers, tg_slots, pointer_targets,
                 cm_slots_keys = list(tg_slots.keys())
                 for s in cm_slots_keys:
                     X.append(np.expand_dims(np.concatenate(
-                        [encoder_outputs[ff], decoder_outputs[s]], axis=0), 0))
+                        [encoder_outputs[ff:ff+1], decoder_outputs[s:s+1]], axis=1), 0))
                 X = np.concatenate(X, axis=0)
                 X = X / norm(X, axis=1)[:, None]
                 raw_scores = slot_filling_classifier.predict(X)
