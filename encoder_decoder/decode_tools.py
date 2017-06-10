@@ -183,7 +183,7 @@ def decode(encoder_full_inputs, model_outputs, FLAGS, vocabs, sc_fillers=None,
 
     encoder_outputs = model_outputs.encoder_hidden_states
     decoder_outputs = model_outputs.decoder_hidden_states
-
+    print(decoder_outputs[0])
     if FLAGS.fill_argument_slots:
         assert(sc_fillers is not None)
         assert(slot_filling_classifier is not None)
@@ -319,7 +319,7 @@ def decode(encoder_full_inputs, model_outputs, FLAGS, vocabs, sc_fillers=None,
                             output_tokens, batch_sc_fillers, tg_slots, None,
                             encoder_outputs[batch_id],
                             decoder_outputs[batch_id*FLAGS.beam_size+beam_id],
-                            slot_filling_classifier, verbose=False)
+                            slot_filling_classifier, verbose=True)
                     else:
                         output_example = True
                     if not output_example and (target_ast is not None):
