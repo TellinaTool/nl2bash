@@ -320,20 +320,20 @@ def eval_slot_filling(dataset):
                     _, entities = tokenizer.ner_tokenizer(dp.sc_txt)
                     nl_fillers = entities[0]
                     encoder_inputs = [dp.sc_ids]
-                    encoder_full_inputs = [dp.sc_copy_full_ids]
+                    encoder_full_inputs = [dp.sc_copy_ids] \
+                        if FLAGS.use_copy else [dp.sc_full_ids]
                     decoder_inputs = [dp.tg_ids]
-                    decoder_full_inputs = [dp.tg_full_ids]
-                    if FLAGS.use_copy:
-                        pointer_targets = [dp.pointer_targets]
-                    else:
-                        pointer_targets = None
+                    decoder_full_inputs = [dp.tg_full_ids] \
+                        if FLAGS.use_copy else [dp.tg_copy_ids]
+                    pointer_targets = [dp.pointer_targets] \
+                        if FLAGS.use_copy else None
                     formatted_example = model.format_example(
                         [encoder_inputs, encoder_full_inputs],
                         [decoder_inputs, decoder_full_inputs],
                         pointer_targets=pointer_targets,
                         bucket_id=bucket_id)
                     model_outputs = model.step(sess, formatted_example,
-                        bucket_id, forward_only=True, return_rnn_hidden_states=True)
+                        bucket_id, forward_only=True)
                     encoder_outputs = model_outputs.encoder_hidden_states
                     decoder_outputs = model_outputs.decoder_hidden_states
                     cm_slots = {}
@@ -361,27 +361,17 @@ def eval_slot_filling(dataset):
                         pointers = np.multiply(
                             np.sum(P.astype(float)[:pointers.shape[0],
                                 -pointers.shape[1]:], 1, keepdims=True), pointers)
-                        M = {}
-                        for j in xrange(pointers.shape[0]):
-                            for i in xrange(pointers.shape[1]):
-                                ci = pointers.shape[1] - i - 1
-                                if not ci in M:
-                                    M[ci] = {}
-                                if pointers[j, i] == 0:
-                                    M[ci][j] = -np.inf
-                                else:
-                                    M[ci][j] = pointers[j, i]
-                        mappings, _ = \
-                            slot_filling.stable_marriage_alignment(M)
                     else:
-                        tree, _, mappings = slot_filling.stable_slot_filling(
-                                    output_tokens, nl_fillers, cm_slots,
-                                    encoder_outputs[0], decoder_outputs[0],
-                                    slot_filling_classifier)
-                    for mapping in mappings:
-                        if mapping in gt_mappings:
-                            num_correct_align += 1
-                    num_predict_align += len(mappings)
+                        pointers = None
+                    tree, _, mappings = slot_filling.stable_slot_filling(
+                        output_tokens, nl_fillers, cm_slots, pointers,
+                        encoder_outputs[0], decoder_outputs[0], slot_filling_classifier)
+    
+                    if mappings is not None:                
+                        for mapping in mappings:
+                            if mapping in gt_mappings:
+                                num_correct_align += 1
+                        num_predict_align += len(mappings)
                     num_gt_align += len(gt_mappings)
 
                     tokens = data_tools.ast2tokens(tree)
@@ -392,8 +382,8 @@ def eval_slot_filling(dataset):
                         token = rev_tg_vocab[output]
                         if token in constants._ENTITIES:
                             argument = rev_tg_full_vocab[full_outputs[ii]]
-                            if argument.startswith('__LF__'):
-                                argument = argument[len('__LF__'):]
+                            if argument.startswith('__ARG__'):
+                                argument = argument[len('__ARG__'):]
                             pred = tokens[ii]
                             if constants.remove_quotation(argument) == \
                                     constants.remove_quotation(pred):
@@ -416,8 +406,8 @@ def eval_slot_filling(dataset):
 def gen_slot_filling_training_data(train_set, dev_set):
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
         log_device_placement=FLAGS.log_device_placement)) as sess:
-        decoding_algorithm = FLAGS.decoding_algorithm
-        FLAGS.decoding_algorithm = 'greedy'
+        token_decoding_algorithm = FLAGS.token_decoding_algorithm
+        FLAGS.token_decoding_algorithm = 'greedy'
         FLAGS.force_reading_input = True
 
         # Create model and load parameters.
@@ -429,7 +419,7 @@ def gen_slot_filling_training_data(train_set, dev_set):
         mapping_path = os.path.join(FLAGS.model_dir, 'dev.mappings.X.Y.npz')
         gen_slot_filling_training_data_fun(sess, model, dev_set, mapping_path)
 
-        FLAGS.decoding_algorithm = decoding_algorithm
+        FLAGS.token_decoding_algorithm = token_decoding_algorithm
         FLAGS.force_reading_input = False
 
 def gen_slot_filling_training_data_fun(sess, model, dataset, output_file):
@@ -594,9 +584,6 @@ def main(_):
         elif FLAGS.eval_slot_filling:
             eval_slot_filling(dataset)
         elif FLAGS.decode:
-            tf.reset_default_graph()
-            gen_slot_filling_training_data(train_set, dev_set)
-
             model_dir, decode_sig = decode(dataset)
             if not FLAGS.explain:
                 eval(dataset, model_dir, decode_sig, verbose=False)
