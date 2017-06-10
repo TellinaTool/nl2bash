@@ -296,6 +296,7 @@ def eval_slot_filling(dataset):
             log_device_placement=FLAGS.log_device_placement)) as sess:
         # Create model.
         FLAGS.force_reading_input = True
+        FLAGS.token_decoding_algorithm = 'geedy'
         model = graph_utils.create_model(
             sess, FLAGS, Seq2SeqModel, buckets=_buckets, forward_only=True)
 
@@ -337,8 +338,8 @@ def eval_slot_filling(dataset):
                         bucket_id, forward_only=True)
                     encoder_outputs = model_outputs.encoder_hidden_states
                     decoder_outputs = model_outputs.decoder_hidden_states
-                    print(encoder_outputs[0])
-                    print(decoder_outputs[0])
+                    # print(encoder_outputs[0])
+                    # print(decoder_outputs[0])
                     cm_slots = {}
                     output_tokens = []
                     for ii in xrange(len(outputs)):
@@ -399,8 +400,6 @@ def eval_slot_filling(dataset):
                                     constants.remove_quotation(pred):
                                 num_correct_argument += 1
                             num_argument += 1
-                break
-            break
 
         precision = num_correct_align / num_predict_align
         recall = num_correct_align / num_gt_align
@@ -473,21 +472,12 @@ def gen_slot_filling_training_data_fun(sess, model, dataset, output_file):
                             X.append(np.concatenate(
                                 [encoder_outputs[:, ff, :],
                                  decoder_outputs[:, n_s, :]], axis=1))
-<<<<<<< HEAD
-                            Y.append(np.array([0, 1]))
-                # Debugging
-                if i == 0:
-                    print(ff)
-                    print(encoder_outputs[:, ff, :].shape)
-                    print(encoder_outputs[:, ff, :][0, :40])
-=======
                             Y.append(np.array([[0, 1]]))
                     # Debugging
                     if i == 0:
                         print(ff)
                         print(encoder_outputs[0])
                         print(decoder_outputs[0])
->>>>>>> 7b74f509598839fe2941f51d714c2a6c5e2b0a34
 
             if len(X) > 0 and len(X) % 1000 == 0:
                 print('{} examples gathered for generating slot filling features...'
@@ -498,7 +488,7 @@ def gen_slot_filling_training_data_fun(sess, model, dataset, output_file):
     X = X / np.linalg.norm(X, axis=1)[:, None]
     Y = np.concatenate(Y, axis=0)
 
-    np.savez(output_file, [X, Y])
+    np.savez(output_file, X, Y)
 
 # --- Pre-processing --- #
 

@@ -1161,9 +1161,9 @@ def prepare_data(FLAGS):
 
 
 def load_slot_filling_data(input_path):
-    data = np.load(input_path)
-    train_X, train_Y = data['arr_0']
-
+    npz = np.load(input_path)
+    train_X = npz['arr_0']
+    train_Y = npz['arr_1']
     print('{} slot filling examples loaded'.format(len(train_X)))
     return train_X, train_Y
 
