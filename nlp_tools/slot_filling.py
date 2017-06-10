@@ -74,7 +74,6 @@ def stable_slot_filling(template_tokens, sc_fillers, tg_slots, pointer_targets,
                         [encoder_outputs[ff:ff+1], decoder_outputs[s:s+1]], axis=1))
                 X = np.concatenate(X, axis=0)
                 X = X / norm(X, axis=1)[:, None]
-                print(X.shape)
                 raw_scores = slot_filling_classifier.predict(X)
                 for ii in xrange(len(raw_scores)):
                     s = cm_slots_keys[ii]
