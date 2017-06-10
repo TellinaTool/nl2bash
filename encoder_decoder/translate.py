@@ -265,7 +265,7 @@ def schedule_experiments(train_fun, decode_fun, eval_fun, train_set, dev_set):
         train_set, dev_set, hyperparam_sets, FLAGS)
 
 
-# --- Train/Test slot-filling classifier --- #
+# --- Slot filling experiments --- #
 
 def eval_local_slot_filling(train_path, test_path):
     """
@@ -340,6 +340,7 @@ def eval_slot_filling(dataset):
                     decoder_outputs = model_outputs.decoder_hidden_states
                     # print(encoder_outputs[0])
                     # print(decoder_outputs[0])
+                    
                     cm_slots = {}
                     output_tokens = []
                     for ii in xrange(len(outputs)):
