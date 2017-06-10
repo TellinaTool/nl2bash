@@ -426,6 +426,7 @@ def gen_slot_filling_training_data(train_set, dev_set):
         FLAGS.token_decoding_algorithm = token_decoding_algorithm
         FLAGS.force_reading_input = False
 
+
 def gen_slot_filling_training_data_fun(sess, model, dataset, output_file):
     print("saving slot filling mappings to {}".format(output_file))
 
@@ -472,9 +473,7 @@ def gen_slot_filling_training_data_fun(sess, model, dataset, output_file):
                     if i == 0:
                         print(ff)
                         print(encoder_outputs[:, ff, :].shape)
-                        print(X[0].shape)
                         print(encoder_outputs[:, ff, :][0, :40])
-                        print(X[0][0, :40])
 
             if len(X) > 0 and len(X) % 1000 == 0:
                 print('{} examples gathered for generating slot filling features...'
