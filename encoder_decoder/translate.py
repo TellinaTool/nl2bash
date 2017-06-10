@@ -337,6 +337,8 @@ def eval_slot_filling(dataset):
                         bucket_id, forward_only=True)
                     encoder_outputs = model_outputs.encoder_hidden_states
                     decoder_outputs = model_outputs.decoder_hidden_states
+                    print(encoder_outputs[0])
+                    print(decoder_outputs[0])
                     cm_slots = {}
                     output_tokens = []
                     for ii in xrange(len(outputs)):
@@ -395,6 +397,8 @@ def eval_slot_filling(dataset):
                                     constants.remove_quotation(pred):
                                 num_correct_argument += 1
                             num_argument += 1
+                break
+            break
 
         precision = num_correct_align / num_predict_align
         recall = num_correct_align / num_gt_align
@@ -460,7 +464,7 @@ def gen_slot_filling_training_data_fun(sess, model, dataset, output_file):
                     assert(s <= decoder_outputs.shape[1])
                     X.append(np.concatenate([encoder_outputs[:, ff, :],
                                              decoder_outputs[:, s, :]], axis=1))
-                    Y.append(np.array([1, 0]))
+                    Y.append(np.array([[1, 0]]))
                     # add negative examples
                     # sample unmatched filler-slot pairs as negative examples
                     if len(mappings) > 1:
@@ -468,16 +472,21 @@ def gen_slot_filling_training_data_fun(sess, model, dataset, output_file):
                             X.append(np.concatenate(
                                 [encoder_outputs[:, ff, :],
                                  decoder_outputs[:, n_s, :]], axis=1))
-                            Y.append(np.array([0, 1]))
+                            Y.append(np.array([[0, 1]]))
                     # Debugging
                     if i == 0:
                         print(ff)
-                        print(encoder_outputs[:, ff, :].shape)
-                        print(encoder_outputs[:, ff, :][0, :40])
+                        print(encoder_outputs[0])
+                        print(decoder_outputs[0])
 
             if len(X) > 0 and len(X) % 1000 == 0:
                 print('{} examples gathered for generating slot filling features...'
                       .format(len(X)))
+
+    assert(len(X) == len(Y))
+    X = np.concatenate(X, axis=0)
+    X = X / np.linalg.norm(X, axis=1)[:, None]
+    Y = np.concatenate(Y, axis=0)
 
     np.savez(output_file, [X, Y])
 
