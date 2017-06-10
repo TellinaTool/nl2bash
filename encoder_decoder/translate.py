@@ -296,6 +296,7 @@ def eval_slot_filling(dataset):
             log_device_placement=FLAGS.log_device_placement)) as sess:
         # Create model.
         FLAGS.force_reading_input = True
+        FLAGS.token_decoding_algorithm = 'geedy'
         model = graph_utils.create_model(
             sess, FLAGS, Seq2SeqModel, buckets=_buckets, forward_only=True)
 
