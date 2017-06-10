@@ -154,12 +154,9 @@ def train(train_set, dev_set):
 
                 sys.stdout.flush()
 
-        # Save slot filling embeddings.
-        if not FLAGS.explain and (FLAGS.normalized or FLAGS.canonical):
-            mapping_path = os.path.join(FLAGS.model_dir, 'train.mappings.X.Y.npz')
-            gen_slot_filling_training_data_fun(sess, model, train_set, mapping_path)
-            mapping_path = os.path.join(FLAGS.model_dir, 'dev.mappings.X.Y.npz')
-            gen_slot_filling_training_data_fun(sess, model, dev_set, mapping_path)
+    if not FLAGS.explain and (FLAGS.normalized or FLAGS.canonical):
+        tf.reset_default_graph()
+        gen_slot_filling_training_data(train_set, dev_set)
 
     return True
 
@@ -416,6 +413,19 @@ def eval_slot_filling(dataset):
             num_correct_argument / num_argument))
 
 
+def gen_slot_filling_training_data(train_set, dev_set):
+    with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
+        log_device_placement=FLAGS.log_device_placement)) as sess:
+        # Create model and load parameters.
+        model = create_model(sess, forward_only=True)
+
+        # Save slot filling embeddings.
+        mapping_path = os.path.join(FLAGS.model_dir, 'train.mappings.X.Y.npz')
+        gen_slot_filling_training_data_fun(sess, model, train_set, mapping_path)
+        mapping_path = os.path.join(FLAGS.model_dir, 'dev.mappings.X.Y.npz')
+        gen_slot_filling_training_data_fun(sess, model, dev_set, mapping_path)
+
+
 def gen_slot_filling_training_data_fun(sess, model, dataset, output_file):
     print("saving slot filling mappings to {}".format(output_file))
 
@@ -578,6 +588,9 @@ def main(_):
         elif FLAGS.eval_slot_filling:
             eval_slot_filling(dataset)
         elif FLAGS.decode:
+            tf.reset_default_graph()
+            gen_slot_filling_training_data(train_set, dev_set)
+
             model_dir, decode_sig = decode(dataset)
             if not FLAGS.explain:
                 eval(dataset, model_dir, decode_sig, verbose=False)

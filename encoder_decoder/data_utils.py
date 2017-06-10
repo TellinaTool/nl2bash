@@ -842,8 +842,7 @@ def prepare_bash(FLAGS, verbose=False):
                             o_f.write('{}-{} '.format(i, j))
                     o_f.write('\n')
 
-    def split_arguments(nl_tokens, cm_tokens, cm_normalized_tokens,
-                        verbose=False):
+    def split_arguments(nl_tokens, cm_tokens, verbose=False):
         """
         Example:
             nl: find all '.txt' files
@@ -853,38 +852,47 @@ def prepare_bash(FLAGS, verbose=False):
             splitted_cm_tokens = ['find', '.', '-name', _ARG_START, '"', '*',
                 '.txt', '"', _ARG_END]
         """
-        assert(len(cm_tokens) == len(cm_normalized_tokens))
 
-        splitted_nl_tokens = []
+        nl_tokens_wsq = []                  # nl tokens with separated quotes
+        cm_tokens_wsq = []                  # cm tokens with separated quotes
         for word in nl_tokens:
             if constants.with_quotation(word):
-                splitted_nl_tokens.append(word[0])
-                splitted_nl_tokens.append(word[1:-1])
-                splitted_nl_tokens.append(word[-1])
+                nl_tokens_wsq.append(word[0])
+                nl_tokens_wsq.append(word[1:-1])
+                nl_tokens_wsq.append(word[-1])
             else:
-                splitted_nl_tokens.append(word)
+                nl_tokens_wsq.append(word)
+        for token in cm_tokens:
+            if constants.with_quotation(token):
+                if token.startswith('__FLAG__'):
+                    token = token[len('__FLAG__'):]
+                if token.startswith('__ARG__'):
+                    token = token[len('__ARG__'):]
+                cm_tokens_wsq.append(token[0])
+                cm_tokens.wsq.append(token[1:-1])
+                cm_tokens.wsq.append(token[-1])
+            else:
+                cm_tokens_wsq.append(token)
 
         M = collections.defaultdict(dict)
-        for i in xrange(len(splitted_nl_tokens)):
-            word = splitted_nl_tokens[i]
-            for j in xrange(len(cm_normalized_tokens)):
-                if cm_normalized_tokens[j] in constants._ENTITIES:
-                    token = cm_tokens[j]
-                    if token.startswith('__LF__'):
-                        token = token[len('__LF__'):]
-                    if token.startswith('__ARG__'):
-                        token = token[len('__ARG__'):]
-                    if word == token:
-                        M[i][j] = 1
-                    elif word in token:
-                        if len(token) - len(word) > 10 or word in ['"', '\'']:
-                            if verbose:
-                                print("False match: {}, {}".format(token, word))
-                            M[i][j] = -np.inf
-                        else:
-                            M[i][j] = (len(word) + 0.0) / len(token)
-                    else:
+        for i in xrange(len(nl_tokens_wsq)):
+            word = nl_tokens_wsq[i]
+            for j in xrange(len(cm_tokens_wsq)):
+                token = cm_tokens_wsq[j]
+                if word == token and not constants.is_quotation(word) \
+                        and constants.is_quotation(token):
+                    M[i][j] = 1
+                elif word in token or token in word:
+                    if np.abs(len(token) - len(word)) > 10 \
+                            or constants.is_quotation(word) \
+                            or constants.is_quotation(token):
+                        if verbose:
+                            print("False match: {}, {}".format(token, word))
                         M[i][j] = -np.inf
+                    else:
+                        M[i][j] = (len(word) + 0.0) / len(token)
+                else:
+                    M[i][j] = -np.inf
 
         mappings, _ = slot_filling.stable_marriage_alignment(M)
         mapping_dict = dict([(y, x) for (x, y) in mappings])
