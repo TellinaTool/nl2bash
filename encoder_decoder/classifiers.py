@@ -40,7 +40,7 @@ class KNearestNeighborModel():
         nn_weights = np.partition(sim_scores, -self.k, axis=1)[:, -self.k:]
 
         nn_prediction = np.sum(
-            np.expand_dims(nn_weights, 2) * self.train_Y[nn], axis=1) 
+            np.expand_dims(nn_weights, 2) * self.train_Y[nn], axis=1)[:, 0]
         return nn_prediction
 
     def eval(self, X, Y, verbose=True):
