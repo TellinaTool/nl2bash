@@ -1163,10 +1163,7 @@ def prepare_data(FLAGS):
 def load_slot_filling_data(input_path):
     data = np.load(input_path)
     train_X, train_Y = data['arr_0']
-    train_X = np.concatenate(train_X, axis=0)
-    train_Y = np.concatenate([np.expand_dims(y, 0) for y in train_Y], axis=0)
-    train_X = train_X / norm(train_X, axis=1)[:, None]
-    assert(len(train_X) == len(train_Y))
+
     print('{} slot filling examples loaded'.format(len(train_X)))
     return train_X, train_Y
 
