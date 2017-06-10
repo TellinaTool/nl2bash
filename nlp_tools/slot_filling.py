@@ -79,10 +79,10 @@ def stable_slot_filling(template_tokens, sc_fillers, tg_slots, pointer_targets,
                     s = cm_slots_keys[ii]
                     pointer_targets[f, s] = raw_scores[ii][0]
                     if verbose:
-                        print('alignment ({}, {}): {}\t{}\t{}'.format(
+                        print('• alignment ({}, {}): {}\t{}\t{}'.format(
                             f, s, sc_fillers[f], tg_slots[s], raw_scores[ii][0]))
 
-    M = M + pointer_targets
+    M = M + M * pointer_targets
     # convert M into a dictinary representation of a sparse matrix
     M_dict = collections.defaultdict(dict)
     for i in xrange(M.shape[0]):
@@ -269,8 +269,6 @@ def slot_filler_alignment_induction(nl, cm, verbose=True):
     if verbose:
         print('nl: {}'.format(nl))
         print('cm: {}'.format(cm))
-        print(nl_fillers)
-        print(cm_slots)
         for (i, j) in mappings:
             print('[{}] {} <-> [{}] {}'.format(
                 i, nl_fillers[i][0], j, cm_slots[j][0]))

@@ -295,6 +295,7 @@ def eval_slot_filling(dataset):
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
             log_device_placement=FLAGS.log_device_placement)) as sess:
         # Create model.
+        FLAGS.force_reading_input = True
         model = graph_utils.create_model(
             sess, FLAGS, Seq2SeqModel, buckets=_buckets, forward_only=True)
 
@@ -345,6 +346,8 @@ def eval_slot_filling(dataset):
                             if "@@" in token:
                                 token = token.split("@@")[-1]
                             output_tokens.append(token)
+                            if token.startswith('__ARG__'):
+                                token = token[len('__ARG__'):]
                             if nl_fillers is not None and \
                                     token in constants._ENTITIES:
                                 if ii > 0 and slot_filling.is_min_flag(
@@ -365,7 +368,8 @@ def eval_slot_filling(dataset):
                         pointers = None
                     tree, _, mappings = slot_filling.stable_slot_filling(
                         output_tokens, nl_fillers, cm_slots, pointers,
-                        encoder_outputs[0], decoder_outputs[0], slot_filling_classifier)
+                        encoder_outputs[0], decoder_outputs[0], 
+                        slot_filling_classifier, verbose=True)
     
                     if mappings is not None:                
                         for mapping in mappings:
@@ -380,6 +384,8 @@ def eval_slot_filling(dataset):
                     for ii in xrange(len(outputs)):
                         output = outputs[ii]
                         token = rev_tg_vocab[output]
+                        if token.startswith('__ARG__'):
+                            token = token[len('__ARG__'):]
                         if token in constants._ENTITIES:
                             argument = rev_tg_full_vocab[full_outputs[ii]]
                             if argument.startswith('__ARG__'):
@@ -388,8 +394,6 @@ def eval_slot_filling(dataset):
                             if constants.remove_quotation(argument) == \
                                     constants.remove_quotation(pred):
                                 num_correct_argument += 1
-                            print(constants.remove_quotation(argument),
-                                  constants.remove_quotation(pred))
                             num_argument += 1
 
         precision = num_correct_align / num_predict_align
@@ -465,12 +469,12 @@ def gen_slot_filling_training_data_fun(sess, model, dataset, output_file):
                                  decoder_outputs[:, n_s, :]], axis=1))
                             Y.append(np.array([0, 1]))
                     # Debugging
-                    # if i == 0:
-                    #     print(ff)
-                    #     print(encoder_outputs[:, ff, :].shape)
-                    #     print(X[0].shape)
-                    #     print(encoder_outputs[:, ff, :][0, :40])
-                    #     print(X[0][0, :40])
+                    if i == 0:
+                        print(ff)
+                        print(encoder_outputs[:, ff, :].shape)
+                        print(X[0].shape)
+                        print(encoder_outputs[:, ff, :][0, :40])
+                        print(X[0][0, :40])
 
             if len(X) > 0 and len(X) % 1000 == 0:
                 print('{} examples gathered for generating slot filling features...'
@@ -583,6 +587,8 @@ def main(_):
             manual_eval(dataset, 100)
         elif FLAGS.eval_slot_filling:
             eval_slot_filling(dataset)
+        elif FLAGS.gen_slot_filling_training_data:
+            gen_slot_filling_training_data(train_set, dev_set)
         elif FLAGS.decode:
             model_dir, decode_sig = decode(dataset)
             if not FLAGS.explain:
