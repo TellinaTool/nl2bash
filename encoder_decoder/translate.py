@@ -338,7 +338,9 @@ def eval_slot_filling(dataset):
                         bucket_id, forward_only=True)
                     encoder_outputs = model_outputs.encoder_hidden_states
                     decoder_outputs = model_outputs.decoder_hidden_states
-
+                    # print(encoder_outputs[0])
+                    # print(decoder_outputs[0])
+                    
                     cm_slots = {}
                     output_tokens = []
                     for ii in xrange(len(outputs)):
@@ -374,7 +376,9 @@ def eval_slot_filling(dataset):
                         slot_filling_classifier, verbose=True)
     
                     if mappings is not None:                
+                        print(gt_mappings)
                         for mapping in mappings:
+                            print(mapping)
                             if mapping in gt_mappings:
                                 num_correct_align += 1
                         num_predict_align += len(mappings)
@@ -397,8 +401,6 @@ def eval_slot_filling(dataset):
                                     constants.remove_quotation(pred):
                                 num_correct_argument += 1
                             num_argument += 1
-                break
-            break
 
         precision = num_correct_align / num_predict_align
         recall = num_correct_align / num_gt_align
@@ -455,7 +457,6 @@ def gen_slot_filling_training_data_fun(sess, model, dataset, output_file):
                     sess, formatted_example, bucket_id, forward_only=True)
                 encoder_outputs = model_outputs.encoder_hidden_states
                 decoder_outputs = model_outputs.decoder_hidden_states
-
                 # add positive examples
                 for f, s in mappings:
                     # use reversed index for the encoder embedding matrix
@@ -488,7 +489,7 @@ def gen_slot_filling_training_data_fun(sess, model, dataset, output_file):
     X = X / np.linalg.norm(X, axis=1)[:, None]
     Y = np.concatenate(Y, axis=0)
 
-    np.savez(output_file, [X, Y])
+    np.savez(output_file, X, Y)
 
 # --- Pre-processing --- #
 
