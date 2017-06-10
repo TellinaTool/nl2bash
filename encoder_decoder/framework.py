@@ -361,11 +361,11 @@ class EncoderDecoderModel(graph_utils.NNModel):
                         top_states.append(state[1])
             self.decoder_hidden_states = tf.concat(axis=1,
                 values=[tf.reshape(d_o, [-1, 1, self.decoder.dim])
-                 for d_o in top_states])
+                        for d_o in top_states])
         else:
             self.decoder_hidden_states = tf.concat(axis=1,
                 values=[tf.reshape(d_o, [-1, 1, self.decoder.dim])
-                 for d_o in outputs])
+                        for d_o in outputs])
 
         O = [output_symbols, output_logits, losses, attn_alignments]
         if self.tg_char:

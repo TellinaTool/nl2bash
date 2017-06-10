@@ -416,6 +416,10 @@ def eval_slot_filling(dataset):
 def gen_slot_filling_training_data(train_set, dev_set):
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
         log_device_placement=FLAGS.log_device_placement)) as sess:
+        decoding_algorithm = FLAGS.decoding_algorithm
+        FLAGS.decoding_algorithm = 'greedy'
+        FLAGS.force_reading_input = True
+
         # Create model and load parameters.
         model = create_model(sess, forward_only=True)
 
@@ -425,6 +429,8 @@ def gen_slot_filling_training_data(train_set, dev_set):
         mapping_path = os.path.join(FLAGS.model_dir, 'dev.mappings.X.Y.npz')
         gen_slot_filling_training_data_fun(sess, model, dev_set, mapping_path)
 
+        FLAGS.decoding_algorithm = decoding_algorithm
+        FLAGS.force_reading_input = False
 
 def gen_slot_filling_training_data_fun(sess, model, dataset, output_file):
     print("saving slot filling mappings to {}".format(output_file))
