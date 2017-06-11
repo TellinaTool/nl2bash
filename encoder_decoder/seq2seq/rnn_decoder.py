@@ -195,8 +195,7 @@ class RNNDecoder(decoder.Decoder):
                 top_k_outputs = [[tf.squeeze(output, axis=[0]) for output in top_k_output]
                                  for top_k_output in top_k_outputs]
                 # [self.batch_size, self.beam_size]
-                top_k_logits = tf.reshape(past_beam_logprobs,
-                                          [self.batch_size, self.beam_size])
+                top_k_logits = tf.reshape(past_beam_logprobs, [self.batch_size, self.beam_size])
                 top_k_logits = tf.split(axis=0, num_or_size_splits=self.batch_size, value=top_k_logits)
                 top_k_logits = [tf.squeeze(top_k_logit, axis=[0])
                                 for top_k_logit in top_k_logits]
