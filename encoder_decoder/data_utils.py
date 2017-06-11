@@ -909,7 +909,7 @@ def prepare_bash(FLAGS, verbose=False):
                 basic_token = basic_token[len('__ARG__'):]
             if j in mapping_dict:
                 i = mapping_dict[j]
-                word = splitted_nl_tokens[i]
+                word = nl_tokens_wsq[i]
                 if word == basic_token:
                     splitted_cm_tokens.append(token)
                 else:
@@ -928,7 +928,7 @@ def prepare_bash(FLAGS, verbose=False):
             else:
                 splitted_cm_tokens.append(token)
 
-        return splitted_nl_tokens, splitted_cm_tokens
+        return nl_tokens_wsq, splitted_cm_tokens
 
     # Read unfiltered data
     nl_data, cm_data = read_raw_data(data_dir)
