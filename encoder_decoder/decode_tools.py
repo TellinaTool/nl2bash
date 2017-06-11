@@ -183,7 +183,8 @@ def decode(encoder_full_inputs, model_outputs, FLAGS, vocabs, sc_fillers=None,
 
     encoder_outputs = model_outputs.encoder_hidden_states
     decoder_outputs = model_outputs.decoder_hidden_states
-    print(decoder_outputs[0])
+    print("encoder_outputs.shape = {}".format(encoder_outputs.shape))
+    print("decoder_outputs.shape = {}".format(decoder_outputs.shape))
     if FLAGS.fill_argument_slots:
         assert(sc_fillers is not None)
         assert(slot_filling_classifier is not None)
@@ -328,7 +329,6 @@ def decode(encoder_full_inputs, model_outputs, FLAGS, vocabs, sc_fillers=None,
                         output_example = True
 
             if output_example:
-                print(target)
                 if FLAGS.token_decoding_algorithm == 'greedy':
                     batch_outputs.append((target_ast, target))
                 else:
