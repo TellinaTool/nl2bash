@@ -869,8 +869,8 @@ def prepare_bash(FLAGS, verbose=False):
                 if token.startswith('__ARG__'):
                     token = token[len('__ARG__'):]
                 cm_tokens_wsq.append(token[0])
-                cm_tokens.wsq.append(token[1:-1])
-                cm_tokens.wsq.append(token[-1])
+                cm_tokens_wsq.append(token[1:-1])
+                cm_tokens_wsq.append(token[-1])
             else:
                 cm_tokens_wsq.append(token)
 
@@ -913,18 +913,20 @@ def prepare_bash(FLAGS, verbose=False):
                 if word == basic_token:
                     splitted_cm_tokens.append(token)
                 else:
-                    pos_start = basic_token.index(word)
-                    pos_end = pos_start + len(word)
-                    splitted_cm_tokens.append(_ARG_START)
-                    for k in xrange(pos_start):
-                        splitted_cm_tokens.append(basic_token[k])
-                    if low_freq:
-                        splitted_cm_tokens.append(add_low_frequency_prefix(word))
+                    if word in basic_token:
+                        pos_start = basic_token.index(word)
+                        pos_end = pos_start + len(word)
+                        splitted_cm_tokens.append(_ARG_START)
+                        for k in xrange(pos_start):
+                            splitted_cm_tokens.append(basic_token[k])
+                        if low_freq:
+                            splitted_cm_tokens.append(add_low_frequency_prefix(word))
+                        else:
+                            splitted_cm_tokens.append(word)
+                        for k in xrange(pos_end, len(basic_token)):
+                            splitted_cm_tokens.append(basic_token[k])
                     else:
-                        splitted_cm_tokens.append(word)
-                    for k in xrange(pos_end, len(basic_token)):
-                        splitted_cm_tokens.append(basic_token[k])
-                    splitted_cm_tokens.append(_ARG_END)
+                         splitted_cm_tokens.append(_ARG_END)
             else:
                 splitted_cm_tokens.append(token)
 
