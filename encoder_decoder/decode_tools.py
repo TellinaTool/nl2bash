@@ -101,8 +101,8 @@ def translate_fun(data_point, sess, model, vocabs, FLAGS,
         pointer_targets=pointer_targets, bucket_id=bucket_id)
 
     # Compute neural network decoding output
-    model_outputs = model.step(
-        sess, formatted_example, bucket_id, forward_only=True)
+    model_outputs = model.step(sess, formatted_example, bucket_id,
+                               forward_only=True)
     output_logits = model_outputs.output_logits
 
     decoded_outputs = decode(formatted_example.encoder_full_inputs,
@@ -183,7 +183,7 @@ def decode(encoder_full_inputs, model_outputs, FLAGS, vocabs, sc_fillers=None,
 
     encoder_outputs = model_outputs.encoder_hidden_states
     decoder_outputs = model_outputs.decoder_hidden_states
-    print(decoder_outputs[0])
+
     if FLAGS.fill_argument_slots:
         assert(sc_fillers is not None)
         assert(slot_filling_classifier is not None)
@@ -214,8 +214,8 @@ def decode(encoder_full_inputs, model_outputs, FLAGS, vocabs, sc_fillers=None,
                 token = r_tg_vocab[output]
             else:
                 if FLAGS.use_copy and FLAGS.copy_fun == 'copynet':
-                    token = r_sc_vocab[encoder_full_inputs
-                        [len(encoder_full_inputs) - 1 
+                    token = r_sc_vocab[encoder_full_inputs[
+                        len(encoder_full_inputs) - 1
                          - (output - FLAGS.tg_vocab_size)][batch_id]]
                 else:
                     return data_utils._UNK
@@ -328,7 +328,6 @@ def decode(encoder_full_inputs, model_outputs, FLAGS, vocabs, sc_fillers=None,
                         output_example = True
 
             if output_example:
-                print(target)
                 if FLAGS.token_decoding_algorithm == 'greedy':
                     batch_outputs.append((target_ast, target))
                 else:
@@ -350,7 +349,7 @@ def decode(encoder_full_inputs, model_outputs, FLAGS, vocabs, sc_fillers=None,
         batch_char_outputs = []
         batch_char_predictions = \
             [np.transpose(np.reshape(x, [sentence_length, FLAGS.beam_size,
-                                         FLAGS.max_tg_token_size + 1]),
+                                         FLAGS.max_tg_token_size + 1]),x
                           (1, 0, 2))
              for x in np.split(char_output_symbols, batch_size, 1)]
         for batch_id in xrange(len(batch_char_predictions)):
