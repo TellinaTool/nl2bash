@@ -296,6 +296,9 @@ def polarity_safe(r):
 def add_quotations(s):
     return '"' + s + '"'
 
+def is_quotation(s):
+    return s in ['"', '\'']
+
 def with_quotation(s):
     return s[0] in ['"', '\''] and s[-1] in ['"', '\'']
 
