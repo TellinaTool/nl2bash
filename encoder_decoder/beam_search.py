@@ -280,8 +280,9 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         parent_refs = tf.reshape(indices // self.num_classes, [-1]) # [batch_size*self.beam_size]
         parent_refs = parent_refs + self.parent_refs_offsets
 
-        beam_symbols = tf.concat(axis=1, values=[tf.gather(past_beam_symbols, parent_refs),
-                                     tf.reshape(symbols, [-1, 1])])
+        beam_symbols = tf.concat(axis=1,
+                                 values=[tf.gather(past_beam_symbols, parent_refs),
+                                         tf.reshape(symbols, [-1, 1])])
         self.seq_len = tf.gather(self.seq_len, parent_refs) + \
                        tf.cast(tf.not_equal(tf.reshape(symbols, [-1]),
                                             self.stop_token), tf.float32)
@@ -314,10 +315,9 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
                 ranked_cell_states = gather_and_append_tuple_states(
                     past_cell_states, cell_state)
         else:
-            ranked_cell_states = nest_map(
-                lambda element: tf.gather(element, parent_refs),
-                tf.concat(axis=1, values=[past_cell_states, tf.expand_dims(cell_state, 1)])
-            )
+            ranked_cell_states = tf.gather(
+                tf.concat(axis=1, values=[past_cell_states, tf.expand_dims(cell_state, 1)]),
+                parent_refs)
 
         # Handling for getting a done token
         logprobs_batched_3D = tf.reshape(
