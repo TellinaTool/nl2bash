@@ -243,6 +243,7 @@ class RNNDecoder(decoder.Decoder):
                             outputs = [s[1] for s in states]
                         else:
                             outputs = [s[-1][1] for s in states]
+                print(outputs)
 
                 return top_k_outputs, top_k_logits, outputs, states, attn_alignments, pointers
             else:
