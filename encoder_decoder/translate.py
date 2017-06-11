@@ -338,8 +338,6 @@ def eval_slot_filling(dataset):
                         bucket_id, forward_only=True)
                     encoder_outputs = model_outputs.encoder_hidden_states
                     decoder_outputs = model_outputs.decoder_hidden_states
-                    # print(encoder_outputs[0])
-                    # print(decoder_outputs[0])
                     
                     cm_slots = {}
                     output_tokens = []
