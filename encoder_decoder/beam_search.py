@@ -314,8 +314,10 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
                 ranked_cell_states = gather_and_append_tuple_states(
                     past_cell_states, cell_state)
         else:
-            ranked_cell_states = tf.concat(axis=1,
-                values=[tf.gather(past_cell_states, parent_refs), tf.expand_dims(cell_state, 1)])
+            ranked_cell_states = nest_map(
+                lambda element: tf.gather(element, parent_refs),
+                tf.concat(axis=1, values=[past_cell_states, tf.expand_dims(cell_state, 1)])
+            )
 
         # Handling for getting a done token
         logprobs_batched_3D = tf.reshape(
