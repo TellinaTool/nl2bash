@@ -183,8 +183,8 @@ def decode(encoder_full_inputs, model_outputs, FLAGS, vocabs, sc_fillers=None,
 
     encoder_outputs = model_outputs.encoder_hidden_states
     decoder_outputs = model_outputs.decoder_hidden_states
-    print("encoder_outputs.shape = {}".format(encoder_outputs.shape))
-    print("decoder_outputs.shape = {}".format(decoder_outputs.shape))
+    # print("encoder_outputs.shape = {}".format(encoder_outputs.shape))
+    # print("decoder_outputs.shape = {}".format(decoder_outputs.shape))
 
     if FLAGS.fill_argument_slots:
         assert(sc_fillers is not None)
@@ -285,7 +285,6 @@ def decode(encoder_full_inputs, model_outputs, FLAGS, vocabs, sc_fillers=None,
                     output_tokens = merged_output_tokens
 
                 target = ' '.join(output_tokens)
-            
             # Step 2: check if the predicted command template is grammatical
             if FLAGS.grammatical_only and not FLAGS.explain:
                 if FLAGS.dataset.startswith('bash'):

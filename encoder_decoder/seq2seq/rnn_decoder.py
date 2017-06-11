@@ -218,15 +218,15 @@ class RNNDecoder(decoder.Decoder):
                     else:
                         layered_states = [list(zip(
                                 [tf.squeeze(x, axis=[1]) 
-                                    for x in tf.split(axis=1, num_or_size_splits=c_states.get_shape()[1], value=c_states)],
+                                    for x in tf.split(axis=1, num_or_size_splits=c_states.get_shape()[1], value=c_states)[1:]],
                                 [tf.squeeze(x, axis=[1])
-                                    for x in tf.split(axis=1, num_or_size_splits=h_states.get_shape()[1], value=h_states)]))
+                                    for x in tf.split(axis=1, num_or_size_splits=h_states.get_shape()[1], value=h_states)[1:]]))
                             for c_states, h_states in past_cell_states]
                         states = list(zip(layered_states))
                 elif self.rnn_cell in ['gru', 'ran']:
                     states = [tf.squeeze(x, axis=[1]) for x in \
                         tf.split(num_or_size_splits=past_cell_states.get_shape()[1],
-                                 axis=1, value=past_cell_states)]
+                                 axis=1, value=past_cell_states)[1:]]
                 else:
                     raise AttributeError(
                         "Unrecognized rnn cell type: {}".format(self.rnn_cell))
