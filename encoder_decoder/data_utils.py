@@ -129,7 +129,7 @@ def create_vocabulary(vocab_path, data, max_vocabulary_size, min_word_frequency,
       (used for simplifying testing sentences with unseen tokens).
     """
 
-    MIN_ARG_FREQ = 30
+    MIN_ARG_FREQ = 1 if vocab_path.endswith('norm') else 30
 
     vocab = {}
 
