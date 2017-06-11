@@ -890,7 +890,10 @@ def prepare_bash(FLAGS, verbose=False):
                             print("False match: {}, {}".format(token, word))
                         M[i][j] = -np.inf
                     else:
-                        M[i][j] = (len(word) + 0.0) / len(token)
+                        if len(word) < len(token):
+                            M[i][j] = (len(word) + 0.0) / len(token)
+                        else:
+                            M[i][j] =
                 else:
                     M[i][j] = -np.inf
 
