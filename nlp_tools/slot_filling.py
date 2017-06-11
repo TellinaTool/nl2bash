@@ -70,19 +70,19 @@ def stable_slot_filling(template_tokens, sc_fillers, tg_slots, pointer_targets,
                 ff = len(encoder_outputs) - f - 1
                 cm_slots_keys = list(tg_slots.keys())
                 for s in cm_slots_keys:
-                    X.append(np.expand_dims(np.concatenate(
-                        [encoder_outputs[ff], decoder_outputs[s]], axis=0), 0))
+                    X.append(np.concatenate([encoder_outputs[ff:ff+1],
+                                             decoder_outputs[s:s+1]], axis=1))
                 X = np.concatenate(X, axis=0)
                 X = X / norm(X, axis=1)[:, None]
                 raw_scores = slot_filling_classifier.predict(X)
                 for ii in xrange(len(raw_scores)):
                     s = cm_slots_keys[ii]
-                    pointer_targets[f, s] = raw_scores[ii][0]
+                    pointer_targets[f, s] = raw_scores[ii]
                     if verbose:
-                        print('alignment ({}, {}): {}\t{}\t{}'.format(
-                            f, s, sc_fillers[f], tg_slots[s], raw_scores[ii][0]))
+                        print('• alignment ({}, {}): {}\t{}\t{}'.format(
+                            f, s, sc_fillers[f], tg_slots[s], raw_scores[ii]))
 
-    M = M + pointer_targets
+    M = M + M * pointer_targets
     # convert M into a dictinary representation of a sparse matrix
     M_dict = collections.defaultdict(dict)
     for i in xrange(M.shape[0]):
@@ -90,7 +90,7 @@ def stable_slot_filling(template_tokens, sc_fillers, tg_slots, pointer_targets,
             for j in xrange(M.shape[1]):
                 if M[i, j] > 0:
                     M_dict[i][j] = M[i, j]
-
+    print(M_dict)
     mappings, remained_fillers = stable_marriage_alignment(M_dict)
 
     if not remained_fillers:
@@ -269,8 +269,6 @@ def slot_filler_alignment_induction(nl, cm, verbose=True):
     if verbose:
         print('nl: {}'.format(nl))
         print('cm: {}'.format(cm))
-        print(nl_fillers)
-        print(cm_slots)
         for (i, j) in mappings:
             print('[{}] {} <-> [{}] {}'.format(
                 i, nl_fillers[i][0], j, cm_slots[j][0]))

@@ -129,7 +129,7 @@ def create_vocabulary(vocab_path, data, max_vocabulary_size, min_word_frequency,
       (used for simplifying testing sentences with unseen tokens).
     """
 
-    MIN_ARG_FREQ = 30
+    MIN_ARG_FREQ = 1 if vocab_path.endswith('norm') else 30
 
     vocab = {}
 
@@ -869,8 +869,8 @@ def prepare_bash(FLAGS, verbose=False):
                 if token.startswith('__ARG__'):
                     token = token[len('__ARG__'):]
                 cm_tokens_wsq.append(token[0])
-                cm_tokens.wsq.append(token[1:-1])
-                cm_tokens.wsq.append(token[-1])
+                cm_tokens_wsq.append(token[1:-1])
+                cm_tokens_wsq.append(token[-1])
             else:
                 cm_tokens_wsq.append(token)
 
@@ -912,26 +912,28 @@ def prepare_bash(FLAGS, verbose=False):
                 basic_token = basic_token[len('__ARG__'):]
             if j in mapping_dict:
                 i = mapping_dict[j]
-                word = splitted_nl_tokens[i]
+                word = nl_tokens_wsq[i]
                 if word == basic_token:
                     splitted_cm_tokens.append(token)
                 else:
-                    pos_start = basic_token.index(word)
-                    pos_end = pos_start + len(word)
-                    splitted_cm_tokens.append(_ARG_START)
-                    for k in xrange(pos_start):
-                        splitted_cm_tokens.append(basic_token[k])
-                    if low_freq:
-                        splitted_cm_tokens.append(add_low_frequency_prefix(word))
+                    if word in basic_token:
+                        pos_start = basic_token.index(word)
+                        pos_end = pos_start + len(word)
+                        splitted_cm_tokens.append(_ARG_START)
+                        for k in xrange(pos_start):
+                            splitted_cm_tokens.append(basic_token[k])
+                        if low_freq:
+                            splitted_cm_tokens.append(add_low_frequency_prefix(word))
+                        else:
+                            splitted_cm_tokens.append(word)
+                        for k in xrange(pos_end, len(basic_token)):
+                            splitted_cm_tokens.append(basic_token[k])
                     else:
-                        splitted_cm_tokens.append(word)
-                    for k in xrange(pos_end, len(basic_token)):
-                        splitted_cm_tokens.append(basic_token[k])
-                    splitted_cm_tokens.append(_ARG_END)
+                         splitted_cm_tokens.append(_ARG_END)
             else:
                 splitted_cm_tokens.append(token)
 
-        return splitted_nl_tokens, splitted_cm_tokens
+        return nl_tokens_wsq, splitted_cm_tokens
 
     # Read unfiltered data
     nl_data, cm_data = read_raw_data(data_dir)
@@ -1164,12 +1166,9 @@ def prepare_data(FLAGS):
 
 
 def load_slot_filling_data(input_path):
-    data = np.load(input_path)
-    train_X, train_Y = data['arr_0']
-    train_X = np.concatenate(train_X, axis=0)
-    train_Y = np.concatenate([np.expand_dims(y, 0) for y in train_Y], axis=0)
-    train_X = train_X / norm(train_X, axis=1)[:, None]
-    assert(len(train_X) == len(train_Y))
+    npz = np.load(input_path)
+    train_X = npz['arr_0']
+    train_Y = npz['arr_1']
     print('{} slot filling examples loaded'.format(len(train_X)))
     return train_X, train_Y
 

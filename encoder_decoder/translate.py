@@ -265,7 +265,7 @@ def schedule_experiments(train_fun, decode_fun, eval_fun, train_set, dev_set):
         train_set, dev_set, hyperparam_sets, FLAGS)
 
 
-# --- Train/Test slot-filling classifier --- #
+# --- Slot filling experiments --- #
 
 def eval_local_slot_filling(train_path, test_path):
     """
@@ -295,6 +295,8 @@ def eval_slot_filling(dataset):
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
             log_device_placement=FLAGS.log_device_placement)) as sess:
         # Create model.
+        FLAGS.force_reading_input = True
+        FLAGS.token_decoding_algorithm = 'geedy'
         model = graph_utils.create_model(
             sess, FLAGS, Seq2SeqModel, buckets=_buckets, forward_only=True)
 
@@ -336,6 +338,7 @@ def eval_slot_filling(dataset):
                         bucket_id, forward_only=True)
                     encoder_outputs = model_outputs.encoder_hidden_states
                     decoder_outputs = model_outputs.decoder_hidden_states
+                    
                     cm_slots = {}
                     output_tokens = []
                     for ii in xrange(len(outputs)):
@@ -345,6 +348,8 @@ def eval_slot_filling(dataset):
                             if "@@" in token:
                                 token = token.split("@@")[-1]
                             output_tokens.append(token)
+                            if token.startswith('__ARG__'):
+                                token = token[len('__ARG__'):]
                             if nl_fillers is not None and \
                                     token in constants._ENTITIES:
                                 if ii > 0 and slot_filling.is_min_flag(
@@ -365,10 +370,13 @@ def eval_slot_filling(dataset):
                         pointers = None
                     tree, _, mappings = slot_filling.stable_slot_filling(
                         output_tokens, nl_fillers, cm_slots, pointers,
-                        encoder_outputs[0], decoder_outputs[0], slot_filling_classifier)
+                        encoder_outputs[0], decoder_outputs[0], 
+                        slot_filling_classifier, verbose=True)
     
                     if mappings is not None:                
+                        print(gt_mappings)
                         for mapping in mappings:
+                            print(mapping)
                             if mapping in gt_mappings:
                                 num_correct_align += 1
                         num_predict_align += len(mappings)
@@ -380,6 +388,8 @@ def eval_slot_filling(dataset):
                     for ii in xrange(len(outputs)):
                         output = outputs[ii]
                         token = rev_tg_vocab[output]
+                        if token.startswith('__ARG__'):
+                            token = token[len('__ARG__'):]
                         if token in constants._ENTITIES:
                             argument = rev_tg_full_vocab[full_outputs[ii]]
                             if argument.startswith('__ARG__'):
@@ -388,8 +398,6 @@ def eval_slot_filling(dataset):
                             if constants.remove_quotation(argument) == \
                                     constants.remove_quotation(pred):
                                 num_correct_argument += 1
-                            print(constants.remove_quotation(argument),
-                                  constants.remove_quotation(pred))
                             num_argument += 1
 
         precision = num_correct_align / num_predict_align
@@ -422,6 +430,7 @@ def gen_slot_filling_training_data(train_set, dev_set):
         FLAGS.token_decoding_algorithm = token_decoding_algorithm
         FLAGS.force_reading_input = False
 
+
 def gen_slot_filling_training_data_fun(sess, model, dataset, output_file):
     print("saving slot filling mappings to {}".format(output_file))
 
@@ -446,7 +455,6 @@ def gen_slot_filling_training_data_fun(sess, model, dataset, output_file):
                     sess, formatted_example, bucket_id, forward_only=True)
                 encoder_outputs = model_outputs.encoder_hidden_states
                 decoder_outputs = model_outputs.decoder_hidden_states
-
                 # add positive examples
                 for f, s in mappings:
                     # use reversed index for the encoder embedding matrix
@@ -455,7 +463,7 @@ def gen_slot_filling_training_data_fun(sess, model, dataset, output_file):
                     assert(s <= decoder_outputs.shape[1])
                     X.append(np.concatenate([encoder_outputs[:, ff, :],
                                              decoder_outputs[:, s, :]], axis=1))
-                    Y.append(np.array([1, 0]))
+                    Y.append(np.array([[1, 0]]))
                     # add negative examples
                     # sample unmatched filler-slot pairs as negative examples
                     if len(mappings) > 1:
@@ -463,20 +471,23 @@ def gen_slot_filling_training_data_fun(sess, model, dataset, output_file):
                             X.append(np.concatenate(
                                 [encoder_outputs[:, ff, :],
                                  decoder_outputs[:, n_s, :]], axis=1))
-                            Y.append(np.array([0, 1]))
+                            Y.append(np.array([[0, 1]]))
                     # Debugging
-                    # if i == 0:
-                    #     print(ff)
-                    #     print(encoder_outputs[:, ff, :].shape)
-                    #     print(X[0].shape)
-                    #     print(encoder_outputs[:, ff, :][0, :40])
-                    #     print(X[0][0, :40])
+                    if i == 0:
+                        print(ff)
+                        print(encoder_outputs[0])
+                        print(decoder_outputs[0])
 
             if len(X) > 0 and len(X) % 1000 == 0:
                 print('{} examples gathered for generating slot filling features...'
                       .format(len(X)))
 
-    np.savez(output_file, [X, Y])
+    assert(len(X) == len(Y))
+    X = np.concatenate(X, axis=0)
+    X = X / np.linalg.norm(X, axis=1)[:, None]
+    Y = np.concatenate(Y, axis=0)
+
+    np.savez(output_file, X, Y)
 
 # --- Pre-processing --- #
 
@@ -583,6 +594,8 @@ def main(_):
             manual_eval(dataset, 100)
         elif FLAGS.eval_slot_filling:
             eval_slot_filling(dataset)
+        elif FLAGS.gen_slot_filling_training_data:
+            gen_slot_filling_training_data(train_set, dev_set)
         elif FLAGS.decode:
             model_dir, decode_sig = decode(dataset)
             if not FLAGS.explain:
