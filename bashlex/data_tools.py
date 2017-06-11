@@ -263,8 +263,9 @@ def cmd2template(cmd, recover_quotation=True, arg_type_only=True,
     return ast2template(tree, loose_constraints, arg_type_only)
 
 
-def ast2list(node, order='dfs', list=None, ignore_flag_order=False,
-             arg_type_only=False, with_parent=False, with_prefix=False):
+def ast2list(node, order='dfs', _list=None, ignore_flag_order=False,
+             arg_type_only=False, keep_common_args=False,
+             with_parent=False, with_prefix=False):
     """Linearize the AST."""
     if order == 'dfs':
         if node.is_argument() and node.is_open_vocab() and arg_type_only:
@@ -277,19 +278,19 @@ def ast2list(node, order='dfs', list=None, ignore_flag_order=False,
         if with_prefix:
             if node.is_option() or (node.is_argument() and node.is_open_vocab()):
                 token = node.simple_prefix + token
-        list.append(token)
+        _list.append(token)
         if node.get_num_of_children() > 0:
             if node.is_utility() and ignore_flag_order:
                 children = sorted(node.children, key=lambda x:x.value)
             else:
                 children = node.children
             for child in children:
-                ast2list(child, order, list, ignore_flag_order, arg_type_only,
-                         with_parent, with_prefix)
-            list.append(normalizer._H_NO_EXPAND)
+                ast2list(child, order, _list, ignore_flag_order, arg_type_only,
+                         keep_common_args, with_parent, with_prefix)
+            _list.append(normalizer._H_NO_EXPAND)
         else:
-            list.append(normalizer._V_NO_EXPAND)
-    return list
+            _list.append(normalizer._V_NO_EXPAND)
+    return _list
 
 
 def list2ast(list, order='dfs'):

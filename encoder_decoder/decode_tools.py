@@ -101,8 +101,8 @@ def translate_fun(data_point, sess, model, vocabs, FLAGS,
         pointer_targets=pointer_targets, bucket_id=bucket_id)
 
     # Compute neural network decoding output
-    model_outputs = model.step(
-        sess, formatted_example, bucket_id, forward_only=True)
+    model_outputs = model.step(sess, formatted_example, bucket_id,
+                               forward_only=True)
     output_logits = model_outputs.output_logits
 
     decoded_outputs = decode(formatted_example.encoder_full_inputs,
@@ -183,6 +183,8 @@ def decode(encoder_full_inputs, model_outputs, FLAGS, vocabs, sc_fillers=None,
 
     encoder_outputs = model_outputs.encoder_hidden_states
     decoder_outputs = model_outputs.decoder_hidden_states
+    # print("encoder_outputs.shape = {}".format(encoder_outputs.shape))
+    # print("decoder_outputs.shape = {}".format(decoder_outputs.shape))
 
     if FLAGS.fill_argument_slots:
         assert(sc_fillers is not None)
@@ -214,8 +216,8 @@ def decode(encoder_full_inputs, model_outputs, FLAGS, vocabs, sc_fillers=None,
                 token = r_tg_vocab[output]
             else:
                 if FLAGS.use_copy and FLAGS.copy_fun == 'copynet':
-                    token = r_sc_vocab[encoder_full_inputs
-                        [len(encoder_full_inputs) - 1 
+                    token = r_sc_vocab[encoder_full_inputs[
+                        len(encoder_full_inputs) - 1
                          - (output - FLAGS.tg_vocab_size)][batch_id]]
                 else:
                     return data_utils._UNK
@@ -248,15 +250,17 @@ def decode(encoder_full_inputs, model_outputs, FLAGS, vocabs, sc_fillers=None,
                 for token_id in xrange(len(outputs)):
                     output = outputs[token_id]
                     pred_token = as_str(output, rev_sc_vocab, rev_tg_vocab)
-                    if pred_token.startswith('__LF__'):
-                        pred_token = pred_token[len('__LF__'):]
                     if pred_token.startswith('__ARG__'):
                         pred_token = pred_token[len('__ARG__'):]
                     if '@@' in pred_token:
                         pred_token = pred_token.split('@@')[-1]
                     # process argument slots
                     if pred_token in constants._ENTITIES:
-                        pred_token_type = pred_token
+                        if token_id > 0 and slot_filling.is_min_flag(
+                            rev_tg_vocab[outputs[token_id-1]]):
+                            pred_token_type = 'Timespan'
+                        else:
+                            pred_token_type = pred_token
                         tg_slots[token_id] = (pred_token, pred_token_type)
                     output_tokens.append(pred_token)
 
@@ -281,7 +285,6 @@ def decode(encoder_full_inputs, model_outputs, FLAGS, vocabs, sc_fillers=None,
                     output_tokens = merged_output_tokens
 
                 target = ' '.join(output_tokens)
-            
             # Step 2: check if the predicted command template is grammatical
             if FLAGS.grammatical_only and not FLAGS.explain:
                 if FLAGS.dataset.startswith('bash'):
@@ -319,7 +322,7 @@ def decode(encoder_full_inputs, model_outputs, FLAGS, vocabs, sc_fillers=None,
                             output_tokens, batch_sc_fillers, tg_slots, None,
                             encoder_outputs[batch_id],
                             decoder_outputs[batch_id*FLAGS.beam_size+beam_id],
-                            slot_filling_classifier, verbose=False)
+                            slot_filling_classifier, verbose=True)
                     else:
                         output_example = True
                     if not output_example and (target_ast is not None):
@@ -347,7 +350,7 @@ def decode(encoder_full_inputs, model_outputs, FLAGS, vocabs, sc_fillers=None,
         batch_char_outputs = []
         batch_char_predictions = \
             [np.transpose(np.reshape(x, [sentence_length, FLAGS.beam_size,
-                                         FLAGS.max_tg_token_size + 1]),
+                                         FLAGS.max_tg_token_size + 1]),x
                           (1, 0, 2))
              for x in np.split(char_output_symbols, batch_size, 1)]
         for batch_id in xrange(len(batch_char_predictions)):

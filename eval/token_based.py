@@ -29,10 +29,10 @@ blacklist = [
 def get_content_tokens(ast):
     content_tokens = collections.defaultdict(int)
     for token in data_tools.ast2tokens(
-            ast, loose_constraints=True, arg_type_only=True):
-        if ((token.isalnum() and token.islower()) or (token.startswith('-')
-           or token.startswith('+') and len(token) > 1)) or token in whitelist\
-           and not token in blacklist:
+            ast, loose_constraints=True, arg_type_only=True, with_prefix=True):
+        if not token.startswith('__ARG__'):
+            if token.startswith('__FLAG__'):
+                token = token[len('__FLAG__'):]
             content_tokens[token] += 1
     return content_tokens
 
