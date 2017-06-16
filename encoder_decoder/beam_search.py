@@ -296,7 +296,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
                 lambda element: tf.gather(element, parent_refs), attns)
 
         # update cell_states
-        def gather_and_append_tuple_states(pc_states, c_state):
+        def concat_and_gather_tuple_states(pc_states, c_state):
             rc_states = (
                 tf.concat(axis=1, values=[pc_states[0], tf.expand_dims(c_state[0], 1)]),
                 tf.concat(axis=1, values=[pc_states[1], tf.expand_dims(c_state[1], 1)])
@@ -309,16 +309,15 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
 
         if nest.is_sequence(cell_state):
             if self.num_layers > 1:
-                ranked_cell_states = [gather_and_append_tuple_states(pc_states, c_state)
+                ranked_cell_states = [concat_and_gather_tuple_states(pc_states, c_state)
                     for pc_states, c_state in zip(past_cell_states, cell_state)]
             else:
-                ranked_cell_states = gather_and_append_tuple_states(
+                ranked_cell_states = concat_and_gather_tuple_states(
                     past_cell_states, cell_state)
         else:
             ranked_cell_states = tf.gather(
                 tf.concat(axis=1, values=[past_cell_states, tf.expand_dims(cell_state, 1)]),
                 parent_refs)
-            print(ranked_cell_states)
 
         # Handling for getting a done token
         logprobs_batched_3D = tf.reshape(
@@ -331,7 +330,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
 
         logprobs_done_max = tf.reduce_max(logprobs_done, 1)
         cand_symbols = tf.where(logprobs_done_max > past_cand_logprobs,
-                                 done_symbols, past_cand_symbols)
+                                done_symbols, past_cand_symbols)
         cand_logprobs = tf.maximum(logprobs_done_max, past_cand_logprobs)
 
         compound_cell_state = (
