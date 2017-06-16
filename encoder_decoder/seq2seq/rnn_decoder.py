@@ -225,25 +225,19 @@ class RNNDecoder(decoder.Decoder):
                 elif self.rnn_cell in ['gru', 'ran']:
                     states = [tf.squeeze(x, axis=[1]) for x in \
                         tf.split(num_or_size_splits=past_cell_states.get_shape()[1],
-                                 axis=1, value=past_cell_states)[1:]]
+                                 axis=1, value=past_cell_states)][1:]
                 else:
                     raise AttributeError(
                         "Unrecognized rnn cell type: {}".format(self.rnn_cell))
 
+                # TODO: correct beam search output logits computation
+                # so far dummy zero vectors are used
                 if self.use_copy and self.copy_fun != 'supervised':
-                    # TODO: correct beam search output logits computation in copy modes
-                    # so far dummy zero vectors are used
                     outputs = [tf.zeros([self.batch_size * self.beam_size, self.vocab_size])
-                               for s in states]
+                           for s in states]
                 else:
-                    if self.rnn_cell in ['gru', 'ran']:
-                        outputs = [s[:, -self.dim:] for s in states]
-                    else:
-                        if self.num_layers == 1:
-                            outputs = [s[1] for s in states]
-                        else:
-                            outputs = [s[-1][1] for s in states]
-
+                    outputs = [tf.zeros([self.batch_size * self.beam_size, self.dim])
+                           for s in states]
                 return top_k_outputs, top_k_logits, outputs, states, attn_alignments, pointers
             else:
                 # Greedy output

@@ -893,7 +893,7 @@ def prepare_bash(FLAGS, verbose=False):
                         if len(word) < len(token):
                             M[i][j] = (len(word) + 0.0) / len(token)
                         else:
-                            M[i][j] =
+                            M[i][j] = 0
                 else:
                     M[i][j] = -np.inf
 
