@@ -56,7 +56,8 @@ class RNNDecoder(decoder.Decoder):
             raise ValueError("Shape [1] and [2] of attention_states must be "
                              "known %s" % attention_states.get_shape())
 
-        bs_decoding = self.forward_only and self.decoding_algorithm == "beam_search"
+        bs_decoding = self.forward_only and \
+                      self.decoding_algorithm == "beam_search"
 
         if self.force_reading_input:
             print("Warning: reading ground truth decoder inputs at decoding time.")

@@ -296,7 +296,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
         # C. Supervised Copying Loss (if any)
         if self.use_copy and self.copy_fun == 'supervised':
-            if self.forward_only and self.token_decoding_algorithm == 'beam_search':
+            if bs_decoding:
                 pointer_targets = self.decoder.beam_decoder.wrap_input(
                     self.pointer_targets)
             else:

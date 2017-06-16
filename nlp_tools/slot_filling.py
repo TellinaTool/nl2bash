@@ -90,7 +90,10 @@ def stable_slot_filling(template_tokens, sc_fillers, tg_slots, pointer_targets,
             for j in xrange(M.shape[1]):
                 if M[i, j] > 0:
                     M_dict[i][j] = M[i, j]
+<<<<<<< Updated upstream
     
+=======
+>>>>>>> Stashed changes
     mappings, remained_fillers = stable_marriage_alignment(M_dict)
 
     if not remained_fillers:
@@ -253,7 +256,6 @@ def slot_filler_alignment_induction(nl, cm, verbose=True):
     M = collections.defaultdict(dict)               # alignment score matrix
     for i in nl_fillers:
         surface, filler_type = nl_fillers[i]
-        # print(surface)
         filler_value = extract_value(filler_type, filler_type, surface)
         for j in cm_slots:
             slot_value, slot_type = cm_slots[j]

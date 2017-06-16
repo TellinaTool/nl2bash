@@ -375,8 +375,10 @@ def eval_slot_filling(dataset):
                         encoder_outputs[0], decoder_outputs[0], 
                         slot_filling_classifier, verbose=True)
     
-                    if mappings is not None:                
+                    if mappings is not None:
+                        # print(gt_mappings)
                         for mapping in mappings:
+                            # print(mapping)
                             if mapping in gt_mappings:
                                 num_correct_align += 1
                         num_predict_align += len(mappings)

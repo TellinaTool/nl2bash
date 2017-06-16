@@ -280,9 +280,8 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         parent_refs = tf.reshape(indices // self.num_classes, [-1]) # [batch_size*self.beam_size]
         parent_refs = parent_refs + self.parent_refs_offsets
 
-        beam_symbols = tf.concat(axis=1,
-                                 values=[tf.gather(past_beam_symbols, parent_refs),
-                                         tf.reshape(symbols, [-1, 1])])
+        beam_symbols = tf.concat(axis=1, values=[tf.gather(past_beam_symbols, parent_refs),
+                                                 tf.reshape(symbols, [-1, 1])])
         self.seq_len = tf.gather(self.seq_len, parent_refs) + \
                        tf.cast(tf.not_equal(tf.reshape(symbols, [-1]),
                                             self.stop_token), tf.float32)
@@ -353,6 +352,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
 
     def get_last_cell_state(self, past_cell_states):
         def get_last_tuple_state(pc_states):
+            c_states, h_states = pc_states
             c_states, h_states = pc_states
             lc_state = c_states[:, -1, :]
             lh_state = h_states[:, -1, :]
