@@ -10,6 +10,7 @@ import tensorflow as tf
 
 from encoder_decoder import decoder, data_utils, graph_utils, rnn
 
+
 class RNNDecoder(decoder.Decoder):
     def __init__(self, hyperparameters, scope, dim, embedding_dim,
                  use_attention, attention_function, input_keep, output_keep,
@@ -47,7 +48,6 @@ class RNNDecoder(decoder.Decoder):
         :return attn_alignments: batch attention masks
                                  (if attention mechanism is used)
         """
-
         if input_embeddings is None:
             input_embeddings = self.embeddings()
 
