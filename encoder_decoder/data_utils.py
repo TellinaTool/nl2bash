@@ -30,13 +30,11 @@ import random
 import re
 import os, sys
 
-from numpy.linalg import norm
-
 if sys.version_info > (3, 0):
     from six.moves import xrange
 
 from bashlex import normalizer, data_tools
-from nlp_tools import constants, tokenizer, slot_filling
+from nlp_tools import constants, ops, slot_filling, tokenizer
 
 # Special token symbols
 _PAD = "__SP__PAD"
@@ -863,26 +861,29 @@ def prepare_bash(FLAGS, verbose=False):
             else:
                 nl_tokens_wsq.append(word)
         for token in cm_tokens:
-            if constants.with_quotation(token):
-                if token.startswith('__FLAG__'):
-                    token = token[len('__FLAG__'):]
-                if token.startswith('__ARG__'):
-                    token = token[len('__ARG__'):]
+            if token.startswith('__ARG__'):
+                token = token[len('__ARG__'):]
+            if len(token) > 2 and constants.with_quotation(token):
                 cm_tokens_wsq.append(token[0])
                 cm_tokens_wsq.append(token[1:-1])
                 cm_tokens_wsq.append(token[-1])
+            elif len(token) > 1 and token[0] in ['-', '+']:
+                cm_tokens_wsq.append(token[0])
+                cm_tokens_wsq.append(token[1:])
             else:
                 cm_tokens_wsq.append(token)
 
         M = collections.defaultdict(dict)
+        M_splits = collections.defaultdict(dict)
+
         for i in xrange(len(nl_tokens_wsq)):
             word = nl_tokens_wsq[i]
             for j in xrange(len(cm_tokens_wsq)):
                 token = cm_tokens_wsq[j]
                 if word == token and not constants.is_quotation(word) \
-                        and constants.is_quotation(token):
+                        and not constants.is_quotation(token):
                     M[i][j] = 1
-                elif word in token or token in word:
+                else:
                     if np.abs(len(token) - len(word)) > 10 \
                             or constants.is_quotation(word) \
                             or constants.is_quotation(token):
@@ -890,50 +891,52 @@ def prepare_bash(FLAGS, verbose=False):
                             print("False match: {}, {}".format(token, word))
                         M[i][j] = -np.inf
                     else:
-                        if len(word) < len(token):
-                            M[i][j] = (len(word) + 0.0) / len(token)
+                        (s1, e1), (s2, e2) = ops.longest_common_substring(word, token)
+                        if s1 == e1:
+                            M[i][j] = -np.inf
+                            M_splits[i][j] = None
                         else:
-                            M[i][j] = 0
-                else:
-                    M[i][j] = -np.inf
+                            M[i][j] = ((e1 - s1) + 0.0) / max(len(s1), len(s2))
+                            if e1 - s1 == len(word):
+                                nl_splits = [word]
+                            else:
+                                nl_splits = [word[:s1]] if s1 > 0 else []
+                                nl_splits.append(word[s1:e1])
+                                if e1 < len(word):
+                                    nl_splits.append(word[e1:])
+                            if e2 - s2 == len(token):
+                                cm_splits = [token]
+                            else:
+                                cm_splits = [token[:s2]] if s2 > 0 else []
+                                cm_splits.append(token[s2:e2])
+                                if e2 < len(token):
+                                    cm_splits.append(token[e2:])
+                            M_splits[i][j] = (nl_splits, cm_splits)
 
         mappings, _ = slot_filling.stable_marriage_alignment(M)
-        mapping_dict = dict([(y, x) for (x, y) in mappings])
+        mapping_dict = dict([(x, y) for (x, y) in mappings])
+        rev_mapping_dict = dict([(y, x) for (x, y) in mappings])
 
+        splitted_nl_tokens = []
         splitted_cm_tokens = []
-        for j in xrange(len(cm_tokens)):
-            token = cm_tokens[j]
-            low_freq = is_low_frequency(token)
-            if low_freq:
-                basic_token = remove_low_frequency_prefix(token)
-            else:
-                basic_token = token
-            if basic_token.startswith('__ARG__'):
-                basic_token = basic_token[len('__ARG__'):]
-            if j in mapping_dict:
-                i = mapping_dict[j]
-                word = nl_tokens_wsq[i]
-                if word == basic_token:
-                    splitted_cm_tokens.append(token)
-                else:
-                    if word in basic_token:
-                        pos_start = basic_token.index(word)
-                        pos_end = pos_start + len(word)
-                        splitted_cm_tokens.append(_ARG_START)
-                        for k in xrange(pos_start):
-                            splitted_cm_tokens.append(basic_token[k])
-                        if low_freq:
-                            splitted_cm_tokens.append(add_low_frequency_prefix(word))
-                        else:
-                            splitted_cm_tokens.append(word)
-                        for k in xrange(pos_end, len(basic_token)):
-                            splitted_cm_tokens.append(basic_token[k])
-                    else:
-                         splitted_cm_tokens.append(_ARG_END)
-            else:
-                splitted_cm_tokens.append(token)
 
-        return nl_tokens_wsq, splitted_cm_tokens
+        for i in xrange(len(nl_tokens_wsq)):
+            if i in mapping_dict:
+                j = mapping_dict[i]
+                for word in M_splits[i][j][0]:
+                    splitted_nl_tokens.append(word)
+            else:
+                splitted_nl_tokens.append(nl_tokens_wsq[i])
+
+        for j in xrange(len(cm_tokens_wsq)):
+            if j in rev_mapping_dict:
+                i = rev_mapping_dict[j]
+                for token in M_splits[i][j][1]:
+                    splitted_cm_tokens.append(token)
+            else:
+                splitted_cm_tokens.append(cm_tokens_wsq[j])
+
+        return splitted_nl_tokens, splitted_cm_tokens
 
     # Read unfiltered data
     nl_data, cm_data = read_raw_data(data_dir)
