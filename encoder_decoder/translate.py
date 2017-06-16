@@ -295,8 +295,8 @@ def eval_slot_filling(dataset):
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
             log_device_placement=FLAGS.log_device_placement)) as sess:
         # Create model.
+        FLAGS.beam_size = 1
         FLAGS.force_reading_input = True
-        FLAGS.token_decoding_algorithm = 'geedy'
         model = graph_utils.create_model(
             sess, FLAGS, Seq2SeqModel, buckets=_buckets, forward_only=True)
 
