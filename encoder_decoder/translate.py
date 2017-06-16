@@ -296,6 +296,7 @@ def eval_slot_filling(dataset):
             log_device_placement=FLAGS.log_device_placement)) as sess:
         # Create model.
         FLAGS.beam_size = 1
+        FLAGS.token_decoding_algorithm = 'beam_search'
         FLAGS.force_reading_input = True
         model = graph_utils.create_model(
             sess, FLAGS, Seq2SeqModel, buckets=_buckets, forward_only=True)
@@ -338,7 +339,8 @@ def eval_slot_filling(dataset):
                         bucket_id, forward_only=True)
                     encoder_outputs = model_outputs.encoder_hidden_states
                     decoder_outputs = model_outputs.decoder_hidden_states
-                    
+                    print(decoder_outputs[:, 0, :])
+
                     cm_slots = {}
                     output_tokens = []
                     for ii in xrange(len(outputs)):
@@ -374,9 +376,7 @@ def eval_slot_filling(dataset):
                         slot_filling_classifier, verbose=True)
     
                     if mappings is not None:                
-                        print(gt_mappings)
                         for mapping in mappings:
-                            print(mapping)
                             if mapping in gt_mappings:
                                 num_correct_align += 1
                         num_predict_align += len(mappings)
@@ -399,7 +399,8 @@ def eval_slot_filling(dataset):
                                     constants.remove_quotation(pred):
                                 num_correct_argument += 1
                             num_argument += 1
-
+            if gt_mappings:
+                break        
         precision = num_correct_align / num_predict_align
         recall = num_correct_align / num_gt_align
         print("Argument Alignment Precision: {}".format(precision))
@@ -473,10 +474,10 @@ def gen_slot_filling_training_data_fun(sess, model, dataset, output_file):
                                  decoder_outputs[:, n_s, :]], axis=1))
                             Y.append(np.array([[0, 1]]))
                     # Debugging
-                    if i == 0:
-                        print(ff)
-                        print(encoder_outputs[0])
-                        print(decoder_outputs[0])
+                    # if i == 0:
+                    #     print(ff)
+                    #     print(encoder_outputs[0])
+                    #     print(decoder_outputs[0])
 
             if len(X) > 0 and len(X) % 1000 == 0:
                 print('{} examples gathered for generating slot filling features...'
