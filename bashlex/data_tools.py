@@ -302,7 +302,7 @@ def is_low_frequency(ast):
 
 def get_utilities(ast):
     def get_utilities_fun(node):
-        utilities = {}
+        utilities = set([])
         if node.is_utility():
             utilities.add(node.value)
             utilities.union(get_utilities_fun(node))
