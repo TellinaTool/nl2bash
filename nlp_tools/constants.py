@@ -1,3 +1,11 @@
+"""
+Special word and character lists used in the NLP tools for processing natural
+language commands.
+"""
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 import re
 import string
 
@@ -272,8 +280,8 @@ punctuation = string.punctuation
 
 def include_space(r):
     """
-    A regular expression has to have a whitespace or other separator at both
-    ends.
+    A regular expression has to have a whitespace or other separator
+    at both ends.
     """
     return r'(^|\s)' + r + r'(\s|$|,|\.){1}'
 
@@ -312,12 +320,6 @@ def remove_quotation(s):
 def with_angle_brackets(s):
     return s.startswith('<') and s.endswith('>')
 
-def is_float(s):
-    return '.' in s
-
-def is_stopword(w):
-    return w in ENGLISH_STOPWORDS
-
 def is_english_word(word):
     """Check if a token is a normal English word."""
     if word in ['i.e', 'i.e.', 'e.g', 'e.g.',
@@ -326,3 +328,6 @@ def is_english_word(word):
     if word in ['\'s', '\'t']:
         return True
     return bool(re.match('^[a-z]+(-[a-z]+)*$', word, re.IGNORECASE))
+
+def is_stopword(w):
+    return w in ENGLISH_STOPWORDS
