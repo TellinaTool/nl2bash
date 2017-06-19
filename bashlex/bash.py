@@ -99,6 +99,11 @@ common_arguments = {
 }
 
 top_100_utilities = {
+    'chgrp',
+    'cpio',
+    'file',
+    'rename',
+    'compress',
     'pwd',
     'cd',
     'ls',
@@ -111,7 +116,6 @@ top_100_utilities = {
     'mv',
     'rm',
     'shred',
-    'man',
     'head',
     'tail',
     'less',
