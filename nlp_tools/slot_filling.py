@@ -90,7 +90,7 @@ def stable_slot_filling(template_tokens, sc_fillers, tg_slots, pointer_targets,
             for j in xrange(M.shape[1]):
                 if M[i, j] > 0:
                     M_dict[i][j] = M[i, j]
-
+    
     mappings, remained_fillers = stable_marriage_alignment(M_dict)
 
     if not remained_fillers:
