@@ -17,25 +17,6 @@ from bashlex import bash, nast, normalizer
 from nlp_tools import constants
 
 
-def is_simple(ast):
-    """Check if a tree contains only high-frequency utilities."""
-    if ast.kind == "utility" and not ast.value in bash.utilities:
-        return False
-    for child in ast.children:
-        if not is_simple(child):
-            return False
-    return True
-
-def is_low_frequency(ast):
-    """Check if a tree contains a low-frequency utilities."""
-    if ast.kind == "utility" and ast.value in \
-            (bash.utilities_20_to_15 + bash.utilities_15_to_10):
-        return True
-    for child in ast.children:
-        if is_low_frequency(child):
-            return True
-    return False
-
 def char_tokenizer(sentence, base_tokenizer=None):
     if base_tokenizer:
         # normalization is not needed for character model
@@ -298,6 +279,65 @@ def list2ast(list, order='dfs'):
     return normalizer.list_to_ast(list, order)
 
 
+def is_simple(ast):
+    """Check if a tree contains only high-frequency utilities."""
+    if ast.kind == "utility" and not ast.value in bash.utilities:
+        return False
+    for child in ast.children:
+        if not is_simple(child):
+            return False
+    return True
+
+
+def is_low_frequency(ast):
+    """Check if a tree contains a low-frequency utilities."""
+    if ast.kind == "utility" and ast.value in \
+            (bash.utilities_20_to_15 + bash.utilities_15_to_10):
+        return True
+    for child in ast.children:
+        if is_low_frequency(child):
+            return True
+    return False
+
+
+def get_utilities(ast):
+    def get_utilities_fun(node):
+        utilities = {}
+        if node.is_utility():
+            utilities.add(node.value)
+            utilities.union(get_utilities_fun(node))
+        elif not node.is_argument():
+            utilities.union(get_utilities_fun(node))
+        return utilities
+
+    return get_utilities_fun(ast)
+
+
+def fill_default_value(node):
+    """Fill empty slot in the bash ast with default value."""
+    if node.is_argument():
+        if node.value in constants._ENTITIES:
+            if node.arg_type == 'Path' and node.parent.is_utility() \
+                and node.parent.value == 'find':
+                node.value = '.'
+            elif node.arg_type == 'Regex':
+                if  node.parent.is_utility() and node.parent.value == 'grep':
+                    node.value = '\'.*\''
+                elif node.parent.is_option() and node.parent.value == '-name' \
+                    and node.value == 'Regex':
+                    node.value = '"*"'
+            elif node.arg_type == 'Number' and node.utility.value in ['head', 'tail']:
+                node.value = '10'
+            else:
+                if node.is_open_vocab():
+                    node.value = '[' + node.arg_type.lower() + ']'
+    else:
+        for child in node.children:
+            fill_default_value(child)
+
+
+# --- Parsers for other syntactic structures. --- #
+
 def paren_parser(line):
     """A simple parser for parenthesized sequence."""
     def order_child_fun(node):
@@ -345,29 +385,7 @@ def paren_parser(line):
 
     return root
 
-
-def fill_default_value(node):
-    """Fill empty slot in the bash ast with default value."""
-    if node.is_argument():
-        if node.value in constants._ENTITIES:
-            if node.arg_type == 'Path' and node.parent.is_utility() \
-                and node.parent.value == 'find':
-                node.value = '.'
-            elif node.arg_type == 'Regex':
-                if  node.parent.is_utility() and node.parent.value == 'grep':
-                    node.value = '\'.*\''           
-                elif node.parent.is_option() and node.parent.value == '-name' \
-                    and node.value == 'Regex':
-                    node.value = '"*"'
-            elif node.arg_type == 'Number' and node.utility.value in ['head', 'tail']:
-                node.value = '10'
-            else:
-                if node.is_open_vocab():
-                    node.value = '[' + node.arg_type.lower() + ']'
-    else:
-        for child in node.children:
-            fill_default_value(child)
-
+# --- Test functions --- #
 
 def test_bash_parser():
     while True:
