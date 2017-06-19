@@ -97,7 +97,7 @@ def is_binary_logic_op(node, parent):
             return False
     return node.word in binary_logic_operators
 
-def special_command_normalization(cmd):
+def correct_errors_and_normalize(cmd):
     # special normalization for certain commands
     ## remove all "sudo"'s
     cmd = cmd.replace("sudo", "")
@@ -208,7 +208,7 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
     :return normalized_tree
     """
     cmd = cmd.replace('\n', ' ').strip()
-    cmd = special_command_normalization(cmd)
+    cmd = correct_errors_and_normalize(cmd)
     if not cmd:
         return None
 
