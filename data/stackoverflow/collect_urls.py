@@ -7,9 +7,11 @@ from __future__ import division
 from __future__ import print_function
 
 import html
+import pickle
 import re
 import sqlite3
 import sys
+sys.path.append('../../')
 
 from bashlex import bash, data_tools
 
@@ -30,35 +32,51 @@ def run():
 
     with sqlite3.connect(sqlite_filename, detect_types=sqlite3.PARSE_DECLTYPES) as db:
         count = 0
-        for (post_id, answer_body) in db.cursor().execute("""
+        for post_id, answer_body in db.cursor().execute("""
                 SELECT questions.Id, answers.Body FROM questions, answers
-                ORDER BY questions.FavoriteCount DESC
-                WHERE questions.Id = answers.ParentId"""):
+                WHERE questions.Id = answers.ParentId
+                ORDER BY questions.Score DESC"""):
+            print(post_id)
             for cmd in extract_code(answer_body):
-                commands.append(cmd)
                 ast = data_tools.bash_parser(cmd)
+                if not ast:
+                    continue
                 utilities = data_tools.get_utilities(ast)
                 for utility in utilities:
                     if utility in bash.top_100_utilities:
+                        print('extracted: {}, {}'.format(utility, cmd))
+                        temp = data_tools.ast2template(ast, loose_constraints=True)
                         if not utility in commands:
-                            commands[utility] = {cmd}
-                            urls[utility] = {url_prefix + post_id}
+                            commands[utility] = {}
+                            commands[utility][temp] = cmd
+                            urls[utility] = {'{}{}'.format(url_prefix, post_id)}
                         else:
-                            if not cmd in commands[utility]:
-                                if len(commands[utility]) > 40:
-                                    continue
-                                commands[utility].add(cmd)
-                                urls[utility].add(url_prefix + post_id)
+                            if len(commands[utility]) >= 40:
+                                continue
+                            if not temp in commands[utility]:
+                                commands[utility][temp] = cmd
+                                urls[utility].add('{}{}'.format(url_prefix, post_id))
             count += 1
             if count % 1000 == 0:
                 completed = False
                 for utility in bash.top_100_utilities:
                     if not utility in commands or len(commands[utility]) < 40:
                         completed = False
+                    else:
+                        print('{} collection done.'.format(utility))
 
-            if completed:
-                break
+                if completed:
+                    break
 
-    for utility in urls:
-        print(utility)
-        print(urls[utility])
+    with open('stackoverflow.urls', 'wb') as o_f:
+        pickle.dump(urls, o_f)
+    with open('stackoverflow.commands', 'wb') as o_f:
+        pickle.dump(commands, o_f)
+
+    for utility in commands:
+        print('{} ({})'.format(utility, len(commands[utility])))
+        for cmd in commands[utility]:
+            print(cmd)
+
+if __name__ == "__main__":
+    run()
