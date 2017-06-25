@@ -109,7 +109,6 @@ top_100_utilities = {
     'ls',
     'mkdir',
     'rmdir',
-    'echo',
     'cat',
     'zcat',
     'tac',
