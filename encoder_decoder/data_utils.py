@@ -555,10 +555,10 @@ def prepare_dataset(data, data_dir, suffix, vocab_size, vocab_path,
                     parallel_vocab_path=None, parallel_data=None):
     if isinstance(data.train[0], list):
         # save indexed token sequences
-        is_bash_nl = 'bash' in data_dir and suffix.endswith('.nl')
+        is_bash_nl = 'bash' in data_dir and '.nl' in suffix
         is_bash_cm = 'bash' in data_dir and suffix.endswith('.cm')
-        is_regex_turk_nl = 'regex-turk' in data_dir and suffix.endswith('.nl')
-        is_regex_kb13_nl = 'regex-kb13' in data_dir and suffix.endswith('.nl')
+        is_regex_turk_nl = 'regex-turk' in data_dir and '.nl' in suffix
+        is_regex_kb13_nl = 'regex-kb13' in data_dir and '.nl' in suffix
 
         if create_vocab:
             MIN_WORD_FREQ = 2 if is_bash_nl or is_bash_cm \
