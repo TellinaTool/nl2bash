@@ -756,11 +756,11 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
         elif node.kind == "pipeline":
             norm_node = PipelineNode()
             attach_to_tree(norm_node, current)
-            if len(node.parts) % 2 == 0:
-                print("Error: pipeline node must have odd number of parts (%d)"
-                      % len(node.parts))
-                print(node)
-                sys.exit()
+            # if len(node.parts) % 2 == 0:
+            #     print("Error: pipeline node must have odd number of parts (%d)"
+            #           % len(node.parts))
+            #     print(node)
+            #     sys.exit()
             for child in node.parts:
                 if child.kind == "command":
                     normalize(child, norm_node)
