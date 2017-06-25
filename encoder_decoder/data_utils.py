@@ -896,7 +896,7 @@ def prepare_bash(FLAGS, verbose=False):
                             M[i][j] = -np.inf
                             M_splits[i][j] = None
                         else:
-                            M[i][j] = ((e1 - s1) + 0.0) / max(len(s1), len(s2))
+                            M[i][j] = ((e1 - s1) + 0.0) / max(e1-s1, e2-s2)
                             if e1 - s1 == len(word):
                                 nl_splits = [word]
                             else:
