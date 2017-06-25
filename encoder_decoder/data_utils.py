@@ -883,18 +883,17 @@ def prepare_bash(FLAGS, verbose=False):
                 if word == token and not constants.is_quotation(word) \
                         and not constants.is_quotation(token):
                     M[i][j] = 1
+                    M_splits[i][j] = ([word], [token])
                 else:
                     if np.abs(len(token) - len(word)) > 10 \
                             or constants.is_quotation(word) \
                             or constants.is_quotation(token):
                         if verbose:
                             print("False match: {}, {}".format(token, word))
-                        M[i][j] = -np.inf
                     else:
                         (s1, e1), (s2, e2) = ops.longest_common_substring(word, token)
                         if s1 == e1:
-                            M[i][j] = -np.inf
-                            M_splits[i][j] = None
+                            continue
                         else:
                             M[i][j] = ((e1 - s1) + 0.0) / max(e1-s1, e2-s2)
                             if e1 - s1 == len(word):
