@@ -528,8 +528,8 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
                                     arg_type = list(possible_arg_types)[0]
                                 else:
                                     # "--" encountered
-                                    arg_type = cmd_arg_type_check(child,
-                                                                  arg_status)
+                                    arg_type = cmd_arg_type_check(
+                                        child, arg_status)
                                 # recurse to main normalization to handle
                                 # argument with deep structures
                                 normalize(child, attach_point, "argument",
