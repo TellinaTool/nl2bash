@@ -30,6 +30,8 @@ man_lookup = ManPageLookUp([os.path.join(
     os.path.dirname(__file__), "..", "grammar", "primitive_cmds_grammar.json")])
 
 def cmd_arg_type_check(word, arg_status):
+    if not arg_status:
+        return 'Unknown'
     arg_types = []
     for i in xrange(len(arg_status["non-optional"])):
         arg_type, is_list, filled = arg_status["non-optional"][i]
@@ -265,6 +267,8 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
         unprocessed_binary_logic_ops = []
 
         def expecting(a_t):
+            if not arg_status:
+                return None
             for arg_type, is_list, filled in arg_status["non-optional"]:
                 if not is_list and filled:
                     continue
@@ -528,8 +532,8 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
                                     arg_type = list(possible_arg_types)[0]
                                 else:
                                     # "--" encountered
-                                    arg_type = cmd_arg_type_check(child,
-                                                                  arg_status)
+                                    arg_type = cmd_arg_type_check(
+                                        child, arg_status)
                                 # recurse to main normalization to handle
                                 # argument with deep structures
                                 normalize(child, attach_point, "argument",
