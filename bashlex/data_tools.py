@@ -305,9 +305,11 @@ def get_utilities(ast):
         utilities = set([])
         if node.is_utility():
             utilities.add(node.value)
-            utilities.union(get_utilities_fun(node))
+            for child in node.children:
+                utilities = utilities.union(get_utilities_fun(child))
         elif not node.is_argument():
-            utilities.union(get_utilities_fun(node))
+            for child in node.children:
+                utilities = utilities.union(get_utilities_fun(child))
         return utilities
 
     return get_utilities_fun(ast)
