@@ -311,8 +311,11 @@ def get_utilities(ast):
             for child in node.children:
                 utilities = utilities.union(get_utilities_fun(child))
         return utilities
-
-    return get_utilities_fun(ast)
+    
+    if not ast:
+        return set([])
+    else:
+        return get_utilities_fun(ast)
 
 
 def fill_default_value(node):
