@@ -49,7 +49,6 @@ def demo(sess, model, FLAGS):
     while sentence:
         batch_outputs, output_logits = translate_fun(sentence, sess, model,
             vocabs, FLAGS, slot_filling_classifier=slot_filling_classifier)
-
         if FLAGS.token_decoding_algorithm == 'greedy':
             tree, pred_cmd, outputs = batch_outputs[0]
             score = output_logits[0]
@@ -61,8 +60,7 @@ def demo(sess, model, FLAGS):
                 for j in xrange(min(FLAGS.beam_size, 10, len(batch_outputs[0]))):
                     if len(top_k_predictions) <= j:
                         break
-                    top_k_pred_tree, top_k_pred_cmd, top_k_outputs = \
-                        top_k_predictions[j]
+                    top_k_pred_tree, top_k_pred_cmd = top_k_predictions[j]
                     print('Prediction {}: {} ({}) '.format(
                         j+1, top_k_pred_cmd, top_k_scores[j]))
                 print()
