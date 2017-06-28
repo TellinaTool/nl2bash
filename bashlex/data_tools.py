@@ -17,27 +17,15 @@ from bashlex import bash, nast, normalizer
 from nlp_tools import constants
 
 
-def char_tokenizer(sentence, base_tokenizer=None):
-    if base_tokenizer:
-        # normalization is not needed for character model
-        if 'lemmatization' in inspect.getargspec(base_tokenizer)[0]:
-            tokens = base_tokenizer(sentence, lemmatization=False)
-        else:
-            tokens = base_tokenizer(sentence)
-    else:
-        tokens = [sentence]
-    if type(tokens[0]) is list:
-        tokens = tokens[0]
-
+def char_tokenizer(sentence):
     chars = []
-    for token in tokens:
-        for c in token:
-            if c == ' ':
-                chars.append(constants._SPACE)
-            else:
-                chars.append(c)
+    for c in sentence:
+        if c == ' ':
+            chars.append(constants._SPACE)
+        else:
+            chars.append(c)
         chars.append(constants._SPACE)
-    return chars[:-1]
+    return chars
 
 
 def bash_tokenizer(cmd, recover_quotation=True, loose_constraints=False,
