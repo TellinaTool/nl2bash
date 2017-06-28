@@ -120,10 +120,9 @@ def vectorize_query(sentence, vocabs, FLAGS):
 
     if FLAGS.char:
         sc_ids, _ = data_utils.sentence_to_token_ids(sentence,
-            sc_vocab, data_tools.char_tokenizer, tokenizer.basic_tokenizer)
+            sc_vocab, data_tools.char_tokenizer)
         sc_full_ids, _ = data_utils.sentence_to_token_ids(sentence,
-            sc_vocab, data_tools.char_tokenizer, tokenizer.basic_tokenizer,
-            use_unk=False)
+            sc_vocab, data_tools.char_tokenizer, use_unk=False)
         sc_copy_ids = []
     else:
         if FLAGS.explain:
@@ -141,12 +140,12 @@ def vectorize_query(sentence, vocabs, FLAGS):
                 sc_tokenizer = tokenizer.space_tokenizer
                 sc_full_tokenizer = tokenizer.space_tokenizer
         sc_ids, entities = data_utils.sentence_to_token_ids(
-            sentence, sc_vocab, sc_tokenizer, None)
+            sentence, sc_vocab, sc_tokenizer)
         sc_full_ids, _ = data_utils.sentence_to_token_ids(
-            sentence, sc_vocab,sc_full_tokenizer, None, use_unk=False)
+            sentence, sc_vocab, sc_full_tokenizer, use_unk=False)
         sc_copy_ids, _ = data_utils.sentence_to_token_ids(sentence,
-            tg_vocab, tokenizer=sc_full_tokenizer, base_tokenizer=None,
-            use_source_placeholder=True, parallel_vocab_size=FLAGS.tg_vocab_size)
+            tg_vocab, tokenizer=sc_full_tokenizer, use_source_placeholder=True,
+            parallel_vocab_size=FLAGS.tg_vocab_size)
 
     # Decode the output for this 1-element batch and apply output filtering.
     sc_fillers = entities[0] if FLAGS.fill_argument_slots else None
