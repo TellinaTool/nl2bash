@@ -299,8 +299,8 @@ def data_to_token_ids(data, tg_id_path, vocab_path, tokenizer=None,
                 parallel_line = None
             else:
                 parallel_line = parallel_data[i]
-            token_ids, _ = sentence_to_token_ids(data[i], vocab, tokenizer,
-                base_tokenizer, use_unk=use_unk,
+            token_ids, _ = sentence_to_token_ids(
+                data[i], vocab, tokenizer, use_unk=use_unk,
                 use_typed_unk=('bash' in vocab_path and '.cm' in vocab_path),
                 parallel_sequence=parallel_line,
                 use_source_placeholder=use_source_placeholder,
@@ -317,8 +317,8 @@ def data_to_token_ids(data, tg_id_path, vocab_path, tokenizer=None,
     return max_token_num
 
 
-def sentence_to_token_ids(sentence, vocabulary, tokenizer, base_tokenizer,
-        use_unk=True, use_typed_unk=False, parallel_sequence=None,
+def sentence_to_token_ids(sentence, vocabulary, tokenizer, use_unk=True,
+        use_typed_unk=False, parallel_sequence=None,
         use_source_placeholder=False, use_unk_placeholder=False,
         parallel_vocabulary=None, parallel_vocab_size=-1,
         coarse_typing=False, add_type_prefix=False, remove_type_prefix=False):
@@ -357,11 +357,7 @@ def sentence_to_token_ids(sentence, vocabulary, tokenizer, base_tokenizer,
         words = sentence
         entities = None
     else:
-        if base_tokenizer:
-            words = tokenizer(sentence, base_tokenizer)
-            entities = None
-        else:
-            words, entities = tokenizer(sentence)
+        words, entities = tokenizer(sentence)
 
     token_ids = []
 
@@ -690,8 +686,8 @@ def prepare_jobs(FLAGS):
                 nl_tokenizer = tokenizer.space_tokenizer
             nl_tokens, _ = nl_tokenizer(nl)
             cm_tokens = cm.split()
-            nl_chars = data_tools.char_tokenizer(nl, nl_tokenizer)
-            cm_chars = data_tools.char_tokenizer(cm, None)
+            nl_chars = data_tools.char_tokenizer(nl)
+            cm_chars = data_tools.char_tokenizer(cm)
             getattr(nl_list, split).append(nl)
             getattr(cm_list, split).append(cm)
             getattr(nl_char_list, split).append(nl_chars)
@@ -778,8 +774,8 @@ def prepare_bash(FLAGS, verbose=False):
             if ast:
                 if data_tools.is_simple(ast):
                     mappings = slot_filling.slot_filler_alignment_induction(nl, cm)
-                    nl_chars = data_tools.char_tokenizer(nl, tokenizer.basic_tokenizer)
-                    cm_chars = data_tools.char_tokenizer(cm, data_tools.bash_tokenizer)
+                    nl_chars = data_tools.char_tokenizer(nl)
+                    cm_chars = data_tools.char_tokenizer(cm)
                     nl_tokens, _ = tokenizer.basic_tokenizer(nl)
                     cm_tokens = data_tools.ast2tokens(
                         ast, with_parent=True, with_prefix=True)
