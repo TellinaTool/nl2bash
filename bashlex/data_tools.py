@@ -394,6 +394,7 @@ def test_bash_parser():
             # search_history = ast2list(norm_tree, 'dfs', list=[])
             # for state in search_history:
             #     print(state)
+            print(get_utilities(norm_tree))
             print("Command Template:")
             print(ast2template(norm_tree, ignore_flag_order=False))
             print("Command: ")
