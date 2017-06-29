@@ -878,6 +878,10 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
         print("%s - %s" % (err.args[0], cmd2))
         return None
 
+    if len(normalized_tree.children) == 0:
+        # parsing not successful is there is only the root node in the tree
+        return None
+
     return normalized_tree
 
 
