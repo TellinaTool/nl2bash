@@ -228,7 +228,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
                 self.cell(cell_inputs, past_cell_state, scope)
 
         # [batch_size*beam_size, num_classes]
-        if self.use_copy and self.copy_fun == 'copy_net':
+        if self.use_copy and self.copy_fun == 'copynet':
             logprobs = tf.log(cell_output)
         else:
             W, b = self.output_project
@@ -281,7 +281,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         parent_refs = parent_refs + self.parent_refs_offsets
 
         beam_symbols = tf.concat(axis=1, values=[tf.gather(past_beam_symbols, parent_refs),
-                                     tf.reshape(symbols, [-1, 1])])
+                                                 tf.reshape(symbols, [-1, 1])])
         self.seq_len = tf.gather(self.seq_len, parent_refs) + \
                        tf.cast(tf.not_equal(tf.reshape(symbols, [-1]),
                                             self.stop_token), tf.float32)
@@ -295,7 +295,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
                 lambda element: tf.gather(element, parent_refs), attns)
 
         # update cell_states
-        def gather_and_append_tuple_states(pc_states, c_state):
+        def concat_and_gather_tuple_states(pc_states, c_state):
             rc_states = (
                 tf.concat(axis=1, values=[pc_states[0], tf.expand_dims(c_state[0], 1)]),
                 tf.concat(axis=1, values=[pc_states[1], tf.expand_dims(c_state[1], 1)])
@@ -308,16 +308,15 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
 
         if nest.is_sequence(cell_state):
             if self.num_layers > 1:
-                ranked_cell_states = [gather_and_append_tuple_states(pc_states, c_state)
+                ranked_cell_states = [concat_and_gather_tuple_states(pc_states, c_state)
                     for pc_states, c_state in zip(past_cell_states, cell_state)]
             else:
-                ranked_cell_states = gather_and_append_tuple_states(
+                ranked_cell_states = concat_and_gather_tuple_states(
                     past_cell_states, cell_state)
         else:
-            ranked_cell_states = nest_map(
-                lambda element: tf.gather(element, parent_refs),
-                tf.concat(axis=1, values=[past_cell_states, tf.expand_dims(cell_state, 1)])
-            )
+            ranked_cell_states = tf.gather(
+                tf.concat(axis=1, values=[past_cell_states, tf.expand_dims(cell_state, 1)]),
+                parent_refs)
 
         # Handling for getting a done token
         logprobs_batched_3D = tf.reshape(
@@ -330,7 +329,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
 
         logprobs_done_max = tf.reduce_max(logprobs_done, 1)
         cand_symbols = tf.where(logprobs_done_max > past_cand_logprobs,
-                                 done_symbols, past_cand_symbols)
+                                done_symbols, past_cand_symbols)
         cand_logprobs = tf.maximum(logprobs_done_max, past_cand_logprobs)
 
         compound_cell_state = (
@@ -342,7 +341,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         )
         ranked_cell_output = tf.gather(cell_output, parent_refs)
 
-        if self.use_copynet:
+        if self.use_copy and self.copy_fun == 'copynet':
             return ranked_cell_output, compound_cell_state, ranked_alignments, \
                    ranked_attns, ranked_read_copy_source
         elif self.use_attention:
@@ -353,6 +352,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
 
     def get_last_cell_state(self, past_cell_states):
         def get_last_tuple_state(pc_states):
+            c_states, h_states = pc_states
             c_states, h_states = pc_states
             lc_state = c_states[:, -1, :]
             lh_state = h_states[:, -1, :]

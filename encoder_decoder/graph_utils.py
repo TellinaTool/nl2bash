@@ -79,7 +79,7 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only):
 
     params["training_algorithm"] = FLAGS.training_algorithm
     if FLAGS.training_algorithm == "bso":
-        assert(FLAGS.decoding_algorithm == "beam_search")
+        assert(FLAGS.token_decoding_algorithm == "beam_search")
     params["margin"] = FLAGS.margin
 
     params["use_copy"] = FLAGS.use_copy
@@ -148,7 +148,8 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only):
     ckpt = tf.train.get_checkpoint_state(
         os.path.join(FLAGS.model_root_dir, FLAGS.model_dir))
 
-    if forward_only or not FLAGS.create_fresh_params:
+    if forward_only or FLAGS.gen_slot_filling_training_data or \
+            not FLAGS.create_fresh_params:
         print("Reading model parameters from %s" % ckpt.model_checkpoint_path)
         model.saver.restore(session, ckpt.model_checkpoint_path)
     else:

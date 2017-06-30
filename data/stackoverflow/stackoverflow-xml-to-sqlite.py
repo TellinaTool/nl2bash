@@ -55,7 +55,7 @@ import xml.sax
 
 # Only questions containing one of these tags will be included.
 INTERESTING_TAGS = set([
-    "bash", "sh", "shell", "zsh", "command-line",
+    "bash", "sh", "shell", "zsh", "command-line", "linux", "unix",
     "awk", "sed", "xargs", "tar", "rsync", "scp", "mv", "cp"])
 def is_interesting(tag):
     return tag in INTERESTING_TAGS

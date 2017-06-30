@@ -296,7 +296,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
         # C. Supervised Copying Loss (if any)
         if self.use_copy and self.copy_fun == 'supervised':
-            if self.forward_only and self.token_decoding_algorithm == 'beam_search':
+            if bs_decoding:
                 pointer_targets = self.decoder.beam_decoder.wrap_input(
                     self.pointer_targets)
             else:
@@ -348,24 +348,20 @@ class EncoderDecoderModel(graph_utils.NNModel):
         self.encoder_hidden_states = tf.concat(axis=1,
             values=[tf.reshape(e_o, [-1, 1, self.encoder.output_dim])
                     for e_o in encoder_outputs])
-        if self.use_copynet:
-            top_states = []
-            if self.rnn_cell == 'gru':
-                for state in states:
-                    top_states.append(state[:, -self.decoder.dim:])
-            elif self.rnn_cell == 'lstm':
-                for state in states:
-                    if self.num_layers > 1:
-                        top_states.append(state[-1][1])
-                    else:
-                        top_states.append(state[1])
-            self.decoder_hidden_states = tf.concat(axis=1,
-                values=[tf.reshape(d_o, [-1, 1, self.decoder.dim])
-                 for d_o in top_states])
-        else:
-            self.decoder_hidden_states = tf.concat(axis=1,
-                values=[tf.reshape(d_o, [-1, 1, self.decoder.dim])
-                 for d_o in outputs])
+        
+        top_states = []
+        if self.rnn_cell == 'gru':
+            for state in states:
+                top_states.append(state[:, -self.decoder.dim:])
+        elif self.rnn_cell == 'lstm':
+            for state in states:
+                if self.num_layers > 1:
+                    top_states.append(state[-1][1])
+                else:
+                    top_states.append(state[1])
+        self.decoder_hidden_states = tf.concat(axis=1,
+            values=[tf.reshape(d_o, [-1, 1, self.decoder.dim])
+                    for d_o in top_states])
 
         O = [output_symbols, output_logits, losses, attn_alignments]
         if self.tg_char:

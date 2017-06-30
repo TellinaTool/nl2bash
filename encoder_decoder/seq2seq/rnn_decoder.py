@@ -10,6 +10,7 @@ import tensorflow as tf
 
 from encoder_decoder import decoder, data_utils, graph_utils, rnn
 
+
 class RNNDecoder(decoder.Decoder):
     def __init__(self, hyperparameters, scope, dim, embedding_dim,
                  use_attention, attention_function, input_keep, output_keep,
@@ -47,7 +48,6 @@ class RNNDecoder(decoder.Decoder):
         :return attn_alignments: batch attention masks
                                  (if attention mechanism is used)
         """
-
         if input_embeddings is None:
             input_embeddings = self.embeddings()
 
@@ -56,7 +56,8 @@ class RNNDecoder(decoder.Decoder):
             raise ValueError("Shape [1] and [2] of attention_states must be "
                              "known %s" % attention_states.get_shape())
 
-        bs_decoding = self.forward_only and self.decoding_algorithm == "beam_search"
+        bs_decoding = self.forward_only and \
+                      self.decoding_algorithm == "beam_search"
 
         if self.force_reading_input:
             print("Warning: reading ground truth decoder inputs at decoding time.")
@@ -195,8 +196,7 @@ class RNNDecoder(decoder.Decoder):
                 top_k_outputs = [[tf.squeeze(output, axis=[0]) for output in top_k_output]
                                  for top_k_output in top_k_outputs]
                 # [self.batch_size, self.beam_size]
-                top_k_logits = tf.reshape(past_beam_logprobs,
-                                          [self.batch_size, self.beam_size])
+                top_k_logits = tf.reshape(past_beam_logprobs, [self.batch_size, self.beam_size])
                 top_k_logits = tf.split(axis=0, num_or_size_splits=self.batch_size, value=top_k_logits)
                 top_k_logits = [tf.squeeze(top_k_logit, axis=[0])
                                 for top_k_logit in top_k_logits]
@@ -218,32 +218,27 @@ class RNNDecoder(decoder.Decoder):
                     else:
                         layered_states = [list(zip(
                                 [tf.squeeze(x, axis=[1]) 
-                                    for x in tf.split(axis=1, num_or_size_splits=c_states.get_shape()[1], value=c_states)],
+                                    for x in tf.split(axis=1, num_or_size_splits=c_states.get_shape()[1], value=c_states)[1:]],
                                 [tf.squeeze(x, axis=[1])
-                                    for x in tf.split(axis=1, num_or_size_splits=h_states.get_shape()[1], value=h_states)]))
+                                    for x in tf.split(axis=1, num_or_size_splits=h_states.get_shape()[1], value=h_states)[1:]]))
                             for c_states, h_states in past_cell_states]
                         states = list(zip(layered_states))
                 elif self.rnn_cell in ['gru', 'ran']:
                     states = [tf.squeeze(x, axis=[1]) for x in \
-                        tf.split(axis=1, num_or_size_splits=past_cell_states.get_shape()[1], value=past_cell_states)][1:]
+                        tf.split(num_or_size_splits=past_cell_states.get_shape()[1],
+                                 axis=1, value=past_cell_states)][1:]
                 else:
                     raise AttributeError(
                         "Unrecognized rnn cell type: {}".format(self.rnn_cell))
 
+                # TODO: correct beam search output logits computation
+                # so far dummy zero vectors are used
                 if self.use_copy and self.copy_fun != 'supervised':
-                    # TODO: correct beam search output logits computation in copy modes
-                    # so far dummy zero vectors are used
                     outputs = [tf.zeros([self.batch_size * self.beam_size, self.vocab_size])
-                               for s in states]
+                           for s in states]
                 else:
-                    if self.rnn_cell in ['gru', 'ran']:
-                        outputs = [s[:, -self.dim:] for s in states]
-                    else:
-                        if self.num_layers == 1:
-                            outputs = [s[1] for s in states]
-                        else:
-                            outputs = [s[-1][1] for s in states]
-
+                    outputs = [tf.zeros([self.batch_size * self.beam_size, self.dim])
+                           for s in states]
                 return top_k_outputs, top_k_logits, outputs, states, attn_alignments, pointers
             else:
                 # Greedy output

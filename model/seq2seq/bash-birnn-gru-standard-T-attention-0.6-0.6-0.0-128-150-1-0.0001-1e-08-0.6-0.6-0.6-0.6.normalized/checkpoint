@@ -1,0 +1,6 @@
+model_checkpoint_path: "translate.ckpt-4"
+all_model_checkpoint_paths: "/home/xilin/Projects/tellina/learning_module/encoder_decoder/../model/seq2seq/bash-birnn-gru-standard-T-attention-0.6-0.6-0.0-128-150-1-0.0001-1e-08-0.6-0.6-0.6-0.6.normalized/translate.ckpt-0"
+all_model_checkpoint_paths: "/home/xilin/Projects/tellina/learning_module/encoder_decoder/../model/seq2seq/bash-birnn-gru-standard-T-attention-0.6-0.6-0.0-128-150-1-0.0001-1e-08-0.6-0.6-0.6-0.6.normalized/translate.ckpt-1"
+all_model_checkpoint_paths: "/home/xilin/Projects/tellina/learning_module/encoder_decoder/../model/seq2seq/bash-birnn-gru-standard-T-attention-0.6-0.6-0.0-128-150-1-0.0001-1e-08-0.6-0.6-0.6-0.6.normalized/translate.ckpt-2"
+all_model_checkpoint_paths: "/home/xilin/Projects/tellina/learning_module/encoder_decoder/../model/seq2seq/bash-birnn-gru-standard-T-attention-0.6-0.6-0.0-128-150-1-0.0001-1e-08-0.6-0.6-0.6-0.6.normalized/translate.ckpt-3"
+all_model_checkpoint_paths: "translate.ckpt-4"
