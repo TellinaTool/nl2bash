@@ -54,11 +54,11 @@ PrimitiveCmd ::=
 		
 		cp [ -a | --archive ] [ --attributes-only ] [ --backup[=CONTROL] ] [ -b ] [ --copy-contents ] [ -d ] [ -f | --force ] [ -i | --interactive ] [ -H ] [ -l | --link ] [ -L | --dereference ] [ -n | --no-clobber ] [ -P | --no-dereference ] [ -p ] [ --preserve[=ATTR_LIST] ] [ --no-preserve[=ATTR_LIST] ] [ --parents ] [ -R | -r | --recursive ] [ -R | -r | --recursive ] [ --reflink[=WHEN] ] [ --remove-destination ] [ --sparse[=WHEN] ] [ --strip-trailing-slashes ] [ -s | --symbolic-link ] [ -S | --suffix[=SUFFIX] ] [ -t | --target-directory[=DIRECTORY] ] [ -T | --no-target-directory ] [ -u | --update ] [ -v | --verbose ] [ -x | --one-file-system ] [--help] [ --version ] -t DIRECTORY SOURCE ...
 
-       	mv [ --backup[=CONTROL] ] [ -b ] [ -f | --force ] [ -i | --interactive ] [ -n | --no-clobber ] [-T] SOURCE DEST
+       	mv [ --backup[=CONTROL] ] [ -b ] [ -f | --force ] [ -i | --interactive ] [ -n | --no-clobber ] --strip-trailing-slashes [-S | --suffix] [-u | --update] [-v | --verbose] [--help] [--version] [-T | --no-target-directory] SOURCE DEST
 
-		mv [ --backup[=CONTROL] ] [ -b ] [ -f | --force ] [ -i | --interactive ] [ -n | --no-clobber ] SOURCE ... DIRECTORY
+		mv [ --backup[=CONTROL] ] [ -b ] [ -f | --force ] [ -i | --interactive ] [ -n | --no-clobber ] --strip-trailing-slashes [-S | --suffix] [-u | --update] [-v | --verbose] [--help] [--version] SOURCE ... DIRECTORY
 
-		mv [ --backup[=CONTROL] ] [ -b ] [ -f | --force ] [ -i | --interactive ] [ -n | --no-clobber ] -t DIRECTORY SOURCE ...
+		mv [ --backup[=CONTROL] ] [ -b ] [ -f | --force ] [ -i | --interactive ] [ -n | --no-clobber ] --strip-trailing-slashes [-S | --suffix] [-u | --update] [-v | --verbose] [--help] [--version] [-t | --target-directory] DIRECTORY SOURCE ...
 
 		rm [ --recursive ] [ -f | --force ] [ -i ] [ -I ] [ --interactive[=WHEN] ] [ --one-file-system ] [ --no-preserve-root ] [ --preserve-root ] [ -r | -R | --recursive ] [ -r | -R | --recursive ] [ -d | --dir ] [ -v | --verbose ] [ --help ] [ --version ] FILE...
  
