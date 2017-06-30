@@ -214,8 +214,44 @@ PrimitiveCmd ::=
 
 		paste [ -d | --delimiters[=LIST] ] [ -s | --serial ] [   --help  ] [ --version ] [FILE]...
 
-		
+		sed [ -n | --quiet | --silent ] [ -n | --quiet | --silent ] [   -e script | --expression[=script] ] [   -f script-file | --file[=script-file] ] [ --follow-symlinks ] [   -i [SUFFIX] | --in-place[=SUFFIX] ] [   -l N | --line-length[=N] ] [ --posix ] [ -r | --regexp-extended ] [ -s | --separate ] [ -u | --unbuffered ] [ -z | --null-data ] [ --help ] [ --version ] [script-only-if-no-other-script] [input-file]...
  
+ 		date [ -d | --date[=STRING] ] [ -f | --file[=DATEFILE] ] [   -I [TIMESPEC] | --iso-8601[=TIMESPEC] ] [ -r | --reference[=FILE] ] [ -R | --rfc-2822 ] [ --rfc-3339[=TIMESPEC] ] [ -s | --set[=STRING] ] [ -u | --utc | --universal ] [ -u | --utc | --universal ] [ --help ] [ --version ] [+FORMAT]
+
+		date [-u|--utc|--universal] [MMDDhhmm[[CC]YY][.ss]]
+
+		cal [-3hjy] [-A number] [-B number] [[month] year]
+		
+		cal [-3hj] [-A number] [-B number] -m month [year]
+		
+		ncal [-3bhjJpwySM] [-A number] [-B number] [-s country_code] [[month] year]
+		
+		ncal [-3bhJeoSM] [-A number] [-B number] [year]
+		
+		ncal [-CN] [-H yyyy-mm-dd] [-d yyyy-mm]
+ 
+ 		gzip [ -a | --ascii ] [  -c | --stdout | --to-stdout ] [ -d | --decompress | --uncompress ] [ -f | --force ] [ -h | --help ] [ -k | --keep ] [ -l | --list ] [ -L | --license ] [ -n | --no-name ] [ -N | --name ] [ -r | --recursive ] [ --rsyncable ] [ -S ] [ -t | --test ] [ -v | --verbose ] [ -V | --version ]  [--rsyncable] [-S suffix] [ name ...  ]
+
+		gunzip [ -a | --ascii ] [  -c | --stdout | --to-stdout ] [ -f | --force ] [ -h | --help ] [ -k | --keep ] [ -l | --list ] [ -L | --license ] [ -n | --no-name ] [ -N | --name ] [ -r | --recursive ] [ --rsyncable ] [ -t | --test ] [ -v | --verbose ] [ -V | --version ] [-S suffix] [ name ...  ]
+
+		zcat [ -f | --force ] [ -h | --help ] [ -L | --license ] [ -v | --verbose ] [ -V | --version ] [ name ...  ]
+
+		bzip2  [ -c | --stdout ] [ -d | --decompress ] [ -z | --compress ] [ -t | --test ] [ -f | --force ] [ -k | --keep ] [ -s | --small ] [ -q | --quiet ] [ -v | --verbose ] [ -h | --help ] [ -L | --license] [ -V | --version ] [ --repetitive-fast | --repetitive-best ] [-123456789] [ filenames ...  ]
+		
+		bzip2 [ -h | --help ]
+		
+		bunzip2 [ -f | --force ] [ -k | --keep ] [ -s | --small ] [ -v | --verbose ] [ -h | --help ] [ -L | --license] [ -V | --version ] [ -L ] [ filenames ...  ]
+		
+		bunzip2 [ -h | --help ]
+		
+		bzcat [ -s ] [ filenames ...  ]
+		
+		bzcat [ -h | --help ]
+		
+		bzip2recover filename
+ 
+
+
 
 
 		

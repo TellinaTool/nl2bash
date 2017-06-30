@@ -51,7 +51,7 @@ time
 seq
 cut
 paste
-awk
+awk*
 sed
 date
 cal
