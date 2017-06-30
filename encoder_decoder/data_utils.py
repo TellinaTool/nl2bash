@@ -30,13 +30,11 @@ import random
 import re
 import os, sys
 
-from numpy.linalg import norm
-
 if sys.version_info > (3, 0):
     from six.moves import xrange
 
 from bashlex import normalizer, data_tools
-from nlp_tools import constants, tokenizer, slot_filling
+from nlp_tools import constants, ops, slot_filling, tokenizer
 
 # Special token symbols
 _PAD = "__SP__PAD"
@@ -129,7 +127,7 @@ def create_vocabulary(vocab_path, data, max_vocabulary_size, min_word_frequency,
       (used for simplifying testing sentences with unseen tokens).
     """
 
-    MIN_ARG_FREQ = 30
+    MIN_ARG_FREQ = 1 if vocab_path.endswith('norm') else 30
 
     vocab = {}
 
@@ -301,8 +299,8 @@ def data_to_token_ids(data, tg_id_path, vocab_path, tokenizer=None,
                 parallel_line = None
             else:
                 parallel_line = parallel_data[i]
-            token_ids, _ = sentence_to_token_ids(data[i], vocab, tokenizer,
-                base_tokenizer, use_unk=use_unk,
+            token_ids, _ = sentence_to_token_ids(
+                data[i], vocab, tokenizer, use_unk=use_unk,
                 use_typed_unk=('bash' in vocab_path and '.cm' in vocab_path),
                 parallel_sequence=parallel_line,
                 use_source_placeholder=use_source_placeholder,
@@ -319,8 +317,8 @@ def data_to_token_ids(data, tg_id_path, vocab_path, tokenizer=None,
     return max_token_num
 
 
-def sentence_to_token_ids(sentence, vocabulary, tokenizer, base_tokenizer,
-        use_unk=True, use_typed_unk=False, parallel_sequence=None,
+def sentence_to_token_ids(sentence, vocabulary, tokenizer, use_unk=True,
+        use_typed_unk=False, parallel_sequence=None,
         use_source_placeholder=False, use_unk_placeholder=False,
         parallel_vocabulary=None, parallel_vocab_size=-1,
         coarse_typing=False, add_type_prefix=False, remove_type_prefix=False):
@@ -359,11 +357,7 @@ def sentence_to_token_ids(sentence, vocabulary, tokenizer, base_tokenizer,
         words = sentence
         entities = None
     else:
-        if base_tokenizer:
-            words = tokenizer(sentence, base_tokenizer)
-            entities = None
-        else:
-            words, entities = tokenizer(sentence)
+        words, entities = tokenizer(sentence)
 
     token_ids = []
 
@@ -417,39 +411,45 @@ def sentence_to_token_ids(sentence, vocabulary, tokenizer, base_tokenizer,
         else:
             word_id = get_index(w, vocabulary)
             is_unk = not w in vocabulary or is_low_frequency(w)
-        if parallel_sequence is not None and (
+
+        if is_unk:
+            # out-of-vocabulary word
+            if parallel_sequence is not None and (
                 (w.startswith('__ARG__') and w[len('__ARG__'):] in parallel_sequence)
                 or (w.startswith('__FLAG__') and w[len('__FLAGS__'):] in parallel_sequence)
                 or (('__ARG__' + w) in parallel_sequence)
                 or (('__FLAG__' + w) in parallel_sequence)):
-            # If the token has appeared in the parallel sequence, store its
-            # vocabulary index. Used to compute the CopyNet training objective.
-            token_ids.append(word_id)
-        else:
-            if use_unk and is_unk:
-                # out-of-vocabulary word
-                if coarse_typing:
-                    if is_low_frequency(w):
-                        w = w[len('__LF__'):]
-                    if w.isdigit():
-                        token_ids.append(NUM_ID)
-                    elif re.match(re.compile('[0-9]+[A-Za-z]+'), w):
-                        token_ids.append(NUM_ALPHA_ID)
-                    elif not constants.is_english_word(w):
-                        token_ids.append(NON_ENGLISH_ID)
-                    else:
-                        token_ids.append(UNK_ID)
-                elif use_source_placeholder:
-                    if (not w in vocabulary or is_low_frequency(w)) \
-                            and use_unk_placeholder:
-                        token_ids.append(get_unk_symbol(w))
-                    else:
-                        token_ids.append(parallel_vocab_size + i)
-                else:
-                    token_ids.append(get_unk_symbol(w))
-            else:
-                # in-vocabulary word
+                # If the token has appeared in the parallel sequence, store its
+                # vocabulary index. Used to compute the CopyNet training objective.
                 token_ids.append(word_id)
+            elif coarse_typing:
+                if is_low_frequency(w):
+                    w = w[len('__LF__'):]
+                if w.isdigit():
+                    token_ids.append(NUM_ID)
+                elif re.match(re.compile('[0-9]+[A-Za-z]+'), w):
+                    token_ids.append(NUM_ALPHA_ID)
+                elif not constants.is_english_word(w):
+                    token_ids.append(NON_ENGLISH_ID)
+                else:
+                    if use_unk:
+                        token_ids.append(UNK_ID)
+                    else:
+                        token_ids.append(word_id)
+            elif use_source_placeholder:
+                if (not w in vocabulary or is_low_frequency(w)) \
+                        and use_unk_placeholder:
+                    token_ids.append(get_unk_symbol(w))
+                else:
+                    token_ids.append(parallel_vocab_size + i)
+            else:
+                if use_unk:
+                    token_ids.append(get_unk_symbol(w))
+                else:
+                    token_ids.append(word_id)
+        else:
+            # in-vocabulary word
+            token_ids.append(word_id)
 
     return token_ids, entities
 
@@ -551,10 +551,10 @@ def prepare_dataset(data, data_dir, suffix, vocab_size, vocab_path,
                     parallel_vocab_path=None, parallel_data=None):
     if isinstance(data.train[0], list):
         # save indexed token sequences
-        is_bash_nl = 'bash' in data_dir and suffix.endswith('.nl')
+        is_bash_nl = 'bash' in data_dir and '.nl' in suffix
         is_bash_cm = 'bash' in data_dir and suffix.endswith('.cm')
-        is_regex_turk_nl = 'regex-turk' in data_dir and suffix.endswith('.nl')
-        is_regex_kb13_nl = 'regex-kb13' in data_dir and suffix.endswith('.nl')
+        is_regex_turk_nl = 'regex-turk' in data_dir and '.nl' in suffix
+        is_regex_kb13_nl = 'regex-kb13' in data_dir and '.nl' in suffix
 
         if create_vocab:
             MIN_WORD_FREQ = 2 if is_bash_nl or is_bash_cm \
@@ -565,6 +565,8 @@ def prepare_dataset(data, data_dir, suffix, vocab_size, vocab_path,
             if suffix.endswith('.nl') or suffix.endswith('.cm'):
                 create_vocabulary(vocab_path, data.dev, vocab_size,
                     min_word_frequency=MIN_WORD_FREQ, append_to_vocab=True)
+                create_vocabulary(vocab_path, data.test, vocab_size,
+                    min_word_frequency=MIN_WORD_FREQ, append_to_vocab=True)
         for split in _data_splits:
             data_path = os.path.join(data_dir, split)
             if suffix.endswith('.copy'):
@@ -572,7 +574,7 @@ def prepare_dataset(data, data_dir, suffix, vocab_size, vocab_path,
                 assert(parallel_vocab_path is not None)
                 assert(parallel_data is not None)
                 parallel_split = getattr(parallel_data, split) \
-                    if split == 'train' else None
+                    if split in ['train', 'dev'] else None
                 # compute CopyNet source indices
                 data_to_token_ids(getattr(data, split), data_path + suffix + '.sc',
                     vocab_path=vocab_path, use_source_placeholder=True,
@@ -684,8 +686,8 @@ def prepare_jobs(FLAGS):
                 nl_tokenizer = tokenizer.space_tokenizer
             nl_tokens, _ = nl_tokenizer(nl)
             cm_tokens = cm.split()
-            nl_chars = data_tools.char_tokenizer(nl, nl_tokenizer)
-            cm_chars = data_tools.char_tokenizer(cm, None)
+            nl_chars = data_tools.char_tokenizer(nl)
+            cm_chars = data_tools.char_tokenizer(cm)
             getattr(nl_list, split).append(nl)
             getattr(cm_list, split).append(cm)
             getattr(nl_char_list, split).append(nl_chars)
@@ -772,8 +774,8 @@ def prepare_bash(FLAGS, verbose=False):
             if ast:
                 if data_tools.is_simple(ast):
                     mappings = slot_filling.slot_filler_alignment_induction(nl, cm)
-                    nl_chars = data_tools.char_tokenizer(nl, tokenizer.basic_tokenizer)
-                    cm_chars = data_tools.char_tokenizer(cm, data_tools.bash_tokenizer)
+                    nl_chars = data_tools.char_tokenizer(nl)
+                    cm_chars = data_tools.char_tokenizer(cm)
                     nl_tokens, _ = tokenizer.basic_tokenizer(nl)
                     cm_tokens = data_tools.ast2tokens(
                         ast, with_parent=True, with_prefix=True)
@@ -834,8 +836,7 @@ def prepare_bash(FLAGS, verbose=False):
                             o_f.write('{}-{} '.format(i, j))
                     o_f.write('\n')
 
-    def split_arguments(nl_tokens, cm_tokens, cm_normalized_tokens,
-                        verbose=False):
+    def split_arguments(nl_tokens, cm_tokens, verbose=False):
         """
         Example:
             nl: find all '.txt' files
@@ -845,72 +846,90 @@ def prepare_bash(FLAGS, verbose=False):
             splitted_cm_tokens = ['find', '.', '-name', _ARG_START, '"', '*',
                 '.txt', '"', _ARG_END]
         """
-        assert(len(cm_tokens) == len(cm_normalized_tokens))
 
-        splitted_nl_tokens = []
+        nl_tokens_wsq = []                  # nl tokens with separated quotes
+        cm_tokens_wsq = []                  # cm tokens with separated quotes
         for word in nl_tokens:
             if constants.with_quotation(word):
-                splitted_nl_tokens.append(word[0])
-                splitted_nl_tokens.append(word[1:-1])
-                splitted_nl_tokens.append(word[-1])
+                nl_tokens_wsq.append(word[0])
+                nl_tokens_wsq.append(word[1:-1])
+                nl_tokens_wsq.append(word[-1])
             else:
-                splitted_nl_tokens.append(word)
+                nl_tokens_wsq.append(word)
+        for token in cm_tokens:
+            if token.startswith('__ARG__'):
+                token = token[len('__ARG__'):]
+            if len(token) > 2 and constants.with_quotation(token):
+                cm_tokens_wsq.append(token[0])
+                cm_tokens_wsq.append(token[1:-1])
+                cm_tokens_wsq.append(token[-1])
+            elif len(token) > 1 and token[0] in ['-', '+']:
+                cm_tokens_wsq.append(token[0])
+                cm_tokens_wsq.append(token[1:])
+            else:
+                cm_tokens_wsq.append(token)
 
         M = collections.defaultdict(dict)
-        for i in xrange(len(splitted_nl_tokens)):
-            word = splitted_nl_tokens[i]
-            for j in xrange(len(cm_normalized_tokens)):
-                if cm_normalized_tokens[j] in constants._ENTITIES:
-                    token = cm_tokens[j]
-                    if token.startswith('__LF__'):
-                        token = token[len('__LF__'):]
-                    if token.startswith('__ARG__'):
-                        token = token[len('__ARG__'):]
-                    if word == token:
-                        M[i][j] = 1
-                    elif word in token:
-                        if len(token) - len(word) > 10 or word in ['"', '\'']:
-                            if verbose:
-                                print("False match: {}, {}".format(token, word))
-                            M[i][j] = -np.inf
-                        else:
-                            M[i][j] = (len(word) + 0.0) / len(token)
+        M_splits = collections.defaultdict(dict)
+
+        for i in xrange(len(nl_tokens_wsq)):
+            word = nl_tokens_wsq[i]
+            for j in xrange(len(cm_tokens_wsq)):
+                token = cm_tokens_wsq[j]
+                if word == token and not constants.is_quotation(word) \
+                        and not constants.is_quotation(token):
+                    M[i][j] = 1
+                    M_splits[i][j] = ([word], [token])
+                else:
+                    if np.abs(len(token) - len(word)) > 10 \
+                            or constants.is_quotation(word) \
+                            or constants.is_quotation(token):
+                        if verbose:
+                            print("False match: {}, {}".format(token, word))
                     else:
-                        M[i][j] = -np.inf
+                        (s1, e1), (s2, e2) = ops.longest_common_substring(word, token)
+                        if s1 == e1:
+                            continue
+                        else:
+                            M[i][j] = ((e1 - s1) + 0.0) / max(e1-s1, e2-s2)
+                            if e1 - s1 == len(word):
+                                nl_splits = [word]
+                            else:
+                                nl_splits = [word[:s1]] if s1 > 0 else []
+                                nl_splits.append(word[s1:e1])
+                                if e1 < len(word):
+                                    nl_splits.append(word[e1:])
+                            if e2 - s2 == len(token):
+                                cm_splits = [token]
+                            else:
+                                cm_splits = [token[:s2]] if s2 > 0 else []
+                                cm_splits.append(token[s2:e2])
+                                if e2 < len(token):
+                                    cm_splits.append(token[e2:])
+                            M_splits[i][j] = (nl_splits, cm_splits)
 
         mappings, _ = slot_filling.stable_marriage_alignment(M)
-        mapping_dict = dict([(y, x) for (x, y) in mappings])
+        mapping_dict = dict([(x, y) for (x, y) in mappings])
+        rev_mapping_dict = dict([(y, x) for (x, y) in mappings])
 
+        splitted_nl_tokens = []
         splitted_cm_tokens = []
-        for j in xrange(len(cm_tokens)):
-            token = cm_tokens[j]
-            low_freq = is_low_frequency(token)
-            if low_freq:
-                basic_token = remove_low_frequency_prefix(token)
+
+        for i in xrange(len(nl_tokens_wsq)):
+            if i in mapping_dict:
+                j = mapping_dict[i]
+                for word in M_splits[i][j][0]:
+                    splitted_nl_tokens.append(word)
             else:
-                basic_token = token
-            if basic_token.startswith('__ARG__'):
-                basic_token = basic_token[len('__ARG__'):]
-            if j in mapping_dict:
-                i = mapping_dict[j]
-                word = splitted_nl_tokens[i]
-                if word == basic_token:
+                splitted_nl_tokens.append(nl_tokens_wsq[i])
+
+        for j in xrange(len(cm_tokens_wsq)):
+            if j in rev_mapping_dict:
+                i = rev_mapping_dict[j]
+                for token in M_splits[i][j][1]:
                     splitted_cm_tokens.append(token)
-                else:
-                    pos_start = basic_token.index(word)
-                    pos_end = pos_start + len(word)
-                    splitted_cm_tokens.append(_ARG_START)
-                    for k in xrange(pos_start):
-                        splitted_cm_tokens.append(basic_token[k])
-                    if low_freq:
-                        splitted_cm_tokens.append(add_low_frequency_prefix(word))
-                    else:
-                        splitted_cm_tokens.append(word)
-                    for k in xrange(pos_end, len(basic_token)):
-                        splitted_cm_tokens.append(basic_token[k])
-                    splitted_cm_tokens.append(_ARG_END)
             else:
-                splitted_cm_tokens.append(token)
+                splitted_cm_tokens.append(cm_tokens_wsq[j])
 
         return splitted_nl_tokens, splitted_cm_tokens
 
@@ -1145,12 +1164,9 @@ def prepare_data(FLAGS):
 
 
 def load_slot_filling_data(input_path):
-    data = np.load(input_path)
-    train_X, train_Y = data['arr_0']
-    train_X = np.concatenate(train_X, axis=0)
-    train_Y = np.concatenate([np.expand_dims(y, 0) for y in train_Y], axis=0)
-    train_X = train_X / norm(train_X, axis=1)[:, None]
-    assert(len(train_X) == len(train_Y))
+    npz = np.load(input_path)
+    train_X = npz['arr_0']
+    train_Y = npz['arr_1']
     print('{} slot filling examples loaded'.format(len(train_X)))
     return train_X, train_Y
 

@@ -30,6 +30,8 @@ man_lookup = ManPageLookUp([os.path.join(
     os.path.dirname(__file__), "..", "grammar", "primitive_cmds_grammar.json")])
 
 def cmd_arg_type_check(word, arg_status):
+    if not arg_status:
+        return 'Unknown'
     arg_types = []
     for i in xrange(len(arg_status["non-optional"])):
         arg_type, is_list, filled = arg_status["non-optional"][i]
@@ -97,7 +99,7 @@ def is_binary_logic_op(node, parent):
             return False
     return node.word in binary_logic_operators
 
-def special_command_normalization(cmd):
+def correct_errors_and_normalize(cmd):
     # special normalization for certain commands
     ## remove all "sudo"'s
     cmd = cmd.replace("sudo", "")
@@ -208,7 +210,7 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
     :return normalized_tree
     """
     cmd = cmd.replace('\n', ' ').strip()
-    cmd = special_command_normalization(cmd)
+    cmd = correct_errors_and_normalize(cmd)
     if not cmd:
         return None
 
@@ -265,6 +267,8 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
         unprocessed_binary_logic_ops = []
 
         def expecting(a_t):
+            if not arg_status:
+                return None
             for arg_type, is_list, filled in arg_status["non-optional"]:
                 if not is_list and filled:
                     continue
@@ -528,8 +532,8 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
                                     arg_type = list(possible_arg_types)[0]
                                 else:
                                     # "--" encountered
-                                    arg_type = cmd_arg_type_check(child,
-                                                                  arg_status)
+                                    arg_type = cmd_arg_type_check(
+                                        child, arg_status)
                                 # recurse to main normalization to handle
                                 # argument with deep structures
                                 normalize(child, attach_point, "argument",
@@ -756,10 +760,11 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
         elif node.kind == "pipeline":
             norm_node = PipelineNode()
             attach_to_tree(norm_node, current)
-            if len(node.parts) % 2 == 0:
-                print("Error: pipeline node must have odd number of parts")
-                print(node)
-                sys.exit()
+            # if len(node.parts) % 2 == 0:
+            #     print("Error: pipeline node must have odd number of parts (%d)"
+            #           % len(node.parts))
+            #     print(node)
+            #     sys.exit()
             for child in node.parts:
                 if child.kind == "command":
                     normalize(child, norm_node)
@@ -871,6 +876,10 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
         return None
     except AssertionError as err:
         print("%s - %s" % (err.args[0], cmd2))
+        return None
+
+    if len(normalized_tree.children) == 0:
+        # parsing not successful is there is only the root node in the tree
         return None
 
     return normalized_tree
