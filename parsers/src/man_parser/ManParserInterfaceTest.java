@@ -46,7 +46,7 @@ public class ManParserInterfaceTest {
 
     @Test
     public void fastParseManPage() throws IOException {
-        String manPage = "../data/gnu-man/man1/time.txt";
+        String manPage = "../data/gnu-man/man1/seq.txt";
         Cmd.ManPage mp = ManParserInterface.parseFile(new File(manPage));
         System.out.println(mp.rawSynopsis);
 
