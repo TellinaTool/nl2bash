@@ -29,13 +29,13 @@ constants
 
 PrimitiveCmd ::=
 
-		pwd [-L | --logical] [-P | --physical] [--help] [--version]
+		pwd [-L] [--logical] [-P] [--physical] [--help] [--version]
 
 		cd [-L | -P] [dir]
 
-		ls [-a | --all] [-A | --almost-all] [--author] [-b | --escape] [--block-size=SIZE] [-B | --ignore-backups] [-c -lt] [-c -l] [-C] [--color] [--color[=always]] [--color[=never]] [--color[=auto]]<S> [-d | --directory] [-D | --dired] [-f] [-F | --classify] [--file-type] [--format=[-x|-m|-l|-1|-C]]<S> [--full-time] [-g] [--group-directories-first] [-G | --no-group] [-h | --human-readable] [--si] [-H | --dereference-command-line] [--dereference-command-line-symlink-to-dir] [--hide=pattern] [--indicator-style] [--indicator-style=slash] [--indicator-style=file-type] [--indicator-style=classify]<S> [-i | --inode] [-I | --ignore=PATTERN] [-k | --kibibytes] [-l] [-L | --dereference] [-m] [-n | --numeric-uid-gid] [-N | --literal] [-o] [-p] [-q | --hide-control-chars] [--show-control-chars] [-Q | --quote-name] [--quoting-style=WORD]<S> [-r | --reverse] [-R | --recursive] [-s | --size] [-S] [--sort=WORD] [--time=WORD] [--time-style=STYLE] [-t] [-T | --tabsize=COLS] [-u] [-U] [-v] [-w | --width=COLS] [-x] [-X] [-1] [--lcontext] [-Z | --context] [--scontext] [--help] [--version] [FILE ...]
+		ls [-a | --all] [-A | --almost-all] [--author] [-b | --escape] [--block-size=SIZE] [-B | --ignore-backups] [-c -lt] [-c -l] [-C] [--color[=always]] [--color[=never]] [--color[=auto]] [-d | --directory] [-D | --dired] [-f] [-F | --classify] [--file-type] [--format=[-x|-m|-l|-1|-C]] [--full-time] [-g] [--group-directories-first] [-G | --no-group] [-h | --human-readable] [--si] [-H | --dereference-command-line] [--dereference-command-line-symlink-to-dir] [--hide=pattern] [--indicator-style] [--indicator-style=-p] [--indicator-style=--file-type] [--indicator-style=-F] [-i | --inode] [-I | --ignore=PATTERN] [-k] [-l] [-L | --dereference] [-m] [-n | --numeric-uid-gid] [-N | --literal:q] [-o] [-p | --indicator-style=slash] [-q | --hide-control-chars] [--show-control-chars] [-Q |  --quote-name] [--quoting-style=WORD] [-r | --reverse] [-R | --recursive] [-s | --size] [-S] [--sort=WORD] [--time=WORD] [--time-style=STYLE] [-t] [-T | --tabsize=COLS] [-u] [-U] [-v] [-w | --width=COLS] [-x] [-X] [-1] [--lcontext] [-Z | --context] [--scontext] [--help] [--version] [FILE ...]
 
-		mkdir [-m | --mode=MODE] [-p | --parents] [-v | --verbose] [-Z | --context[=CTX]] [--help] [--version] DIRECTORY ...
+		mkdir [-m | --mode=MODE] [-p | --parents] [-v | --verbose] [-Z | --context=CTX] [--help] [--version] DIRECTORY ...
 
 		rmdir [--ignore-fail-on-non-empty] [-p | --parents] [-v | --verbose] [--help] [--version] DIRECTORY ...
 
