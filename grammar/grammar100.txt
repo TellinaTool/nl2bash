@@ -4,10 +4,10 @@ type
 		Path        (path, source_file, target_file)
 		Permission  (permmode)
 		DateTime    (date, reference)
-		Program     (command, prog, program, utility, varEQvalue)
+		Prog        (command, prog, program, utility, varEQvalue)
 		Type        (t, type)
-		Regex       (gid, pid, session, tty, uid, commandname, name, gname, uname, eofstr, fd, fs, replstr, string, extension, format, owner, group, first, last, role, suffix, suffixes, pattern, mask, regex, expression, replacement)
-		Option      (cpattern, prompt, option, options, MINUSflags, PLUSflags, flags)
+		Option      (option, options, MINUSflags, PLUSflags, flags)
+		Regex       (name, gname, uname, eofstr, fs, replstr, string, extension, format, owner, group, first, last, suffix, suffixes, pattern, mask, regex, expression, replacement)
 		Number      (n, num, number, replacements, maxargs, maxchars, maxlines, maxprocs, incr, count, depth)
 		Timespan    (time)
 		Size        (size, bytes, blocksize)
@@ -16,11 +16,8 @@ constants
 		SEMICOLON ;
 		MINUS -
 		PLUS +
-		PLUSPLUS ++
-		DOUBLEDASH --
-		SHARP #
-		TILDE ~
 		EXCLAMATION !
+		ACE ACE
 		LB (
 		RB )
 		{} {}
@@ -95,7 +92,7 @@ PrimitiveCmd ::=
 
 		less --version
 
-		less [-PLUSaABcCdeEfFgGiIJKLmMnNqQrRsSuUVwWX] [-b space] [-h lines] [-j line] [-k keyfile] [-o logfile] [-O logfile] [-p pattern] [-P prompt] [-t tag] [-T tagsfile] [-x tab...] [-y lines] [-z lines] [-TILDE] [-tilde] [-SHARP] [-shift] [PLUS COMMAND] [PLUSPLUS COMMAND] [DOUBLEDASH] filename...
+		less [-PLUSaABcCdeEfFgGiIJKLmMnNqQrRsSuUVwWX] [-b space] [-h lines] [-j line] [-k keyfile] [-o logfile]  [-O logfile] [-p pattern] [-P prompt] [-t tag] [-T tagsfile] [-x tab...] [-y lines] [-z lines] [-shift] filename...
 
 		zless [ name ...  ]
 
@@ -120,16 +117,6 @@ PrimitiveCmd ::=
 		chown  [ -c | --changes ] [ -f | --silent | --quiet ] [ -f | --silent | --quiet ] [ -v | --verbose ] [ --dereference ] [ -h | --no-dereference ] [ --no-preserve-root ] [ --preserve-root ] [ --reference[=RFILE] ] [ -R | --recursive ] --reference=RFILE FILE...
 
 		clear
-
-		sudo [ -h | -K | -k | -V ]
-
-		sudo -v [-AknS] [ -g gname ] [ -p prompt ] [ -u uname ]
-
-		sudo -I -l [-AknS] [ -g gname ] [ -p prompt ] [ -U uname ] [ -u uname ] COMMAND
-
-		sudo [-AbEHnPS] [-C fd] [-g groupname] [-p prompt] [-r role] [-t type] [-u username] [VAR=value] [-i COMMAND]
-
-		sudo [-AbEHnPS] [-C fd] [-g groupname] [-p prompt] [-r role] [-t type] [-u username] [VAR=value] [-s COMMAND]
 
 		su [ -c | --command COMMAND ] [ -s | --shell SHELL ] [ -m | -p | --preserve-environment ] [ -m | -p | --preserve-environment ] [username]
 
@@ -201,25 +188,11 @@ PrimitiveCmd ::=
 
 		sleep [ --help ] [ --version ]
 
-		ps [-Aade] option [-N | --deselect]
-
-		ps [-C commandname] [-G gid] [--Group gid] [-g group] [--group group] [-p pid] [--pid pid] [--ppid pid] [-s session] [--sid session] [-t tty] [--tty tty] [-u uid] [--user uid] [-U uid] [--User uid]
-
-        ps [-FfHilMZOy] option [--forest] [-o format] [--format format] [--context] [--headers] [--no-headers] [--cols num] [--columns num] [--width num] [--rows num] [--lines num]
-
-        ps [-LmT] option
-
-        ps [-cyVw] option [--sort pattern] [--cumulative] [--version] [--help option]
+		ps [option]
 
 		pstree [-a | --arguments] [-c | --compact] [-h | --highlight-all | -Hpid | --highlight-pid pid ] [-g | --show-pgids ] [-l | --long] [-n | --numeric-sort] [-p | --show-pids] [-s | --show-parents] [-u | --uid-changes] [-Z | --security-context] [-A | --ascii ] [ -G | --vt100 ] [ -U | --unicode] [pid] [user]
 
 		pstree [-V | --version]
-
-		jobs [-l | -p] job_id ...
-
-		bg job_id ...
-
-		fg job_id ...
  
 		kill [ -s signal ] [ --signal signal ] [ -l | --list [signal] ] [ -L | --table ] pid ...
 
@@ -241,16 +214,8 @@ PrimitiveCmd ::=
 
 		paste [ -d | --delimiters[=LIST] ] [ -s | --serial ] [   --help  ] [ --version ] [FILE]...
 
-		awk
-
-		sed
-
-		find [-H | -L | -P] [-EXdsx] [-f path] path ... [ -true ] [ -false ] [ -not ] [ -Bmin n ] [ -Bnewer file ] [ -Btime time ] [ -acl ] [ -amin n ] [ -anewer file ] [-atime time] [ -cmin n ] [ -cnewer file ] [ -ctime time ] [ -d ] [ -daystart ] [ -delete ] [ -depth ] [ -depth n ] [ -empty ] [ -exec COMMAND SEMICOLON ] [ -exec COMMAND PLUS ] [ -execdir COMMAND SEMICOLON ] [ -execdir COMMAND PLUS ] [ -fstype type ] [ -gid gname ] [ -group gname ] [ -ignore_readdir_race ] [ -ilname pattern ] [ -ilname pattern ] [ -iname pattern ] [ -inum n ] [ -ipath pattern ] [ -iregex pattern ] [ -iwholename pattern ] [ -links n ] [ -lname pattern ] [ -ls ] [ -maxdepth n ] [ -mindepth n ] [ -mmin n ] [ -mnewer file ] [ -mount ] [ -mtime time ] [ -name pattern ] [ -newer file ] [ -neweraa file ] [ -neweraB file ] [ -newerac file ] [ -neweram file ] [ -newerBa file ] [ -newerBB file ] [ -newerBc file ] [ -newerBm file ] [ -newerca file ] [ -newercB file ] [ -newercc file ] [ -newercm file ] [ -newerma file ] [ -newermB file ] [ -newermc file ] [ -newermm file ] [ -newerat reference ] [ -newerBt reference ] [ -newerct reference ] [ -newermt reference ]  [ -nogroup ] [ -noignore_readdir_race ] [ -noleaf ] [ -nouser ] [ -ok utility [ argument ... ] SEMICOLON] [ -okdir utility [ argument ...] SEMICOLON ] [ -path pattern ] [ -perm permmode ] [ -print ] [ -print0 ] [-printf cpattern] [ -prune ] [ -regex pattern ] [ -regextype type ] [ -samefile name ] [ -size size ] [ -type t ] [ -xtype t ] [ -uid uname ] [ -user uname ] [ -wholename pattern ] [ -xattr ] [ -xattrname name ] [ -and ] [ -or ] [ -not ] [ EXCLAMATION ]
-
-		find [-H | -L | -P] [-EXdsx] -f path [path ...] [ -true ] [ -false ] [ -not ] [ -Bmin n ] [ -Bnewer file ] [ -Btime time ] [ -acl ] [ -amin n ] [ -anewer file ] [-atime time] [ -cmin n ] [ -cnewer file ] [ -ctime time ] [ -d ] [ -daystart ] [ -delete ] [ -depth ] [ -depth n ] [ -empty ] [ -exec COMMAND SEMICOLON ] [ -exec COMMAND PLUS ] [ -execdir COMMAND SEMICOLON ] [ -execdir COMMAND PLUS ] [ -fstype type ] [ -gid gname ] [ -group gname ] [ -ignore_readdir_race ] [ -ilname pattern ] [ -ilname pattern ] [ -iname pattern ] [ -inum n ] [ -ipath pattern ] [ -iregex pattern ] [ -iwholename pattern ] [ -links n ] [ -lname pattern ] [ -ls ] [ -maxdepth n ] [ -mindepth n ] [ -mmin n ] [ -mnewer file ] [ -mount ] [ -mtime time ] [ -name pattern ] [ -newer file ] [ -neweraa file ] [ -neweraB file ] [ -newerac file ] [ -neweram file ] [ -newerBa file ] [ -newerBB file ] [ -newerBc file ] [ -newerBm file ] [ -newerca file ] [ -newercB file ] [ -newercc file ] [ -newercm file ] [ -newerma file ] [ -newermB file ] [ -newermc file ] [ -newermm file ] [ -newerat reference ] [ -newerBt reference ] [ -newerct reference ] [ -newermt reference ]  [ -nogroup ] [ -noignore_readdir_race ] [ -noleaf ] [ -nouser ] [ -ok utility [ argument ... ] SEMICOLON] [ -okdir utility [ argument ...] SEMICOLON ] [ -path pattern ] [ -perm permmode ] [ -print ] [ -print0 ] [-printf cpattern] [ -prune ] [ -regex pattern ] [ -regextype type ] [ -samefile name ] [ -size size ] [ -type t ] [ -xtype t ] [ -uid uname ] [ -user uname ] [ -wholename pattern ] [ -xattr ] [ -xattrname name ] [ -and ] [ -or ] [ -not ] [ EXCLAMATION ]
-
-
-
+		
+ 
 
 
 		
