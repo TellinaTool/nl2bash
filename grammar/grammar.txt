@@ -46,7 +46,7 @@ PrimitiveCmd ::=
 
 		cp [-R [-H | -L | -P]] [ -fi | -n] [-apvX] source_file ... directory [ -l ] [ --link ] [ --parents ] [-R] [-r] [--recursive] [ -S suffix ] [ --suffix[=suffix]] [ -t directory] [ --target-directory[=directory]] [ -T ] [ --no-target-directory ] [ -u ] [ --update ] [ -v ] [ --verbose ]
 
-        	cp [-R [-H | -L | -P]] [ -fi | -n] [-apvX] directory source_file ... [ -l ] [ --link ] [ --parents ] [-R] [-r] [--recursive] [ -S suffix ] [ --suffix[=suffix]] [ -t directory] [ --target-directory[=directory]] [ -T ] [ --no-target-directory ] [ -u ] [ --update ] [ -v ] [ --verbose ]
+        cp [-R [-H | -L | -P]] [ -fi | -n] [-apvX] directory source_file ... [ -l ] [ --link ] [ --parents ] [-R] [-r] [--recursive] [ -S suffix ] [ --suffix[=suffix]] [ -t directory] [ --target-directory[=directory]] [ -T ] [ --no-target-directory ] [ -u ] [ --update ] [ -v ] [ --verbose ]
 
 		ls [-ABCFGHLOPRSTUW@abcdefghiklmnopqrstuwx1] [file ...]
 

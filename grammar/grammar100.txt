@@ -101,7 +101,7 @@ PrimitiveCmd ::=
 
 		more [-dlfpcsu] [-num] [PLUSSLASH pattern] [PLUS linenum] [file ...]
 
-		grep [--help] [-V | --version] [-abcdDEFGHhIiJLlmnOopqRSsUVvwxZ] [-A num] [-B num] [-C num] [-e pattern] [-f file] [--color[=when]] [--colour[=when]] [--context[=num]] [--label] [--line-buffered] [--null] [pattern] [file ...]
+		grep [--help] [-V | --version] [-E | --extended-regexp][-F | --fixed-strings] [-G | --basic-regexp] [-P | --perl-regexp] [-e pattern] [--regexp=pattern] [-f file] [--file=file] [-i | --ignore-case] [-v | --invert-match] [-w | --word-regexp] [-abcdDHhIiJLlmnOopqRSsUVxZ] [-A num] [-B num] [-C num]  [--color[=when]] [--colour[=when]] [--context[=num]] [--label] [--line-buffered] [--null] [pattern] [file ...]
 
         egrep [-abcdDEFGHhIiJLlmnOopqRSsUVvwxZ] [-A num] [-B num] [-C num] [-e pattern] [-f file] [--context[=num]] [--color[=when]] [--colour[=when]] [--label] [--line-buffered] [--null] [pattern] [file ...]
 

@@ -259,16 +259,12 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
         return norm_node
 
     def normalize_command(node, current):
-        arg_status = None                       # determine argument types
+        arg_status = None
         utilities = []
-        unary_logic_ops = []
-        binary_logic_ops = []
-        unprocessed_unary_logic_ops = []
-        unprocessed_binary_logic_ops = []
 
-        def expecting(a_t):
+        def next(a_t):
             if not arg_status:
-                return None
+                return False
             for arg_type, is_list, filled in arg_status["non-optional"]:
                 if not is_list and filled:
                     continue
@@ -281,156 +277,23 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
                     return True
             return False
 
-        def organize_buffer(lparenth, rparenth):
-            node = lparenth.rsb
-            while node != rparenth:
-                # if node.kind == "unarylogicop":
-                #     adjust_unary_operators(node)
-                node = node.rsb
-            node = lparenth.rsb
-            while node != rparenth:
-                # if node.kind == "binarylogicop":
-                #     adjust_binary_operators(node)
-                node = node.rsb
-            node = lparenth.rsb
-            if node.rsb == rparenth:
-                return lparenth.rsb
-            else:
-                norm_node = BracketNode()
-                while node != rparenth:
-                    attach_to_tree(node, norm_node)
-                    node = node.rsb
-                return norm_node
-
-        def adjust_unary_operators(node):
-            if node.associate == UnaryLogicOpNode.RIGHT:
-                # change right sibling to child
-                rsb = node.rsb
-                if not rsb:
-                    print("Warning: unary logic operator without a right "
-                          "sibling.")
-                    return
-                if rsb.value == "(":
-                    unprocessed_unary_logic_ops.append(node)
-                    return
-                if rsb.value == ")":
-                    # TODO: this corner case is not handled very well
-                    node.associate = UnaryLogicOpNode.LEFT
-                    unprocessed_unary_logic_ops.append(node)
-                    return
-                make_sibling(node, rsb.rsb)
-                node.parent.remove_child(rsb)
-                rsb.lsb = None
-                rsb.rsb = None
-                node.add_child(rsb)
-            elif node.associate == UnaryLogicOpNode.LEFT:
-                # change left sibling to child
-                lsb = node.lsb
-                if not lsb:
-                    print("Warning: unary logic operator without a left "
-                          "sibling.")
-                    print(node.parent)
-                    return
-                if lsb.value == ")":
-                    unprocessed_unary_logic_ops.append(node)
-                    return
-                if (lsb.kind == "binarylogicop" and lsb.get_num_of_children() < 2) \
-                        or lsb.value == "(":
-                    # TODO: this corner case is not handled very well
-                    # it is often triggered by the bizarre usage of -prune
-                    return
-                make_sibling(lsb.lsb, node)
-                node.parent.remove_child(lsb)
-                lsb.lsb = None
-                lsb.rsb = None
-                node.add_child(lsb)
-            else:
-                raise AttributeError("Cannot decide unary operator "
-                                     "assocation: {}".format(node.symbok))
-
-            # resolve single child of binary operators left as the result of
-            # parentheses processing
-            if node.parent.kind == "bracket" and node.parent.get_num_of_children() == 1:
-                node.grandparent.replace_child(node.parent, node)
-
-        def adjust_binary_operators(node):
-            # change right sibling to Child
-            # change left sibling to child
-            rsb = node.rsb
-            lsb = node.lsb
-
-            if not rsb or not lsb:
-                raise AttributeError("Error: binary logic operator must have "
-                                     "both left and right siblings.")
-
-            if rsb.value == "(" or lsb.value == ")":
-                unprocessed_binary_logic_ops.append(node)
-                # sibling is parenthese
-                return
-
-            assert(rsb.value != ")")
-            assert(lsb.value != "(")
-
-            make_sibling(node, rsb.rsb)
-            make_sibling(lsb.lsb, node)
-            node.parent.remove_child(rsb)
-            node.parent.remove_child(lsb)
-            rsb.rsb = None
-            lsb.lsb = None
-
-            if lsb.kind == "binarylogicop" and lsb.value == node.value:
-                for lsbc in lsb.children:
-                    make_parent_child(node, lsbc)
-                make_parent_child(node, rsb)
-                lsbcr = lsb.get_right_child()
-                make_sibling(lsbcr, rsb)
-            else:
-                make_parent_child(node, lsb)
-                make_parent_child(node, rsb)
-                make_sibling(lsb, rsb)
-
-            # resolve single child of binary operators left as the result of
-            # parentheses processing
-            if node.parent.kind == "binarylogicop" \
-                    and node.parent.value == "-and":
-                if node.parent.get_num_of_children() == 1:
-                    node.grandparent.replace_child(node.parent, node)
-
         def attach_flag(node, attach_point_info):
             attach_point = attach_point_info[0]
 
             if node.word.startswith("--") \
                 or is_unary_logic_op(node, attach_point) \
                 or node.word in binary_logic_operators \
-                or attach_point.value == "find" \
+                or attach_point.value in bash.findutils \
                 or len(node.word) <= 1:
                 normalize_flag(node, attach_point)
             else:
-                # split flags
                 assert(node.word.startswith('-'))
                 options = node.word[1:]
                 if len(options) == 1 and not options.isdigit():
                     normalize_flag(node, attach_point)
                 else:
-                    if options[-1].isdigit() and (
-                      (attach_point.value == "head" and options.isdigit()) or
-                      (attach_point.value == "tail" and options.isdigit()) or
-                      (attach_point.value in bash.float_arguments and
-                           (options[0] in bash.float_arguments[attach_point.value]))):
-                        # flag contains a floading argument
-                        str = options + " reformed to: "
-                        m = re.match('[a-zA-Z]', options)
-                        value = m.group(0) if m else ''
-                        m = re.search('\d+$', options)
-                        arg_value = m.group(0) if m else ''
-                        if attach_point.value in ['head', 'tail'] and \
-                                not value:
-                            value = 'n'
-                        new_option = '-' + value + '=' + arg_value
-                        new_node = copy.deepcopy(node)
-                        new_node.word = new_option
-                        normalize_flag(new_node, attach_point)
-                        str += new_option
+                    # search for flag arguments, if None, split flags
+                    if
                     else:
                         str = options + " splitted into: "
                         for i in xrange(len(options)):
@@ -455,12 +318,12 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
                 # flag does not take arguments
                 return attach_point_info
 
-        def look_above(attach_point):
+        def backtrack(attach_point):
             head_cmd = attach_point.utility
             return (head_cmd, ["flags", "arguments"], None)
 
-        # Attach point format: (pointer_to_the_attach_point,
-        #                       ast_node_type, arg_type)
+        # Attach point info: (pointer_to_the_attach_point, ast_node_type,
+        #                     arg_type)
         attach_point_info = (current, ["utility"], [])
 
         ind = 0
@@ -475,11 +338,9 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
                 if is_unary_logic_op(child, attach_point):
                     norm_node = UnaryLogicOpNode(child.word)
                     attach_to_tree(norm_node, attach_point)
-                    unary_logic_ops.append(norm_node)
                 elif is_binary_logic_op(child, attach_point):
                     norm_node = BinaryLogicOpNode(child.word)
                     attach_to_tree(norm_node, attach_point)
-                    binary_logic_ops.append(norm_node)
                 else:
                     if child.word == "--" and not attach_point.is_command("awk"):
                         attach_point_info = (attach_point_info[0], ["argument"],
@@ -491,40 +352,31 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
                         # no ast_node_kind ambiguation
                         node_kind = possible_node_kinds[0]
                         if node_kind == "utility":
-                            norm_node = normalize_utility(child,
-                                                              attach_point)
+                            norm_node = normalize_utility(child, attach_point)
                             utilities.append(norm_node)
                             head_cmd = norm_node.value
                             arg_status = copy.deepcopy(man_lookup.get_arg_types(head_cmd))
-                            attach_point_info = \
-                                (norm_node, ["flag", "argument"], None)
+                            attach_point_info = (norm_node, ["flag", "argument"], None)
                         elif node_kind == "argument":
                             if possible_arg_types and "Prog" in possible_arg_types:
                                 # embedded command leaded by
                                 # ["-exec", "-execdir", "-ok", "-okdir"]
                                 new_command_node = bast.node(kind="command",
-                                                             word="",
-                                                             parts=[],
-                                                             pos=(-1,-1))
+                                    word="", parts=[], pos=(-1,-1))
                                 new_command_node.parts = []
                                 subcommand_added = False
                                 for j in xrange(ind, len(node.parts)):
-                                    if hasattr(node.parts[j], 'word') \
-                                        and (node.parts[j].word == ";" \
-                                        or node.parts[j].word == "+"):
-                                        normalize_command(new_command_node,
-                                                          attach_point)
-                                        attach_point.value += \
-                                            '::' + node.parts[j].word
+                                    if hasattr(node.parts[j], 'word') and \
+                                            (node.parts[j].word == ";" or node.parts[j].word == "+"):
+                                        normalize_command(new_command_node, attach_point)
+                                        attach_point.value +=  '::' + node.parts[j].word
                                         subcommand_added = True
                                         break
                                     else:
-                                        new_command_node.parts.\
-                                            append(node.parts[j])
+                                        new_command_node.parts.append(node.parts[j])
                                 if not subcommand_added:
                                     print("Warning: -exec missing ending ';'")
-                                    normalize_command(new_command_node,
-                                                      attach_point)
+                                    normalize_command(new_command_node, attach_point)
                                     attach_point.value += '::' + ";"
                                 ind = j
                             else:
@@ -532,32 +384,25 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
                                     arg_type = list(possible_arg_types)[0]
                                 else:
                                     # "--" encountered
-                                    arg_type = cmd_arg_type_check(
-                                        child, arg_status)
+                                    arg_type = cmd_arg_type_check(child, arg_status)
                                 # recurse to main normalization to handle
                                 # argument with deep structures
                                 normalize(child, attach_point, "argument",
                                           arg_type)
-                            attach_point_info = look_above(attach_point)
+                            attach_point_info = backtrack(attach_point)
                     else:
-                        # need to decide ast_node_kind
-                        if child.word.startswith("-") and \
-                            not ((attach_point.value in ["chmod"]
-                                and re.match(constants._NUMERICAL_PERMISSION_RE,
-                                    child.word))):
+                        # need to disambiguate ast_node_kind
+                        if child.word.startswith("-") and not ((attach_point.value in ["chmod"]
+                                and re.match(constants._NUMERICAL_PERMISSION_RE, child.word))):
                             # child is a flag
-                            attach_point_info = \
-                                attach_flag(child, attach_point_info)
+                            attach_point_info = attach_flag(child, attach_point_info)
                         else:
                             # child is an argument
                             if expecting("Prog"):
                                 # embedded command leaded by
-                                # ["sh", "csh", "ksh", "tcsh",
-                                #  "zsh", "bash", "exec", "xargs"]
+                                # ["sh", "csh", "ksh", "tcsh", "zsh", "bash", "exec", "xargs"]
                                 new_command_node = bast.node(kind="command",
-                                                             word="",
-                                                             parts=[],
-                                                             pos=(-1,-1))
+                                    word="", parts=[], pos=(-1,-1))
                                 new_command_node.parts = []
                                 for j in xrange(ind, len(node.parts)):
                                     new_command_node.parts.append(node.parts[j])
@@ -568,7 +413,7 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
                                 # recurse to main normalization to handle argument
                                 # with deep structures
                                 normalize(child, attach_point, "argument", arg_type)
-                            attach_point_info = look_above(attach_point)
+                            attach_point_info = backtrack(attach_point)
 
             elif child.kind == "assignment":
                 normalize(child, attach_point, "assignment")
@@ -591,6 +436,24 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
         head_command = utilities[0]
 
         # process (embedded) parenthese -- treat as implicit "-and"
+
+        def organize_buffer(lparenth, rparenth):
+            node = lparenth.rsb
+            while node != rparenth:
+                node = node.rsb
+            node = lparenth.rsb
+            while node != rparenth:
+                node = node.rsb
+            node = lparenth.rsb
+            if node.rsb == rparenth:
+                return lparenth.rsb
+            else:
+                norm_node = BracketNode()
+                while node != rparenth:
+                    attach_to_tree(node, norm_node)
+                    node = node.rsb
+                return norm_node
+
         stack = []
         depth = 0
 
@@ -632,11 +495,7 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
             else:
                 if depth > 0:
                     stack.append(child)
-                else:
-                    if child.kind == "unarylogicop":
-                        unprocessed_unary_logic_ops.append(child)
-                    if child.kind == "binarylogicop":
-                        unprocessed_binary_logic_ops.append(child)
+
             i += 1
 
         # fix imbalanced parentheses: missing ')'
@@ -645,12 +504,6 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
 
         assert(len(stack) == 0)
         assert(depth == 0)
-
-        # for ul in unprocessed_unary_logic_ops:
-        #     adjust_unary_operators(ul)
-
-        # for bl in unprocessed_binary_logic_ops:
-        #     adjust_binary_operators(bl)
 
         # recover omitted arguments
         if head_command.value == "find":
@@ -703,7 +556,8 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
                         utility.normalize_repl_str(repl_str.value, '{}')
                         repl_str.value = "{}"
                         repl_str.arg_type = "ReservedWord"
-            # add a replace str if not present
+
+            # add -I {} if not present
             utility = head_command.get_subcommand()
             if not has_repl_str and utility is not None:
                 for i in xrange(head_command.get_num_of_children()):
@@ -760,11 +614,11 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
         elif node.kind == "pipeline":
             norm_node = PipelineNode()
             attach_to_tree(norm_node, current)
-            # if len(node.parts) % 2 == 0:
-            #     print("Error: pipeline node must have odd number of parts (%d)"
-            #           % len(node.parts))
-            #     print(node)
-            #     sys.exit()
+            if len(node.parts) % 2 == 0:
+                print("Error: pipeline node must have odd number of parts (%d)"
+                      % len(node.parts))
+                print(node)
+                sys.exit()
             for child in node.parts:
                 if child.kind == "command":
                     normalize(child, norm_node)
