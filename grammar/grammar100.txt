@@ -6,9 +6,9 @@ type
 		DateTime    (date, reference)
 		Program     (command, prog, program, utility, varEQvalue)
 		Type        (t, type)
-		Regex       (gid, pid, session, tty, uid, commandname, name, gname, uname, eofstr, fd, fs, replstr, string, extension, format, owner, group, first, last, role, suffix, suffixes, pattern, mask, regex, expression, replacement, cc)
+		Regex       (gid, pid, session, tty, uid, commandname, name, gname, uname, eofstr, fd, fs, replstr, string, extension, format, owner, group, first, last, role, suffix, suffixes, pattern, mask, regex, expression, replacement)
 		Option      (attr_list, control, format, prompt, option, options, MINUSflags, PLUSflags, flags)
-		Number      (n, num, number, replacements, maxargs, maxchars, maxlines, maxprocs, incr, count, depth, lines, shift)
+		Number      (n, num, number, replacements, maxargs, maxchars, maxlines, maxprocs, incr, count, depth)
 		Timespan    (time)
 		Size        (size, bytes, blocksize)
 
@@ -83,9 +83,9 @@ PrimitiveCmd ::=
        
        	man [-V]
 
-       	head  [ -c [-]K] [--bytes=[-]K]<S> [ -n [-]K] [ --lines=[-]K ] [ -q | --quiet | --silent ] [ -v | --verbose ] [ --help ] [ --version ] [FILE]...
+       	head  [ -c [-]K] [--bytes=[-]K]<S> [ -n [-]K] [ --lines=[-]K ] [ -q | --quiet | --silent ] [ -q | --quiet | --silent ] [ -v | --verbose ] [ --help ] [ --version ] [FILE]...
 
-       	tail  [ -c [PLUS]K] [--bytes=K] [ -f name] [--follow[=name]] [ -F ] [ -n [PLUS]K] [--lines=K] [ --max-unchanged-stats=N ] [ --pid=PID ] [ -q | --quiet | --silent ] [ --retry ] [ -s | --sleep-interval=N ] [ -v | --verbose ] [   --help ] [ --version ]
+       	tail  [ -c | --bytes[=K] ] [ -f | --follow[=name]] [ -F ] [ -n | --lines[=K] ] [ --max-unchanged-stats[=N] ] [ --pid[=PID] ] [ -q | --quiet | --silent ] [ -q | --quiet | --silent ] [ --retry ] [ -s | --sleep-interval[=N] ] [ -v | --verbose ] [   --help ] [ --version ]
 
        	less -QUESTION
 
@@ -95,13 +95,13 @@ PrimitiveCmd ::=
 
 		less --version
 
-		less [-[PLUS]aABcCdeEfFgGiIJKLmMnNqQrRsSuUVwWX] [-b space] [-h lines] [-j line] [-k keyfile] [-o logfile] [-O logfile] [-p pattern] [-P prompt] [-t tag] [-T tagsfile] [-x n,...] [--tabs=n,...] [-y lines] [--max-forw-scroll=n] [-[z] lines] [--window=n] [-TILDE] [--tilde] [-SHARP shift] [--shift shift] [-X] [--no-init] [--quotes=cc] [--no-keypad] [--follow-name] [PLUS COMMAND] [PLUSPLUS COMMAND] [DOUBLEDASH] [filename ...]
+		less [-PLUSaABcCdeEfFgGiIJKLmMnNqQrRsSuUVwWX] [-b space] [-h lines] [-j line] [-k keyfile] [-o logfile] [-O logfile] [-p pattern] [-P prompt] [-t tag] [-T tagsfile] [-x tab...] [-y lines] [-z lines] [-TILDE] [-tilde] [-SHARP] [-shift] [PLUS COMMAND] [PLUSPLUS COMMAND] [DOUBLEDASH] filename...
 
 		zless [ name ...  ]
 
-		more [-dlfpcsu] [-num] [PLUSSLASH pattern] [PLUS linenum] [file ...]
+		more [-dlfpcsu] [-num] [PLUS SLASH pattern] [PLUS linenum] [file ...]
 
-		grep [--help] [-V | --version] [-abcdDEFGHhIiJLlmnOopqRSsUVvwxZ] [-A num] [-B num] [-C num] [-e pattern] [-f file] [--color[=when]] [--colour[=when]] [--context[=num]] [--label] [--line-buffered] [--null] [pattern] [file ...]
+		grep [-abcdDEFGHhIiJLlmnOopqRSsUVvwxZ] [-A num] [-B num] [-C num] [-e pattern] [-f file] [--color[=when]] [--colour[=when]] [--context[=num]] [--label] [--line-buffered] [--null] [pattern] [file ...]
 
         egrep [-abcdDEFGHhIiJLlmnOopqRSsUVvwxZ] [-A num] [-B num] [-C num] [-e pattern] [-f file] [--context[=num]] [--color[=when]] [--colour[=when]] [--label] [--line-buffered] [--null] [pattern] [file ...]
 
