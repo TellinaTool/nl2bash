@@ -7,7 +7,7 @@ type
 		Program     (command, prog, program, utility, varEQvalue)
 		Type        (t, type)
 		Regex       (gid, pid, session, tty, uid, commandname, name, gname, uname, eofstr, fd, fs, replstr, string, extension, format, owner, group, first, last, role, suffix, suffixes, pattern, mask, regex, expression, replacement)
-		Option      (cpattern, prompt, option, options, MINUSflags, PLUSflags, flags)
+		Option      (attr_list, cpattern, prompt, option, options, MINUSflags, PLUSflags, flags)
 		Number      (n, num, number, replacements, maxargs, maxchars, maxlines, maxprocs, incr, count, depth)
 		Timespan    (time)
 		Size        (size, bytes, blocksize)
@@ -39,7 +39,7 @@ PrimitiveCmd ::=
 
 		rmdir [--ignore-fail-on-non-empty] [-p | --parents] [-v | --verbose] [--help] [--version] DIRECTORY ...<DOES THE SPACE BEFORE ... MATTER>
 
-		echo [-neE] [--help] [--version] [STRING ...]<DOES IT MATTER TO BE [STRING] ... OR [STRING ...]>
+		echo [-neE] [--help] [--version] [STRING ...]<ARE THESE TWO THE SAME "[STRING] ..." VS "[STRING ...]">
 
 		cat [-A | --show-all] [-b | --number-nonblank] [-e] [-E | --show-ends] [-n | --number] [-s | --squeeze-blank] [-t] [-T | --show-tabs] [-u] [-v | --show-nonprinting] [--help] [--version] [FILE ...]
 
@@ -51,11 +51,11 @@ PrimitiveCmd ::=
 
        	tac [-b | --before] [-r | --regex] [-s STRING] [--separator=STRING] [--help] [--version] [file ...]
 
-       	cp [ -a | --archive ] [ --attributes-only ] [ --backup[=CONTROL] ] [ -b ] [ --copy-contents ] [ -d ] [ -f | --force ] [ -i | --interactive ] [ -H ] [ -l | --link ] [ -L | --dereference ] [ -n | --no-clobber ] [ -P | --no-dereference ] [ -p ] [ --preserve[=ATTR_LIST] ] [ --no-preserve[=ATTR_LIST] ] [ --parents ] [ -R | -r | --recursive ] [ -R | -r | --recursive ] [ --reflink[=WHEN] ] [ --remove-destination ] [ --sparse[=WHEN] ] [ --strip-trailing-slashes ] [ -s | --symbolic-link ] [ -S | --suffix[=SUFFIX] ] [ -t | --target-directory[=DIRECTORY] ] [ -T | --no-target-directory ] [ -u | --update ] [ -v | --verbose ] [ -x | --one-file-system ] [--help] [ --version ] [-T] SOURCE DEST
+       	cp [ -a | --archive ] [ --attributes-only ] [ --backup[=CONTROL] ] [ -b ] [ --copy-contents ] [ -d ] [ -f | --force ] [ -i | --interactive ] [ -H ] [ -l | --link ] [ -L | --dereference ] [ -n | --no-clobber ] [ -P | --no-dereference ] [ -p ] [ --preserve[=ATTR_LIST] ] [ --no-preserve=ATTR_LIST ] [ --parents ] [ -R | -r | --recursive ] [ -R | -r | --recursive ] [ --reflink[=WHEN] ] [ --remove-destination ] [ --sparse=WHEN ] [ --strip-trailing-slashes ] [ -s | --symbolic-link ] [ -S | --suffix[=SUFFIX] ] [ -t | --target-directory[=DIRECTORY] ] [ -T | --no-target-directory ] [ -u | --update ] [ -v | --verbose ] [ -x | --one-file-system ] [-Z CONTEXT] [--context=CONTEXT] [--help] [ --version ] [-T] SOURCE DEST
 		
-		cp [ -a | --archive ] [ --attributes-only ] [ --backup[=CONTROL] ] [ -b ] [ --copy-contents ] [ -d ] [ -f | --force ] [ -i | --interactive ] [ -H ] [ -l | --link ] [ -L | --dereference ] [ -n | --no-clobber ] [ -P | --no-dereference ] [ -p ] [ --preserve[=ATTR_LIST] ] [ --no-preserve[=ATTR_LIST] ] [ --parents ] [ -R | -r | --recursive ] [ -R | -r | --recursive ] [ --reflink[=WHEN] ] [ --remove-destination ] [ --sparse[=WHEN] ] [ --strip-trailing-slashes ] [ -s | --symbolic-link ] [ -S | --suffix[=SUFFIX] ] [ -t | --target-directory[=DIRECTORY] ] [ -T | --no-target-directory ] [ -u | --update ] [ -v | --verbose ] [ -x | --one-file-system ] [--help] [ --version ] SOURCE ... DIRECTORY
+		cp [ -a | --archive ] [ --attributes-only ] [ --backup[=CONTROL] ] [ -b ] [ --copy-contents ] [ -d ] [ -f | --force ] [ -i | --interactive ] [ -H ] [ -l | --link ] [ -L | --dereference ] [ -n | --no-clobber ] [ -P | --no-dereference ] [ -p ] [ --preserve[=ATTR_LIST] ] [ --no-preserve=ATTR_LIST ] [ --parents ] [ -R | -r | --recursive ] [ -R | -r | --recursive ] [ --reflink[=WHEN] ] [ --remove-destination ] [ --sparse=WHEN ] [ --strip-trailing-slashes ] [ -s | --symbolic-link ] [ -S | --suffix[=SUFFIX] ] [ -t | --target-directory[=DIRECTORY] ] [ -u | --update ] [ -v | --verbose ] [ -x | --one-file-system ] [-Z CONTEXT] [--context=CONTEXT] [--help] [ --version ] SOURCE ... DIRECTORY
 		
-		cp [ -a | --archive ] [ --attributes-only ] [ --backup[=CONTROL] ] [ -b ] [ --copy-contents ] [ -d ] [ -f | --force ] [ -i | --interactive ] [ -H ] [ -l | --link ] [ -L | --dereference ] [ -n | --no-clobber ] [ -P | --no-dereference ] [ -p ] [ --preserve[=ATTR_LIST] ] [ --no-preserve[=ATTR_LIST] ] [ --parents ] [ -R | -r | --recursive ] [ -R | -r | --recursive ] [ --reflink[=WHEN] ] [ --remove-destination ] [ --sparse[=WHEN] ] [ --strip-trailing-slashes ] [ -s | --symbolic-link ] [ -S | --suffix[=SUFFIX] ] [ -t | --target-directory[=DIRECTORY] ] [ -T | --no-target-directory ] [ -u | --update ] [ -v | --verbose ] [ -x | --one-file-system ] [--help] [ --version ] -t DIRECTORY SOURCE ...
+		cp [ -a | --archive ] [ --attributes-only ] [ --backup[=CONTROL] ] [ -b ] [ --copy-contents ] [ -d ] [ -f | --force ] [ -i | --interactive ] [ -H ] [ -l | --link ] [ -L | --dereference ] [ -n | --no-clobber ] [ -P | --no-dereference ] [ -p ] [ --preserve[=ATTR_LIST] ] [ --no-preserve=ATTR_LIST ] [ --parents ] [ -R | -r | --recursive ] [ -R | -r | --recursive ] [ --reflink[=WHEN] ] [ --remove-destination ] [ --sparse=WHEN ] [ --strip-trailing-slashes ] [ -s | --symbolic-link ] [ -S | --suffix[=SUFFIX] ] [ -t | --target-directory[=DIRECTORY] ] [ -u | --update ] [ -v | --verbose ] [ -x | --one-file-system ] [-Z CONTEXT] [--context=CONTEXT] [--help] [ --version ] -t DIRECTORY SOURCE ...
 
        	mv [ --backup[=CONTROL] ] [ -b ] [ -f | --force ] [ -i | --interactive ] [ -n | --no-clobber ] --strip-trailing-slashes [-S | --suffix] [-u | --update] [-v | --verbose] [--help] [--version] [-T | --no-target-directory] SOURCE DEST
 
