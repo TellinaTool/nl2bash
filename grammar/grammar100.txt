@@ -7,7 +7,7 @@ type
 		Program     (command, prog, program, utility, varEQvalue)
 		Type        (t, type)
 		Regex       (gid, pid, session, tty, uid, commandname, name, gname, uname, eofstr, fd, fs, replstr, string, extension, format, owner, group, first, last, role, suffix, suffixes, pattern, mask, regex, expression, replacement, cc)
-		Option      (attr_list, control, format, prompt, option, options, MINUSflags, PLUSflags, flags)
+		Option      (action, attr_list, control, format, prompt, option, options, MINUSflags, PLUSflags, flags)
 		Number      (n, num, number, replacements, maxargs, maxchars, maxlines, maxprocs, incr, count, depth, lines, shift)
 		Timespan    (time)
 		Size        (size, bytes, blocksize)
@@ -101,13 +101,13 @@ PrimitiveCmd ::=
 
 		more [-dlfpcsu] [-num] [PLUSSLASH pattern] [PLUS linenum] [file ...]
 
-		grep [--help] [-V | --version] [-E | --extended-regexp][-F | --fixed-strings] [-G | --basic-regexp] [-P | --perl-regexp] [-e pattern] [--regexp=pattern] [-f file] [--file=file] [-i | --ignore-case] [-v | --invert-match] [-w | --word-regexp] [-abcdDHhIiJLlmnOopqRSsUVxZ] [-A num] [-B num] [-C num]  [--color[=when]] [--colour[=when]] [--context[=num]] [--label] [--line-buffered] [--null] [pattern] [file ...]
+		grep [--help] [-V | --version] [-E | --extended-regexp] [-F | --fixed-strings] [-G | --basic-regexp] [-P | --perl-regexp] [-e pattern] [--regexp=pattern] [-f file] [--file=file] [-i | --ignore-case] [-v | --invert-match] [-w | --word-regexp] [-x | --line-regexp] [-y] [-c | --count] [--color[=when]] [--colour[=when]] [-L | --files-without-match] [-l | --files-with-matches] [-m NUM] [--max-count=NUM] [-o | --only-matching] [-q | --quiet | --silent] [-s | --no-messages] [-b | --byte-offset] [-H | --with-filename] [-h | --no-filename] [--label=LABEL] [-n | --line-number] [-T | --initial-tab] [-u | --unix-byte-offsets] [-Z | --null] [-A num] [--after-context=NUM] [-B num] [--before-context=NUM] [-C num] [--context=NUM] [-a | --text] [--binary-files=TYPE] [-d ACTION] [--directories=ACTION] [-D ACTION] [--devices=ACTION] [--exclude=GLOB] [--exclude-from=FILE] [--exclude-dir=DIR] [-I] [--include=GLOB] [-R | -r | --recursive] [--line-buffered] [--mmap] [-U | --binary] [-z | --null] [--label] pattern [file ...]
 
-        egrep [-abcdDEFGHhIiJLlmnOopqRSsUVvwxZ] [-A num] [-B num] [-C num] [-e pattern] [-f file] [--context[=num]] [--color[=when]] [--colour[=when]] [--label] [--line-buffered] [--null] [pattern] [file ...]
+		egrep [--help] [-V | --version] [-E | --extended-regexp] [-F | --fixed-strings] [-G | --basic-regexp] [-P | --perl-regexp] [-e pattern] [--regexp=pattern] [-f file] [--file=file] [-i | --ignore-case] [-v | --invert-match] [-w | --word-regexp] [-x | --line-regexp] [-y] [-c | --count] [--color[=when]] [--colour[=when]] [-L | --files-without-match] [-l | --files-with-matches] [-m NUM] [--max-count=NUM] [-o | --only-matching] [-q | --quiet | --silent] [-s | --no-messages] [-b | --byte-offset] [-H | --with-filename] [-h | --no-filename] [--label=LABEL] [-n | --line-number] [-T | --initial-tab] [-u | --unix-byte-offsets] [-Z | --null] [-A num] [--after-context=NUM] [-B num] [--before-context=NUM] [-C num] [--context=NUM] [-a | --text] [--binary-files=TYPE] [-d ACTION] [--directories=ACTION] [-D ACTION] [--devices=ACTION] [--exclude=GLOB] [--exclude-from=FILE] [--exclude-dir=DIR] [-I] [--include=GLOB] [-R | -r | --recursive] [--line-buffered] [--mmap] [-U | --binary] [-z | --null] [--label] pattern [file ...]
 
-        fgrep [-abcdDEFGHhIiJLlmnOopqRSsUVvwxZ] [-A num] [-B num] [-C num] [-e pattern] [-f file] [--context[=num]] [--color[=when]] [--colour[=when]] [--label] [--line-buffered] [--null] [pattern] [file ...]
+		fgrep [--help] [-V | --version] [-E | --extended-regexp] [-F | --fixed-strings] [-G | --basic-regexp] [-P | --perl-regexp] [-e pattern] [--regexp=pattern] [-f file] [--file=file] [-i | --ignore-case] [-v | --invert-match] [-w | --word-regexp] [-x | --line-regexp] [-y] [-c | --count] [--color[=when]] [--colour[=when]] [-L | --files-without-match] [-l | --files-with-matches] [-m NUM] [--max-count=NUM] [-o | --only-matching] [-q | --quiet | --silent] [-s | --no-messages] [-b | --byte-offset] [-H | --with-filename] [-h | --no-filename] [--label=LABEL] [-n | --line-number] [-T | --initial-tab] [-u | --unix-byte-offsets] [-Z | --null] [-A num] [--after-context=NUM] [-B num] [--before-context=NUM] [-C num] [--context=NUM] [-a | --text] [--binary-files=TYPE] [-d ACTION] [--directories=ACTION] [-D ACTION] [--devices=ACTION] [--exclude=GLOB] [--exclude-from=FILE] [--exclude-dir=DIR] [-I] [--include=GLOB] [-R | -r | --recursive] [--line-buffered] [--mmap] [-U | --binary] [-z | --null] [--label] pattern [file ...]
 
-        which [-a] filename ...
+        which [-a | --all] [--read-alias | -i] [--skip-alias] [--read-functions] [--skip-functions] [--skip-dot] [--skip-tilde] [--show-dot] [--show-tilde] [--tty-only] [--version | -v | -V] [--help] program [...]
 
         chmod  [ -c | --changes ] [ -f | --silent | --quiet ] [ -f | --silent | --quiet ] [ -v | --verbose ] [ --no-preserve-root ] [ --preserve-root ] [ --reference[=RFILE] ] [ -R | --recursive ] [   --help display this help and exit ] [ --version ] MODE[,MODE]... FILE...
 		
