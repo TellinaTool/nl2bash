@@ -37,19 +37,19 @@ PrimitiveCmd ::=
 
 		mkdir [-m | --mode=MODE] [-p | --parents] [-v | --verbose] [-Z | --context[=CTX]] [--help] [--version] DIRECTORY ...
 
-		rmdir [--ignore-fail-on-non-empty] [-p | --parents] [-v | --verbose] [--help] [--version] DIRECTORY ...<DOES THE SPACE BEFORE ... MATTER>
+		rmdir [--ignore-fail-on-non-empty] [-p | --parents] [-v | --verbose] [--help] [--version] DIRECTORY ...
 
-		echo [-neE] [--help] [--version] [STRING ...]<DOES IT MATTER TO BE [STRING] ... OR [STRING ...]>
+		echo [-neE] [--help] [--version] [STRING]...
 
-		cat [-A | --show-all] [-b | --number-nonblank] [-e] [-E | --show-ends] [-n | --number] [-s | --squeeze-blank] [-t] [-T | --show-tabs] [-u] [-v | --show-nonprinting] [--help] [--version] [FILE ...]
+		cat [-A | --show-all] [-b | --number-nonblank] [-e] [-E | --show-ends] [-n | --number] [-s | --squeeze-blank] [-t] [-T | --show-tabs] [-u] [-v | --show-nonprinting] [--help] [--version] [file ...]
 
-		gzip [ -acdfhklLnNrtvV19 ] [--rsyncable] [-S suffix] [ name ... ]
+		gzip [ -acdfhklLnNrtvV19 ] [--rsyncable] [-S suffix] [ name ...  ]
        
        	gunzip [ -acfhklLnNrtvV ] [-S suffix] [ name ...  ]
        
        	zcat [ -fhLV ] [ name ...  ]
 
-       	tac [-b | --before] [-r | --regex] [-s STRING] [--separator=STRING] [--help] [--version] [file ...]
+       	tac [-b | --before] [-r | --regex] [-s | --separator=STRING] [--help] [--version] [file ...]
 
        	cp [ -a | --archive ] [ --attributes-only ] [ --backup[=CONTROL] ] [ -b ] [ --copy-contents ] [ -d ] [ -f | --force ] [ -i | --interactive ] [ -H ] [ -l | --link ] [ -L | --dereference ] [ -n | --no-clobber ] [ -P | --no-dereference ] [ -p ] [ --preserve[=ATTR_LIST] ] [ --no-preserve[=ATTR_LIST] ] [ --parents ] [ -R | -r | --recursive ] [ -R | -r | --recursive ] [ --reflink[=WHEN] ] [ --remove-destination ] [ --sparse[=WHEN] ] [ --strip-trailing-slashes ] [ -s | --symbolic-link ] [ -S | --suffix[=SUFFIX] ] [ -t | --target-directory[=DIRECTORY] ] [ -T | --no-target-directory ] [ -u | --update ] [ -v | --verbose ] [ -x | --one-file-system ] [--help] [ --version ] [-T] SOURCE DEST
 		
