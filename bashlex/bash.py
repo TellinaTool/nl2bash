@@ -1,6 +1,12 @@
 """
 Gazetteers for bash.
 """
+findutils = {
+    'find',
+    'locate',
+    'updatedb',
+    'xargs'
+}
 
 utilities = [
     "find",
@@ -59,14 +65,6 @@ utilities_15_to_10 = [
     "md5sum",
     "compress"
 ]
-
-float_arguments = {
-    'grep': ['A', 'B', 'C'],
-    'head': ['', 'n'],
-    'tail': ['', 'n'],
-    'awk': ['F'],
-    'xargs': ['n', 'l', 'L', 'P', 's']
-}
 
 common_arguments = {
     '.',
@@ -230,3 +228,51 @@ top_100_utilities = {
     'brew',
     'yum'
 }
+
+# --- Linux Utility by Category --- #
+
+category_0_builtins = {
+    'cd',
+
+}
+
+category_1_user_commands = {
+    'pwd',
+    'ls',
+    'mkdir',
+    'rmdir',
+    'echo',
+    'cat',
+    'gzip',
+    'gunzip',
+    'zcat',
+    'tac',
+    'cp',
+    'mv',
+    'rm',
+    'man',
+    'head',
+    'tail',
+    'less',
+    'zless',
+    'more',
+    'grep',
+    'egrep',
+    'fgrep',
+    'find',
+    'locate',
+    'updatedb',
+    'xargs'
+}
+
+category_2_system_calls = {}
+
+category_3_library_functions = {}
+
+category_7_conventions_and_miscellany = {}
+
+category_8_administration_and_privileged_commands = {}
+
+
+
+

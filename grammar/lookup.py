@@ -145,8 +145,8 @@ def make_grammar_from_options(x, command_table, optional=False, ):
         raise Exception("unknown type: {}".format(x["type"]))
 
 if __name__ == "__main__":
-    man_lookup = ManPageLookUp([os.path.join(os.path.dirname(__file__),
-                                             "primitive_cmds_grammar.json")])
+    man_lookup = ManPageLookUp(
+        [os.path.join(os.path.dirname(__file__), "primitive_cmds_grammar.json")])
     while True:
         try:
             cmd = raw_input("> Command:")
