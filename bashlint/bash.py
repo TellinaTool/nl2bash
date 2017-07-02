@@ -233,7 +233,9 @@ top_100_utilities = {
 
 category_0_builtins = {
     'cd',
-
+    'jobs',
+    'bg',
+    'fg'
 }
 
 category_1_user_commands = {
@@ -259,6 +261,29 @@ category_1_user_commands = {
     'grep',
     'egrep',
     'fgrep',
+    'which',
+    'chmod',
+    'chown',
+    'chgrp',
+    'su',
+    'wc',
+    'sort',
+    'ssh',
+    'ssh-keygen',
+    'scp',
+    'rsync',
+    'ln',
+    'readlink',
+    'sleep',
+    'ps',
+    'pstree',
+    'kill',
+    'top',
+    'nohup',
+    'time',
+    'seq',
+    'cut',
+    'paste',
     'find',
     'locate',
     'updatedb',
