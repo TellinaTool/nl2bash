@@ -28,7 +28,7 @@ constants
 
 PrimitiveCmd ::=
 
-		pwd [-L | --logical] [-P | --physical] [--help] [--version]
+		pwd [-L] [--logical] [-P] [--physical] [--help] [--version]
 
 		cd [-L | [-P [-e]] [-@] [dir]
 
@@ -56,13 +56,13 @@ PrimitiveCmd ::=
 		
 		cp [ -a | --archive ] [ --attributes-only ] [ --backup[=CONTROL] ] [ -b ] [ --copy-contents ] [ -d ] [ -f | --force ] [ -i | --interactive ] [ -H ] [ -l | --link ] [ -L | --dereference ] [ -n | --no-clobber ] [ -P | --no-dereference ] [ -p ] [ --preserve[=ATTR_LIST] ] [ --no-preserve=ATTR_LIST ] [ --parents ] [ -R | -r | --recursive ] [ --reflink[=WHEN] ] [ --remove-destination ] [ --sparse=WHEN ] [ --strip-trailing-slashes ] [ -s | --symbolic-link ] [ -S | --suffix[=SUFFIX] ] [ -u | --update ] [ -v | --verbose ] [ -x | --one-file-system ] [-Z CONTEXT] [--context=CONTEXT] [--help] [ --version ] [-t DIRECTORY] [--target-directory=DIRECTORY] SOURCE...
 
-       	mv [ --backup[=CONTROL] ] [ -b ] [ -f | --force ] [ -i | --interactive ] [ -n | --no-clobber ] [--strip-trailing-slashes] [-S SUFFIX] [--suffix=SUFFIX] [-u | --update] [-v | --verbose] [--help] [--version] [-T | --no-target-directory] SOURCE DEST
+       	mv [ --backup[=CONTROL] ] [ -b ] [ -f | --force ] [ -i | --interactive ] [ -n | --no-clobber ] [-T] SOURCE DEST
 
 		mv [ --backup[=CONTROL] ] [ -b ] [ -f | --force ] [ -i | --interactive ] [ -n | --no-clobber ] [--strip-trailing-slashes] [-S SUFFIX] [--suffix=SUFFIX] [-u | --update] [-v | --verbose] [--help] [--version] SOURCE... DIRECTORY
 
 		mv [ --backup[=CONTROL] ] [ -b ] [ -f | --force ] [ -i | --interactive ] [ -n | --no-clobber ] [--strip-trailing-slashes] [-S SUFFIX] [--suffix=SUFFIX] [-u | --update] [-v | --verbose] [--help] [--version] [-t DIRECTORY] [--target-directory=DIRECTORY] SOURCE...
 
-		rm [ -f | --force ] [ -i ] [ -I ] [ --interactive[=WHEN] ] [ --one-file-system ] [ --no-preserve-root ] [ --preserve-root ] [ -r | -R | --recursive ] [ -r | -R | --recursive ] [ -d | --dir ] [ -v | --verbose ] [ --help ] [ --version ] FILE...
+		rm [ --recursive ] [ -f | --force ] [ -i ] [ -I ] [ --interactive[=WHEN] ] [ --one-file-system ] [ --no-preserve-root ] [ --preserve-root ] [ -r | -R | --recursive ] [ -r | -R | --recursive ] [ -d | --dir ] [ -v | --verbose ] [ --help ] [ --version ] FILE...
  
  		shred  [ -f | --force ] [ -n | --iterations[=N] ] [ --random-source[=FILE] ] [ -s | --size[=N] ] [ -u | --remove ] [ -v | --verbose ] [ -x | --exact ] [ -z | --zero ] [ --help ] [ --version ] FILE...
 
@@ -204,15 +204,7 @@ PrimitiveCmd ::=
 
 		sleep [ --help ] [ --version ]
 
-		ps [-Aade] option [-N | --deselect]
-
-		ps [-C commandname] [-G gid] [--Group gid] [-g group] [--group group] [-p pid] [--pid pid] [--ppid pid] [-s session] [--sid session] [-t tty] [--tty tty] [-u uid] [--user uid] [-U uid] [--User uid]
-
-        ps [-FfHilMZOy] option [--forest] [-o format] [--format format] [--context] [--headers] [--no-headers] [--cols num] [--columns num] [--width num] [--rows num] [--lines num]
-
-        ps [-LmT] option
-
-        ps [-cyVw] option [--sort pattern] [--cumulative] [--version] [--help option]
+		ps [option]
 
 		pstree [-a | --arguments] [-c | --compact] [-h | --highlight-all | -Hpid | --highlight-pid pid ] [-g | --show-pgids ] [-l | --long] [-n | --numeric-sort] [-p | --show-pids] [-s | --show-parents] [-u | --uid-changes] [-Z | --security-context] [-A | --ascii ] [ -G | --vt100 ] [ -U | --unicode] [pid | user]
 
