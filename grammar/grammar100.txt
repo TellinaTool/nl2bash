@@ -250,8 +250,342 @@ PrimitiveCmd ::=
 		
 		bzip2recover filename
  
+		uniq [ -c | --count ] [ -d | --repeated ] [ -D | --all-repeated[=delimit-method] ] [ -f | --skip-fields[=N] ] [ -i | --ignore-case ] [ -s | --skip-chars[=N] ] [ -u | --unique ] [ -z | --zero-terminated ] [ -w | --check-chars[=N] ] [   --help display this help and exit ] [ --version ] [INPUT [OUTPUT]]
+ 
+ 		dirname [ -z | --zero ] [ --help ] [ --version ] NAME...
+
+ 		basename NAME [SUFFIX]
+
+		basename [ -a | --multiple ] [ -s | --suffix[=SUFFIX] ] [ -z | --zero ] [ --help ] [ --version ] NAME...
+
+		env [ -i | --ignore-environment ] [ -0 | --null ] [ -u | --unset[=NAME] ] [   --help display this help and exit ] [ --version ] [NAME=VALUE]... [COMMAND [ARG]...]
+ 
+		uname [ -a | --all ] [ -s | --kernel-name ] [ -n | --nodename ] [ -r | --kernel-release ] [ -v | --kernel-version ] [ -m | --machine ] [ -p | --processor ] [ -i | --hardware-platform ] [ -o | --operating-system ] [ --help ] [ --version ]
+ 
+ 		df [ -a | --all ] [ -B | --block-size[=SIZE] ] [ -h | --human-readable ] [ -H | --si ] [ -i | --inodes ] [ -k ] [ -l | --local ] [ --no-sync ] [ --output[=FIELD_LIST] ] [ -P | --portability ] [ --sync ] [ --total ] [ -t | --type[=TYPE] ] [ -T | --print-type ] [ -x | --exclude-type[=TYPE] ] [ -v ] [ --help ] [ --version ] [FILE]...
+
+ 		du [ -0 | --null ] [ -a | --all ] [ --apparent-size ] [ -B | --block-size[=SIZE] ] [ -b | --bytes ] [ -c | --total ] [ -D | --dereference-args ] [ -d | --max-depth[=N] ] [ --files0-from[=F] ] [ -H ] [ -h | --human-readable ] [ -k ] [ -L | --dereference ] [ -l | --count-links ] [ -m ] [ -P | --no-dereference ] [ -S | --separate-dirs ] [ --si ] [ -s | --summarize ] [ -t | --threshold[=SIZE] ] [ --time ] [ --time[=WORD] ] [ --time-style[=STYLE] ] [ -X | --exclude-from[=FILE] ] [ --exclude[=PATTERN] ] [ -x | --one-file-system ] [ --help ] [ --version ] [FILE]...
+		
+		du [ -0 | --null ] [ -a | --all ] [ --apparent-size ] [ -B | --block-size[=SIZE] ] [ -b | --bytes ] [ -c | --total ] [ -D | --dereference-args ] [ -d | --max-depth[=N] ] [ --files0-from[=F] ] [ -H ] [ -h | --human-readable ] [ -k ] [ -L | --dereference ] [ -l | --count-links ] [ -m ] [ -P | --no-dereference ] [ -S | --separate-dirs ] [ --si ] [ -s | --summarize ] [ -t | --threshold[=SIZE] ] [ --time ] [ --time[=WORD] ] [ --time-style[=STYLE] ] [ -X | --exclude-from[=FILE] ] [ --exclude[=PATTERN] ] [ -x | --one-file-system ] [ --help ] [ --version ] --files0-from=F
+ 
+ 		column [-entx] [-c columns] [-s sep] [file ...]
+
+ 		find [-H | -L | -P] [-EXdsx] [-f path] path ... :find_expression: ...
+
+		find [-H | -L | -P] [-EXdsx] -f path [path ...] :find_expression: ...
+
+		touch  [ -a ] [ -c | --no-create ] [ -d | --date[=STRING] ] [ -f ] [ -h | --no-dereference ] [ -m ] [ -r | --reference[=FILE] ] [   -t STAMP ] [ --time[=WORD] ] [ --help ] [ --version ] FILE...
+
+		diff  [ --normal ] [ -q | --brief ] [ -s | --report-identical-files ] [ -c |   -C NUM | --context[=NUM] ] [ -c |   -C NUM | --context[=NUM] ] [ -u |   -U NUM | --unified[=NUM] ] [ -u |   -U NUM | --unified[=NUM] ] [ -e | --ed ] [ -n | --rcs ] [ -y | --side-by-side ] [ -W | --width[=NUM] ] [ --left-column ] [ --suppress-common-lines ] [ -p | --show-c-function ] [ -F | --show-function-line[=RE] ] [   --label LABEL ] [ -t | --expand-tabs ] [ -T | --initial-tab ] [ --tabsize[=NUM] ] [ --suppress-blank-empty ] [ -l | --paginate ] [ -r | --recursive ] [ -N | --new-file ] [ --unidirectional-new-file ] [ --ignore-file-name-case ] [ --no-ignore-file-name-case ] [ -x | --exclude[=PAT] ] [ -X | --exclude-from[=FILE] ] [ -S | --starting-file[=FILE] ] [ --from-file[=FILE1] ] [ --to-file[=FILE2] ] [ -i | --ignore-case ] [ -E | --ignore-tab-expansion ] [ -Z | --ignore-trailing-space ] [ -b | --ignore-space-change ] [ -w | --ignore-all-space ] [ -B | --ignore-blank-lines ] [ -I | --ignore-matching-lines[=RE] ] [ -a | --text ] [ --strip-trailing-cr ] [ -D | --ifdef[=NAME] ] [ --GTYPE-group-format[=GFMT] ] [ --line-format[=LFMT] ] [ --LTYPE-line-format[=LFMT] ] FILES
+
+		comm [ --check-order ] [ --nocheck-order ] [ --output-delimiter[=STR] ] [ --help ] [ --version ] FILE1 FILE2
+
+		join  [ -a FILENUM ] [ -e EMPTY ] [ -i | --ignore-case ] [ -j FIELD ] [ -o FORMAT ] [   -t CHAR ] [   -v FILENUM ] [ --check-order ] [ --nocheck-order ] [ --header ] [ --help ] [ --version ] FILE1 FILE2
+
+		md5sum [ -b | --binary ] [ -c | --check ] [ --tag ] [ -t | --text ] [ --quiet ] [ --status ] [ -w | --warn ] [ --strict ] [ --help ] [ --version ] [FILE ...]
+
+		tr  [ -c | -C | --complement ] [ -c | -C | --complement ] [ -d | --delete ] [ -s | --squeeze-repeats ] [ -t | --truncate-set1 ] [ --help ] [ --version ] SET1 [SET2]
+
+		od  [ -A | --address-radix[=RADIX] ] [ -j | --skip-bytes[=BYTES] ] [ -N | --read-bytes[=BYTES] ] [ -S BYTES | --strings[=BYTES] ] [ -t | --format[=TYPE] ] [ -v | --output-duplicates ] [   -w [BYTES] | --width[=BYTES] ] [ --traditional ] [ --help ] [ --version ] [ -a ] [ -b ] [ -c ] [ -d ] [ -f ] [ -i ] [ -l ] [ -o ] [ -s ] [ -x ] [FILE]...
+
+		od [-abcdfilosx]... [FILE] [string]
+
+		od --traditional  [ -A | --address-radix[=RADIX] ] [ -j | --skip-bytes[=BYTES] ] [ -N | --read-bytes[=BYTES] ] [   -S BYTES | --strings[=BYTES] ] [ -t | --format[=TYPE] ] [ -v | --output-duplicates ] [   -w [BYTES] | --width[=BYTES] ] [ --traditional ] [ --help ] [ --version ] [ -a ] [ -b ] [ -c ] [ -d ] [ -f ] [ -i ] [ -l ] [ -o ] [ -s ] [ -x ] [FILE] [string] [string]
+
+		split [ -a | --suffix-length[=N] ] [ --additional-suffix[=SUFFIX] ] [ -b | --bytes[=SIZE] ] [ -C | --line-bytes[=SIZE] ] [ -d | --numeric-suffixes[=FROM] ] [ -e | --elide-empty-files ] [ --filter[=COMMAND] ] [ -l | --lines[=NUMBER] ] [ -n | --number[=CHUNKS] ] [ -u | --unbuffered ] [ --verbose ] [ --help ] [ --version ] [INPUT [PREFIX]]
+
+		nano [ -A | --smarthome ] [ -B | --backup ] [   -C dir | --backupdir[=dir] ] [ -D | --boldtext ] [ -E | --tabstospaces ] [ -F | --multibuffer ] [ -H | --historylog ] [ -I | --ignorercfiles ] [ -K | --rebindkeypad ] [ -L | --nonewlines ] [ -N | --noconvert ] [ -O | --morespace ] [   -Q str | --quotestr[=str] ] [ -R | --restricted ] [ -S | --smooth ] [   -T cols | --tabsize[=cols] ] [ -U | --quickblank ] [ -V | --version ] [ -W | --wordbounds ] [   -Y str | --syntax[=str] ] [ -c | --const ] [ -d | --rebinddelete ] [ -h | --help ] [ -i | --autoindent ] [ -k | --cut ] [ -l | --nofollow ] [ -m | --mouse ] [   -o dir | --operatingdir[=dir] ] [ -p | --preserve ] [ -q | --quiet ] [   -r cols | --fill[=cols] ] [   -s prog | --speller[=prog] ] [ -t | --tempfile ] [ -u | --undo ] [ -v | --view ] [ -w | --nowrap ] [ -x | --nohelp ] [ -z | --suspend ] [ -$ | --softwrap ] [ -a | -b | -e | -f | -g | -j ] [ -a | -b | -e | -f | -g | -j ] [ -a | -b | -e | -f | -g | -j ] [ -a | -b | -e | -f | -g | -j ] [ -a | -b | -e | -f | -g | -j ] [FILE ...]
+
+		vim [ -t tag ] [ -q [errorfile] ] [ -c command ] [   -S file ] [   --cmd command ] [ -A ] [ -b ] [ -C ] [ -d ] [   -d device ] [ -D ] [ -e ] [ -E ] [ -f ] [ --nofork ] [ -F ] [ -g ] [ -h ] [ -H ] [   -i viminfo ] [ -L ] [ -l ] [ -m ] [ -M ] [ -N ] [ -n ] [ -n -b ] [ -o [N] ] [   -O [N] ] [   -p [N] ] [ -R ] [ -r ] [   -r file ] [ -s ] [   -s scriptin ] [ -T terminal ] [   -u vimrc ] [ -U gvimrc ] [   -V [N] ] [ -v ] [   -w scriptout ] [ -W scriptout ] [ -x ] [ -X ] [ -y ] [ -Z ] [ --echo-wid ] [ --help ] [ --literal ] [ --noplugin ] [ --remote ] [   --remote-expr expr ] [   --remote-send keys ] [ --remote-silent ] [ --remote-wait ] [ --remote-wait-silent ] [ --serverlist ] [   --servername name ] [ --socketid id ] [ --version ] [file ..]
+		
+		vim [ -t tag ] [ -q [errorfile] ] [ -c command ] [   -S file ] [   --cmd command ] [ -A ] [ -b ] [ -C ] [ -d ] [   -d device ] [ -D ] [ -e ] [ -E ] [ -f ] [ --nofork ] [ -F ] [ -g ] [ -h ] [ -H ] [   -i viminfo ] [ -L ] [ -l ] [ -m ] [ -M ] [ -N ] [ -n ] [ -n -b ] [ -o [N] ] [   -O [N] ] [   -p [N] ] [ -R ] [ -r ] [   -r file ] [ -s ] [   -s scriptin ] [ -T terminal ] [   -u vimrc ] [ -U gvimrc ] [   -V [N] ] [ -v ] [   -w scriptout ] [ -W scriptout ] [ -x ] [ -X ] [ -y ] [ -Z ] [ --echo-wid ] [ --help ] [ --literal ] [ --noplugin ] [ --remote ] [   --remote-expr expr ] [   --remote-send keys ] [ --remote-silent ] [ --remote-wait ] [ --remote-wait-silent ] [ --serverlist ] [   --servername name ] [ --socketid id ] [ --version ] -t tag
+		
+		vim [ -t tag ] [ -q [errorfile] ] [ -c command ] [   -S file ] [   --cmd command ] [ -A ] [ -b ] [ -C ] [ -d ] [   -d device ] [ -D ] [ -e ] [ -E ] [ -f ] [ --nofork ] [ -F ] [ -g ] [ -h ] [ -H ] [   -i viminfo ] [ -L ] [ -l ] [ -m ] [ -M ] [ -N ] [ -n ] [ -n -b ] [ -o [N] ] [   -O [N] ] [   -p [N] ] [ -R ] [ -r ] [   -r file ] [ -s ] [   -s scriptin ] [ -T terminal ] [   -u vimrc ] [ -U gvimrc ] [   -V [N] ] [ -v ] [   -w scriptout ] [ -W scriptout ] [ -x ] [ -X ] [ -y ] [ -Z ] [ --echo-wid ] [ --help ] [ --literal ] [ --noplugin ] [ --remote ] [   --remote-expr expr ] [   --remote-send keys ] [ --remote-silent ] [ --remote-wait ] [ --remote-wait-silent ] [ --serverlist ] [   --servername name ] [ --socketid id ] [ --version ] -q [errorfile]
+
+		yes [STRING]...
+		
+		yes [ --help ] [ --version ]
+				 
+		nl [ -b | --body-numbering[=STYLE] ] [ -d | --section-delimiter[=CC] ] [ -f | --footer-numbering[=STYLE] ] [ -h | --header-numbering[=STYLE] ] [ -i | --line-increment[=NUMBER] ] [ -l | --join-blank-lines[=NUMBER] ] [ -n | --number-format[=FORMAT] ] [ -p | --no-renumber ] [ -s | --number-separator[=STRING] ] [ -v | --starting-line-number[=NUMBER] ] [ -w | --number-width[=NUMBER] ] [ --help ] [ --version ] [FILE]...
+
+		whoami [ --help ] [ --version ]
+
+		groups [ --help ] [ --version ] [USERNAME]...
+
+		who [ -a | --all ] [ -b | --boot ] [ -d | --dead ] [ -H | --heading ] [ --ips ] [ -l | --login ] [ --lookup ] [ -m ] [ -p | --process ] [ -q | --count ] [ -r | --runlevel ] [ -s | --short ] [ -t | --time ] [ -T | -w | --mesg ] [ -T | -w | --mesg ] [ -u | --users ] [ --message ] [ --writable ] [ --help ] [ --version ] [ FILE | ARG1 ARG2 ]
+
+		w [ -h | --no-header ] [ -u | --no-current ] [ -s | --short ] [ -f | --from ] [ --help ] [ -i | --ip-addr ] [ -V | --version ] [ -o | --old-style ] user ...
+
+		hostname  [-a|--alias]  [-d|--domain]  [-f|--fqdn|--long]  [-A|--all-fqdns]  [-i|--ip-address]  [-I|--all-ip-addresses] [-s|--short] [-y|--yp|--nis]
+
+		hostname [-b|--boot] [-F|--file filename] [hostname]
+
+		hostname [-h|--help] [-V|--version]
+ 
+ 		tee [ -a | --append ] [ -i | --ignore-interrupts ] [ --help ] [ --version ] [FILE]...
+
+ 		true [string]
+
+		true [ --help ] [ --version ]
+
+		false [string]
+
+		false [ --help ] [ --version ]
+
+		gcc [-c|-S|-E] [-std=standard] [-g] [-pg] [-Olevel] [-Wwarn...] [-Wpedantic] [-Idir...] [-Ldir...] [-Dmacro[=defn]...] [-Umacro] [-foption...] [-mmachine-option...] [-o outfile] [file] infile...
+
+		xargs  [-0prtx]  [-E eof-str] [-e[eof-str]] [--eof[=eof-str]] [--null] [-d delimiter] [--delimiter delimiter] [-I replace-str] [-i [replace-str]] [--replace[=replace-str]]    [-l[max-lines]]    [-L max-lines] [--max-lines[=max-lines]] [-n max-args] [--max-args=max-args] [-s max-chars] [--max-chars=max-chars] [-P max-procs] [--max-procs=max-procs] [--interactive]  [--verbose]  [--exit]  [--no-run-if-empty]  [--arg-file=file] [--show-limits] [--version] [--help] [command [initial-arguments]] [ --arg-file[=file] ] [   -a file ] [ --null ] [ -0 ] [ --delimiter[=delim] ] [   -d delim ] [   -E eof-str ] [ --eof[=eof-str] ] [   -e [eof-str] ] [   --help Print a summary of the options to xargs and exit ] [   -I replace-str ] [ --replace[=replace-str] ] [   -i [replace-str] ] [   -L max-lines ] [ --max-lines[=max-lines] ] [   -l [max-lines] ] [ --max-args[=max-args] ] [   -n max-args ] [ --interactive ] [ -p ] [ --no-run-if-empty ] [ -r ] [ --max-chars[=max-chars] ] [   -s max-chars ] [ --verbose ] [ -t ] [ --version ] [ --show-limits ] [ --exit ] [ -x ] [ --max-procs[=max-procs] ] [   -P max-procs ]
+
+		crontab [ -u user ] file
+	
+		crontab [ -u user ] [ -i ] [ -e | -l | -r ]
+
+		info [ -a | --all ] [ -k | --apropos[=STRING] ] [ -d | --directory[=DIR] ] [ --dribble[=FILE] ] [ -f | --file[=MANUAL] ] [ -h | --help ] [ --index-search[=STRING] ] [ -n | --node[=NODENAME] ] [ -o | --output[=FILE] ] [ -R | --raw-escapes ] [ --no-raw-escapes ] [ --restore[=FILE] ] [ -O | --show-options | --usage ] [ -O | --show-options | --usage ] [ --strict-node-location ] [ --subnodes ] [ -v | --variable VAR ] [ --vi-keys ] [ --version ] [ -w | --where | --location ] [ -w | --where | --location ] [ -x | --debug[=NUMBER] ] [MENU-ITEM...]
+
+		fold [ -b | --bytes ] [ -s | --spaces ] [ -w | --width[=WIDTH] ] [ --help ] [ --version ] [FILE]...
+
+		rev [ -V | --version ] [ -h | --help ] [file ...]
+
+		mktemp [ -d | --directory ] [ -u | --dry-run ] [ -q | --quiet ] [ --suffix[=SUFF] ] [ --tmpdir[=DIR] ] [ -p DIR ] [ -t ] [ --help ] [ --version ] [TEMPLATE] 
+
+		watch [ -d |   --differences [permanent] ] [ -n | --interval seconds ] [ -p | --precise ] [ -t | --no-title ] [ -b | --beep ] [ -e | --errexit ] [ -g | --chgexit ] [ -c | --color ] [ -x | --exec ] [ -h | --help ] [ -v | --version ] command
+
+
+		curl [ -0 | --http1 ] [ --http1 ] [ --http2 ] [ -a | --append ] [ -A ] [ --anyauth ] [ -b ] [ -B | --use-ascii ] [ --basic ] [ -c ] [ -C |   --continue-at offset ] [ --compressed ] [   --connect-timeout seconds ] [ --create-dirs ] [ --crlf ] [ --crlfile file ] [ -d |   --data data ] [ -D | --dump-header file ] [ --data-ascii data ] [ --data-binary data ] [   --data-urlencode data ] [ --delegation LEVEL ] [ --digest ] [ --disable-eprt ] [ --disable-epsv ] [ --dns-interface interface ] [ --dns-ipv4-addr ip-address ] [   --dns-ipv6-addr ip-address ] [ -e |   --referer URL ] [ -E ] [ --engine name ] [ --environment ] [ --egd-file file ] [ --cert-type type ] [ -f | --fail ] [ -F ] [ --ftp-account [data] ] [ --ftp-alternative-to-user command ] [ --ftp-create-dirs ] [ --ftp-method [method] ] [URL ...]
+		
+
+find_expression :=
+		-true
+		-false
+		:find_exp_list:
+		LB :find_expression: RB		
+		:find_expression: -and :find_expression:
+		:find_expression: -or :find_expression:
+		:find_expression: -o :find_expression:
+		-not :find_expression:
+		EXCLAMATION :find_expression:
 
 
 
+find_exp_list :=
+		:find_primitive_exp: ...
 
+find_primitive_exp :=
+		:find_primitive_exp_op0:
+		:find_primitive_exp_op1:
+		:find_primitive_exp_op2:
+		:find_primitive_exp_op3:
+		:find_primitive_exp_op4:
+		:find_primitive_exp_op5:
+		:find_primitive_exp_op6:
+		:find_primitive_exp_op7:
+		:find_primitive_exp_op8:
+		:find_primitive_exp_op9:
+		:find_primitive_exp_op10:
+		:find_primitive_exp_op11:
+		:find_primitive_exp_op12:
+		:find_primitive_exp_op13:
+		:find_primitive_exp_op14:
+		:find_primitive_exp_op15:
+		:find_primitive_exp_op16:
+		:find_primitive_exp_op17:
+		:find_primitive_exp_op18:
+		:find_primitive_exp_op19:
+		:find_primitive_exp_op20:
+		:find_primitive_exp_op21:
+		:find_primitive_exp_op22:
+		:find_primitive_exp_op23:
+		:find_primitive_exp_op24:
+		:find_primitive_exp_op25:
+		:find_primitive_exp_op26:
+		:find_primitive_exp_op27:
+		:find_primitive_exp_op28:
+		:find_primitive_exp_op29:
+		:find_primitive_exp_op30:
+		:find_primitive_exp_op31:
+		:find_primitive_exp_op32:
+		:find_primitive_exp_op33:
+		:find_primitive_exp_op34:
+		:find_primitive_exp_op35:
+		:find_primitive_exp_op36:
+		:find_primitive_exp_op37:
+		:find_primitive_exp_op38:
+		:find_primitive_exp_op39:
+		:find_primitive_exp_op40:
+		:find_primitive_exp_op41:
+		:find_primitive_exp_op42:
+		:find_primitive_exp_op43:
+		:find_primitive_exp_op44:
+		:find_primitive_exp_op45:
+		:find_primitive_exp_op46:
+		:find_primitive_exp_op47:
+		:find_primitive_exp_op48:
+		:find_primitive_exp_op49:
+		:find_primitive_exp_op50:
+		:find_primitive_exp_op51:
+		:find_primitive_exp_op52:
+		:find_primitive_exp_op53:
+		:find_primitive_exp_op54:
+		:find_primitive_exp_op55:
+		:find_primitive_exp_op56:
+		:find_primitive_exp_op57:
+		:find_primitive_exp_op58:
+		:find_primitive_exp_op59:
+		:find_primitive_exp_op60:
+		:find_primitive_exp_op61:
+		:find_primitive_exp_op62:
+		:find_primitive_exp_op63:
+		:find_primitive_exp_op64:
+		:find_primitive_exp_op65:
+		:find_primitive_exp_op66:
+		:find_primitive_exp_op67:
+		:find_primitive_exp_op68:
+		:find_primitive_exp_op69:
+		:find_primitive_exp_op70:
+		:find_primitive_exp_op71:
+	
+find_primitive_exp_op0  := 
+		-not findexp
+find_primitive_exp_op1  := 
+		-Bmin nmin
+find_primitive_exp_op2  := 
+		-Bnewer file
+find_primitive_exp_op3  := 
+		-Btime time
+find_primitive_exp_op4  := 
+		-acl
+find_primitive_exp_op5  := 
+		-amin nmin
+find_primitive_exp_op6  := 
+		-anewer file
+find_primitive_exp_op7  := 
+		-atime time
+find_primitive_exp_op8  := 
+		-cmin nmin
+find_primitive_exp_op9  := 
+		-cnewer file
+find_primitive_exp_op10  := 
+		-ctime nmin
+find_primitive_exp_op11  := 
+		-d
+find_primitive_exp_op12  := 
+		-daystart
+find_primitive_exp_op13  := 
+		-delete
+find_primitive_exp_op14  := 
+		-depth
+find_primitive_exp_op15  := 
+		-depth n
+find_primitive_exp_op16  := 
+		-empty
+find_primitive_exp_op17  := 
+		-exec :command: SEMICOLON
+find_primitive_exp_op18  := 
+		-exec :command: PLUS
+find_primitive_exp_op19  := 
+		-execdir :command: SEMICOLON
+find_primitive_exp_op20  := 
+		-execdir :command: PLUS
+find_primitive_exp_op21  := 
+		-flags MINUSflags
+find_primitive_exp_op22  := 
+		-flags PLUSflags
+find_primitive_exp_op23  := 
+		-flags flags
+find_primitive_exp_op24  := 
+		-fstype type
+find_primitive_exp_op25  := 
+		-gid gname
+find_primitive_exp_op26  := 
+		-group gname
+find_primitive_exp_op27  := 
+		-ignore_readdir_race
+find_primitive_exp_op28  := 
+		-ilname pattern
+find_primitive_exp_op29  := 
+		-ilname pattern
+find_primitive_exp_op30  := 
+		-iname pattern
+find_primitive_exp_op31  := 
+		-inum n
+find_primitive_exp_op32  := 
+		-ipath pattern
+find_primitive_exp_op33  := 
+		-iregex pattern
+find_primitive_exp_op34  := 
+		-iwholename pattern
+find_primitive_exp_op35  := 
+		-links n
+find_primitive_exp_op36  := 
+		-lname pattern
+find_primitive_exp_op37  := 
+		-ls
+find_primitive_exp_op38  := 
+		-maxdepth n
+find_primitive_exp_op39  := 
+		-mindepth n
+find_primitive_exp_op40  := 
+		-mmin n
+find_primitive_exp_op41  := 
+		-mnewer file
+find_primitive_exp_op42  := 
+		-mount
+find_primitive_exp_op43  := 
+		-mtime time
+find_primitive_exp_op44  := 
+		-name pattern
+find_primitive_exp_op45  := 
+		-newer file
+find_primitive_exp_op46  := 
+		-newerXY reference
+find_primitive_exp_op47  := 
+		-nogroup
+find_primitive_exp_op48  := 
+		-noignore_readdir_race
+find_primitive_exp_op49  := 
+		-noleaf
+find_primitive_exp_op50  := 
+		-nouser
+find_primitive_exp_op51  := 
+		-ok :command: SEMICOLON
+find_primitive_exp_op52  := 
+		-ok :command: PLUS
+find_primitive_exp_op53  := 
+		-okdir :command: SEMICOLON
+find_primitive_exp_op54  := 
+		-path pattern
+find_primitive_exp_op55  := 
+		-perm permmode
+find_primitive_exp_op56  := 
+		-perm MINUSpermmode
+find_primitive_exp_op57  := 
+		-perm PLUSpermmode
+find_primitive_exp_op58  := 
+		-print
+find_primitive_exp_op59  := 
+		-print0
+find_primitive_exp_op60  := 
+		-printf pattern
+find_primitive_exp_op61  := 
+		-prune
+find_primitive_exp_op62  := 
+		-regex pattern
+find_primitive_exp_op63  := 
+		-samefile name
+find_primitive_exp_op64  := 
+		-size size
+find_primitive_exp_op65  := 
+		-type t
+find_primitive_exp_op66  := 
+		-xtype t
+find_primitive_exp_op67  := 
+		-uid uname
+find_primitive_exp_op68  := 
+		-user uname
+find_primitive_exp_op69  := 
+		-wholename pattern
+find_primitive_exp_op70  := 
+		-xattr
+find_primitive_exp_op71  := 
+		-xattrname name
 		
