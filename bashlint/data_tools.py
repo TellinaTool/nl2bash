@@ -13,7 +13,7 @@ import sys
 if sys.version_info > (3, 0):
     from six.moves import xrange
 
-from bashlex import bash, nast, normalizer
+from bashlint import bash, nast, lint
 from nlp_tools import constants
 
 
@@ -31,14 +31,14 @@ def char_tokenizer(sentence):
 def bash_tokenizer(cmd, recover_quotation=True, loose_constraints=False,
         ignore_flag_order=False, arg_type_only=False, with_parent=False):
     """Tokenize a bash command."""
-    tree = normalizer.normalize_ast(cmd, recover_quotation)
+    tree = lint.normalize_ast(cmd, recover_quotation)
     return ast2tokens(tree, loose_constraints, ignore_flag_order,
                       arg_type_only, with_parent=with_parent)
 
 
 def bash_parser(cmd, recover_quotation=True):
     """Parse bash command into AST."""
-    return normalizer.normalize_ast(cmd, recover_quotation)
+    return lint.normalize_ast(cmd, recover_quotation)
 
 
 def pretty_print(node, depth=0):
@@ -210,7 +210,8 @@ def ast2tokens(node, loose_constraints=False, ignore_flag_order=False,
 
 
 def ast2command(node, loose_constraints=False, ignore_flag_order=False):
-    return normalizer.to_command(node, loose_constraints, ignore_flag_order)
+    return node.serialize(loose_constraints=loose_constraints,
+                          ignore_flag_order=ignore_flag_order)
 
 
 def ast2template(node, loose_constraints=False, ignore_flag_order=True,
@@ -228,7 +229,7 @@ def cmd2template(cmd, recover_quotation=True, arg_type_only=True,
     Convert a bash command to a template that contains only reserved words
         and argument types flags are alphabetically ordered.
     """
-    tree = normalizer.normalize_ast(cmd, recover_quotation)
+    tree = lint.normalize_ast(cmd, recover_quotation)
     return ast2template(tree, loose_constraints, arg_type_only)
 
 
@@ -256,15 +257,15 @@ def ast2list(node, order='dfs', _list=None, ignore_flag_order=False,
             for child in children:
                 ast2list(child, order, _list, ignore_flag_order, arg_type_only,
                          keep_common_args, with_parent, with_prefix)
-            _list.append(normalizer._H_NO_EXPAND)
+            _list.append(nast._H_NO_EXPAND)
         else:
-            _list.append(normalizer._V_NO_EXPAND)
+            _list.append(nast._V_NO_EXPAND)
     return _list
 
 
 def list2ast(list, order='dfs'):
     """Convert the linearized parse tree back to the AST data structure."""
-    return normalizer.list_to_ast(list, order)
+    return lint.normalize_seq(list, order)
 
 
 def is_simple(ast):
@@ -329,7 +330,7 @@ def fill_default_value(node):
             fill_default_value(child)
 
 
-# --- Parsers for other syntactic structures. --- #
+# --- Parsers for other syntactic structures --- #
 
 def paren_parser(line):
     """A simple parser for parenthesized sequence."""

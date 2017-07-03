@@ -283,6 +283,7 @@ category_1_user_commands = {
     'time',
     'seq',
     'cut',
+    'sed',
     'paste',
     'find',
     'locate',
@@ -298,6 +299,27 @@ category_7_conventions_and_miscellany = {}
 
 category_8_administration_and_privileged_commands = {}
 
+reserved_tokens = {
+    '+',
+    ';',
+    '{}'
+}
 
+right_associate_unary_logic_operators = {
+    '!',
+    '-not'
+}
 
+left_associate_unary_logic_operators = {
+    '-prune'
+}
+
+binary_logic_operators = {
+    '-and',
+    '-or',
+    '||',
+    '&&',
+    '-o',
+    '-a'
+}
 
