@@ -44,7 +44,8 @@ def cmd_arg_type_check(word, arg_status):
             continue
         arg_types.append(arg_type)
 
-    assert(len(arg_types) > 0)
+    if len(arg_types) == 0:
+        return 'Unknown'
     arg_type = type_check(word, arg_types)
 
     for i in xrange(len(arg_status["non-optional"])):
