@@ -1,30 +1,21 @@
+#!/usr/bin/env python
+# -*- coding: UTF-8 -*-
+
 """
-Read bash syntax rules from man page grammar.
+Parse the option list of a bash command and assign each argument a type.
 
-simplified_bash_syntax = [
-    "Command ::= SingleCommand | Pipe",
-    "Pipe ::= Command '|' Command",
-    "SingleCommand ::= HeadCommand [OptionList]",
-    "OptionList ::= Option | OptionList",
-    "Option ::= Flag [Argument] | LogicOp Option",
-    "Argument ::= SingleArgument | CommandSubstitution | ProcessSubstitution",
-    "CommandSubstitution ::= ` Command `",
-    "ProcessSubstitution ::= <( Command ) | >( Command )"
-]
+Output a Bashlex (https://github.com/idank/bashlex) AST augmented with the
+following syntactic sugars:
+    1. every token is linked to its corresponding attach point:
+        flag -> utility,
+        argument -> utility,
+        argument -> flag;
+    2. the arguments are decorated with semantic types.
 
-arg_syntax = [
-    "File",
-    "Pattern",
-    "Number",
-    "NumberExp ::= -Number | +Number",
-    "SizeExp ::= Number(k) | Number(M) | Number(G) | Number(T) | Number(P)",
-    "TimeExp ::= Number(s) | Number(m) | Number(h) | Number(d) | Number(w)",
-    # TODO: add fine-grained permission pattern
-    "PermissionMode",
-    "UserName",
-    "GroupName",
-    "Unknown"
-]
+Report syntactic errors and wrong flag usages if there is any.
+
+Related repository:
+    - Bashlex (https://github.com/idank/bashlex)
 """
 
 import collections

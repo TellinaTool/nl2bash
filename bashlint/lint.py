@@ -2,16 +2,20 @@
 # -*- coding: UTF-8 -*-
 
 """
-Check the syntax of a bash command.
+Parse the option list of a bash command and assign each argument a type.
 
-Report syntactic errors and wrong flag usages if any,
-otherwise output an AST of the bash command in which
-    1. the flags and the corresponding arguments are linked and
+Output a Bashlex (https://github.com/idank/bashlex) AST augmented with the
+following syntactic sugars:
+    1. every token is linked to its corresponding attach point:
+        flag -> utility,
+        argument -> utility,
+        argument -> flag;
     2. the arguments are decorated with semantic types.
 
+Report syntactic errors and wrong flag usages if there is any.
 
-cf.
-    Bashlex: https://github.com/idank/bashlex
+Related repository:
+    - Bashlex (https://github.com/idank/bashlex)
 """
 
 from __future__ import absolute_import
