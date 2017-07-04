@@ -221,6 +221,7 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
         if not node or not node.parts:
             return
         input = node.parts
+        num_tokens = len(node.parts)
 
         token = input[0]
         head = UtilityNode(token, parent=current, lsb=current.get_right_child())
@@ -246,22 +247,25 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
                 error_in_subcommand_flag = False
 
                 # examine possible next states in order
-                for next_state in bash_grammar.next_states():
+                for next_state in bash_grammar.next_states:
                     matched = False
                     if next_state.is_flag():
-                        result = bash_grammar.consume(token, next_state.type)
-                        #                                   __FLAG_S__
+                        try:
+                            result = bash_grammar.push(token, next_state.type)
+                            #                                 FLAG_S
+                        except ValueError as e:
+                            raise errors.FlagError(e, num_tokens, i)
                         if result:
-                            for flag_token, flag_argument in result['flat_list']:
+                            for flag_token, flag_arg in result:
                                 flag = FlagNode(flag_token, parent=current,
                                                 lsb=current.get_right_child())
                                 current.add_child(flag)
-                                if flag_argument == '__OPEN__':
+                                if flag_arg == '__OPEN__':
                                     # Incomplete AST, expecting flag argument
                                     current = flag
-                                elif flag_argument is not None:
+                                elif flag_arg is not None:
                                     # Argument is specified with flag
-                                    argument = ArgumentNode(flag_argument, parent=flag,
+                                    argument = ArgumentNode(flag_arg, parent=flag,
                                                             lsb=flag.get_right_child())
                                     flag.add_child(argument)
                             matched = True
@@ -270,19 +274,20 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
                         # Nested bash command
                         new_command_node = bast.node(
                             kind="command", word="", parts=[], pos=(-1,-1))
-                        if next_state.stop_tokens is None:
+                        if next_state.type == COMMAND_S:
                             # Interpret all of the rest of the tokens as content of the nested command
                             new_command_node.parts = input[i:]
                             normalize_command(new_command_node, current)
+                            bash_grammar.push('', next_state.type)
                             i = len(input)
-                        elif next_state.stop_tokens[0] == '__QUOTES__':
+                        elif next_state.type == ARG_COMMAND_S:
                             if not constants.with_quotes(token):
                                 command_quote_missing_flag = True
                             tree = safe_bashlex_parse(token[1:-1])
                             if tree is None:
                                 error_in_subcommand_flag = True
                             normalize(tree[0], current)
-                            bash_grammar.consume(token, next_state.type)
+                            bash_grammar.push(token, next_state.type)
                             i += 1
                         else:
                             new_input = []
@@ -295,26 +300,35 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
                                 current.value += ('::' + input[j])
                             else:
                                 print("Warning: -exec missing stop token - ; added")
-                            bash_grammar.consume(input[j], next_state.type)
+                            bash_grammar.push(input[j], next_state.type)
+                            #                           EXEC_COMMAND_S
                             i = j + 1
                         matched = True
                         break
                     elif next_state.is_argument():
                         command_quote_missing_flag = False
                         error_in_subcommand_flag = False
-                        argument = ArgumentNode(token, parent=current,
-                                                lsb=current.get_right_child())
+                        argument = ArgumentNode(token, arg_type=next_state.arg_type,
+                                                parent=current, lsb=current.get_right_child())
                         current.add_child(argument)
-                        bash_grammar.consume(token, next_state.type)
+                        bash_grammar.push(token, next_state.type)
+                        #                        ARG_S
                         matched = True
                         break
 
                 if not matched:
                     if command_quote_missing_flag:
-                        raise ValueError('Missing quotes around command string: {}'.format(token))
+                        raise errors.SubCommandError('Missing quotes around command string: {}'.format(token),
+                                                     num_tokens, i)
                     if error_in_subcommand_flag:
-                        raise errors.SubCommandError('Error in subcommand string: {}'.format(token))
-                    raise errors.LintParsingError('Unmatched token', i)
+                        raise errors.SubCommandError('Error in subcommand string: {}'.format(token),
+                                                     num_tokens, i)
+                    raise errors.LintParsingError('Unmatched token', num_tokens, i)
+
+            if bash_grammar.allow_eof():
+                return
+            else:
+                raise errors.LintParsingError('Incomplete command', num_tokens, i)
 
     def normalize(node, current, node_kind="", arg_type=""):
         # recursively normalize each subtree
