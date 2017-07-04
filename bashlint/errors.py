@@ -26,3 +26,13 @@ class SubCommandError(Exception):
 
         assert position <= len(s)
         super(SubCommandError, self).__init__('%s (position %d)' % (message, position))
+
+
+class FlagError(Exception):
+    def __init__(self, message, s, position):
+        self.message = message
+        self.s = s
+        self.position = position
+
+        assert position <= len(s)
+        super(SubCommandError, self).__init__('%s (position %d)' % (message, position))
