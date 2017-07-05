@@ -164,6 +164,8 @@ class ArgumentState(BashGrammarState):
 class ArgCommandState(BashGrammarState):
     def __init__(self):
         super(ArgCommandState, self).__init__(ARG_COMMAND_S)
+        self.filled = False
+        self.parent = None
 
     def serialize(self):
         return 'COMMAND'
@@ -181,6 +183,10 @@ class ExecCommandState(BashGrammarState):
 class CommandState(BashGrammarState):
     def __init__(self):
         super(CommandState, self).__init__(COMMAND_S)
+        self.filled = False
+
+    def serialize(self):
+        return 'COMMAND_EOS'
 
 
 class EOFState(BashGrammarState):
@@ -428,7 +434,9 @@ class BashGrammar(object):
         f_state.add_argumet(self.make_argument(synopsis, optional=optional))
 
     def make_argument(self, synopsis, optional=False):
-        if '$$' in synopsis:
+        if synopsis.lower() == 'command_eos':
+            arg = CommandState()
+        elif '$$' in synopsis:
             _, stop_token_synopsis = synopsis.split('$$', 1)
             stop_token_list = stop_token_synopsis.split(',')
             arg = ExecCommandState(stop_token_list)
