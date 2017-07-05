@@ -215,6 +215,13 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
                 return False
         return node.word in bash.binary_logic_operators
 
+    def is_parenthesis(node, parent):
+        if node.word in ['(', ')', '\\(', '\\)']:
+            if parent and parent.is_command('find'):
+                return True
+            else:
+                return False
+
     def node_with_quotes(node):
         return cmd[node.pos[0]] in ['"', '\''] \
             or cmd[node.pos[1]-1] in ['"', '\'']
@@ -280,7 +287,14 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
                         # Next state is a flag
                         if bast_node.kind != 'word' or bast_node.parts:
                             continue
-                        if is_unary_logic_op(bast_node, current):
+                        if is_parenthesis(bast_node, current):
+                            flag = FlagNode(bast_node.word, parent=current,
+                                            lsb=current.get_right_child())
+                            current.add_child(flag)
+                            matched = True
+                            i += 1
+                            break
+                        elif is_unary_logic_op(bast_node, current):
                             flag = UnaryLogicOpNode(bast_node.word, parent=current,
                                                     lsb=current.get_right_child())
                             current.add_child(flag)
@@ -394,10 +408,7 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
     def post_process_command(head):
         # process (embedded) parenthese -- treat as implicit "-and"
         def organize_buffer(lparenth, rparenth):
-            node = lparenth.rsb
-            while node != rparenth:
-                node = node.rsb
-            node = lparenth.rsb
+            node = lparenth
             while node != rparenth:
                 node = node.rsb
             node = lparenth.rsb
@@ -659,9 +670,9 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
     except ValueError as err:
         print("%s - %s" % (err.args[0], cmd))
         return None
-    except AttributeError as err:
-        print("%s - %s" % (err.args[0], cmd))
-        return None
+    # except AttributeError as err:
+    #     print("%s - %s" % (err.args[0], cmd))
+    #     return None
     except AssertionError as err:
         print("%s - %s" % (err.args[0], cmd))
         return None
