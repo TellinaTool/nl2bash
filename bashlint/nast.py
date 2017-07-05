@@ -51,7 +51,10 @@ class Node(object):
         self.children = []
 
     def add_child(self, child, index=None):
+        lsb = self.get_right_child()
         self.children.append(child)
+        if lsb:
+            lsb.rsb = child
 
     def get_children(self):
         return self.children
