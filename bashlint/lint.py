@@ -188,6 +188,33 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
     if not cmd:
         return None
 
+    def is_unary_logic_op(node, parent):
+        if node.word == "!":
+            return parent and parent.is_command("find")
+        return node.word in bash.right_associate_unary_logic_operators \
+               or node.word in bash.left_associate_unary_logic_operators
+
+    def is_binary_logic_op(node, parent):
+        if node.word == '-o':
+            if parent and parent.is_command("find"):
+                node.word = "-or"
+                return True
+            else:
+                return False
+        if node.word == '-a':
+            if parent and parent.is_command("find"):
+                node.word = "-and"
+                return True
+            else:
+                return False
+        if node.word == ',':
+            if parent and parent.is_command("find"):
+                node.word = "-and"
+                return True
+            else:
+                return False
+        return node.word in bash.binary_logic_operators
+
     def node_with_quotes(node):
         return cmd[node.pos[0]] in ['"', '\''] \
             or cmd[node.pos[1]-1] in ['"', '\'']
@@ -237,13 +264,17 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
                 current.add_child(head)
             if not bash_grammar.consume(token):
                 print("Warning: grammar not found - utility {}".format(token))
-                for token in input[1:]:
-                    if token.startswith('-'):
-                        child = FlagNode(token, parent=head, lsb=head.get_right_child())
+                for bast_node in input[1:]:
+                    if bast_node.kind == 'word' and not bast_node.parts:
+                        token = normalize_word(bast_node)
+                        if token.startswith('-'):
+                            child = FlagNode(token, parent=head, lsb=head.get_right_child())
+                        else:
+                            child = ArgumentNode(token, arg_type='Unknown', parent=head,
+                                                 lsb=head.get_right_child())
+                        head.add_child(child)
                     else:
-                        child = ArgumentNode(token, arg_type='Unknown', parent=head,
-                                             lsb=head.get_right_child())
-                    head.add_child(child)
+                        normalize(bast_node, head)
             else:
                 current = head
                 i = 1
@@ -254,31 +285,43 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
                     for next_state in bash_grammar.next_states:
                         matched = False
                         if next_state.is_compound_flag():
-                            if not bast_node.kind == 'word':
-                                raise errors.FlagError(
-                                    'Flag needs to be a BAST node of "Word" type: {}'.format(bast_node),
-                                    num_tokens, i)
-                            token = normalize_word(bast_node)
-                            try:
-                                result = bash_grammar.push(token, COMPOUND_FLAG_S)
-                            except ValueError as e:
-                                raise errors.FlagError(e, num_tokens, i)
-                            if result:
-                                for flag_token, flag_arg in result:
-                                    flag = FlagNode(flag_token, parent=current,
-                                                    lsb=current.get_right_child())
+                            if bast_node.kind == 'word' and not bast_node.parts:
+                                if is_unary_logic_op(bast_node, current):
+                                    flag = UnaryLogicOpNode(bast_node.word, parent=current,
+                                                            lsb=current.get_right_child())
                                     current.add_child(flag)
-                                    if flag_arg == '__OPEN__':
-                                        # Incomplete AST, expecting flag argument
-                                        current = flag
-                                    elif flag_arg is not None:
-                                        # Argument is specified with flag
-                                        argument = ArgumentNode(flag_arg[0], arg_type=flag_arg[1],
-                                            parent=flag, lsb=flag.get_right_child())
-                                        flag.add_child(argument)
-                                matched = True
-                                i += 1
-                                break
+                                    matched = True
+                                    i += 1
+                                    break
+                                elif is_binary_logic_op(bast_node, current):
+                                    flag = BinaryLogicOpNode(bast_node.word, parent=current,
+                                                             lsb=current.get_right_child())
+                                    current.add_child(flag)
+                                    matched = True
+                                    i += 1
+                                    break
+                                else:
+                                    token = normalize_word(bast_node)
+                                    try:
+                                        result = bash_grammar.push(token, COMPOUND_FLAG_S)
+                                    except ValueError as e:
+                                        raise errors.FlagError(e, num_tokens, i)
+                                    if result:
+                                        for flag_token, flag_arg in result:
+                                            flag = FlagNode(flag_token, parent=current,
+                                                            lsb=current.get_right_child())
+                                            current.add_child(flag)
+                                            if flag_arg == '__OPEN__':
+                                                # Incomplete AST, expecting flag argument
+                                                current = flag
+                                            elif flag_arg is not None:
+                                                # Argument is specified with flag
+                                                argument = ArgumentNode(flag_arg[0], arg_type=flag_arg[1],
+                                                    parent=flag, lsb=flag.get_right_child())
+                                                flag.add_child(argument)
+                                        matched = True
+                                        i += 1
+                                        break
                         elif next_state.is_command():
                             # Nested bash command
                             new_command_node = bast.node(
@@ -344,6 +387,7 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
                         raise errors.LintParsingError('Unmatched token', num_tokens, i)
 
                 if bash_grammar.allow_eof():
+                    post_process_command(head)
                     return
                 else:
                     raise errors.LintParsingError('Incomplete command', num_tokens, i)
@@ -351,6 +395,160 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
             raise errors.LintParsingError(
                 'Utility needs to be a BAST node of "Word" type" {}'.format(bast_node),
                 num_tokens, 0)
+
+    def post_process_command(head):
+        # process (embedded) parenthese -- treat as implicit "-and"
+
+        def organize_buffer(lparenth, rparenth):
+            node = lparenth.rsb
+            while node != rparenth:
+                node = node.rsb
+            node = lparenth.rsb
+            while node != rparenth:
+                node = node.rsb
+            node = lparenth.rsb
+            if node.rsb == rparenth:
+                return lparenth.rsb
+            else:
+                norm_node = BracketNode()
+                while node != rparenth:
+                    attach_to_tree(node, norm_node)
+                    node = node.rsb
+                return norm_node
+
+        stack = []
+        depth = 0
+
+        def pop_stack_content(depth, rparenth, stack_top=None):
+            # popping pushed states off the stack
+            popped = stack.pop()
+            while (popped.value != "("):
+                head.remove_child(popped)
+                popped = stack.pop()
+            lparenth = popped
+            if not rparenth:
+                # unbalanced brackets
+                rparenth = ArgumentNode(value=")")
+                make_parent_child(stack_top.parent, rparenth)
+                make_sibling(stack_top, rparenth)
+            new_child = organize_buffer(lparenth, rparenth)
+            i = head.substitute_parentheses(
+                lparenth, rparenth, new_child)
+            depth -= 1
+            if depth > 0:
+                # embedded parenthese
+                stack.append(new_child)
+            return depth, i
+
+        i = 0
+        while i < head.get_num_of_children():
+            child = head.children[i]
+            if child.value == "(":
+                stack.append(child)
+                depth += 1
+            elif child.value == ")":
+                assert(depth >= 0)
+                # fix imbalanced parentheses: missing '('
+                if depth == 0:
+                    # simply drop the single ')'
+                    detach_from_tree(child, child.parent)
+                else:
+                    depth, i = pop_stack_content(depth, child)
+            else:
+                if depth > 0:
+                    stack.append(child)
+
+            i += 1
+
+        # fix imbalanced parentheses: missing ')'
+        while (depth > 0):
+            depth, _ = pop_stack_content(depth, None, stack[-1])
+
+        assert(len(stack) == 0)
+        assert(depth == 0)
+
+        # recover omitted arguments
+        if head.value == "find":
+            arguments = []
+            for child in head.children:
+                if child.is_argument():
+                    arguments.append(child)
+            if head.get_num_of_children() > 0 and len(arguments) < 1:
+                norm_node = ArgumentNode(value=".", arg_type="File")
+                make_sibling(norm_node, head.children[0])
+                norm_node.parent = head
+                head.children.insert(0, norm_node)
+
+        # "grep" normalization
+        if head.value == "egrep":
+            head.value = "grep"
+            flag_present = False
+            for child in head.children:
+                if child.is_option() and child.value in ["-E", "--extended-regexp"]:
+                    flag_present = True
+            if not flag_present:
+                norm_node = FlagNode(value="-E")
+                make_sibling(norm_node, head.children[0])
+                norm_node.parent = head
+                head.children.insert(0, norm_node)
+
+        if head.value == "fgrep":
+            head.value = "grep"
+            flag_present = False
+            for child in head.children:
+                if child.is_option() and child.value in ["-F", "--fixed-strings"]:
+                    flag_present = True
+            if not flag_present:
+                norm_node = FlagNode(value="-F")
+                make_sibling(norm_node, head.children[0])
+                norm_node.parent = head
+                head.children.insert(0, norm_node)
+
+        # "xargs" normalization
+        def normalize_replace_str(node, r_str, n_str):
+            for child in node.children:
+                if child.is_argument():
+                    if r_str in child.value:
+                        child.value = child.value.replace(r_str, n_str)
+                        if child.value == n_str:
+                            child.arg_type = "ReservedWord"
+                else:
+                    normalize_replace_str(child, r_str, n_str)
+
+        has_repl_str = False
+        if head.value == "xargs":
+            for flag in head.get_flags():
+                if flag.value == "-I":
+                    has_repl_str = True
+                    repl_str = flag.get_argument()
+                    assert(repl_str is not None)
+                    if repl_str.value != "{}":
+                        utility = head.get_subcommand()
+                        assert(utility is not None)
+                        normalize_replace_str(utility, repl_str.value, '{}')
+                        repl_str.value = "{}"
+                        repl_str.arg_type = "ReservedWord"
+
+            # add -I {} if not present
+            utility = head.get_subcommand()
+            if not has_repl_str and utility is not None:
+                for i in xrange(head.get_num_of_children()):
+                    if head.children[i].is_utility():
+                        repl_str_flag_node = FlagNode("-I")
+                        repl_str_node = ArgumentNode("{}", "ReservedWord")
+                        repl_str_node2 = ArgumentNode("{}", "ReservedWord")
+
+                        head.children.insert(i, repl_str_flag_node)
+                        repl_str_flag_node.parent = head
+                        repl_str_flag_node.lsb = head.children[i-1]
+                        head.children[i-1].rsb = repl_str_flag_node
+
+                        make_parent_child(repl_str_flag_node, repl_str_node)
+                        sub_command = head.children[i+1]
+                        repl_str_node2.parent = sub_command
+                        repl_str_node2.lsb = sub_command.get_right_child()
+                        sub_command.children.append(repl_str_node2)
+                        break
 
     def normalize(node, current, node_kind="", arg_type=""):
         # recursively normalize each subtree
