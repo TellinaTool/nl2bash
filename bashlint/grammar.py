@@ -53,6 +53,13 @@ class UtilityState(BashGrammarState):
         self.flag_index = {}
         self.positional_arguments = []
 
+    def serialize(self):
+        header = self.name
+        for flag in sorted(self.flag_index.keys()):
+            header += ' ' + self.flag_index[flag].serialize()
+        for arg in self.positional_arguments:
+            header += ' ' + arg.serialize()
+        return header
 
 class FlagState(BashGrammarState):
     def __init__(self, flag_name, optional):
@@ -60,7 +67,6 @@ class FlagState(BashGrammarState):
         self.flag_name = flag_name
         self.optional = optional
         self.argument = None
-        print(self.serialize())
 
     def serialize(self):
         header = '{}'.format(self.flag_name)
@@ -89,7 +95,6 @@ class ArgumentState(BashGrammarState):
         self.is_list = is_list
         self.list_separator = list_separator
         self.regex_format = regex_format
-        print(self.serialize())
 
     def serialize(self):
         header = '{} ({})'.format(self.arg_type, self.arg_name)
@@ -106,10 +111,17 @@ class ArgCommandState(BashGrammarState):
     def __init__(self):
         super(ArgCommandState, self).__init__(ARG_COMMAND_S)
 
+    def serialize(self):
+        return 'COMMAND'
+
 
 class ExecCommandState(BashGrammarState):
-    def __init__(self):
+    def __init__(self, stop_tokens):
         super(ExecCommandState, self).__init__(EXEC_COMMAND_S)
+        self.stop_tokens = stop_tokens
+
+    def serialize(self):
+        return '{}$${}'.format('COMMAND', ','.join(self.stop_tokens))
 
 
 class CommandState(BashGrammarState):
@@ -129,11 +141,17 @@ class BashGrammar(object):
                 return True
         return False
 
-
     def get_next_state(self, state_type):
         for state in self.next_states:
             if state.type == state_type:
                 return state
+
+    def consume(self, token):
+        if token in self.grammar:
+            utility_state = self.grammar[token]
+            self.next_states = utility_state
+        else:
+            return None
 
     def push(self, token, state_type):
         state = self.get_next_state(state_type)
@@ -256,7 +274,7 @@ class BashGrammar(object):
             return
 
         utility, synopsis = line.strip().split(' ', 1)
-        print(utility, synopsis)
+        # print(utility, synopsis)
         if not utility in self.grammar:
             u_state = UtilityState(utility)
             self.grammar[utility] = u_state
@@ -291,7 +309,7 @@ class BashGrammar(object):
                     flag_synopsis += c
             elif status == 'READING_ARGUMENT':
                 if c == ' ' or c == '\n':
-                    self.make_argument(u_state, arg_synopsis)
+                    self.make_positional_argument(u_state, arg_synopsis)
                     arg_synopsis = ''
                     status = 'IDLE'
                 else:
@@ -320,7 +338,7 @@ class BashGrammar(object):
                 if c == ']':
                     stack.pop()
                     if not stack:
-                        self.make_argument(u_state, arg_synopsis.strip(), optional=True)
+                        self.make_positional_argument(u_state, arg_synopsis.strip(), optional=True)
                         arg_synopsis = ''
                         status = 'IDLE'
                     else:
@@ -329,12 +347,50 @@ class BashGrammar(object):
                     arg_synopsis += c
                     if c == '[':
                         stack.append('[')
+        print(u_state.serialize())
 
-    def make_argument(self, u_state, synopsis, optional=False):
-        if optional:
-            print('make_optional_argument: ' + synopsis)
+    def make_positional_argument(self, u_state, synopsis, optional=False):
+        assert(u_state is not None)
+        arg = self.make_argument(synopsis, optional=optional)
+        u_state.positional_arguments.append(arg)
+
+    def make_flag_argument(self, f_state, synopsis, optional=False):
+        assert(f_state is not None)
+        f_state.argument  = self.make_argument(synopsis, optional=optional)
+
+    def make_argument(self, synopsis, optional=False):
+        if '$$' in synopsis:
+            _, stop_token_synopsis = synopsis.split('$$', 1)
+            stop_token_list = stop_token_synopsis.split(',')
+            arg = ExecCommandState(stop_token_list)
         else:
-            print('make_argument: ' + synopsis)
+            if synopsis.endswith('...'):
+                is_list = True
+                synopsis = synopsis[:-3]
+                if synopsis[-1] in [',', '|']:
+                    list_separator = synopsis[-1]
+                    synopsis = synopsis[:-1]
+                else:
+                    list_separator = ' '
+            else:
+                is_list = False
+                list_separator = ' '
+            if '<' in synopsis:
+                assert(synopsis.endswith('>'))
+                arg_name, format = synopsis[:-1].split('<', 1)
+                arg_name = arg_name.lower()
+                arg_type = self.name2type[arg_name]
+                arg = ArgumentState(arg_name, arg_type, optional=optional, is_list=is_list,
+                                    list_separator=list_separator, regex_format=format)
+            else:
+                arg_name = synopsis.lower()
+                arg_type = self.name2type[arg_name]
+                if arg_type == 'Command':
+                    arg = ArgCommandState()
+                else:
+                    arg = ArgumentState(arg_name, arg_type, optional=optional,
+                        is_list=is_list, list_separator=list_separator)
+        return arg
 
     def make_flag(self, u_state, synopsis, optional=False):
         assert(u_state is not None)
@@ -375,7 +431,7 @@ class BashGrammar(object):
                             arg_synopsis += c
             else:
                 flag = FlagState(synopsis, optional=optional)
-            u_state.flag_index[flag] = flag
+            u_state.flag_index[flag.flag_name] = flag
         else:
             status = 'IDLE'
             stack = []
@@ -486,39 +542,10 @@ class BashGrammar(object):
             u_state.flag_index[flag_name] = flag
         return flag
 
-    def make_flag_argument(self, f_state, synopsis, optional=False):
-        assert(f_state is not None)
-        if synopsis.endswith('...'):
-            is_list = True
-            synopsis = synopsis[:-3]
-            if synopsis[-1] in [',', '|']:
-                list_separator = synopsis[-1]
-                synopsis = synopsis[:-1]
-            else:
-                list_separator = ' '
-        else:
-            is_list = False
-            list_separator = ' '
-        if '<' in synopsis:
-            assert(synopsis.endswith('>'))
-            arg_name, format = synopsis[:-1].split('<', 1)
-            arg_name = arg_name.lower()
-            arg_type = self.name2type[arg_name]
-            arg = ArgumentState(arg_name, arg_type, optional=optional,
-                                is_list=is_list, list_separator=list_separator,
-                                regex_format=format)
-        else:
-            arg_name = synopsis.lower()
-            arg_type = self.name2type[arg_name]
-            arg = ArgumentState(arg_name, arg_type, optional=optional,
-                                is_list=is_list, list_separator=list_separator)
-
-        f_state.argument  = arg
-
 
 if __name__ == '__main__':
     bg = BashGrammar()
     bg.make_grammar(os.path.join(os.path.dirname(__file__), '..', 'grammar', 'grammar100.txt'))
-    bg.make_utility('chmod [-R [-H | -L | -P]] [ -c | --changes ] [ -f | --silent | --quiet ] [ -v | --verbose ] [ --no-preserve-root ] [ --preserve-root ] [ -R | --recursive ] [ --help ] [ --version ] MODE[,MODE]... FILE...')
-    bg.make_utility('less [-aABcCdeEfFgGiIJKLmMnNqQrRsSuUVwWX::] [+aABcCdeEfFgGiIJKLmMnNqQrRsSuUVwWX::] [-+] [--+] [-b space] [-h lines] [-j line] [-k keyfile] [-o logfile] [-O logfile] [-p pattern] [-P prompt] [-t tag] [-T tagsfile] [-x n,...] [--tabs=n,...] [-y lines] [--max-forw-scroll=n] [-[z] lines] [--window=n] [-TILDE] [--tilde] [-SHARP shift] [--shift shift] [-X] [--no-init] [--quotes=cc] [--no-keypad] [--follow-name] [+ cmd] [++ cmd] [DOUBLEDASH] [filename...]')
-    bg.make_utility('head  [- K] [ -c K<[-]K>] [--bytes=K<[-]K>] [ -n K<[-]K>] [ --lines=K<[-]K> ] [ -q | --quiet | --silent ] [ -v | --verbose ] [ --help ] [ --version ] [FILE...]')
+    # bg.make_utility('chmod [-R [-H | -L | -P]] [ -c | --changes ] [ -f | --silent | --quiet ] [ -v | --verbose ] [ --no-preserve-root ] [ --preserve-root ] [ -R | --recursive ] [ --help ] [ --version ] MODE[,MODE]... FILE...')
+    # bg.make_utility('less [-aABcCdeEfFgGiIJKLmMnNqQrRsSuUVwWX::] [+aABcCdeEfFgGiIJKLmMnNqQrRsSuUVwWX::] [-+] [--+] [-b space] [-h lines] [-j line] [-k keyfile] [-o logfile] [-O logfile] [-p pattern] [-P prompt] [-t tag] [-T tagsfile] [-x n,...] [--tabs=n,...] [-y lines] [--max-forw-scroll=n] [-[z] lines] [--window=n] [-TILDE] [--tilde] [-SHARP shift] [--shift shift] [-X] [--no-init] [--quotes=cc] [--no-keypad] [--follow-name] [+ cmd] [++ cmd] [DOUBLEDASH] [filename...]')
+    # bg.make_utility('head  [- K] [ -c K<[-]K>] [--bytes=K<[-]K>] [ -n K<[-]K>] [ --lines=K<[-]K> ] [ -q | --quiet | --silent ] [ -v | --verbose ] [ --help ] [ --version ] [FILE...]')
