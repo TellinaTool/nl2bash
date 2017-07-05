@@ -31,7 +31,8 @@ if sys.version_info > (3, 0):
 
 # bash grammar
 from bashlint.grammar import *
-bash_grammar = BashGrammar()
+bg = BashGrammar()
+bg.make_grammar(os.path.join(os.path.dirname(__file__), '..', 'grammar', 'grammar100.txt'))
 
 # bashlex stuff
 from bashlint import bash, bast, errors, tokenizer, bparser
@@ -145,28 +146,28 @@ def safe_bashlex_parse(cmd):
     try:
         tree = bparser.parse(cmd)
     except tokenizer.MatchedPairError:
-        print("Cannot parse: %s - MatchedPairError" % cmd)
+        print("Bashlex cannot parse: %s - MatchedPairError" % cmd)
         return None
     except errors.ParsingError:
-        print("Cannot parse: %s - ParsingError" % cmd)
+        print("Bashlex cannot parse: %s - ParsingError" % cmd)
         return None
     except NotImplementedError:
-        print("Cannot parse: %s - NotImplementedError" % cmd)
+        print("Bashlex cannot parse: %s - NotImplementedError" % cmd)
         return None
     except IndexError:
-        print("Cannot parse: %s - IndexError" % cmd)
+        print("Bashlex cannot parse: %s - IndexError" % cmd)
         # empty command
         return None
     except AttributeError:
-        print("Cannot parse: %s - AttributeError" % cmd)
+        print("Bashlex cannot parse: %s - AttributeError" % cmd)
         # not a bash command
         return None
     except AssertionError:
-        print("Cannot parse: %s - AssertionError" % cmd)
+        print("Bashlex cannot parse: %s - AssertionError" % cmd)
         # not a bash command
         return None
     except TypeError:
-        print("Cannot parse: %s - AssertionError" % cmd)
+        print("Bashlex cannot parse: %s - AssertionError" % cmd)
         return None
     if len(tree) > 1:
         print("Doesn't support command with multiple root nodes: %s" % cmd)
@@ -192,12 +193,9 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
             or cmd[node.pos[1]-1] in ['"', '\'']
 
     def recover_node_quotes(node):
-        if node_with_quotes(node):
-            return cmd[node.pos[0] : node.pos[1]]
-        else:
-            return node.word
+        return cmd[node.pos[0] : node.pos[1]]
 
-    def normalize_word(node, recover_quotes):
+    def normalize_word(node, recover_quotes=True):
         w = recover_node_quotes(node) if recover_quotes else node.word
         return w
 
@@ -218,122 +216,146 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
         """
 
     def normalize_command(node, current=None):
+        bash_grammar = BashGrammar()
+        bash_grammar.name2type = bg.name2type
+        bash_grammar.grammar = bg.grammar
+
         if not node or not node.parts:
             return
         input = node.parts
         num_tokens = len(node.parts)
 
-        token = input[0]
-        head = UtilityNode(token, parent=current, lsb=current.get_right_child())
-        if current:
-            current.add_child(head)
+        bast_node = input[0]
+        if bast_node.kind == 'assginment':
+            normalize(bast_node, current, 'assignment')
+        elif bast_node.kind == 'redirect':
+            normalize(bast_node, current, 'redirect')
+        elif bast_node.kind == 'word':
+            token = normalize_word(bast_node)
+            head = UtilityNode(token, parent=current, lsb=current.get_right_child())
+            if current:
+                current.add_child(head)
+            if not bash_grammar.consume(token):
+                print("Warning: grammar not found - utility {}".format(token))
+                for token in input[1:]:
+                    if token.startswith('-'):
+                        child = FlagNode(token, parent=head, lsb=head.get_right_child())
+                    else:
+                        child = ArgumentNode(token, arg_type='Unknown', parent=head,
+                                             lsb=head.get_right_child())
+                    head.add_child(child)
+            else:
+                current = head
+                i = 1
+                while i < len(input):
+                    bast_node = input[i]
 
-        if not bash_grammar.consume(token):
-            print("Warning: grammar not found - utility {}".format())
-            for token in input[1:]:
-                if token.startswith('-'):
-                    child = FlagNode(token, parent=head, lsb=head.get_right_child())
-                else:
-                    child = ArgumentNode(token, arg_type='Unknown', parent=head,
-                                         lsb=head.get_right_child())
-                head.add_child(child)
-        else:
-            current = head
-            i = 1
-            while i < len(input):
-                token = input[i]
-
-                command_quote_missing_flag = False
-                error_in_subcommand_flag = False
-
-                # examine possible next states in order
-                for next_state in bash_grammar.next_states:
-                    matched = False
-                    if next_state.is_flag():
-                        try:
-                            result = bash_grammar.push(token, next_state.type)
-                            #                                 FLAG_S
-                        except ValueError as e:
-                            raise errors.FlagError(e, num_tokens, i)
-                        if result:
-                            for flag_token, flag_arg in result:
-                                flag = FlagNode(flag_token, parent=current,
-                                                lsb=current.get_right_child())
-                                current.add_child(flag)
-                                if flag_arg == '__OPEN__':
-                                    # Incomplete AST, expecting flag argument
-                                    current = flag
-                                elif flag_arg is not None:
-                                    # Argument is specified with flag
-                                    argument = ArgumentNode(flag_arg, parent=flag,
-                                                            lsb=flag.get_right_child())
-                                    flag.add_child(argument)
+                    # examine possible next states in order
+                    for next_state in bash_grammar.next_states:
+                        matched = False
+                        if next_state.is_compound_flag():
+                            if not bast_node.kind == 'word':
+                                raise errors.FlagError(
+                                    'Flag needs to be a BAST node of "Word" type: {}'.format(bast_node),
+                                    num_tokens, i)
+                            token = normalize_word(bast_node)
+                            try:
+                                result = bash_grammar.push(token, COMPOUND_FLAG_S)
+                            except ValueError as e:
+                                raise errors.FlagError(e, num_tokens, i)
+                            if result:
+                                for flag_token, flag_arg in result:
+                                    flag = FlagNode(flag_token, parent=current,
+                                                    lsb=current.get_right_child())
+                                    current.add_child(flag)
+                                    if flag_arg == '__OPEN__':
+                                        # Incomplete AST, expecting flag argument
+                                        current = flag
+                                    elif flag_arg is not None:
+                                        # Argument is specified with flag
+                                        argument = ArgumentNode(flag_arg[0], arg_type=flag_arg[1],
+                                            parent=flag, lsb=flag.get_right_child())
+                                        flag.add_child(argument)
+                                matched = True
+                                i += 1
+                                break
+                        elif next_state.is_command():
+                            # Nested bash command
+                            new_command_node = bast.node(
+                                kind="command", word="", parts=[], pos=(-1,-1))
+                            if next_state.type == ARG_COMMAND_S:
+                                if bast_node.kind == 'word' and not bast_node.parts:
+                                    token = normalize_word(bast_node)
+                                    if not constants.with_quotes(token):
+                                        raise errors.SubCommandError(
+                                            'Missing quotes around command string: {}'.format(token),
+                                            num_tokens, i)
+                                    tree = safe_bashlex_parse(token[1:-1])
+                                    if tree is None:
+                                        raise errors.SubCommandError(
+                                            'Error in subcommand string: {}'.format(token),
+                                            num_tokens, i)
+                                    normalize(tree[0], current)
+                                    bash_grammar.push(token, next_state.type)
+                                else:
+                                    normalize(bast_node, current, "argument", 'command')
+                                i += 1
+                            elif next_state.type == EXEC_COMMAND_S:
+                                new_input = []
+                                j = i
+                                while j < len(input) and hasattr(input[j], 'word') and \
+                                        not (input[j].word in next_state.stop_tokens):
+                                    new_input.append(input[j])
+                                    j += 1
+                                new_command_node.parts = new_input
+                                normalize_command(new_command_node, current)
+                                if j < len(input):
+                                    current.value += ('::' + input[j].word)
+                                    bash_grammar.push(input[j], EXEC_COMMAND_S)
+                                else:
+                                    print("Warning: -exec missing stop token - ; added")
+                                    current.value += ('::' + ';')
+                                    bash_grammar.push(';', EXEC_COMMAND_S)
+                                i = j + 1
+                            else:
+                                # Interpret all of the rest of the tokens as content of the nested command
+                                new_command_node.parts = input[i:]
+                                normalize_command(new_command_node, current)
+                                bash_grammar.push('', next_state.type)
+                                i = len(input)
+                            current = current.utility
                             matched = True
                             break
-                    elif next_state.is_command():
-                        # Nested bash command
-                        new_command_node = bast.node(
-                            kind="command", word="", parts=[], pos=(-1,-1))
-                        if next_state.type == ARG_COMMAND_S:
-                            if not constants.with_quotes(token):
-                                command_quote_missing_flag = True
-                            tree = safe_bashlex_parse(token[1:-1])
-                            if tree is None:
-                                error_in_subcommand_flag = True
-                            normalize(tree[0], current)
-                            bash_grammar.push(token, next_state.type)
-                            i += 1
-                        elif next_state.type == EXEC_COMMAND_S:
-                            new_input = []
-                            j = i
-                            while j < len(input) and not (input[j] in next_state.stop_tokens):
-                                new_input.append(input[j])
-                            new_command_node.parts = new_input
-                            normalize_command(new_input, current)
-                            if j < len(input):
-                                current.value += ('::' + input[j])
+                        elif next_state.is_argument():
+                            if bast_node.kind == 'word' and not bast_node.parts:
+                                token = normalize_word(bast_node)
+                                argument = ArgumentNode(token, arg_type=next_state.arg_type,
+                                                        parent=current, lsb=current.get_right_child())
+                                current.add_child(argument)
+                                current = current.utility
+                                bash_grammar.push(token, ARG_S)
                             else:
-                                print("Warning: -exec missing stop token - ; added")
-                            bash_grammar.push(input[j], next_state.type)
-                            #                           EXEC_COMMAND_S
-                            i = j + 1
-                        else:
-                            # Interpret all of the rest of the tokens as content of the nested command
-                            new_command_node.parts = input[i:]
-                            normalize_command(new_command_node, current)
-                            bash_grammar.push('', next_state.type)
-                            i = len(input)
-                        matched = True
-                        break
-                    elif next_state.is_argument():
-                        command_quote_missing_flag = False
-                        error_in_subcommand_flag = False
-                        argument = ArgumentNode(token, arg_type=next_state.arg_type,
-                                                parent=current, lsb=current.get_right_child())
-                        current.add_child(argument)
-                        bash_grammar.push(token, next_state.type)
-                        #                        ARG_S
-                        matched = True
-                        break
+                                normalize(bast_node, current, "argument", next_state.arg_type)
+                            i += 1
+                            matched = True
+                            break
 
-                if not matched:
-                    if command_quote_missing_flag:
-                        raise errors.SubCommandError('Missing quotes around command string: {}'.format(token),
-                                                     num_tokens, i)
-                    if error_in_subcommand_flag:
-                        raise errors.SubCommandError('Error in subcommand string: {}'.format(token),
-                                                     num_tokens, i)
-                    raise errors.LintParsingError('Unmatched token', num_tokens, i)
+                    if not matched:
+                        raise errors.LintParsingError('Unmatched token', num_tokens, i)
 
-            if bash_grammar.allow_eof():
-                return
-            else:
-                raise errors.LintParsingError('Incomplete command', num_tokens, i)
+                if bash_grammar.allow_eof():
+                    return
+                else:
+                    raise errors.LintParsingError('Incomplete command', num_tokens, i)
+        else:
+            raise errors.LintParsingError(
+                'Utility needs to be a BAST node of "Word" type" {}'.format(bast_node),
+                num_tokens, 0)
 
     def normalize(node, current, node_kind="", arg_type=""):
         # recursively normalize each subtree
         if not type(node) is bast.node:
-            raise ValueError('type(node) is not ast.node')
+            raise ValueError('type(node) is not bast.node')
         if node.kind == 'word':
             # assign fine-grained types
             if node.parts:
@@ -435,12 +457,7 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
             # not supported
             raise ValueError("Unsupported: %s" % node.kind)
 
-    try:
-        cmd2 = cmd.encode('utf-8')
-    except UnicodeDecodeError:
-        cmd2 = cmd
-
-    tree = safe_bashlex_parse(cmd2)
+    tree = safe_bashlex_parse(cmd)
     if tree is None:
         return tree
 
@@ -448,13 +465,13 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
     try:
         normalize(tree[0], normalized_tree)
     except ValueError as err:
-        print("%s - %s" % (err.args[0], cmd2))
+        print("%s - %s" % (err.args[0], cmd))
         return None
     except AttributeError as err:
-        print("%s - %s" % (err.args[0], cmd2))
+        print("%s - %s" % (err.args[0], cmd))
         return None
     except AssertionError as err:
-        print("%s - %s" % (err.args[0], cmd2))
+        print("%s - %s" % (err.args[0], cmd))
         return None
 
     if len(normalized_tree.children) == 0:
@@ -463,3 +480,110 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
         return None
 
     return normalized_tree
+
+def serialize(node, loose_constraints=False, ignore_flag_order=False):
+    if not node:
+        return ''
+
+    lc = loose_constraints
+    ifo = ignore_flag_order
+
+    def to_command_fun(node):
+        str = ''
+        if node.is_root():
+            assert(loose_constraints or node.get_num_of_children() == 1)
+            if lc:
+                for child in node.children:
+                    str += to_command_fun(child)
+            else:
+                str += to_command_fun(node.get_left_child())
+        elif node.kind == 'pipeline':
+            assert(loose_constraints or node.get_num_of_children() > 1)
+            if lc and node.get_num_of_children() < 1:
+                str += ''
+            elif lc and node.get_num_of_children() == 1:
+                str += to_command_fun(node.get_left_child())
+            else:
+                for child in node.children[:-1]:
+                    str += to_command_fun(child)
+                    str += ' | '
+                str += to_command_fun(node.get_right_child())
+        elif node.kind == "commandsubstitution":
+            assert(loose_constraints or node.get_num_of_children() == 1)
+            if lc and node.get_num_of_children() < 1:
+                str += ''
+            else:
+                str += '$('
+                str += to_command_fun(node.get_left_child())
+                str += ')'
+        elif node.kind == 'processsubstitution':
+            assert(loose_constraints or node.get_num_of_children() == 1)
+            if lc and node.get_num_of_children() < 1:
+                str += ''
+            else:
+                str += '{}('.format(node.value)
+                str += to_command_fun(node.get_left_child())
+                str += ')'
+        elif node.is_utility():
+            str += node.value + ' '
+            children = sorted(node.children, key=lambda x:x.value) \
+                if ifo else node.children
+            for child in children:
+                str += to_command_fun(child) + ' '
+            str = str.strip()
+        elif node.is_option():
+            assert(loose_constraints or node.parent)
+            if '::' in node.value:
+                value, op = node.value.split('::')
+                str += value + ' '
+            else:
+                arg_connector = '=' if (node.is_long_option() and
+                                        node.children) else ' '
+                str += node.value + arg_connector
+            for child in node.children:
+                str += to_command_fun(child) + ' '
+            if '::' in node.value:
+                if op == ';':
+                    op = "\\;"
+                str += op + ' '
+            str = str.strip()
+        elif node.kind == "binarylogicop":
+            assert(loose_constraints or node.get_num_of_children() == 0)
+            if lc and node.get_num_of_children() > 0:
+                for child in node.children[:-1]:
+                    str += to_command_fun(child) + ' '
+                    str += node.value + ' '
+                str += to_command_fun(node.children[-1])
+                str = str.strip()
+            else:
+                str += node.value
+        elif node.kind == "unarylogicop":
+            assert(loose_constraints or node.get_num_of_children() == 0)
+            if lc and node.get_num_of_children() > 0:
+                if node.associate == UnaryLogicOpNode.RIGHT:
+                    str += '{} {}'.format(
+                        node.value, to_command_fun(node.get_left_child()))
+                else:
+                    str += '{} {}'.format(
+                        to_command_fun(node.get_left_child()), node.value)
+            else:
+                str += node.value
+        elif node.kind == "bracket":
+            assert(loose_constraints or node.get_num_of_children() >= 1)
+            if lc and node.get_num_of_children() < 2:
+                for child in node.children:
+                    str += to_command_fun(child)
+            else:
+                str += "\\( "
+                for i in xrange(len(node.children)):
+                    str += to_command_fun(node.children[i]) + ' '
+                str += "\\)"
+        elif node.is_argument():
+            assert(loose_constraints or node.get_num_of_children() == 0)
+            str += node.value
+            if lc:
+                for child in node.children:
+                    str += to_command_fun(child)
+        return str
+
+    return to_command_fun(node)

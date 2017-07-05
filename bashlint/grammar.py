@@ -16,17 +16,26 @@ if sys.version_info > (3, 0):
     from six.moves import xrange
 
 UTIL_S = 0
-FLAG_S = 1
-COMMAND_S = 2
-ARG_COMMAND_S = 3
-EXEC_COMMAND_S = 4
-ARG_S = 5
-EOS_S = 6
+COMPOUND_FLAG_S = 1
+FLAG_S = 2
+COMMAND_S = 3
+ARG_COMMAND_S = 4
+EXEC_COMMAND_S = 5
+ARG_S = 6
+EOF_S = 7
 
 
 class BashGrammarState(object):
     def __init__(self, type):
         self.type = type
+
+    def get_utility(self):
+        cur = self
+        while (cur):
+            if cur.is_utility():
+                return cur
+            cur = cur.parent
+        raise ValueError('No utility state found')
 
     def is_argument(self):
         return self.type == ARG_S
@@ -36,6 +45,9 @@ class BashGrammarState(object):
                or self.type == ARG_COMMAND_S \
                or self.type == EXEC_COMMAND_S
 
+    def is_compound_flag(self):
+        return self.type == COMPOUND_FLAG_S
+
     def is_flag(self):
         return self.type == FLAG_S
 
@@ -43,30 +55,63 @@ class BashGrammarState(object):
         return self.type == UTIL_S
 
     def is_eof(self):
-        return self.type == EOS_S
+        return self.type == EOF_S
 
 
 class UtilityState(BashGrammarState):
     def __init__(self, name):
         super(UtilityState, self).__init__(UTIL_S)
         self.name = name
-        self.flag_index = {}
+        self.compound_flag = CompoundFlagState(self)
         self.positional_arguments = []
+        self.eof = EOFState()
+
+    def add_flag(self, flag):
+        self.compound_flag.add_flag(flag)
+
+    def add_positional_argument(self, arg):
+        self.positional_arguments.append(arg)
+        arg.parent = self
+
+    def next_states(self):
+        return [self.compound_flag] + self.positional_arguments + [self.eof]
 
     def serialize(self):
         header = self.name
-        for flag in sorted(self.flag_index.keys()):
-            header += ' ' + self.flag_index[flag].serialize()
+        header += ' ' + self.compound_flag.serialize()
         for arg in self.positional_arguments:
             header += ' ' + arg.serialize()
         return header
+
+
+class CompoundFlagState(BashGrammarState):
+    def __init__(self, parent):
+        super(CompoundFlagState, self).__init__(COMPOUND_FLAG_S)
+        self.parent = parent
+        self.flag_index = {}
+
+    def add_flag(self, flag):
+        self.flag_index[flag.flag_name] = flag
+        flag.parent = self
+
+    def serialize(self):
+        header = ''
+        for flag in sorted(self.flag_index.keys()):
+            header += ' ' + self.flag_index[flag].serialize()
+        return header
+
 
 class FlagState(BashGrammarState):
     def __init__(self, flag_name, optional):
         super(FlagState, self).__init__(FLAG_S)
         self.flag_name = flag_name
         self.optional = optional
+        self.parent = None
         self.argument = None
+
+    def add_argumet(self, argument):
+        self.argument = argument
+        argument.parent = self
 
     def serialize(self):
         header = '{}'.format(self.flag_name)
@@ -86,7 +131,8 @@ class ArgumentState(BashGrammarState):
         :member optional: If set, argument is optional.
         :member is_list: If set, argument can be a list.
         :member list_separator: Argument list separator.
-        :member regex_format: Pattern which specifies the structure to parse the argument.
+        :member regex_format: Pattern which specifies the structure to parse
+            the argument.
         """
         super(ArgumentState, self).__init__(ARG_S)
         self.arg_name = arg_name
@@ -95,6 +141,7 @@ class ArgumentState(BashGrammarState):
         self.is_list = is_list
         self.list_separator = list_separator
         self.regex_format = regex_format
+        self.parent = None
 
     def serialize(self):
         header = '{} ({})'.format(self.arg_type, self.arg_name)
@@ -129,6 +176,11 @@ class CommandState(BashGrammarState):
         super(CommandState, self).__init__(COMMAND_S)
 
 
+class EOFState(BashGrammarState):
+    def __init__(self):
+        super(EOFState, self).__init__(EOF_S)
+
+
 class BashGrammar(object):
     def __init__(self):
         self.name2type = {}
@@ -149,78 +201,86 @@ class BashGrammar(object):
     def consume(self, token):
         if token in self.grammar:
             utility_state = self.grammar[token]
-            self.next_states = utility_state
+            print(utility_state.serialize())
+            self.next_states = utility_state.next_states()
+            return True
         else:
-            return None
+            return False
 
     def push(self, token, state_type):
         state = self.get_next_state(state_type)
-        if state_type == FLAG_S:
+        if state_type == COMPOUND_FLAG_S:
             if token.startswith('--'):
                 # long option
                 if '=' in token:
                     flag_token, flag_arg = token.split('=', 1)
                 else:
                     flag_token, flag_arg = token, ''
-                if flag_token in state.token_candidates:
-                    arg_info = state.token_candidates[flag_token]
-                    if arg_info:
+                if flag_token in state.flag_index:
+                    flag_state = state.flag_index[flag_token]
+                    if flag_state.argument:
+                        arg_state = flag_state.argument
                         if not flag_arg:
-                            self.next_states = [arg_info]
+                            self.next_states = [arg_state]
                             return [(flag_token, '__OPEN__')]
                         else:
-                            return [(flag_token, flag_arg)]
+                            return [(flag_token, (flag_arg, arg_state.arg_type))]
                     else:
                         if not flag_arg:
                             return [(flag_token, None)]
                         else:
                             raise ValueError('Unexpected flag argument "{}"'.format(token))
                 else:
-                    raise ValueError('Unrecognized long flag "{}"'.format(token))
-            elif token in state.token_candidates:
+                    raise ValueError('Unrecognized long flag "{}"'.format(flag_token))
+            elif token in state.flag_index:
                 flag_token = token
-                arg_info = state.token_candidates[flag_token]
-                if arg_info is not None:
-                    self.next_states = state.children
+                state = state.flag_index[flag_token]
+                if state.argument:
+                    self.next_states = [state.argument]
                     return [(flag_token, '__OPEN__')]
                 else:
                     return [(flag_token, None)]
             else:
                 flag_token = token[:2]
-                if flag_token in state.token_candidates:
-                    if state.token_candidates[flag_token]:
+                if flag_token in state.flag_index:
+                    if flag_token in state.flag_index:
                         # Case 1: argument follows flag
+                        flag_state = state.flag_index[flag_token]
                         flag_arg = token[2:]
-                        return [(flag_token, flag_arg)]
+                        print(flag_arg)
+                        if flag_state.argument:
+                            arg_state = flag_state.argument
+                            return [(flag_token, (flag_arg, arg_state.arg_type))]
+                        else:
+                            raise ValueError('Unexpected flag argument "{}"'.format(flag_arg))
                     elif len(flag_token) > 2 and flag_token.startswith('-'):
                         flag_list = [(flag_token, None)]
                         # Case 2: multiple flags specified at the same time
                         for j in xrange(2, len(token)):
                             flag_token = '-' + token[j]
-                            if flag_token in state.token_candidates:
+                            if flag_token in state.flag_index:
                                 flag_list.append((flag_token, None))
                             else:
                                 raise ValueError('Unrecognized flag "{}"'.format(flag_token))
                         return flag_list
                 else:
-                    # Case 3: argument specified with '-'
-                    if flag_token.startswith('-') and '-' in state.token_candidates \
-                            and state.token_candidates['-']:
+                    # Case 3: argument specified with just '-'
+                    if flag_token.startswith('-') and '-' in state.flag_index \
+                            and state.flag_index['-'].argument:
                         flag_arg = token[1:]
-                        return [('-', flag_arg)]
+                        arg_state = state.flag_index['-'].argument
+                        return [('-', (flag_arg, arg_state.arg_type))]
                     else:
                         # Case 4: the token does not match any flag state
                         return None
         elif state_type == COMMAND_S:
-            self.next_states = state.get_utility().children
+            self.next_states = state.get_utility().next_states()
         elif state_type == ARG_COMMAND_S:
-            self.next_states = state.get_utility().children
+            self.next_states = state.get_utility().next_states()
         elif state_type == EXEC_COMMAND_S:
-            self.next_states = state.get_utility().children
+            self.next_states = state.get_utility().next_states()
         elif state.type == ARG_S:
-            self.next_states = state.get_utility().children
-        elif state.type == UTIL_S:
-            self.next_states = self.grammar['token']
+            self.next_states = state.get_utility().next_states()
 
     def make_grammar(self, input_file):
         """
@@ -255,7 +315,7 @@ class BashGrammar(object):
                     name = name.strip()
                     if not name in self.name2type:
                         self.name2type[name] = type
-                        print(name, type)
+                        # print(name, type)
                     else:
                         raise ValueError('Ambiguity in name type: "{}" ({} vs. {})'.format(
                             name, self.name2type[name], type))
@@ -274,6 +334,7 @@ class BashGrammar(object):
             return
 
         utility, synopsis = line.strip().split(' ', 1)
+        synopsis += ' '
         # print(utility, synopsis)
         if not utility in self.grammar:
             u_state = UtilityState(utility)
@@ -347,16 +408,16 @@ class BashGrammar(object):
                     arg_synopsis += c
                     if c == '[':
                         stack.append('[')
-        print(u_state.serialize())
+        # print(u_state.serialize())
 
     def make_positional_argument(self, u_state, synopsis, optional=False):
         assert(u_state is not None)
         arg = self.make_argument(synopsis, optional=optional)
-        u_state.positional_arguments.append(arg)
+        u_state.add_positional_argument(arg)
 
     def make_flag_argument(self, f_state, synopsis, optional=False):
         assert(f_state is not None)
-        f_state.argument  = self.make_argument(synopsis, optional=optional)
+        f_state.add_argumet(self.make_argument(synopsis, optional=optional))
 
     def make_argument(self, synopsis, optional=False):
         if '$$' in synopsis:
@@ -431,7 +492,7 @@ class BashGrammar(object):
                             arg_synopsis += c
             else:
                 flag = FlagState(synopsis, optional=optional)
-            u_state.flag_index[flag.flag_name] = flag
+            u_state.add_flag(flag)
         else:
             status = 'IDLE'
             stack = []
@@ -530,16 +591,17 @@ class BashGrammar(object):
         """
         If multiple flags were specified in the same synopsis, split them.
         """
+        flag = None
         if flag_name.endswith('::'):
             # split flags
             flag_prefix = flag_name[0]
             for i in xrange(1, len(flag_name)-2):
                 new_flag_name = flag_prefix + flag_name[i]
                 flag = FlagState(new_flag_name, optional=optional)
-                u_state.flag_index[new_flag_name] = flag
+                u_state.add_flag(flag)
         else:
             flag = FlagState(flag_name, optional=optional)
-            u_state.flag_index[flag_name] = flag
+            u_state.add_flag(flag)
         return flag
 
 

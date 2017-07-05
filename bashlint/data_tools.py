@@ -210,7 +210,7 @@ def ast2tokens(node, loose_constraints=False, ignore_flag_order=False,
 
 
 def ast2command(node, loose_constraints=False, ignore_flag_order=False):
-    return node.serialize(loose_constraints=loose_constraints,
+    return lint.serialize(node, loose_constraints=loose_constraints,
                           ignore_flag_order=ignore_flag_order)
 
 
