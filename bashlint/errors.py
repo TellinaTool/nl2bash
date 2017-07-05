@@ -4,7 +4,7 @@ class ParsingError(Exception):
         self.s = s
         self.position = position
 
-        assert position <= len(s)
+        assert position <= s
         super(ParsingError, self).__init__('%s (position %d)' % (message, position))
 
 
@@ -14,7 +14,7 @@ class LintParsingError(Exception):
         self.s = s
         self.position = position
 
-        assert position <= len(s)
+        assert position <= s
         super(LintParsingError, self).__init__('%s (position %d)' % (message, position))
 
 
@@ -24,7 +24,7 @@ class SubCommandError(Exception):
         self.s = s
         self.position = position
 
-        assert position <= len(s)
+        assert position <= s
         super(SubCommandError, self).__init__('%s (position %d)' % (message, position))
 
 
@@ -34,5 +34,5 @@ class FlagError(Exception):
         self.s = s
         self.position = position
 
-        assert position <= len(s)
+        assert position <= s
         super(SubCommandError, self).__init__('%s (position %d)' % (message, position))

@@ -145,14 +145,13 @@ class Node(object):
 
     @property
     def utility(self):
-        if self.kind == "utility":
-            return self
-        ancester = self.parent
+        ancester = self
         while ancester is not None:
             if ancester.kind == "utility":
                 return ancester
             # if no parent utility is detect, return "root"
             ancester = ancester.parent
+        raise ValueError('No head utility found!')
 
     @property
     def grandparent(self):
