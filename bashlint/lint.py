@@ -274,13 +274,7 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
                         # Nested bash command
                         new_command_node = bast.node(
                             kind="command", word="", parts=[], pos=(-1,-1))
-                        if next_state.type == COMMAND_S:
-                            # Interpret all of the rest of the tokens as content of the nested command
-                            new_command_node.parts = input[i:]
-                            normalize_command(new_command_node, current)
-                            bash_grammar.push('', next_state.type)
-                            i = len(input)
-                        elif next_state.type == ARG_COMMAND_S:
+                        if next_state.type == ARG_COMMAND_S:
                             if not constants.with_quotes(token):
                                 command_quote_missing_flag = True
                             tree = safe_bashlex_parse(token[1:-1])
@@ -289,7 +283,7 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
                             normalize(tree[0], current)
                             bash_grammar.push(token, next_state.type)
                             i += 1
-                        else:
+                        elif next_state.type == EXEC_COMMAND_S:
                             new_input = []
                             j = i
                             while j < len(input) and not (input[j] in next_state.stop_tokens):
@@ -303,6 +297,12 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
                             bash_grammar.push(input[j], next_state.type)
                             #                           EXEC_COMMAND_S
                             i = j + 1
+                        else:
+                            # Interpret all of the rest of the tokens as content of the nested command
+                            new_command_node.parts = input[i:]
+                            normalize_command(new_command_node, current)
+                            bash_grammar.push('', next_state.type)
+                            i = len(input)
                         matched = True
                         break
                     elif next_state.is_argument():
