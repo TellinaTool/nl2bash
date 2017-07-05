@@ -74,7 +74,12 @@ class UtilityState(BashGrammarState):
         arg.parent = self
 
     def next_states(self):
-        return [self.compound_flag] + self.positional_arguments + [self.eof]
+        next_states = [self.compound_flag]
+        for arg_state in self.positional_arguments:
+            if not arg_state.filled or arg_state.is_list:
+                next_states.append(arg_state)
+        next_states.append(self.eof)
+        return next_states
 
     def serialize(self):
         header = self.name
@@ -133,6 +138,7 @@ class ArgumentState(BashGrammarState):
         :member list_separator: Argument list separator.
         :member regex_format: Pattern which specifies the structure to parse
             the argument.
+        :member filled: If set, at least
         """
         super(ArgumentState, self).__init__(ARG_S)
         self.arg_name = arg_name
@@ -141,6 +147,7 @@ class ArgumentState(BashGrammarState):
         self.is_list = is_list
         self.list_separator = list_separator
         self.regex_format = regex_format
+        self.filled = False
         self.parent = None
 
     def serialize(self):
@@ -280,6 +287,7 @@ class BashGrammar(object):
         elif state_type == EXEC_COMMAND_S:
             self.next_states = state.get_utility().next_states()
         elif state.type == ARG_S:
+            state.filled = True
             self.next_states = state.get_utility().next_states()
 
     def make_grammar(self, input_file):
