@@ -8,10 +8,11 @@ sugars:
 
        For example, "-fhLV::" -> "-f", "-h", "-L", "-V".
 
-    2. An argument name followed by "..." is interpreted as an argument list (i.e.
-       one or more arguments are accepted). When a special list separator (in
-       general a non-alphabetic character) is used, it is placed right before
-       the "...". When no list separator is specified, the default is ' '.
+    2. An argument name followed by "..." (no space in between) is interpreted 
+       as an argument list (i.e. one or more arguments are accepted). When a 
+       special list separator (in general a non-alphabetic character) is used, it 
+       is placed right before the "...". When no list separator is specified, the 
+       default is ' '.
 
        For example, "pos,..." -> pos list separated by ",".
 
