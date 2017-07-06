@@ -26,6 +26,14 @@ sugars:
 
     For example, "source<[[user@]host1:]file1>..." -> a list of source files
     specified using the required format.
+
+    4. An embedded bash command is denoted using the keywork "command". Embedded
+       programs in other languages are denoted using other words such as "program",
+       "prog", etc.
+
+       For example, the arguments to "which", "sudo" and "find -exec" are denoted
+       as "command", while the argument to "scp -S" is denoted as "program",
+       since it is for a DSL recognized by "scp".
 """
 
 type
