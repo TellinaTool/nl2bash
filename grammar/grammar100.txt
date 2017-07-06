@@ -15,7 +15,7 @@ sugars:
 
        For example, "pos,..." -> pos list separated by ",".
 
-    3. If an argument is subjected a specific regex pattern, the regex pattern is
+    3. If an argument uses a specific regex pattern, the regex pattern is
        placed inside "<>" after the argument name.
 
        For example, "source<[[user@]host1:]file1>" -> the source is specified
