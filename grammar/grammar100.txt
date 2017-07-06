@@ -1,3 +1,33 @@
+"""
+The bash command synopsis specified here are slight modification from those in
+the man pages (https://linux.die.net/man/), including the following syntactic
+sugars:
+
+    1. A flag name followed by "::" is interpreted as a sequence of single-letter
+       flags; flags without any suffix are interpreted as an atomic flag.
+
+       For example, "-fhLV::" -> "-f", "-h", "-L", "-V".
+
+    2. An argument name followed by "..." is interpreted as an argument list (i.e.
+       one or more arguments are accepted). When a special list separator (in
+       general a non-alphabetic character) is used, it is placed right before
+       the "...". When no list separator is specified, the default is ' '.
+
+       For example, "pos,..." -> pos list separated by ",".
+
+    3. If an argument is subjected a specific regex pattern, the regex pattern is
+       placed inside "<>" after the argument name.
+
+       For example, "source<[[user@]host1:]file1>" -> the source is specified
+       using format "[user@host1:]file1", where the "[user@host1:]" proportion
+       is optional.
+
+    2 & 3 can be used in composition.
+
+    For example, "source<[[user@]host1:]file1>..." -> a list of source files
+    specified using the required format.
+"""
+
 type
 		File        (f, krl_file, input_file, output_file, ssh_config, checkpt, known_hosts_file, input_keyfile, output_keyfile, identity_file, configfile, tagsfile, logfile, log_file, keyfile, file, xfile, file1, file2, filename, progfile, command_file, zipfile, archive-file, rfile, F, source, destination, dest, target)
 		Directory   (directory, exdir, dir)
@@ -194,7 +224,7 @@ PrimitiveCmd ::=
 		
 		* ssh-keygen -Q [-f krl_file] file...
 
-		scp [-12346BCpqrv::] [-c cipher] [-F ssh_config] [-i identity_file] [-l limit] [-o ssh_option] [-P port] [-S program] source<[[user@]host1:]file1...> dest<[[user@]host2:]file2>
+		scp [-12346BCpqrv::] [-c cipher] [-F ssh_config] [-i identity_file] [-l limit] [-o ssh_option] [-P port] [-S program] source<[[user@]host1:]file1>... dest<[[user@]host2:]file2>
 
 		rsync  [ --help ] [ --version ] [ -v | --verbose ] [ --info[=FLAGS] ] [ --debug[=FLAGS] ] [ --msgs2stderr ] [ -q | --quiet ] [ --no-motd ] [ -I | --ignore-times ] [ --size-only ] [ --modify-window ] [ -c | --checksum ] [ -a | --archive ] [ --no-OPTION ] [ -r | --recursive ] [ -R | --relative ] [ --no-implied-dirs ] [ -b | --backup ] [ --backup-dir[=DIR] ] [ --suffix[=SUFFIX] ] [ -u | --update ] [ --inplace ] [ --append ] [ --append-verify ] [ -d | --dirs ] [ -l | --links ] [ -L | --copy-links ] [ --copy-unsafe-links ] [ --safe-links ] [ --munge-links ] [ -k | --copy-dirlinks ] [ -K | --keep-dirlinks ] [ -H | --hard-links ] [ -p | --perms ] [ -E | --executability ] [ -A | --acls ] [ -X | --xattrs ] [ --chmod ] [ -o | --owner ] [ -g | --group ] [ --devices ] [ --specials ] [ -D ] [ -t | --times ] [ -O | --omit-dir-times ] [ -J | --omit-link-times ] [ --super ] [ --fake-super ] [ -S | --sparse ] [ --preallocate ] [ -n | --dry-run ] [ -W | --whole-file ] [ -x | --one-file-system ] [ --existing | --ignore-non-existing ] [ --ignore-existing ] [ --remove-source-files ] [ --delete ] [ --delete-before ] [ --delete-during | --del ] [ --delete-delay ] [ --delete-after ] [ --delete-excluded ] [ --ignore-missing-args ] [ --delete-missing-args ] [ --ignore-errors ] [ --force ] [ --max-delete[=NUM] ] [ --max-size[=SIZE] ] [ --min-size[=SIZE] ] [ -B | --block-size[=BLOCKSIZE] ] [ -e COMMAND] [ --rsh[=COMMAND ] [ --rsync-path[=PROGRAM] ] [ -M | --remote-option[=OPTION] ] [ -C | --cvs-exclude ] [ -f | --filter[=RULE] ] [ -F ] [ --exclude[=PATTERN] ] [ --exclude-from[=FILE] ] [ --include[=PATTERN] ] [ --include-from[=FILE] ] [ --files-from[=FILE] ] [ -0 | --from0 ] [ -s | --protect-args ] [ -T | --temp-dir[=DIR] ] [ -y | --fuzzy ] [ --compare-dest[=DIR] ] [ --copy-dest[=DIR] ] [ --link-dest[=DIR] ] [ -z | --compress ] [ --compress-level[=NUM] ] [ --skip-compress[=LIST] ] [ --numeric-ids ] [ --usermap[=STRING] | --groupmap[=STRING] ] [ --timeout[=TIMEOUT] ] [ --contimeout ] [ --address ] [ --port[=PORT] ] [ --sockopts ] [ --blocking-io ] [ --outbuf[=MODE] ] [ -i | --itemize-changes ] [ --out-format[=FORMAT] ] [ --log-file[=FILE] ] [ --log-file-format[=FORMAT] ] [ --stats ] [ -h | --human-readable ] [ --partial ] [ --partial-dir[=DIR] ] [ --delay-updates ] [ -m | --prune-empty-dirs ] [ --progress ] [ -P ] [ --password-file[=FILE] ] [ --list-only ] [ --bwlimit[=RATE] ] [ --write-batch[=FILE] ] [ --only-write-batch[=FILE] ] [ --read-batch[=FILE] ] [ --protocol[=NUM] ] [ --iconv[=CONVERT_SPEC] ] [ --checksum-seed[=NUM] ] SRC... [DEST]
 
