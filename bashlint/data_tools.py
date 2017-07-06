@@ -381,6 +381,18 @@ def paren_parser(line):
 
 # --- Test functions --- #
 
+def batch_parse(input_file):
+    """
+    Parse the input_file each line of which is a bash command.
+    """
+    with open(input_file) as f:
+        i = 0
+        for cmd in f:
+            print("{}. {}".format(i, cmd))
+            ast = bash_parser(cmd)
+            pretty_print(ast)
+            i += 1
+
 def test_bash_parser():
     while True:
         try:
@@ -421,4 +433,5 @@ def test_tokenization():
 
 
 if __name__ == "__main__":
-    test_bash_parser()
+    input_file = sys.argv[1]
+    batch_parse(input_file)

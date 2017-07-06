@@ -30,7 +30,7 @@ sugars:
 
     4. An embedded bash command is denoted using the name "command". Embedded
        programs in other languages are denoted using other names such as "program",
-       "prog", etc.
+       "prog", "script" etc.
 
        For example, the arguments to "which", "sudo" and "find -exec" are called
        "command", while the argument to "scp -S" is called "program", since it is 
@@ -38,13 +38,13 @@ sugars:
 """
 
 type
-		File        (f, krl_file, input_file, output_file, ssh_config, checkpt, known_hosts_file, input_keyfile, output_keyfile, identity_file, configfile, tagsfile, logfile, log_file, keyfile, file, xfile, file1, file2, filename, progfile, command_file, zipfile, archive-file, rfile, F, source, destination, dest, target)
+		File        (script-file, f, krl_file, input-file, input_file, output_file, ssh_config, checkpt, known_hosts_file, input_keyfile, output_keyfile, identity_file, configfile, tagsfile, logfile, log_file, keyfile, file, xfile, file1, file2, filename, progfile, command_file, zipfile, archive-file, rfile, F, source, destination, dest, target)
 		Directory   (directory, exdir, dir)
 		Path        (ctl_path, path, source_file, target_file)
 		Permission  (permmode, octal-mode)
 		DateTime    (date)
 		Command     (command, command_eos)
-		Program     (program, prog, var=value)
+		Program     (program, prog, var=value, script)
 		Type        (t, type)
 		Regex       (replace-str, delimiter, attr_list, eof-str, escape_char, link_name, term, regexp, page, flags, certificate_identity, ca_key, hostname, section, delim, field, user, signal, version_number, ca_public, serial_number, principal, generator, start_point, passphrase, comment, old_passphrase, new_passphrase, local_tun, mac_spec, login_name, hostport, pkcs11, port, bind_address, sep, glob, label, tag, browser, locale, warnings, context, reference, ctx, gid, pid, session, tty, uid, commandname, name, gname, uname, groupname, username, eofstr, fd, fs, replstr, string, extension, owner, group, first, last, role, suffix, suffixes, pattern, mask, regex, expression, replacement, cc, jobspec, list, ctl_cmd)
 		Format      (key_format, format, validity_interval)
@@ -71,9 +71,9 @@ constants
 
 PrimitiveCmd ::=
 
-		find [-H | -L | -P] [-EXdsx::] [-f path] path... [ -true ] [ -false ] [ -not ] [ -Bmin n ] [ -Bnewer file ] [ -Btime time ] [ -acl ] [ -amin n ] [ -anewer file ] [-atime time] [ -cmin n ] [ -cnewer file ] [ -ctime time ] [ -d ] [ -daystart ] [ -delete ] [ -depth ] [ -depth n ] [ -empty ] [ -exec COMMAND$$;,+ ] [ -execdir COMMAND$$;,+ ] [ -fstype type ] [ -gid gname ] [ -group gname ] [ -ignore_readdir_race ] [ -ilname pattern ] [ -ilname pattern ] [ -iname pattern ] [ -inum n ] [ -ipath pattern ] [ -iregex pattern ] [ -iwholename pattern ] [ -links n ] [ -lname pattern ] [ -ls ] [ -maxdepth n ] [ -mindepth n ] [ -mmin n ] [ -mnewer file ] [ -mount ] [ -mtime time ] [ -name pattern ] [ -newer file ] [ -neweraa file ] [ -neweraB file ] [ -newerac file ] [ -neweram file ] [ -newerBa file ] [ -newerBB file ] [ -newerBc file ] [ -newerBm file ] [ -newerca file ] [ -newercB file ] [ -newercc file ] [ -newercm file ] [ -newerma file ] [ -newermB file ] [ -newermc file ] [ -newermm file ] [ -newerat reference ] [ -newerBt reference ] [ -newerct reference ] [ -newermt reference ]  [ -nogroup ] [ -noignore_readdir_race ] [ -noleaf ] [ -nouser ] [ -ok COMMAND$$;] [ -okdir COMMAND$$; ] [ -path pattern ] [ -perm permmode ] [ -print ] [ -print0 ] [-printf format] [ -prune ] [ -regex pattern ] [ -regextype type ] [ -samefile name ] [ -size size ] [ -type t ] [ -xtype t ] [ -uid uname ] [ -user uname ] [ -wholename pattern ] [ -xattr ] [ -xattrname name ] [ -and ] [ -or ] [ -not ]
+		find [-H | -L | -P] [-EXdsx::] [-f path] path... [ -true ] [ -false ] [ -not ] [ -Bmin n ] [ -Bnewer file ] [ -Btime time ] [ -acl ] [ -amin n ] [ -anewer file ] [-atime time] [ -cmin n ] [ -cnewer file ] [ -ctime time ] [ -d ] [ -daystart ] [ -delete ] [ -depth ] [ -empty ] [ -exec COMMAND$$;,+ ] [ -execdir COMMAND$$;,+ ] [-fprint file] [-fprint0 file] [ -fstype type ] [ -gid gname ] [ -group gname ] [ -ignore_readdir_race ] [ -ilname pattern ] [ -ilname pattern ] [ -iname pattern ] [ -inum n ] [ -ipath pattern ] [ -iregex pattern ] [ -iwholename pattern ] [ -links n ] [ -lname pattern ] [ -ls ] [ -maxdepth n ] [ -mindepth n ] [ -mmin n ] [ -mnewer file ] [ -mount ] [ -mtime time ] [ -name pattern ] [ -newer file ] [ -neweraa file ] [ -neweraB file ] [ -newerac file ] [ -neweram file ] [ -newerBa file ] [ -newerBB file ] [ -newerBc file ] [ -newerBm file ] [ -newerca file ] [ -newercB file ] [ -newercc file ] [ -newercm file ] [ -newerma file ] [ -newermB file ] [ -newermc file ] [ -newermm file ] [ -newerat reference ] [ -newerBt reference ] [ -newerct reference ] [ -newermt reference ]  [ -nogroup ] [ -noignore_readdir_race ] [ -noleaf ] [ -nouser ] [ -ok COMMAND$$;] [ -okdir COMMAND$$; ] [ -path pattern ] [ -perm permmode ] [ -print ] [ -print0 ] [-printf format] [ -prune ] [ -regex pattern ] [ -regextype type ] [ -samefile name ] [ -size size ] [ -type t ] [ -xtype t ] [ -uid uname ] [ -user uname ] [ -wholename pattern ] [ -xattr ] [ -xattrname name ] [-xdev] [ -and ] [ -or ] [ -not ]
 
-		find [-H | -L | -P] [-EXdsx::] -f path [path...] [ -true ] [ -false ] [ -not ] [ -Bmin n ] [ -Bnewer file ] [ -Btime time ] [ -acl ] [ -amin n ] [ -anewer file ] [-atime time] [ -cmin n ] [ -cnewer file ] [ -ctime time ] [ -d ] [ -daystart ] [ -delete ] [ -depth ] [ -depth n ] [ -empty ] [ -exec COMMAND$$;,+ ] [ -execdir COMMAND$$;,+ ] [ -fstype type ] [ -gid gname ] [ -group gname ] [ -ignore_readdir_race ] [ -ilname pattern ] [ -ilname pattern ] [ -iname pattern ] [ -inum n ] [ -ipath pattern ] [ -iregex pattern ] [ -iwholename pattern ] [ -links n ] [ -lname pattern ] [ -ls ] [ -maxdepth n ] [ -mindepth n ] [ -mmin n ] [ -mnewer file ] [ -mount ] [ -mtime time ] [ -name pattern ] [ -newer file ] [ -neweraa file ] [ -neweraB file ] [ -newerac file ] [ -neweram file ] [ -newerBa file ] [ -newerBB file ] [ -newerBc file ] [ -newerBm file ] [ -newerca file ] [ -newercB file ] [ -newercc file ] [ -newercm file ] [ -newerma file ] [ -newermB file ] [ -newermc file ] [ -newermm file ] [ -newerat reference ] [ -newerBt reference ] [ -newerct reference ] [ -newermt reference ]  [ -nogroup ] [ -noignore_readdir_race ] [ -noleaf ] [ -nouser ] [ -ok COMMAND$$;] [ -okdir COMMAND$$; ] [ -path pattern ] [ -perm permmode ] [ -print ] [ -print0 ] [-printf format] [ -prune ] [ -regex pattern ] [ -regextype type ] [ -samefile name ] [ -size size ] [ -type t ] [ -xtype t ] [ -uid uname ] [ -user uname ] [ -wholename pattern ] [ -xattr ] [ -xattrname name ] [ -and ] [ -or ] [ -not ]
+		find [-H | -L | -P] [-EXdsx::] -f path [path...] [ -true ] [ -false ] [ -not ] [ -Bmin n ] [ -Bnewer file ] [ -Btime time ] [ -acl ] [ -amin n ] [ -anewer file ] [-atime time] [ -cmin n ] [ -cnewer file ] [ -ctime time ] [ -d ] [ -daystart ] [ -delete ] [ -depth ] [ -empty ] [ -exec COMMAND$$;,+ ] [ -execdir COMMAND$$;,+ ] [-fprint file] [-fprint0 file] [ -fstype type ] [ -gid gname ] [ -group gname ] [ -ignore_readdir_race ] [ -ilname pattern ] [ -ilname pattern ] [ -iname pattern ] [ -inum n ] [ -ipath pattern ] [ -iregex pattern ] [ -iwholename pattern ] [ -links n ] [ -lname pattern ] [ -ls ] [ -maxdepth n ] [ -mindepth n ] [ -mmin n ] [ -mnewer file ] [ -mount ] [ -mtime time ] [ -name pattern ] [ -newer file ] [ -neweraa file ] [ -neweraB file ] [ -newerac file ] [ -neweram file ] [ -newerBa file ] [ -newerBB file ] [ -newerBc file ] [ -newerBm file ] [ -newerca file ] [ -newercB file ] [ -newercc file ] [ -newercm file ] [ -newerma file ] [ -newermB file ] [ -newermc file ] [ -newermm file ] [ -newerat reference ] [ -newerBt reference ] [ -newerct reference ] [ -newermt reference ]  [ -nogroup ] [ -noignore_readdir_race ] [ -noleaf ] [ -nouser ] [ -ok COMMAND$$;] [ -okdir COMMAND$$; ] [ -path pattern ] [ -perm permmode ] [ -print ] [ -print0 ] [-printf format] [ -prune ] [ -regex pattern ] [ -regextype type ] [ -samefile name ] [ -size size ] [ -type t ] [ -xtype t ] [ -uid uname ] [ -user uname ] [ -wholename pattern ] [ -xattr ] [ -xattrname name ] [-xdev] [ -and ] [ -or ] [ -not ]
 
 		pwd [-L] [--logical] [-P] [--physical] [--help] [--version]
 
@@ -83,7 +83,7 @@ PrimitiveCmd ::=
 
 		mkdir [-m MODE] [--mode=MODE] [-p | --parents] [-v | --verbose] [-Z CTX] [--context=CTX] [--help] [--version] DIRECTORY...
 
-		rmdir [--ignore-fail-on-non-empty] [-p | --parents] [-v | --verbose] [--help] [--version] DIRECTORY...
+		rmdir [ --ignore-fail-on-non-empty ] [-p | --parents] [-v | --verbose] [--help] [--version] DIRECTORY...
 
 		echo [-neE::] [--help] [--version] [STRING...]
 
@@ -295,8 +295,8 @@ PrimitiveCmd ::=
 
 		paste [ -d LIST] [ --delimiters=LIST ] [ -s | --serial ] [   --help  ] [ --version ] [FILE...]
 
-		* awk
+		awk [ -F fs ] [ -v var=value ]  [ prog... ] [-f progfile] [ file... ]
 
-		* sed
+		sed [ -n | --quiet | --silent ] [   -e script ] [ --expression=script ] [  -f script-file ] [ --file=script-file ] [ --follow-symlinks ] [   -i [~~SUFFIX] ] [ --in-place[=SUFFIX] ] [ -l N ] [ --line-length[=N] ] [ --posix ] [ -r | --regexp-extended ] [ -s | --separate ] [ -u | --unbuffered ] [ -z | --null-data ] [ --help ] [ --version ] script [input-file...]
 
-		xargs  [ -0prtx:: ]  [-E eof-str] [-e[eof-str]] [--eof[=eof-str]] [--null] [-d delimiter] [--delimiter delimiter] [-I replace-str] [-i [replace-str]] [--replace[=replace-str]] [-l[max-lines]] [-L max-lines] [--max-lines[=max-lines]] [-n max-args] [--max-args=max-args] [-s max-chars] [--max-chars=max-chars] [-P max-procs] [--max-procs=max-procs] [--interactive]  [--verbose]  [--exit]  [--no-run-if-empty]  [--arg-file=file] [--show-limits] [--version] [--help] [ --arg-file[=file] ] [ -a file ] [ --null ] [ -0 ] [ --delimiter[=delim] ] [   -d delim ] [   -E eof-str ] [ --eof[=eof-str] ] [   -e [eof-str] ] [   --help ] [   -I replace-str ] [ --replace[=replace-str] ] [   -i [replace-str] ] [   -L max-lines ] [ --max-lines[=max-lines] ] [   -l [max-lines] ] [ --max-args[=max-args] ] [   -n max-args ] [ --interactive ] [ -p ] [ --no-run-if-empty ] [ -r ] [ --max-chars[=max-chars] ] [ -s max-chars ] [ --verbose ] [ -t ] [ --version ] [ --show-limits ] [ --exit ] [ -x ] [ --max-procs[=max-procs] ] [ -P max-procs ] [ Command_EOS ]
+		xargs  [ -0prtx:: ]  [-E eof-str] [-e[eof-str]] [--eof[=eof-str]] [--null] [-d delimiter] [--delimiter delimiter] [-I replace-str] [-i [~~replace-str]] [--replace[=replace-str]] [-l [~~max-lines]] [-L max-lines] [--max-lines[=max-lines]] [-n max-args] [--max-args=max-args] [-s max-chars] [--max-chars=max-chars] [-P max-procs] [--max-procs=max-procs] [--interactive]  [--verbose]  [--exit]  [--no-run-if-empty]  [--arg-file=file] [--show-limits] [--version] [--help] [ --arg-file[=file] ] [ -a file ] [ --null ] [ Command_EOS ]

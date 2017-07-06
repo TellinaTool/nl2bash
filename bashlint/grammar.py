@@ -65,6 +65,7 @@ class UtilityState(BashGrammarState):
         self.compound_flag = CompoundFlagState(self)
         self.positional_arguments = []
         self.eof = EOFState()
+        self.argument_only = False
 
     def add_flag(self, flag):
         self.compound_flag.add_flag(flag)
@@ -74,7 +75,10 @@ class UtilityState(BashGrammarState):
         arg.parent = self
 
     def next_states(self):
-        next_states = [self.compound_flag]
+        if self.argument_only:
+            next_states = []
+        else:
+            next_states = [self.compound_flag]
         for arg_state in self.positional_arguments:
             if not arg_state.filled or arg_state.is_list:
                 next_states.append(arg_state)
@@ -129,7 +133,7 @@ class FlagState(BashGrammarState):
 
 class ArgumentState(BashGrammarState):
     def __init__(self, arg_name, arg_type, optional=False, is_list=False,
-                 list_separator=' ', regex_format=None):
+                 list_separator=' ', regex_format=None, no_space=False):
         """
         :member arg_name: Name of argument as appeared in the man page.
         :member arg_type: Semantic type of argument as assigned in the synopsis.
@@ -138,6 +142,8 @@ class ArgumentState(BashGrammarState):
         :member list_separator: Argument list separator.
         :member regex_format: Pattern which specifies the structure to parse
             the argument.
+        :member no_space: No space between the argument and the flag it is
+            attached to.
         :member filled: If set, at least
         """
         super(ArgumentState, self).__init__(ARG_S)
@@ -147,23 +153,28 @@ class ArgumentState(BashGrammarState):
         self.is_list = is_list
         self.list_separator = list_separator
         self.regex_format = regex_format
+        self.no_space = no_space
         self.filled = False
         self.parent = None
 
     def serialize(self):
         header = '{} ({})'.format(self.arg_type, self.arg_name)
-        if self.optional:
-            header = '[ {} ]'.format(header)
-        if self.is_list:
-            header += '{}...'.format(self.list_separator)
+        if self.no_space:
+            header = '~~' + header
         if self.regex_format:
             header += '<{}>'.format(self.regex_format)
+        if self.is_list:
+            header += '{}...'.format(self.list_separator)
+        if self.optional:
+            header = '[ {} ]'.format(header)
+
         return header
 
 
 class ArgCommandState(BashGrammarState):
     def __init__(self):
         super(ArgCommandState, self).__init__(ARG_COMMAND_S)
+        self.no_space = False
         self.filled = False
         self.parent = None
 
@@ -175,6 +186,9 @@ class ExecCommandState(BashGrammarState):
     def __init__(self, stop_tokens):
         super(ExecCommandState, self).__init__(EXEC_COMMAND_S)
         self.stop_tokens = stop_tokens
+        self.no_space = False
+        self.filled = False
+        self.parent = None
 
     def serialize(self):
         return '{}$${}'.format('COMMAND', ','.join(self.stop_tokens))
@@ -184,6 +198,7 @@ class CommandState(BashGrammarState):
     def __init__(self):
         super(CommandState, self).__init__(COMMAND_S)
         self.filled = False
+        self.parent = None
 
     def serialize(self):
         return 'COMMAND_EOS'
@@ -244,11 +259,14 @@ class BashGrammar(object):
                         else:
                             raise ValueError('Unexpected flag argument "{}"'.format(token))
                 else:
-                    raise ValueError('Unrecognized long flag "{}"'.format(flag_token))
+                    if flag_token == '--':
+                        state.parent.argument_only = True
+                    else:
+                        raise ValueError('Unrecognized long flag "{}"'.format(flag_token))
             elif token in state.flag_index:
                 flag_token = token
                 state = state.flag_index[flag_token]
-                if state.argument:
+                if state.argument and not state.argument.no_space:
                     self.next_states = [state.argument]
                     return [(flag_token, '__OPEN__')]
                 else:
@@ -256,35 +274,49 @@ class BashGrammar(object):
             else:
                 flag_token = token[:2]
                 if flag_token in state.flag_index:
-                    if flag_token in state.flag_index:
-                        # Case 1: argument follows flag
-                        flag_state = state.flag_index[flag_token]
+                    flag_state = state.flag_index[flag_token]
+                    if flag_state.argument:
+                        # Case 1: flag has an argument
                         flag_arg = token[2:]
-                        print(flag_arg)
-                        if flag_state.argument:
-                            arg_state = flag_state.argument
-                            return [(flag_token, (flag_arg, arg_state.arg_type))]
+                        arg_state = flag_state.argument
+                        return [(flag_token, (flag_arg, arg_state.arg_type))]
+                    else:
+                        if len(token) > 2:
+                            # Case 2: multiple flags specified at the same time
+                            flag_list = [(flag_token, None)]
+                            for j in xrange(2, len(token)):
+                                flag_token = '-' + token[j]
+                                if flag_token in state.flag_index:
+                                    if not state.flag_index[flag_token].argument:
+                                        flag_list.append((flag_token, None))
+                                    else:
+                                        if j < len(token) - 1:
+                                            arg_state = state.flag_index[flag_token].argument
+                                            flag_list.append((flag_token, (token[j+1:], arg_state.arg_type)))
+                                            break
+                                        else:
+                                            flag_list.append((flag_token, None))
+                                else:
+                                    raise ValueError('Unrecognized flag "{}"'.format(flag_token))
+                            return flag_list
                         else:
-                            raise ValueError('Unexpected flag argument "{}"'.format(flag_arg))
-                    elif len(flag_token) > 2 and flag_token.startswith('-'):
-                        flag_list = [(flag_token, None)]
-                        # Case 2: multiple flags specified at the same time
-                        for j in xrange(2, len(token)):
-                            flag_token = '-' + token[j]
-                            if flag_token in state.flag_index:
-                                flag_list.append((flag_token, None))
-                            else:
-                                raise ValueError('Unrecognized flag "{}"'.format(flag_token))
-                        return flag_list
+                            # Case 5: the token does not match any flag state
+                            return None
                 else:
-                    # Case 3: argument specified with just '-'
+                    # Case 3: argument specified with a single '-'
                     if flag_token.startswith('-') and '-' in state.flag_index \
                             and state.flag_index['-'].argument:
                         flag_arg = token[1:]
                         arg_state = state.flag_index['-'].argument
                         return [('-', (flag_arg, arg_state.arg_type))]
+                    # Case 4: argument specified with a single '+'
+                    elif flag_token.startswith('+') and '+' in state.flag_index \
+                            and state.flag_index['+'].argument:
+                        flag_arg = token[1:]
+                        arg_state = state.flag_index['+'].argument
+                        return [('+', (flag_arg, arg_state.arg_type))]
                     else:
-                        # Case 4: the token does not match any flag state
+                        # Case 5: the token does not match any flag state
                         return None
         elif state_type == COMMAND_S:
             self.next_states = state.get_utility().next_states()
@@ -422,7 +454,7 @@ class BashGrammar(object):
                     arg_synopsis += c
                     if c == '[':
                         stack.append('[')
-        # print(u_state.serialize())
+        print(u_state.serialize())
 
     def make_positional_argument(self, u_state, synopsis, optional=False):
         assert(u_state is not None)
@@ -452,13 +484,18 @@ class BashGrammar(object):
             else:
                 is_list = False
                 list_separator = ' '
+
+            no_space = synopsis.startswith('~~')
+            if no_space:
+                synopsis = synopsis[2:]
+
             if '<' in synopsis:
                 assert(synopsis.endswith('>'))
                 arg_name, format = synopsis[:-1].split('<', 1)
                 arg_name = arg_name.lower()
                 arg_type = self.name2type[arg_name]
                 arg = ArgumentState(arg_name, arg_type, optional=optional, is_list=is_list,
-                                    list_separator=list_separator, regex_format=format)
+                    list_separator=list_separator, regex_format=format, no_space=no_space)
             else:
                 arg_name = synopsis.lower()
                 arg_type = self.name2type[arg_name]
@@ -466,7 +503,7 @@ class BashGrammar(object):
                     arg = ArgCommandState()
                 else:
                     arg = ArgumentState(arg_name, arg_type, optional=optional,
-                        is_list=is_list, list_separator=list_separator)
+                        is_list=is_list, list_separator=list_separator, no_space=no_space)
         return arg
 
     def make_flag(self, u_state, synopsis, optional=False):
@@ -507,7 +544,7 @@ class BashGrammar(object):
                         elif c.strip() and c != '=':
                             arg_synopsis += c
             else:
-                flag = FlagState(synopsis, optional=optional)
+                flag = FlagState(synopsis.strip(), optional=optional)
             u_state.add_flag(flag)
         else:
             status = 'IDLE'
@@ -621,9 +658,8 @@ class BashGrammar(object):
         return flag
 
 
-def batch_parse():
-    pass
-
 if __name__ == '__main__':
     bg = BashGrammar()
     bg.make_grammar(os.path.join(os.path.dirname(__file__), '..', 'grammar', 'grammar100.txt'))
+
+
