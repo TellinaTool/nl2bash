@@ -1,7 +1,6 @@
 """
-The bash command synopsis specified here are slight modification from those in
-the man pages (https://linux.die.net/man/), including the following syntactic
-sugars:
+The bash command synopsis specified here are slight modifications from those in
+the man pages (https://linux.die.net/man/), with the following syntactic sugars:
 
     1. A flag name followed by "::" is interpreted as a sequence of single-letter
        flags; flags without any suffix are interpreted as an atomic flag.
