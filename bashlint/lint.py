@@ -242,7 +242,6 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
     def normalize_command(node, current=None):
         bash_grammar = BashGrammar()
         bash_grammar.name2type = bg.name2type
-        bash_grammar.grammar = bg.grammar
 
         if not node or not node.parts:
             return
@@ -250,17 +249,20 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
         num_tokens = len(node.parts)
 
         bast_node = input[0]
-        if bast_node.kind == 'assginment':
+        if bast_node.kind == 'assignment':
             normalize(bast_node, current, 'assignment')
         elif bast_node.kind == 'redirect':
             normalize(bast_node, current, 'redirect')
+        elif bast_node.kind == 'commandsubstitution':
+            normalize(bast_node, current, 'commandsubstitution')
         elif bast_node.kind == 'word' and not bast_node.parts:
             token = normalize_word(bast_node)
             head = UtilityNode(token, parent=current, lsb=current.get_right_child())
             if current:
                 current.add_child(head)
+
             # If utility grammar is not known, parse into a simple two-level tree
-            if not bash_grammar.consume(token):
+            if not bg.consume(token):
                 print("Warning: grammar not found - utility {}".format(token))
                 for bast_node in input[1:]:
                     if bast_node.kind == 'word' and not bast_node.parts:
@@ -276,6 +278,8 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
                 return
 
             current, i = head, 1
+            bash_grammar.grammar = {head.value: copy.deepcopy(bg.grammar[head.value])}
+            bash_grammar.consume(head.value)
 
             while i < len(input):
                 bast_node = input[i]
@@ -384,10 +388,11 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
                             argument = ArgumentNode(token, arg_type=next_state.arg_type,
                                                     parent=current, lsb=current.get_right_child())
                             current.add_child(argument)
-                            current = current.utility
                             bash_grammar.push(token, ARG_S)
                         else:
                             normalize(bast_node, current, "argument", next_state.arg_type)
+                            bash_grammar.push('', ARG_S)
+                        current = current.utility
                         i += 1
                         matched = True
                         break
@@ -401,9 +406,12 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
             else:
                 raise errors.LintParsingError('Incomplete command', num_tokens, i)
         else:
-            raise errors.LintParsingError(
-                'Utility needs to be a BAST node of "Word" type" {}'.format(bast_node),
-                num_tokens, 0)
+            if bast_node.parts:
+                normalize(bast_node, current)
+            else:
+                raise errors.LintParsingError(
+                    'Utility needs to be a BAST node of "Word" type" {}'.format(bast_node),
+                    num_tokens, 0)
 
     def post_process_command(head):
         # process (embedded) parenthese -- treat as implicit "-and"
@@ -594,7 +602,6 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
             if len(node.parts) % 2 == 0:
                 print("Error: pipeline node must have odd number of parts (%d)"
                       % len(node.parts))
-                print(node)
                 sys.exit()
             for child in node.parts:
                 if child.kind == "command":
