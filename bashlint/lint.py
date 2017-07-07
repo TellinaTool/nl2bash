@@ -388,11 +388,12 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
                             argument = ArgumentNode(token, arg_type=next_state.arg_type,
                                                     parent=current, lsb=current.get_right_child())
                             current.add_child(argument)
-                            bash_grammar.push(token, ARG_S)
+                            status = bash_grammar.push(token, ARG_S)
                         else:
                             normalize(bast_node, current, "argument", next_state.arg_type)
-                            bash_grammar.push('', ARG_S)
-                        current = current.utility
+                            status = bash_grammar.push('', ARG_S)
+                        if status != '__SAME_PARENT__':
+                            current = current.utility
                         i += 1
                         matched = True
                         break

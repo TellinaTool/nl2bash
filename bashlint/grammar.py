@@ -118,14 +118,20 @@ class FlagState(BashGrammarState):
         self.parent = None
         self.argument = None
 
-    def add_argumet(self, argument):
-        self.argument = argument
+    def add_argument(self, argument):
+        if self.argument is None:
+            self.argument = argument
+        else:
+            self.argument.rsb = argument
         argument.parent = self
 
     def serialize(self):
         header = '{}'.format(self.flag_name)
         if self.argument:
-            header += ' ' + self.argument.serialize()
+            arg = self.argument
+            while arg:
+                header += ' ' + arg.serialize()
+                arg = arg.rsb
         if self.optional:
             header = '[ {} ]'.format(header)
         return header
@@ -145,6 +151,8 @@ class ArgumentState(BashGrammarState):
         :member no_space: No space between the argument and the flag it is
             attached to.
         :member filled: If set, at least
+        :member parent: Parent state.
+        :member rsb: Right sibling state.
         """
         super(ArgumentState, self).__init__(ARG_S)
         self.arg_name = arg_name
@@ -156,6 +164,7 @@ class ArgumentState(BashGrammarState):
         self.no_space = no_space
         self.filled = False
         self.parent = None
+        self.rsb = None
 
     def serialize(self):
         header = '{} ({})'.format(self.arg_type, self.arg_name)
@@ -177,6 +186,7 @@ class ArgCommandState(BashGrammarState):
         self.no_space = False
         self.filled = False
         self.parent = None
+        self.rsb = None
 
     def serialize(self):
         return 'COMMAND'
@@ -189,6 +199,7 @@ class ExecCommandState(BashGrammarState):
         self.no_space = False
         self.filled = False
         self.parent = None
+        self.rsb = None
 
     def serialize(self):
         return '{}$${}'.format('COMMAND', ','.join(self.stop_tokens))
@@ -199,6 +210,7 @@ class CommandState(BashGrammarState):
         super(CommandState, self).__init__(COMMAND_S)
         self.filled = False
         self.parent = None
+        self.rsb = None
 
     def serialize(self):
         return 'COMMAND_EOS'
@@ -326,7 +338,13 @@ class BashGrammar(object):
             self.next_states = state.get_utility().next_states()
         elif state.type == ARG_S:
             state.filled = True
-            self.next_states = state.get_utility().next_states()
+            if state.rsb:
+                # continue interpreting the next argument of the same parent state
+                self.next_states = [state.rsb]
+                return '__SAME_PARENT__'
+            else:
+                self.next_states = state.get_utility().next_states()
+                return '__PARENT_CHANGE__'
 
     def make_grammar(self, input_file):
         """
@@ -463,7 +481,7 @@ class BashGrammar(object):
 
     def make_flag_argument(self, f_state, synopsis, optional=False):
         assert(f_state is not None)
-        f_state.add_argumet(self.make_argument(synopsis, optional=optional))
+        f_state.add_argument(self.make_argument(synopsis, optional=optional))
 
     def make_argument(self, synopsis, optional=False):
         if synopsis.lower() == 'command_eos':
