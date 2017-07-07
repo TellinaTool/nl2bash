@@ -358,10 +358,13 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
                         elif next_state.type == EXEC_COMMAND_S:
                             new_input = []
                             j = i
-                            while j < len(input) and hasattr(input[j], 'word') and \
-                                    not (input[j].word in next_state.stop_tokens):
-                                new_input.append(input[j])
-                                j += 1
+                            while j < len(input):
+                                if hasattr(input[j], 'word') and \
+                                        input[j].word in next_state.stop_tokens:
+                                    break
+                                else:
+                                    new_input.append(input[j])
+                                    j += 1
                             new_command_node.parts = new_input
                             normalize_command(new_command_node, current)
                             if j < len(input):

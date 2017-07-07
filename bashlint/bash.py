@@ -285,6 +285,7 @@ category_1_user_commands = {
     'cut',
     'sed',
     'paste',
+    'which',
     'find',
     'locate',
     'updatedb',
