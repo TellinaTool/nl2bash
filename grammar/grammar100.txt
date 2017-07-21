@@ -37,7 +37,7 @@ the man pages (https://linux.die.net/man/), with the following syntactic sugars:
 """
 
 type
-		File        (errorfile, datefile, script-file, f, krl_file, inputfile, outputfile, input-file, input_file, output_file, ssh_config, checkpt, known_hosts_file, input_keyfile, output_keyfile, identity_file, configfile, tagsfile, logfile, log_file, keyfile, file, xfile, file1, file2, filename, progfile, command_file, zipfile, archive-file, rfile, F, source, destination, src, dest, target)
+		File        (infile, outfile, scriptout, scriptin, errorfile, datefile, script-file, f, krl_file, inputfile, outputfile, input-file, input_file, output_file, ssh_config, checkpt, known_hosts_file, input_keyfile, output_keyfile, identity_file, configfile, tagsfile, logfile, log_file, keyfile, file, xfile, file1, file2, filename, progfile, command_file, zipfile, archive-file, rfile, F, source, destination, src, dest, target)
 		Directory   (directory, exdir, dir)
 		Path        (ctl_path, path, source_file, target_file)
 		Permission  (permmode, octal-mode)
@@ -45,10 +45,10 @@ type
 		Command     (command, command_eos)
 		Program     (rule, program, prog, var=value, name=value, script)
 		Type        (t, type)
-		Regex       (prefix, charset, char, empty, str, programname, replace-str, delimiter, attr_list, eof-str, escape_char, link_name, term, regexp, page, flags, certificate_identity, ca_key, hostname, section, delim, field, user, signal, version_number, ca_public, serial_number, principal, generator, start_point, passphrase, comment, old_passphrase, new_passphrase, local_tun, mac_spec, login_name, hostport, pkcs11, port, bind_address, sep, glob, label, tag, browser, locale, warnings, context, reference, ctx, gid, pid, session, tty, uid, commandname, name, gname, uname, groupname, username, eofstr, fd, fs, replstr, string, extension, owner, group, first, last, role, suffix, suffixes, pattern, mask, regex, expression, replacement, cc, jobspec, list, ctl_cmd)
-		Format      (lfmt, gfmt, key_format, format, validity_interval)
+		Regex       (data, menu-item, var, nodename, arg, gvimrc, vimrc, terminal, viminfo, device, prefix, charset, char, empty, str, programname, replace-str, delimiter, attr_list, eof-str, escape_char, link_name, term, regexp, page, flags, certificate_identity, ca_key, hostname, section, delim, field, user, signal, version_number, ca_public, serial_number, principal, generator, start_point, passphrase, comment, old_passphrase, new_passphrase, local_tun, mac_spec, login_name, hostport, pkcs11, port, bind_address, sep, glob, label, tag, browser, locale, warnings, context, reference, ctx, gid, pid, session, tty, uid, commandname, name, gname, uname, groupname, username, eofstr, fd, fs, replstr, string, extension, owner, group, first, last, role, suffix, suffixes, pattern, mask, regex, expression, replacement, cc, jobspec, list, ctl_cmd)
+		Format      (template, lfmt, gfmt, key_format, format, validity_interval)
 		Option      (radix, field_list, delimit-method, timespec, convert_spec, ssh_option, cipher, cipher_spec, pager, system, encoding, action, control, prompt, option, options, shell, mode, word, cmd, style, when)
-		Quantity    (chunks, filenum, columns, timeout, num_lines, rounds, memory, bits, space, k, n, num, number, replacements, max, maxargs, maxchars, maxlines, maxprocs, max-lines, max-args, max-chars, max-procs, incr, count, depth, lines, shift, nmerge, increment, rows, cols)
+		Quantity    (offset, seconds, width, chunks, filenum, columns, timeout, num_lines, rounds, memory, bits, space, k, n, num, number, replacements, max, maxargs, maxchars, maxlines, maxprocs, max-lines, max-args, max-chars, max-procs, incr, count, depth, lines, shift, nmerge, increment, rows, cols)
 		Position    (start_line, pos, line, linenum, firstpos, lastpos)
 		Timespan    (time, secs)
 		Size        (size, bytes, blocksize)
@@ -368,7 +368,7 @@ PrimitiveCmd ::=
 
 		* nano [ -A | --smarthome ] [ -B | --backup ] [ -C dir | --backupdir=dir ] [ -D | --boldtext ] [ -E | --tabstospaces ] [ -F | --multibuffer ] [ -H | --historylog ] [ -I | --ignorercfiles ] [ -K | --rebindkeypad ] [ -L | --nonewlines ] [ -N | --noconvert ] [ -O | --morespace ] [ -Q str | --quotestr=str ] [ -R | --restricted ] [ -S | --smooth ] [ -T cols | --tabsize=cols ] [ -U | --quickblank ] [ -V | --version ] [ -W | --wordbounds ] [ -Y str | --syntax=str ] [ -c | --const ] [ -d | --rebinddelete ] [ -h | --help ] [ -i | --autoindent ] [ -k | --cut ] [ -l | --nofollow ] [ -m | --mouse ] [ -o dir | --operatingdir=dir ] [ -p | --preserve ] [ -q | --quiet ] [ -r cols | --fill=cols ] [ -s prog | --speller=prog ] [ -t | --tempfile ] [ -u | --undo ] [ -v | --view ] [ -w | --nowrap ] [ -x | --nohelp ] [ -z | --suspend ] [ -$ | --softwrap ] [ -a | -b | -e | -f | -g | -j ] [ -a | -b | -e | -f | -g | -j ] [ -a | -b | -e | -f | -g | -j ] [ -a | -b | -e | -f | -g | -j ] [ -a | -b | -e | -f | -g | -j ] [FILE...]
 
-		* vim [ -t tag ] [ -q [errorfile] ] [ -c command ] [ -S file ] [ --cmd command ] [ -A ] [ -b ] [ -C ] [ -d ] [ -d device ] [ -D ] [ -e ] [ -E ] [ -f ] [ --nofork ] [ -F ] [ -g ] [ -h ] [ -H ] [ -i viminfo ] [ -L ] [ -l ] [ -m ] [ -M ] [ -N ] [ -n ] [ -n -b ] [ -o [N] ] [ -O [N] ] [ -p [N] ] [ -R ] [ -r ] [ -r file ] [ -s ] [ -s scriptin ] [ -T terminal ] [ -u vimrc ] [ -U gvimrc ] [ -V [N] ] [ -v ] [ -w scriptout ] [ -W scriptout ] [ -x ] [ -X ] [ -y ] [ -Z ] [ --echo-wid ] [ --help ] [ --literal ] [ --noplugin ] [ --remote ] [ --remote-expr expr ] [ --remote-send keys ] [ --remote-silent ] [ --remote-wait ] [ --remote-wait-silent ] [ --serverlist ] [ --servername name ] [ --socketid id ] [ --version ] [file ...]
+		* vim [ -t tag ] [ -q [errorfile] ] [ -c command ] [ -S file ] [ --cmd command ] [ -A ] [ -b ] [ -C ] [ -d ] [ -d device ] [ -D ] [ -e ] [ -E ] [ -f ] [ --nofork ] [ -F ] [ -g ] [ -h ] [ -H ] [ -i viminfo ] [ -L ] [ -l ] [ -m ] [ -M ] [ -N ] [ -n ] [ -n -b ] [ -o [N] ] [ -O [N] ] [ -p [N] ] [ -R ] [ -r ] [ -r file ] [ -s ] [ -s scriptin ] [ -T terminal ] [ -u vimrc ] [ -U gvimrc ] [ -V [N] ] [ -v ] [ -w scriptout ] [ -W scriptout ] [ -x ] [ -X ] [ -y ] [ -Z ] [ --echo-wid ] [ --help ] [ --literal ] [ --noplugin ] [ --remote ] [ --remote-expr expr ] [ --remote-send keys ] [ --remote-silent ] [ --remote-wait ] [ --remote-wait-silent ] [ --serverlist ] [ --servername name ] [ --socketid id ] [ --version ] [file...]
 
 		* vim [ -t tag ] [ -q [errorfile] ] [ -c command ] [ -S file ] [ --cmd command ] [ -A ] [ -b ] [ -C ] [ -d ] [ -d device ] [ -D ] [ -e ] [ -E ] [ -f ] [ --nofork ] [ -F ] [ -g ] [ -h ] [ -H ] [ -i viminfo ] [ -L ] [ -l ] [ -m ] [ -M ] [ -N ] [ -n ] [ -n -b ] [ -o [N] ] [ -O [N] ] [ -p [N] ] [ -R ] [ -r ] [ -r file ] [ -s ] [ -s scriptin ] [ -T terminal ] [ -u vimrc ] [ -U gvimrc ] [ -V [N] ] [ -v ] [ -w scriptout ] [ -W scriptout ] [ -x ] [ -X ] [ -y ] [ -Z ] [ --echo-wid ] [ --help ] [ --literal ] [ --noplugin ] [ --remote ] [ --remote-expr expr ] [ --remote-send keys ] [ --remote-silent ] [ --remote-wait ] [ --remote-wait-silent ] [ --serverlist ] [ --servername name ] [ --socketid id ] [ --version ] -t tag
 
@@ -386,7 +386,7 @@ PrimitiveCmd ::=
 
 		who [ -a | --all ] [ -b | --boot ] [ -d | --dead ] [ -H | --heading ] [ --ips ] [ -l | --login ] [ --lookup ] [ -m ] [ -p | --process ] [ -q | --count ] [ -r | --runlevel ] [ -s | --short ] [ -t | --time ] [ -T | -w | --mesg ] [ -u | --users ] [ --message ] [ --writable ] [ --help ] [ --version ] [ FILE ]
 
-		who [ -a | --all ] [ -b | --boot ] [ -d | --dead ] [ -H | --heading ] [ --ips ] [ -l | --login ] [ --lookup ] [ -m ] [ -p | --process ] [ -q | --count ] [ -r | --runlevel ] [ -s | --short ] [ -t | --time ] [ -T | -w | --mesg ] [ -u | --users ] [ --message ] [ --writable ] [ --help ] [ --version ] [ ARG1 ARG2 ]
+		who [ -a | --all ] [ -b | --boot ] [ -d | --dead ] [ -H | --heading ] [ --ips ] [ -l | --login ] [ --lookup ] [ -m ] [ -p | --process ] [ -q | --count ] [ -r | --runlevel ] [ -s | --short ] [ -t | --time ] [ -T | -w | --mesg ] [ -u | --users ] [ --message ] [ --writable ] [ --help ] [ --version ] [ ARG... ]
 
 		w [ -h | --no-header ] [ -u | --no-current ] [ -s | --short ] [ -f | --from ] [ --help ] [ -i | --ip-addr ] [ -V | --version ] [ -o | --old-style ] [user...]
 
@@ -416,10 +416,10 @@ PrimitiveCmd ::=
 
 		fold [ -b | --bytes ] [ -s | --spaces ] [-c | --characters] [ -w WIDTH ] [ --width=WIDTH ] [ --help ] [ --version ] [FILE...]
 
-		rev [ -V | --version ] [ -h | --help ] [file ...]
+		rev [ -V | --version ] [ -h | --help ] [file...]
 
-		mktemp [ -d | --directory ] [ -u | --dry-run ] [ -q | --quiet ] [ --suffix=SUFF ] [ --tmpdir[=DIR] ] [ -p DIR ] [ -t ] [ --help ] [ --version ] [ TEMPLATE ]
+		mktemp [ -d | --directory ] [ -u | --dry-run ] [ -q | --quiet ] [ --suffix=SUFFIX ] [ --tmpdir[=DIR] ] [ -p DIR ] [ -t ] [ --help ] [ --version ] [ TEMPLATE ]
 
-		watch [ -d [permanent] ]   --differences [permanent] ] [ -n | --interval seconds ] [ -p | --precise ] [ -t | --no-title ] [ -b | --beep ] [ -e | --errexit ] [ -g | --chgexit ] [ -c | --color ] [ -x | --exec ] [ -h | --help ] [ -v | --version ] command
+		watch [ -d ] [ --differences ] [ --cumulative ] [ -n seconds ] [ --interval seconds ] [ -p | --precise ] [ -t | --no-title ] [ -b | --beep ] [ -e | --errexit ] [ -g | --chgexit ] [ -c | --color ] [ -x | --exec ] [ -h | --help ] [ -v | --version ] command
 
 		curl [ -0 | --http1 ] [ --http1 ] [ --http2 ] [ -a | --append ] [ -A ] [ --anyauth ] [ -b ] [ -B | --use-ascii ] [ --basic ] [ -c ] [ -C offset | --continue-at offset ] [ --compressed ] [   --connect-timeout seconds ] [ --create-dirs ] [ --crlf ] [ --crlfile file ] [ -d data ] [ --data data ] [ -D | --dump-header file ] [ --data-ascii data ] [ --data-binary data ] [   --data-urlencode data ] [ --delegation LEVEL ] [ --digest ] [ --disable-eprt ] [ --disable-epsv ] [ --dns-interface interface ] [ --dns-ipv4-addr ip-address ] [   --dns-ipv6-addr ip-address ] [ -e URL] [ --referer URL ] [ -E ] [ --engine name ] [ --environment ] [ --egd-file file ] [ --cert-type type ] [ -f | --fail ] [ -F ] [ --ftp-account [data] ] [ --ftp-alternative-to-user command ] [ --ftp-create-dirs ] [ --ftp-method [method] ] [ URL... ]
