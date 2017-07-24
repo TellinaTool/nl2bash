@@ -13,7 +13,7 @@ import sqlite3
 import sys
 sys.path.append('../../')
 
-from bashlex import bash, data_tools
+from bashlint import bash, data_tools
 
 CODE_REGEX = re.compile(r"<pre><code>([^<]+)<\/code><\/pre>")
 
@@ -22,7 +22,24 @@ def extract_code(text):
         if match.strip():
             yield html.unescape(match.replace("<br>", "\n"))
 
+def extract_oneliner_from_code(code_block):
+    lines = code_block.splitlines()
+    for cmd in lines:
+        if cmd.startswith('$ '):
+            cmd = cmd[2:]
+        if cmd.startswith('# '):
+            cmd = cmd[2:]
+        comment = re.search(r'\s+#\s+', cmd)
+        if comment:
+            old_cmd = cmd
+            cmd = cmd[:comment.start()]
+            print('Remove comment: {} -> {}'.format(old_cmd, cmd))
+        cmd = cmd.strip()
 
+        # discard code block opening line
+        if not cmd.endswith('{') and not cmd.endswith('[') and not cmd.endswith('('):
+            yield cmd
+            
 def run():
     sqlite_filename = sys.argv[1]
     url_prefix = 'https://stackoverflow.com/questions/'
@@ -38,24 +55,25 @@ def run():
                 ORDER BY questions.Score DESC"""):
             print(post_id)
             for cmd in extract_code(answer_body):
-                ast = data_tools.bash_parser(cmd)
-                if not ast:
-                    continue
-                utilities = data_tools.get_utilities(ast)
-                for utility in utilities:
-                    if utility in bash.top_100_utilities:
-                        print('extracted: {}, {}'.format(utility, cmd))
-                        temp = data_tools.ast2template(ast, loose_constraints=True)
-                        if not utility in commands:
-                            commands[utility] = {}
-                            commands[utility][temp] = cmd
-                            urls[utility] = {'{}{}'.format(url_prefix, post_id)}
-                        else:
-                            if len(commands[utility]) >= 40:
-                                continue
-                            if not temp in commands[utility]:
+                for oneliner in extract_oneliner_from_code(code_block):
+                    ast = data_tools.bash_parser(cmd)
+                    if not ast:
+                        continue
+                    utilities = data_tools.get_utilities(ast)
+                    for utility in utilities:
+                        if utility in bash.top_100_utilities:
+                            print('extracted: {}, {}'.format(utility, cmd))
+                            temp = data_tools.ast2template(ast, loose_constraints=True)
+                            if not utility in commands:
+                                commands[utility] = {}
                                 commands[utility][temp] = cmd
-                                urls[utility].add('{}{}'.format(url_prefix, post_id))
+                                urls[utility] = {'{}{}'.format(url_prefix, post_id)}
+                            else:
+                                if len(commands[utility]) >= 40:
+                                    continue
+                                if not temp in commands[utility]:
+                                    commands[utility][temp] = cmd
+                                    urls[utility].add('{}{}'.format(url_prefix, post_id))
             count += 1
             if count % 1000 == 0:
                 completed = False
