@@ -681,13 +681,15 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
     except ValueError as err:
         print("%s - %s" % (err.args[0], cmd))
         return None
-    # except AttributeError as err:
-    #     print("%s - %s" % (err.args[0], cmd))
-    #     return None
+    except AttributeError as err:
+        print("%s - %s" % (err.args[0], cmd))
+        return None
     except AssertionError as err:
         print("%s - %s" % (err.args[0], cmd))
         return None
-
+    except errors.LintParsingError as err:
+        print("%s - %s" % (err.args[0], cmd))
+        return None 
     if len(normalized_tree.children) == 0:
         # parsing not successful if the normalized tree consists of the root
         # node only
