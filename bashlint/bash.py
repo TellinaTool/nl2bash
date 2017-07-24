@@ -66,36 +66,6 @@ utilities_15_to_10 = [
     "compress"
 ]
 
-common_arguments = {
-    '.',
-    '/',
-    '1',
-    '"*.txt"',
-    './',
-    '/home',
-    '0',
-    '-1',
-    '755',
-    '644',
-    '/tmp',
-    '2',
-    '~',
-    '/etc',
-    '-60',
-    '/usr',
-    'foo',
-    '\'*.txt\'',
-    '$HOME',
-    'test',
-    '/path',
-    '"*.c"',
-    '777',
-    '"*.html"',
-    '+30',
-    '+7',
-    '"*.php"',
-}
-
 top_100_utilities = {
     'chgrp',
     'cpio',
@@ -221,7 +191,7 @@ top_100_utilities = {
     'ping',
     'dig',
     'ifconfig',
-    'wget,'
+    'wget',
     'elinks',
     'curl',
     'apt-get',
@@ -235,7 +205,14 @@ category_0_builtins = {
     'cd',
     'jobs',
     'bg',
-    'fg'
+    'fg',
+    'set',
+    'unset',
+    'popd',
+    'pushd',
+    'source',
+    'shopt',
+    'set'
 }
 
 category_1_user_commands = {
@@ -286,10 +263,16 @@ category_1_user_commands = {
     'sed',
     'paste',
     'which',
+    'rename',
+    'screen',
+    'md5',
+    'wget',
+    'tmux',
     'find',
     'locate',
     'updatedb',
-    'xargs'
+    'xargs',
+    'dig'
 }
 
 category_2_system_calls = {}
@@ -298,7 +281,14 @@ category_3_library_functions = {}
 
 category_7_conventions_and_miscellany = {}
 
-category_8_administration_and_privileged_commands = {}
+category_8_administration_and_privileged_commands = {
+    'ping',
+    'sudo',
+    'mount',
+    'ifconfig'
+}
+
+# --- Other Constants Lists --- #
 
 reserved_tokens = {
     '+',
@@ -324,3 +314,32 @@ binary_logic_operators = {
     '-a'
 }
 
+common_arguments = {
+    '.',
+    '/',
+    '1',
+    '"*.txt"',
+    './',
+    '/home',
+    '0',
+    '-1',
+    '755',
+    '644',
+    '/tmp',
+    '2',
+    '~',
+    '/etc',
+    '-60',
+    '/usr',
+    'foo',
+    '\'*.txt\'',
+    '$HOME',
+    'test',
+    '/path',
+    '"*.c"',
+    '777',
+    '"*.html"',
+    '+30',
+    '+7',
+    '"*.php"',
+}
