@@ -46,7 +46,6 @@ The SQLite schemas are in the source code below. I made the following changes:
  - Removed LastEditorDisplayName
 
 """
-
 import datetime
 import re
 import sqlite3
