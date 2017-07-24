@@ -54,8 +54,8 @@ def run():
                 WHERE questions.Id = answers.ParentId
                 ORDER BY questions.Score DESC"""):
             print(post_id)
-            for cmd in extract_code(answer_body):
-                for oneliner in extract_oneliner_from_code(code_block):
+            for code_block in extract_code(answer_body):
+                for cmd in extract_oneliner_from_code(code_block):
                     ast = data_tools.bash_parser(cmd)
                     if not ast:
                         continue
