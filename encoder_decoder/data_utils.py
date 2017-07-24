@@ -882,13 +882,9 @@ def prepare_bash(FLAGS, verbose=False):
                     M[i][j] = 1
                     M_splits[i][j] = ([word], [token])
                 else:
-                    if np.abs(len(token) - len(word)) > 10 \
-                            or constants.is_quotation(word) \
-                            or constants.is_quotation(token):
-                        continue
-                        # if verbose:
-                        #     print("False match: {}, {}".format(token, word))
-                    else:
+                    if np.abs(len(token) - len(word)) <= 10 \
+                            and not constants.is_quotation(word) \
+                            and not constants.is_quotation(token):
                         (s1, e1), (s2, e2) = ops.longest_common_substring(word, token)
                         if s1 == e1:
                             continue
