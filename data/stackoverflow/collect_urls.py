@@ -23,8 +23,7 @@ def extract_code(text):
             yield html.unescape(match.replace("<br>", "\n"))
 
 def extract_oneliner_from_code(code_block):
-    lines = code_block.splitlines()
-    for cmd in lines:
+    for cmd in code_block.splitlines():
         if cmd.startswith('$ '):
             cmd = cmd[2:]
         if cmd.startswith('# '):
@@ -54,8 +53,9 @@ def run():
                 WHERE questions.Id = answers.ParentId
                 ORDER BY questions.Score DESC"""):
             print(post_id)
-            for cmd in extract_code(answer_body):
-                for oneliner in extract_oneliner_from_code(code_block):
+            for code_block in extract_code(answer_body):
+                for cmd in extract_oneliner_from_code(code_block):
+                    print('command string: {}'.format(cmd))
                     ast = data_tools.bash_parser(cmd)
                     if not ast:
                         continue
