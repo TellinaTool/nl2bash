@@ -35,4 +35,4 @@ class FlagError(Exception):
         self.position = position
 
         assert position <= s
-        super(SubCommandError, self).__init__('%s (position %d)' % (message, position))
+        super(FlagError, self).__init__('%s (position %d)' % (message, position))
