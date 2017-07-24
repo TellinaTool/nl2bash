@@ -15,6 +15,8 @@ import os, sys
 if sys.version_info > (3, 0):
     from six.moves import xrange
 
+from bashlint import bash
+
 UTIL_S = 0
 COMPOUND_FLAG_S = 1
 FLAG_S = 2
@@ -386,6 +388,11 @@ class BashGrammar(object):
             elif reading_synopsis:
                 self.make_utility(line)
 
+        print('{} utilities'.format(len(self.grammar)))
+        for utility in bash.top_100_utilities:
+            if not utility in self.grammar:
+                print(utility)
+
     def make_utility(self, line):
         line = line.strip()
         if line.startswith('* '):
@@ -472,7 +479,6 @@ class BashGrammar(object):
                     arg_synopsis += c
                     if c == '[':
                         stack.append('[')
-        print(u_state.serialize())
 
     def make_positional_argument(self, u_state, synopsis, optional=False):
         assert(u_state is not None)

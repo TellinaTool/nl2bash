@@ -433,5 +433,6 @@ def test_tokenization():
 
 
 if __name__ == "__main__":
-    input_file = sys.argv[1]
-    batch_parse(input_file)
+    # input_file = sys.argv[1]
+    # batch_parse(input_file)
+    test_bash_parser()
