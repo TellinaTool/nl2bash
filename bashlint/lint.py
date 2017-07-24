@@ -317,7 +317,7 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
                             try:
                                 result = bash_grammar.push(token, COMPOUND_FLAG_S)
                             except ValueError as e:
-                                raise errors.FlagError(e, num_tokens, i)
+                                raise errors.FlagError(e.args[0], num_tokens, i)
                             if result:
                                 for flag_token, flag_arg in result:
                                     flag = FlagNode(flag_token, parent=current,
@@ -692,7 +692,7 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
         return None
     except errors.FlagError as err:
         print("%s - %s" % (err.args[0], cmd))
-        return None 
+        return None
     if len(normalized_tree.children) == 0:
         # parsing not successful if the normalized tree consists of the root
         # node only
