@@ -505,7 +505,8 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
                     flag_present = True
             if not flag_present:
                 norm_node = FlagNode(value="-E")
-                make_sibling(norm_node, head.children[0])
+                if head.has_children():
+                    make_sibling(norm_node, head.children[0])
                 norm_node.parent = head
                 head.children.insert(0, norm_node)
 
@@ -517,7 +518,8 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
                     flag_present = True
             if not flag_present:
                 norm_node = FlagNode(value="-F")
-                make_sibling(norm_node, head.children[0])
+                if head.has_children():
+                    make_sibling(norm_node, head.children[0])
                 norm_node.parent = head
                 head.children.insert(0, norm_node)
 

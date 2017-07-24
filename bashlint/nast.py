@@ -81,6 +81,9 @@ class Node(object):
     def get_num_of_children(self):
         return len(self.children)
 
+    def has_children(self):
+        return len(self.children) > 0
+
     def is_reserved(self):
         if self.kind != "argument":
             return True
