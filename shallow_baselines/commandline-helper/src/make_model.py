@@ -7,7 +7,6 @@ Usage:
 
 # builtin
 import collections
-# import html
 import HTMLParser
 import os
 import re

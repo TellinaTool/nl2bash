@@ -2,7 +2,7 @@
 from __future__ import print_function
 """
 Usage:
-    $ python preprocess.py <path-to-sqlite-db-file>
+    $ python clean_stackoverflow.py <path-to-sqlite-db-file>
 """
 
 # builtin
