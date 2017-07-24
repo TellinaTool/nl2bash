@@ -243,7 +243,6 @@ class BashGrammar(object):
     def consume(self, token):
         if token in self.grammar:
             utility_state = self.grammar[token]
-            print(utility_state.serialize())
             self.next_states = utility_state.next_states()
             return True
         else:
