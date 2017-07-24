@@ -15,7 +15,7 @@ import os, sys
 if sys.version_info > (3, 0):
     from six.moves import xrange
 
-from bashlint import bash
+from bashlint import bash, errors
 
 UTIL_S = 0
 COMPOUND_FLAG_S = 1
@@ -275,7 +275,7 @@ class BashGrammar(object):
                     if flag_token == '--':
                         state.parent.argument_only = True
                     else:
-                        raise ValueError('Unrecognized long flag "{}"'.format(flag_token))
+                        raise errors.FlagError('Unrecognized long flag "{}"'.format(flag_token))
             elif token in state.flag_index:
                 flag_token = token
                 state = state.flag_index[flag_token]
