@@ -4,7 +4,7 @@ from __future__ import print_function
 
 def longest_common_substring(s1, s2):
     m = [[0] * (1 + len(s2)) for i in range(1 + len(s1))]
-    longest, x_longest = 0, 0
+    longest, x_longest, y_longest = 0, 0, 0
     for x in range(1, 1 + len(s1)):
         for y in range(1, 1 + len(s2)):
             if s1[x - 1] == s2[y - 1]:

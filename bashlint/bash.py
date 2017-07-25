@@ -1,6 +1,12 @@
 """
 Gazetteers for bash.
 """
+findutils = {
+    'find',
+    'locate',
+    'updatedb',
+    'xargs'
+}
 
 utilities = [
     "find",
@@ -59,44 +65,6 @@ utilities_15_to_10 = [
     "md5sum",
     "compress"
 ]
-
-float_arguments = {
-    'grep': ['A', 'B', 'C'],
-    'head': ['', 'n'],
-    'tail': ['', 'n'],
-    'awk': ['F'],
-    'xargs': ['n', 'l', 'L', 'P', 's']
-}
-
-common_arguments = {
-    '.',
-    '/',
-    '1',
-    '"*.txt"',
-    './',
-    '/home',
-    '0',
-    '-1',
-    '755',
-    '644',
-    '/tmp',
-    '2',
-    '~',
-    '/etc',
-    '-60',
-    '/usr',
-    'foo',
-    '\'*.txt\'',
-    '$HOME',
-    'test',
-    '/path',
-    '"*.c"',
-    '777',
-    '"*.html"',
-    '+30',
-    '+7',
-    '"*.php"',
-}
 
 top_100_utilities = {
     'chgrp',
@@ -223,10 +191,155 @@ top_100_utilities = {
     'ping',
     'dig',
     'ifconfig',
-    'wget,'
+    'wget',
     'elinks',
     'curl',
     'apt-get',
     'brew',
     'yum'
+}
+
+# --- Linux Utility by Category --- #
+
+category_0_builtins = {
+    'cd',
+    'jobs',
+    'bg',
+    'fg',
+    'set',
+    'unset',
+    'popd',
+    'pushd',
+    'source',
+    'shopt',
+    'set'
+}
+
+category_1_user_commands = {
+    'pwd',
+    'ls',
+    'mkdir',
+    'rmdir',
+    'echo',
+    'cat',
+    'gzip',
+    'gunzip',
+    'zcat',
+    'tac',
+    'cp',
+    'mv',
+    'rm',
+    'man',
+    'head',
+    'tail',
+    'less',
+    'zless',
+    'more',
+    'grep',
+    'egrep',
+    'fgrep',
+    'which',
+    'chmod',
+    'chown',
+    'chgrp',
+    'su',
+    'wc',
+    'sort',
+    'ssh',
+    'ssh-keygen',
+    'scp',
+    'rsync',
+    'ln',
+    'readlink',
+    'sleep',
+    'ps',
+    'pstree',
+    'kill',
+    'top',
+    'nohup',
+    'time',
+    'seq',
+    'cut',
+    'sed',
+    'paste',
+    'which',
+    'rename',
+    'screen',
+    'md5',
+    'wget',
+    'tmux',
+    'find',
+    'locate',
+    'updatedb',
+    'xargs',
+    'dig'
+}
+
+category_2_system_calls = {}
+
+category_3_library_functions = {}
+
+category_7_conventions_and_miscellany = {}
+
+category_8_administration_and_privileged_commands = {
+    'ping',
+    'sudo',
+    'mount',
+    'ifconfig'
+}
+
+# --- Other Constants Lists --- #
+
+reserved_tokens = {
+    '+',
+    ';',
+    '{}'
+}
+
+right_associate_unary_logic_operators = {
+    '!',
+    '-not'
+}
+
+left_associate_unary_logic_operators = {
+    '-prune'
+}
+
+binary_logic_operators = {
+    '-and',
+    '-or',
+    '||',
+    '&&',
+    '-o',
+    '-a'
+}
+
+common_arguments = {
+    '.',
+    '/',
+    '1',
+    '"*.txt"',
+    './',
+    '/home',
+    '0',
+    '-1',
+    '755',
+    '644',
+    '/tmp',
+    '2',
+    '~',
+    '/etc',
+    '-60',
+    '/usr',
+    'foo',
+    '\'*.txt\'',
+    '$HOME',
+    'test',
+    '/path',
+    '"*.c"',
+    '777',
+    '"*.html"',
+    '+30',
+    '+7',
+    '"*.php"',
 }

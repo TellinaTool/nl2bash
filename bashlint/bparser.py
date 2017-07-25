@@ -1,6 +1,6 @@
 import os, copy
 
-from bashlex import yacc, tokenizer, state, bast, subst, flags, errors, heredoc
+from bashlint import yacc, tokenizer, state, bast, subst, flags, errors, heredoc
 
 def _partsspan(parts):
     return parts[0].pos[0], parts[-1].pos[1]
@@ -538,7 +538,7 @@ def p_error(p):
         raise errors.ParsingError('unexpected token %r' % p.value,
                                   p.lexer.source, p.lexpos)
 
-yaccparser = yacc.yacc(tabmodule='bashlex.parsetab',
+yaccparser = yacc.yacc(tabmodule='bashlint.parsetab',
               outputdir=os.path.dirname(__file__),
               debug=False)
 

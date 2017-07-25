@@ -90,7 +90,7 @@ pickle_protocol = 0            # Protocol to use when writing pickle files
 
 import re, types, sys, os.path
 
-from bashlex import butils
+from bashlint import butils
 
 # Compatibility function for python 2.6/3.0
 if sys.version_info[0] < 3:

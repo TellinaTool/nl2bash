@@ -26,7 +26,7 @@ history*
 clear
 logout*
 exit*
-sudo*
+sudo
 su
 wc
 sort
@@ -39,11 +39,11 @@ export*
 ln
 readlink
 sleep
-ps*
+ps
 pstree
-jobs*
-bg*
-fg*
+jobs
+bg
+fg
 kill
 top
 nohup

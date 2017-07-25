@@ -4,25 +4,11 @@ Node Classes for the Normalized Bash AST.
 
 import collections
 
-right_associate_unary_logic_operators \
-    = set([
-        '!',
-        '-not'
-    ])
-left_associate_unary_logic_operators \
-    = set([
-        '-prune'
-    ])
+from bashlint import bash
 
-binary_logic_operators \
-    = set([
-        '-and',
-        '-or',
-        '||',
-        '&&',
-        '-o',
-        '-a'
-    ])
+_H_NO_EXPAND = "__SP__H_NO_EXPAND"
+_V_NO_EXPAND = "__SP__V_NO_EXPAND"
+
 
 def make_parent_child(parent, child):
     parent.add_child(child)
@@ -65,7 +51,10 @@ class Node(object):
         self.children = []
 
     def add_child(self, child, index=None):
+        lsb = self.get_right_child()
         self.children.append(child)
+        if lsb:
+            lsb.rsb = child
 
     def get_children(self):
         return self.children
@@ -91,6 +80,9 @@ class Node(object):
 
     def get_num_of_children(self):
         return len(self.children)
+
+    def has_children(self):
+        return len(self.children) > 0
 
     def is_reserved(self):
         if self.kind != "argument":
@@ -159,14 +151,13 @@ class Node(object):
 
     @property
     def utility(self):
-        if self.kind == "utility":
-            return self
-        ancester = self.parent
+        ancester = self
         while ancester is not None:
             if ancester.kind == "utility":
                 return ancester
             # if no parent utility is detect, return "root"
             ancester = ancester.parent
+        raise ValueError('No head utility found!')
 
     @property
     def grandparent(self):
@@ -195,18 +186,6 @@ class UtilityNode(Node):
         for child in self.children:
             if child.is_utility():
                 return child
-
-    def normalize_repl_str(self, repl_str, norm):
-        def normalize_repl_str_fun(node):
-            for child in node.children:
-                if child.is_argument():
-                    if repl_str in child.value:
-                        child.value = child.value.replace(repl_str, norm)
-                        if child.value == norm:
-                            child.arg_type = "ReservedWord"
-                else:
-                    normalize_repl_str_fun(child)
-        normalize_repl_str_fun(self)
 
 class FlagNode(Node):
     def __init__(self, value='', parent=None, lsb=None):
@@ -242,7 +221,7 @@ class ArgumentNode(Node):
         return self.value == "(" or self.value == ")"
     
     def is_reserved(self):
-        return self.arg_type == "ReservedWord"
+        return self.value in bash.reserved_tokens
 
     def is_open_vocab(self):
         if self.is_reserved():
@@ -278,9 +257,9 @@ class UnaryLogicOpNode(Node):
 
     def __init__(self, value='', parent=None, lsb=None):
         super(UnaryLogicOpNode, self).__init__(parent, lsb, 'unarylogicop', value)
-        if value in right_associate_unary_logic_operators:
+        if value in bash.right_associate_unary_logic_operators:
             self.associate = UnaryLogicOpNode.RIGHT
-        elif value in left_associate_unary_logic_operators:
+        elif value in bash.left_associate_unary_logic_operators:
             self.associate = UnaryLogicOpNode.LEFT
         else:
             raise ValueError("Unrecognized unary logic operator: {}".format(value))

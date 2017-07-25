@@ -773,7 +773,7 @@ def prepare_bash(FLAGS, verbose=False):
             ast = data_tools.bash_parser(cm)
             if ast:
                 if data_tools.is_simple(ast):
-                    mappings = slot_filling.slot_filler_alignment_induction(nl, cm)
+                    print(cm)
                     nl_chars = data_tools.char_tokenizer(nl)
                     cm_chars = data_tools.char_tokenizer(cm)
                     nl_tokens, _ = tokenizer.basic_tokenizer(nl)
@@ -805,6 +805,7 @@ def prepare_bash(FLAGS, verbose=False):
                     # Debugging
                     # print(nl_partial_tokens)
                     # print(cm_partial_tokens)
+                    mappings = slot_filling.slot_filler_alignment_induction(nl, cm)
                     getattr(slot_argument_mappings, split).append(mappings)
                     getattr(nl_list, split).append(nl)
                     getattr(cm_list, split).append(cm)
@@ -881,12 +882,9 @@ def prepare_bash(FLAGS, verbose=False):
                     M[i][j] = 1
                     M_splits[i][j] = ([word], [token])
                 else:
-                    if np.abs(len(token) - len(word)) > 10 \
-                            or constants.is_quotation(word) \
-                            or constants.is_quotation(token):
-                        if verbose:
-                            print("False match: {}, {}".format(token, word))
-                    else:
+                    if np.abs(len(token) - len(word)) <= 10 \
+                            and not constants.is_quotation(word) \
+                            and not constants.is_quotation(token):
                         (s1, e1), (s2, e2) = ops.longest_common_substring(word, token)
                         if s1 == e1:
                             continue

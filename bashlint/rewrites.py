@@ -12,19 +12,18 @@ import sqlite3
 if sys.version_info > (3, 0):
     from six.moves import xrange
 
-from bashlex import data_tools, normalizer
+from bashlint import data_tools, lint
 from nlp_tools import tokenizer
 
 
 def rewrite(ast, temp):
     """Rewrite an AST into an equivalent one using the given template."""
-    arg_slots = normalizer.arg_slots(ast)
+    arg_slots = lint.arg_slots(ast)
 
     def rewrite_fun(node):
         if node.kind == "argument" and not node.is_reserved():
             for i in xrange(len(arg_slots)):
-                if not arg_slots[i][1] \
-                        and arg_slots[i][0].arg_type == node.arg_type:
+                if not arg_slots[i][1] and arg_slots[i][0].arg_type == node.arg_type:
                     node.value = arg_slots[i][0].value
                     arg_slots[i][1] = True
                     break
@@ -32,11 +31,11 @@ def rewrite(ast, temp):
             for child in node.children:
                 rewrite_fun(child)
 
-    # TODO: This is heuristically implemented in two steps.
+    # TODO: improve the heurstics.
     # Step 1 constructs an AST using the given template.
     # Step 2 fills the argument slots in the newly constructed AST using the
     # argument values from the original AST.
-    ast2 = normalizer.normalize_ast(temp)
+    ast2 = data_tools.bash_parser(temp)
     if not ast2 is None:
         rewrite_fun(ast2)
 

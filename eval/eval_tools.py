@@ -48,7 +48,6 @@ def eval_set(model_dir, decode_sig, dataset, top_k, FLAGS, verbose=True):
         dataset, use_bucket=use_bucket, 
         use_temp=(eval_bash and FLAGS.normalized),
         tokenizer_selector=tokenizer_selector)
-
     top_k_temp_correct = np.zeros([len(grouped_dataset), top_k])
     top_k_str_correct = np.zeros([len(grouped_dataset), top_k])
     if eval_bash:
