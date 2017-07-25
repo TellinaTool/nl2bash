@@ -15,7 +15,7 @@ import numpy as np
 from numpy.linalg import norm
 
 from . import constants, tokenizer
-from bashlex import data_tools
+from bashlint import data_tools
 
 # --- Slot filling functions --- #
 
