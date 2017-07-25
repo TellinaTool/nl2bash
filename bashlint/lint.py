@@ -35,7 +35,7 @@ bg = BashGrammar()
 bg.make_grammar(os.path.join(os.path.dirname(__file__), '..', 'grammar', 'grammar100.txt'))
 
 # bashlex stuff
-from bashlint import bash, bast, errors, tokenizer, bparser
+from bashlint import bast, errors, tokenizer, bparser
 from bashlint.nast import *
 
 from nlp_tools import constants
