@@ -2,7 +2,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-from bashlex import data_tools, nast
+from bashlint import data_tools, nast
 from eval import zss
 from eval import extract_rewrites as er
 
