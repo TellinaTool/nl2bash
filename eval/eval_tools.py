@@ -15,7 +15,7 @@ if sys.version_info > (3, 0):
     from six.moves import xrange
 
 from encoder_decoder import data_utils
-from bashlex import data_tools, nast
+from bashlint import data_tools, nast
 from eval import token_based, tree_dist, zss
 from eval.eval_db import DBConnection
 from eval.dfa_equal import regexDFAEquals
