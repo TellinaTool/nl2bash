@@ -166,6 +166,10 @@ def safe_bashlex_parse(cmd):
         print("Bashlex cannot parse: %s - AssertionError" % cmd)
         # not a bash command
         return None
+    except NameError:
+        print("Bashlex cannot parse: %s - NameError" % cmd)
+        # not a bash command
+        return None
     except TypeError:
         print("Bashlex cannot parse: %s - AssertionError" % cmd)
         return None
@@ -263,7 +267,8 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
 
             # If utility grammar is not known, parse into a simple two-level tree
             if not bg.consume(token):
-                print("Warning: grammar not found - utility {}".format(token))
+                raise errors.LintParsingError("Warning: grammar not found - utility {}".format(token),
+                    num_tokens, 0)
                 for bast_node in input[1:]:
                     if bast_node.kind == 'word' and not bast_node.parts:
                         token = normalize_word(bast_node)
