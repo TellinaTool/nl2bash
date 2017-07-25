@@ -16,6 +16,7 @@ sys.path.append('../../')
 from bashlint import bash, data_tools
 
 CODE_REGEX = re.compile(r"<pre><code>([^<]+)<\/code><\/pre>")
+NUM_COMMAND_THRESHOLD = 40
 
 def extract_code(text):
     for match in CODE_REGEX.findall(text):
@@ -56,6 +57,7 @@ def run():
             print(post_id)
             for code_block in extract_code(answer_body):
                 for cmd in extract_oneliner_from_code(code_block):
+                    print(cmd)
                     ast = data_tools.bash_parser(cmd)
                     if not ast:
                         continue
@@ -69,7 +71,7 @@ def run():
                                 commands[utility][temp] = cmd
                                 urls[utility] = {'{}{}'.format(url_prefix, post_id)}
                             else:
-                                if len(commands[utility]) >= 40:
+                                if len(commands[utility]) >= NUM_COMMAND_THRESHOLD:
                                     continue
                                 if not temp in commands[utility]:
                                     commands[utility][temp] = cmd
@@ -78,7 +80,7 @@ def run():
             if count % 1000 == 0:
                 completed = False
                 for utility in bash.top_100_utilities:
-                    if not utility in commands or len(commands[utility]) < 40:
+                    if not utility in commands or len(commands[utility]) < NUM_COMMAND_THRESHOLD:
                         completed = False
                     else:
                         print('{} collection done.'.format(utility))
