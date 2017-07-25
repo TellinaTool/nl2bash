@@ -120,7 +120,8 @@ def ast2tokens(node, loose_constraints=False, ignore_flag_order=False,
                 tokens += to_tokens_fun(child)
         elif node.is_option():
             assert(loose_constraints or node.parent)
-            if '::' in node.value:
+            if '::' in node.value and (node.value.startswith('-exec') or 
+                                       node.value.startswith('-ok')):
                 value, op = node.value.split('::')
                 token = value
             else:
@@ -135,7 +136,8 @@ def ast2tokens(node, loose_constraints=False, ignore_flag_order=False,
             tokens.append(token)
             for child in node.children:
                 tokens += to_tokens_fun(child)
-            if '::' in node.value:
+            if '::' in node.value and (node.value.startswith('-exec') or
+                                       node.value.startswith('-ok')):
                 if op == ';':
                     op = "\\;"
                 tokens.append(op)
