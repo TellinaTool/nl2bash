@@ -346,7 +346,7 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
                         if next_state.type == ARG_COMMAND_S:
                             if bast_node.kind == 'word' and not bast_node.parts:
                                 token = normalize_word(bast_node)
-                                if not constants.with_quotes(token):
+                                if not constants.with_quotation(token):
                                     raise errors.SubCommandError(
                                         'Missing quotes around command string: {}'.format(token),
                                         num_tokens, i)
