@@ -5,7 +5,7 @@ from __future__ import print_function
 import collections
 import numpy as np
 
-from bashlex import data_tools
+from bashlint import data_tools
 
 
 whitelist = [
