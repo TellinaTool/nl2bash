@@ -2,9 +2,8 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-from bashlex import data_tools, nast
+from bashlint import data_tools, nast, rewrites
 from eval import zss
-from eval import extract_rewrites as er
 
 def ignore_differences(cmd):
     cmd = cmd.replace('-ls', '')
@@ -91,7 +90,7 @@ def min_dist(asts, ast2, rewrite=True, ignore_arg_value=False):
         ast2 = data_tools.bash_parser("find")
 
     if rewrite:
-        with er.DBConnection() as db:
+        with rewrites.DBConnection() as db:
             ast_rewrites = get_rewrites(asts, db)
     else:
         ast_rewrites = asts
@@ -109,7 +108,7 @@ def min_dist(asts, ast2, rewrite=True, ignore_arg_value=False):
 
 def one_match(asts, ast2, rewrite=True, ignore_arg_value=False):
     if rewrite:
-        with er.DBConnection() as db:
+        with rewrites.DBConnection() as db:
             ast_rewrites = get_rewrites(asts, db)
     else:
         ast_rewrites = asts

@@ -16,7 +16,7 @@ import numpy as np
 import shutil
 
 from encoder_decoder import classifiers, data_utils
-from bashlex import data_tools
+from bashlint import data_tools
 from nlp_tools import constants, slot_filling, tokenizer
 
 
