@@ -67,6 +67,9 @@ utilities_15_to_10 = [
 ]
 
 top_100_utilities = {
+    'echo',
+    'bash',
+    'sh',
     'chgrp',
     'cpio',
     'file',
