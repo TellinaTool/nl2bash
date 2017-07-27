@@ -16,32 +16,6 @@ from bashlint import data_tools, lint
 from nlp_tools import tokenizer
 
 
-def rewrite(ast, temp):
-    """Rewrite an AST into an equivalent one using the given template."""
-    arg_slots = lint.arg_slots(ast)
-
-    def rewrite_fun(node):
-        if node.kind == "argument" and not node.is_reserved():
-            for i in xrange(len(arg_slots)):
-                if not arg_slots[i][1] and arg_slots[i][0].arg_type == node.arg_type:
-                    node.value = arg_slots[i][0].value
-                    arg_slots[i][1] = True
-                    break
-        else:
-            for child in node.children:
-                rewrite_fun(child)
-
-    # TODO: improve the heurstics.
-    # Step 1 constructs an AST using the given template.
-    # Step 2 fills the argument slots in the newly constructed AST using the
-    # argument values from the original AST.
-    ast2 = data_tools.bash_parser(temp)
-    if not ast2 is None:
-        rewrite_fun(ast2)
-
-    return ast2
-
-
 class DBConnection(object):
     def __init__(self):
         self.conn = sqlite3.connect(os.path.join(
@@ -173,6 +147,9 @@ def extract_rewrites(data):
                             db.add_rewrite((cm_temp1, cm_temp2))
                             print("* {} --> {}".format(cm_temp1, cm_temp2))
                 print()
+
+def rewrite(ast, temp):
+
 
 
 def test_rewrite(cmd):

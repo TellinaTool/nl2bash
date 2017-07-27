@@ -90,7 +90,11 @@ def min_dist(asts, ast2, rewrite=True, ignore_arg_value=False):
         ast2 = data_tools.bash_parser("find")
 
     if rewrite:
+<<<<<<< Updated upstream
         with rewrites.DBConnection() as db:
+=======
+        with rw.DBConnection() as db:
+>>>>>>> Stashed changes
             ast_rewrites = get_rewrites(asts, db)
     else:
         ast_rewrites = asts
@@ -108,7 +112,11 @@ def min_dist(asts, ast2, rewrite=True, ignore_arg_value=False):
 
 def one_match(asts, ast2, rewrite=True, ignore_arg_value=False):
     if rewrite:
+<<<<<<< Updated upstream
         with rewrites.DBConnection() as db:
+=======
+        with rw.DBConnection() as db:
+>>>>>>> Stashed changes
             ast_rewrites = get_rewrites(asts, db)
     else:
         ast_rewrites = asts

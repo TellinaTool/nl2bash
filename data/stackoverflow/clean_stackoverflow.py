@@ -17,7 +17,7 @@ sys.path.append("/home/xilin/Packages")
 from semantics.lexical import stanford_lemmatize
 
 # local
-import bashlex.bash
+import bashlint.bash
 from data.utils import ENGLISH_STOPWORDS
 from make_model import PROMPT_REGEX
 from make_model import all_samples, is_oneliner
@@ -53,7 +53,7 @@ def tokenize_question(q):
 
 def tokenize_code(code):
     code = PROMPT_REGEX.sub("", code)
-    for cmd in bashlex.bash.parse(str(code)):
+    for cmd in bashlint.bash.parse(str(code)):
         args = cmd[1:]
         cmd = cmd[0]
         # print("cmd:{}".format(cmd), file=sys.stderr)
