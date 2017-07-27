@@ -693,6 +693,9 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
     except AssertionError as err:
         print("%s - %s" % (err.args[0], cmd))
         return None
+    except errors.SubCommandError as err:
+        print("%s - %s" % (err.args[0], cmd))
+        return None
     except errors.LintParsingError as err:
         print("%s - %s" % (err.args[0], cmd))
         return None

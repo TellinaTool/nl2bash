@@ -308,6 +308,8 @@ def is_quotation(s):
     return s in ['"', '\'']
 
 def with_quotation(s):
+    if not s:
+        return False
     return s[0] in ['"', '\''] and s[-1] in ['"', '\'']
 
 def remove_quotation(s):

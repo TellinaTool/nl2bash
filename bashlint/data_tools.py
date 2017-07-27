@@ -70,9 +70,9 @@ def ast2tokens(node, loose_constraints=False, ignore_flag_order=False,
     ato = arg_type_only
     kca = keep_common_args
     wat = with_arg_type
-    wp = with_parent
+    w_par = with_parent
     ia = index_arg
-    wp = with_prefix
+    w_pre = with_prefix
 
     def to_tokens_fun(node):
         tokens = []
@@ -126,12 +126,12 @@ def ast2tokens(node, loose_constraints=False, ignore_flag_order=False,
                 token = value
             else:
                 token = node.value
-            if wp:
+            if w_par:
                 if node.parent:
                     token = node.utility.value + "@@" + token
                 else:
-                    token = "@@" + token
-            if wp:
+                    token = token
+            if w_pre:
                 token = node.simple_prefix + token
             tokens.append(token)
             for child in node.children:
@@ -196,7 +196,7 @@ def ast2tokens(node, loose_constraints=False, ignore_flag_order=False,
                         token = node.arg_type
             else:
                 token = node.value
-            if wp and node.is_open_vocab():
+            if w_pre and node.is_open_vocab():
                 token = node.simple_prefix + token
             if wat:
                 token = token + "_" + node.arg_type
@@ -216,7 +216,7 @@ def ast2command(node, loose_constraints=False, ignore_flag_order=False):
                           ignore_flag_order=ignore_flag_order)
 
 
-def ast2template(node, loose_constraints=False, ignore_flag_order=True,
+def ast2template(node, loose_constraints=False, ignore_flag_order=False,
                  arg_type_only=True, index_arg=False):
     # convert a bash AST to a template that contains only reserved words and
     # argument types flags are alphabetically ordered
@@ -272,7 +272,7 @@ def list2ast(list, order='dfs'):
 
 def is_simple(ast):
     """Check if a tree contains only high-frequency utilities."""
-    if ast.kind == "utility" and not ast.value in bash.utilities:
+    if ast.kind == "utility" and not ast.value in bash.top_100_utilities:
         return False
     for child in ast.children:
         if not is_simple(child):
