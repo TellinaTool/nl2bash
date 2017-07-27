@@ -54,20 +54,22 @@ def split_data(data_dir):
     num_test = 0
 
     for nl_temp in pairs:
-        nl, cm = pairs[nl_temp]
         ind = random.randrange(num_folds)
         if ind < num_folds - 2:
             num_train += 1
-            train_nl_list.append(nl)
-            train_cm_list.append(cm)
+            for nl, cm in pairs[nl_temp]:
+                train_nl_list.append(nl)
+                train_cm_list.append(cm)
         elif ind == num_folds - 2:
             num_dev += 1
-            dev_nl_list.append(nl)
-            dev_cm_list.append(cm)
+            for nl, cm in pairs[nl_temp]:
+                dev_nl_list.append(nl)
+                dev_cm_list.append(cm)
         elif ind == num_folds - 1:
             num_test += 1
-            test_nl_list.append(nl)
-            test_cm_list.append(cm)
+            for nl, cm in pairs[nl_temp]:
+                test_nl_list.append(nl)
+                test_cm_list.append(cm)
 
     train_path = os.path.join(data_dir, "train")
     dev_path = os.path.join(data_dir, "dev")
@@ -83,4 +85,3 @@ def split_data(data_dir):
 if __name__ == '__main__':
     data_dir = sys.argv[1]
     split_data(data_dir)
-
