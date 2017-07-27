@@ -251,6 +251,10 @@ def decode(encoder_full_inputs, model_outputs, FLAGS, vocabs, sc_fillers=None,
                         pred_token = pred_token[len('__ARG__'):]
                     if '@@' in pred_token:
                         pred_token = pred_token.split('@@')[-1]
+                    elif pred_token.startswith('__FLAG__'):
+                        pred_token = pred_token[8:]
+                    elif pred_token.startswith('__ARG__'):
+                        pred_token = pred_token[7:]
                     # process argument slots
                     if pred_token in constants._ENTITIES:
                         if token_id > 0 and slot_filling.is_min_flag(

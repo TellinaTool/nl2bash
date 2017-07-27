@@ -22,7 +22,7 @@ def split_data(data_dir):
         if not os.path.exists(data_path):
             with open(data_path, 'w') as o_f:
                 for line in data:
-                    o_f.write(line.encode('utf-8') + '\n')
+                    o_f.write(line + '\n')
                 print('{} saved'.format(data_path))
 
     nl_file_path = os.path.join(data_dir, 'nl.txt')

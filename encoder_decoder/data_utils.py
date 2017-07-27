@@ -623,6 +623,7 @@ def compute_channel_representations(vocab_path, char_vocab_path,
     vocab_token_features = np.zeros(len(vocab), dtype=np.int64)
     for v in vocab:
         idx = vocab[v]
+        print(len(vocab))
         vocab_token_features[idx] = UNK_ID \
             if v.startswith('__LF__') else idx
     np.save(vocab_token_feature_path, vocab_token_features)
@@ -777,23 +778,26 @@ def prepare_bash(FLAGS, verbose=False):
                     nl_chars = data_tools.char_tokenizer(nl)
                     cm_chars = data_tools.char_tokenizer(cm)
                     nl_tokens, _ = tokenizer.basic_tokenizer(nl)
-                    cm_tokens = data_tools.ast2tokens(
-                        ast, with_parent=True, with_prefix=True)
-                    cm_seq = data_tools.ast2list(ast, _list=[], with_parent=True)
+                    try:
+                        cm_tokens = data_tools.ast2tokens(
+                            ast, with_parent=False, with_prefix=True)
+                    except AssertionError:
+                        continue 
+                    cm_seq = data_tools.ast2list(ast, _list=[], with_parent=False)
                     nl_normalized_tokens, _ = tokenizer.ner_tokenizer(nl)
                     cm_normalized_tokens = data_tools.ast2tokens(
                         ast, arg_type_only=True, keep_common_args=False,
-                        with_parent=True, with_prefix=True)
+                        with_parent=False, with_prefix=True)
                     cm_normalized_seq = data_tools.ast2list(
                         ast, arg_type_only=True, keep_common_args=False,
-                        _list=[], with_parent=True, with_prefix=True)
+                        _list=[], with_parent=False, with_prefix=True)
                     cm_canonical_tokens = data_tools.ast2tokens(
                         ast, arg_type_only=True, keep_common_args=False,
-                        with_parent=True, ignore_flag_order=True,
+                        with_parent=False, ignore_flag_order=True,
                         with_prefix=True)
                     cm_canonical_seq = data_tools.ast2list(
                         ast, arg_type_only=True, keep_common_args=False,
-                        _list=[], with_parent=True, ignore_flag_order=True,
+                        _list=[], with_parent=False, ignore_flag_order=True,
                         with_prefix=True)
                     nl_partial_tokens, cm_partial_tokens = split_arguments(
                         nl_tokens, cm_tokens, cm_normalized_tokens)

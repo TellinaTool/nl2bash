@@ -479,8 +479,9 @@ def extract_number(value):
     if match:
         return match.group(0)
     else:
-        raise AttributeError('Cannot find number representation in pattern {}'
-                             .format(value))
+        return 'unrecognized_numerical_expression'
+        # raise AttributeError('Cannot find number representation in pattern {}'
+        #                      .format(value))
 
 def extract_filename(value, slot_type='File'):
     """Extract file names."""
@@ -517,7 +518,8 @@ def extract_filename(value, slot_type='File'):
     # special symbol
     if re.match(special_symbol_re, value):
         return value
-    raise AttributeError('Unrecognized file name {}'.format(value))
+    return 'unrecognized_file_name'
+    # raise AttributeError('Unrecognized file name {}'.format(value))
 
 def extract_permission(value):
     """Extract permission patterns."""
@@ -566,6 +568,9 @@ def extract_datetime(value):
                     date = date_year[0]
                     formatted_datetime = '{}-{}-{:02}'.format(
                         datetime.datetime.now().year, month, int(date))
+        else:
+            current_year = datetime.date.today().year
+            formatted_datetime = '{}-{}'.format(current_year, month)
         return formatted_datetime
     elif re.match(rel_day_re, value):
         if value == 'today':
@@ -628,7 +633,7 @@ def extract_timespan(value):
             unit = 'm'
         return sign + '{}{}'.format(number, unit)
     if duration_unit.startswith('s'):
-        return sign + '{}s'.format(int(number))
+        return sign + '{}s'.format(float(number))
 
     raise AttributeError("Cannot parse timespan: {}".format(value))
 

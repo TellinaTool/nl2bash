@@ -149,7 +149,7 @@ def extract_rewrites(data):
                 print()
 
 def rewrite(ast, temp):
-
+    pass
 
 
 def test_rewrite(cmd):
