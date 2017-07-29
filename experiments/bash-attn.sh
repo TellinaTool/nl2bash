@@ -6,7 +6,7 @@ ARGS=${@:1}
 
 ./bash-run.sh \
     --dataset bash \
-    --sc_token_dim 150 \
+    --sc_token_dim 200 \
     --learning_rate 0.0001 \
     --steps_per_epoch 4000 \
     --tg_token_use_attention \
