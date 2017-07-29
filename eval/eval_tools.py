@@ -425,8 +425,8 @@ def gen_eval_sheet(model, dataset, FLAGS, output_path):
             dataset, use_bucket=True, tokenizer_selector=tokenizer_selector)
 
         with DBConnection() as db:
-            for nl_temp in grouped_dataset:
-                data_group = grouped_dataset[nl_temp]
+            for nl_temp, data_group in grouped_dataset:
+                print(nl_temp)
                 nl_str = data_group[0].sc_txt
 
                 tg_strs = [dp.tg_txt for dp in data_group]
