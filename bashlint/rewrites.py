@@ -148,8 +148,9 @@ def extract_rewrites(data):
                             print("* {} --> {}".format(cm_temp1, cm_temp2))
                 print()
 
+
 def rewrite(ast, temp):
-    pass
+    return
 
 
 def test_rewrite(cmd):
