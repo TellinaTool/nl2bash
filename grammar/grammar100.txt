@@ -274,7 +274,7 @@ PrimitiveCmd ::=
 
         top [-abchHiMmOSsv::] [-d secs] [-n max] [-u user] [ -U user] [-p pid] [-o field] [-w [cols]] [pid,...]
 
-        nohup COMMAND
+        nohup COMMAND_EOS
 
         nohup [ --help ] [ --version ]
 
@@ -298,7 +298,7 @@ PrimitiveCmd ::=
 
         sed [ -n | --quiet | --silent ] [   -e script ] [ --expression=script ] [  -f script-file ] [ --file=script-file ] [ --follow-symlinks ] [   -i [~~SUFFIX] ] [ --in-place[=SUFFIX] ] [ -l N ] [ --line-length[=N] ] [ --posix ] [ -r | --regexp-extended ] [ -s | --separate ] [ -u | --unbuffered ] [ -z | --null-data ] [ --help ] [ --version ] script [input-file...]
 
-        xargs  [ -0prtx:: ]  [-E eof-str] [-e[eof-str]] [--eof[=eof-str]] [--null] [-d delimiter] [--delimiter delimiter] [-I replace-str] [-i [~~replace-str]] [--replace[=replace-str]] [-l [~~max-lines]] [-L max-lines] [--max-lines[=max-lines]] [-n max-args] [--max-args=max-args] [-s max-chars] [--max-chars=max-chars] [-P max-procs] [--max-procs=max-procs] [--interactive]  [--verbose]  [--exit]  [--no-run-if-empty]  [--arg-file=file] [--show-limits] [--version] [--help] [ --arg-file[=file] ] [ -a file ] [ --null ] [ Command_EOS ]
+        xargs  [ -0prtx:: ]  [-E eof-str] [-e [eof-str]] [--eof[=eof-str]] [--null] [-d delimiter] [--delimiter delimiter] [-I replace-str] [-i [~~replace-str]] [--replace[=replace-str]] [-l [~~max-lines]] [-L max-lines] [--max-lines[=max-lines]] [-n max-args] [--max-args=max-args] [-s max-chars] [--max-chars=max-chars] [-P max-procs] [--max-procs=max-procs] [--interactive]  [--verbose]  [--exit]  [--no-run-if-empty]  [--arg-file=file] [--show-limits] [--version] [--help] [ --arg-file[=file] ] [ -a file ] [ --null ] [ Command_EOS ]
 
         date [ -d STRING ] [ --date=STRING ] [ -f DATEFILE ] [ --file=DATEFILE ] [  -I [TIMESPEC] ] [ --iso-8601[=TIMESPEC] ] [ -r FILE ] [ --reference[=FILE] ] [ -R | --rfc-2822 ] [ --rfc-3339[=TIMESPEC] ] [ -s STRING ] [ --set[=STRING] ] [ -u | --utc | --universal ] [ -u | --utc | --universal ] [ --help ] [ --version ] [ format<+FORMAT> ]
 
