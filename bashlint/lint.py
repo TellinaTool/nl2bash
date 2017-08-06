@@ -359,7 +359,7 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
                                 normalize(tree[0], current)
                                 bash_grammar.push(token, next_state.type)
                             else:
-                                normalize(bast_node, current, "argument", 'command')
+                                normalize(bast_node, current, 'command')
                             i += 1
                         elif next_state.type == EXEC_COMMAND_S:
                             new_input = []
@@ -407,8 +407,12 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
                         matched = True
                         break
 
-                if not matched and (bast_node.kind != 'redirect' and bast_node.kind != 'operator'):
-                    raise errors.LintParsingError('Unmatched token', num_tokens, i)
+                if not matched:
+                    if bast_node.kind == 'redirect' or bast_node.kind == 'operator':
+                        i += 1
+                        matched = True
+                    else:
+                        raise errors.LintParsingError('Unmatched token', num_tokens, i)
 
             if bash_grammar.allow_eof():
                 post_process_command(head)
