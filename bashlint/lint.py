@@ -406,7 +406,7 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
                         matched = True
                         break
 
-                if not matched:
+                if not matched and (bast_node.kind != 'redirect' and bast_node.kind != 'operator'):
                     raise errors.LintParsingError('Unmatched token', num_tokens, i)
 
             if bash_grammar.allow_eof():
