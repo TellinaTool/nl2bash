@@ -398,7 +398,7 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
                             current.add_child(argument)
                             status = bash_grammar.push(token, ARG_S)
                         else:
-                            normalize(bast_node, current, "argument", next_state.arg_type)
+                            normalize(bast_node, current, next_state.arg_type)
                             status = bash_grammar.push('', ARG_S)
                         if status != '__SAME_PARENT__':
                             current = current.utility
@@ -574,7 +574,7 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
                         sub_command.children.append(repl_str_node2)
                         break
 
-    def normalize(node, current, node_kind="", arg_type=""):
+    def normalize(node, current, arg_type=""):
         # recursively normalize each subtree
         if not type(node) is bast.node:
             raise ValueError('type(node) is not bast.node')
