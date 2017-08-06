@@ -121,6 +121,7 @@ def correct_errors_and_normalize_surface(cmd):
     for w in re.findall(tar_fix, cmd):
         cmd = cmd.replace(w, w.replace(' tar ', ' tar -'))
     cmd = cmd.strip()
+
     return cmd
 
 def attach_to_tree(node, parent):
@@ -346,10 +347,10 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
                         if next_state.type == ARG_COMMAND_S:
                             if bast_node.kind == 'word' and not bast_node.parts:
                                 token = normalize_word(bast_node)
-                                if not constants.with_quotation(token):
-                                    raise errors.SubCommandError(
-                                        'Missing quotes around command string: {}'.format(token),
-                                        num_tokens, i)
+                                # if not constants.with_quotation(token):
+                                #     raise errors.SubCommandError(
+                                #         'Missing quotes around command string: {}'.format(token),
+                                #         num_tokens, i)
                                 tree = safe_bashlex_parse(token[1:-1])
                                 if tree is None:
                                     raise errors.SubCommandError(
