@@ -222,6 +222,10 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
                     bucket = []
                     bucket_size = (bucket_size[0]+10, bucket_size[1]+10)
                     print('bucket size = ({}, {})'.format(bucket_size[0], bucket_size[1]))
+        if bucket:
+            dataset.append(bucket)
+            bucket_sizes.append(bucket_size)
+
         if split in ['dev', 'test']:
             assert(buckets is not None)
             dataset = dataset[:len(buckets)]
