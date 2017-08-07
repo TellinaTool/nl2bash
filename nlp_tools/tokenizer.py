@@ -95,7 +95,7 @@ def space_tokenizer(sentence):
 
 def basic_tokenizer(sentence, lower_case=True, lemmatization=True,
                     remove_stop_words=True, correct_spell=True,
-                    separate_quotations=False, verbose=False):
+                    separate_quotations=True, verbose=False,):
     """
     Regex-based English tokenizer.
     :param sentence: input sentence.
