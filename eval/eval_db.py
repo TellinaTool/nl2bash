@@ -1,6 +1,5 @@
 """
 Database which stores model predictions and manual judgements.
-            irint(nl)
 """
 from __future__ import absolute_import
 from __future__ import division
@@ -169,7 +168,7 @@ class DBConnection(object):
                 "= ? AND temp2_id = ?", (temp1_id, temp2_id)):
             return dist
 
-    # --- Prediction ---
+    # --- Prediction --- #
 
     def add_prediction(self, model, nl, pred_cmd, score, update_mode=True):
         nl = bytes(nl, 'utf-8')
@@ -215,7 +214,7 @@ class DBConnection(object):
         sorted_predictions = sorted(predictions, key=lambda x:x[1], reverse=True)
         return sorted_predictions[:k]
 
-    # --- Manual Evaluation ---
+    # --- Manual Evaluation --- #
     
     def add_str_judgement(self, triple):
         nl, pred_cmd, judgement = triple
