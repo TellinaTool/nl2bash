@@ -236,7 +236,7 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
             else:
                 return False
 
-        def normalize_argument(node, current, arg_type):
+    def normalize_argument(node, current, arg_type):
         value = normalize_word(node, recover_quotes)
         norm_node = ArgumentNode(value=value, arg_type=arg_type)
         attach_to_tree(norm_node, current)
