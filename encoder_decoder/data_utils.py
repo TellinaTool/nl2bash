@@ -211,7 +211,7 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
             bucket_sizes = []
             if FLAGS.char:
                 bucket_size = (100, 100)
-                sc_inc, tg_inc = 50, 20
+                sc_inc, tg_inc = 50, 50
             else:
                 bucket_size = (30, 30)
                 sc_inc, tg_inc = 10, 10

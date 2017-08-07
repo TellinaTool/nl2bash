@@ -290,7 +290,7 @@ def main(_):
                 train, decode, eval, train_set, dataset)
         else:
             # Train the model.
-            model = define_model(forward_only=True, buckets=train_set.buckets)
+            model = define_model(forward_only=False, buckets=train_set.buckets)
             train(model, train_set, dataset)
 
             # Decode the new model on the development set.
