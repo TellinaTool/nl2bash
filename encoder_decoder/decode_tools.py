@@ -395,7 +395,7 @@ def decode_set(sess, model, dataset, top_k, FLAGS, verbose=True):
     nl2bash = FLAGS.dataset.startswith('bash') and not FLAGS.explain
 
     tokenizer_selector = 'cm' if FLAGS.explain else 'nl'
-    grouped_dataset = data_utils.group_data(
+    grouped_dataset = data_utils.group_parallel_data(
         dataset, use_bucket=model.buckets, use_temp=FLAGS.normalized,
         tokenizer_selector=tokenizer_selector)
     vocabs = data_utils.load_vocab(FLAGS)
