@@ -29,11 +29,13 @@ def char_tokenizer(sentence):
 
 
 def bash_tokenizer(cmd, recover_quotation=True, loose_constraints=False,
-        ignore_flag_order=False, arg_type_only=False, with_parent=False):
+        ignore_flag_order=False, arg_type_only=False, with_parent=False,
+        with_prefix=False, with_suffix=False):
     """Tokenize a bash command."""
     tree = lint.normalize_ast(cmd, recover_quotation)
     return ast2tokens(tree, loose_constraints, ignore_flag_order,
-                      arg_type_only, with_parent=with_parent)
+                      arg_type_only, with_parent=with_parent,
+                      with_prefix=with_prefix, with_suffix=with_suffix)
 
 
 def bash_parser(cmd, recover_quotation=True):
@@ -56,8 +58,8 @@ def pretty_print(node, depth=0):
 
 def ast2tokens(node, loose_constraints=False, ignore_flag_order=False,
                arg_type_only=False, keep_common_args=False,
-               with_arg_type=False, with_parent=False,
-               index_arg=False, with_prefix=False):
+               with_arg_type=False, with_parent=False, index_arg=False,
+               with_prefix=False, with_suffix=False):
     """
     Convert a bash ast into a list of tokens.
     """
@@ -72,7 +74,6 @@ def ast2tokens(node, loose_constraints=False, ignore_flag_order=False,
     wat = with_arg_type
     w_par = with_parent
     ia = index_arg
-    w_pre = with_prefix
 
     def to_tokens_fun(node):
         tokens = []
@@ -131,8 +132,14 @@ def ast2tokens(node, loose_constraints=False, ignore_flag_order=False,
                     token = node.utility.value + "@@" + token
                 else:
                     token = token
-            if w_pre:
+            if with_prefix:
                 token = node.simple_prefix + token
+            if with_suffix:
+                suffix = ''
+                if node.children:
+                    for child in node.children:
+                        suffix += child.arg_type
+                token = token + '__' + suffix
             tokens.append(token)
             for child in node.children:
                 tokens += to_tokens_fun(child)
