@@ -227,24 +227,24 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
             else:
                 return False
 
-    def node_with_quotes(node):
-        return cmd[node.pos[0]] in ['"', '\''] \
-            or cmd[node.pos[1]-1] in ['"', '\'']
-
-    def recover_node_quotes(node):
-        return cmd[node.pos[0] : node.pos[1]]
-
-    def normalize_word(node, recover_quotes=True):
-        w = recover_node_quotes(node) if recover_quotes else node.word
-        return w
-
-    def normalize_argument(node, current, arg_type):
+        def normalize_argument(node, current, arg_type):
         value = normalize_word(node, recover_quotes)
         norm_node = ArgumentNode(value=value, arg_type=arg_type)
         attach_to_tree(norm_node, current)
         return norm_node
 
     def normalize_command(node, current=None):
+        def node_with_quotes(node):
+            return cmd[node.pos[0]] in ['"', '\''] \
+                or cmd[node.pos[1]-1] in ['"', '\'']
+
+        def recover_node_quotes(node):
+            return cmd[node.pos[0] : node.pos[1]]
+
+        def normalize_word(node, recover_quotes=True):
+            w = recover_node_quotes(node) if recover_quotes else node.word
+            return w
+
         bash_grammar = BashGrammar()
         bash_grammar.name2type = bg.name2type
 
@@ -289,7 +289,6 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
 
             while i < len(input):
                 bast_node = input[i]
-
                 # examine each possible next states in order
                 matched = False
                 for next_state in bash_grammar.next_states:
@@ -349,20 +348,18 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
                                 token = normalize_word(bast_node)
                                 if constants.with_quotation(token):
                                     tree = safe_bashlex_parse(token[1:-1])
+                                    if tree is None:
+                                        raise errors.SubCommandError(
+                                            'Error in subcommand string: {}'.format(token),
+                                            num_tokens, i)
+                                    normalize(tree[0], current)
+                                    bash_grammar.push(token, next_state.type)
+                                    i += 1
                                 else:
-                                    # raise errors.SubCommandError(
-                                    #     'Missing quotes around command string: {}'.format(token),
-                                    #     num_tokens, i)
-                                    tree = safe_bashlex_parse(token)
-                                if tree is None:
-                                    raise errors.SubCommandError(
-                                        'Error in subcommand string: {}'.format(token),
-                                        num_tokens, i)
-                                normalize(tree[0], current)
-                                bash_grammar.push(token, next_state.type)
+                                    continue
                             else:
                                 normalize(bast_node, current, 'command')
-                            i += 1
+                                i += 1
                         elif next_state.type == EXEC_COMMAND_S:
                             new_input = []
                             j = i
