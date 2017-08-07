@@ -170,7 +170,7 @@ def read_data(FLAGS, split, source, target, buckets=None,
                         data_point.sc_ids = \
                             get_source_ids(sc_id_file.readline().strip())
                         data_point.tg_ids = \
-                            get_target_ids(tg_id_file.readlines().strip())
+                            get_target_ids(tg_id_file.readline().strip())
                         if buckets:
                             for bucket_id, (sc_size, tg_size) in enumerate(buckets):
                                 if len(data_point.sc_ids) < sc_size \
@@ -275,7 +275,7 @@ def prepare_dataset(data_dir, split):
             cm_char_file.write('{}\n'.format(' '.join([str(x) for x in cm_char_ids])))
 
     # token-based processing
-    nl_tokens, cm_tokens = tokenize_parallel_data(nl_path, cm_path)
+    nl_tokens, cm_tokens = tokenize_parallel_data(nl_list, cm_list)
     nl_vocab_path = os.path.join(data_dir, 'nl.vocab.token')
     cm_vocab_path = os.path.join(data_dir, 'cm.vocab.token')
     if split == 'train':
@@ -305,16 +305,31 @@ def read_parallel_data(nl_path, cm_path):
 
 
 def characterize_parallel_data(nl_list, cm_list):
-    nl_data = [[c for c in nl] for nl in nl_list]
-    cm_data = [[c for c in cm] for cm in cm_list]
+    nl_data = []
+    for nl in nl_list:
+        nl_data_point = []
+        for c in nl:
+            if c == ' ':
+                nl_data_point.append(constants._SPACE)
+            else:
+                nl_data_point.append(c)
+        nl_data.append(nl_data_point)
+    cm_data = []
+    for cm in cm_list:
+        cm_data_point = []
+        for c in cm:
+            if c == ' ':
+                cm_data_point.append(constants._SPACE)
+            else:
+                cm_data_point.append(c)
+        cm_data.append(cm_data_point)
     return nl_data, cm_data
 
 
 def tokenize_parallel_data(nl_list, cm_list):
     nl_data = [nl_to_tokens(nl, tokenizer.basic_tokenizer)
                          for nl in nl_list]
-    cm_data = [cm_to_tokens(cm, data_tools.bash_tokenizer,
-                                      with_suffix=True)
+    cm_data = [cm_to_tokens(cm, data_tools.bash_tokenizer)
                          for cm in cm_list]
     return nl_data, cm_data
 
@@ -359,11 +374,12 @@ def nl_to_token_ids(s, tokenizer, vocabulary):
     return token_ids
 
 
-def cm_to_tokens(s, tokenizer, with_suffix=True):
+def cm_to_tokens(s, tokenizer, loose_constraints=True, with_suffix=True):
     """
     Split a command string into a sequence of tokens.
     """
-    tokens = tokenizer(s, with_suffix=with_suffix)
+    tokens = tokenizer(s, loose_constraints=loose_constraints, 
+                       with_suffix=with_suffix)
     return tokens
 
 
@@ -410,10 +426,10 @@ def create_nl_vocabulary(vocab_path, dataset, min_word_frequency=1,
         for v in vocab:
             vocab_file.write('{}\n'.format(v))
 
-    return vocab
+    return dict([(x, y) for y, x in enumerate(vocab)])
 
 
-def create_cm_vocabulary(vocab_path, dataset, min_word_frequency,
+def create_cm_vocabulary(vocab_path, dataset, min_word_frequency=1,
                          tokenizer=None, is_character_model=False):
     """
     Compute the natural language vocabulary and save to file.
@@ -441,7 +457,7 @@ def create_cm_vocabulary(vocab_path, dataset, min_word_frequency,
         for v in vocab:
             vocab_file.write('{}\n'.format(v))
 
-    return vocab
+    return dict([(x, y) for y, x in enumerate(vocab)])
 
 
 def group_parallel_data(dataset, attribute='source', use_bucket=False,
