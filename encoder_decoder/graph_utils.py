@@ -42,9 +42,9 @@ def define_model(FLAGS, model_constructor, buckets, forward_only):
 
     params["tg_token_use_attention"] = FLAGS.tg_token_use_attention
 
-    # params["sc_token"] = FLAGS.sc_token
+    params["sc_token"] = FLAGS.sc_token
     # params["sc_token_dim"] = FLAGS.sc_token_dim
-    # params["sc_char"] = FLAGS.sc_char
+    params["sc_char"] = FLAGS.sc_char
     # params["sc_char_vocab_size"] = FLAGS.sc_char_vocab_size
     # params["sc_char_dim"] = FLAGS.sc_char_dim
     # params["sc_char_composition"] = FLAGS.sc_char_composition
@@ -55,7 +55,8 @@ def define_model(FLAGS, model_constructor, buckets, forward_only):
     # params["sc_char_features_path"] = os.path.join(
     #     FLAGS.data_dir, "{}.vocab.char.feature.npy".format(source))
 
-    # params["tg_char"] = FLAGS.tg_char
+    params["tg_token"] = FLAGS.tg_token
+    params["tg_char"] = FLAGS.tg_char
     # params["tg_char_vocab_size"] = FLAGS.tg_char_vocab_size
     # params["tg_char_composition"] = FLAGS.tg_char_composition
     # params["tg_char_use_attention"] = FLAGS.tg_char_use_attention
