@@ -143,9 +143,18 @@ def detach_from_tree(node, parent):
     node.rsb = None
     node.lsb = None
 
-def safe_bashlex_parse(cmd):
+def increment_bashlex_tree_offset(tree, offset):
+    if tree.kind == 'word':
+        tree.pos = (tree.pos[0]+offset, tree.pos[1]+offset)
+    if tree.parts:
+        for child in tree.parts:
+            increment_bashlex_tree_offset(child, offset)
+
+def safe_bashlex_parse(cmd, start_pos = 0):
     try:
         tree = bparser.parse(cmd)
+        if start_pos > 0:
+            increment_bashlex_tree_offset(tree[0], start_pos)
     except tokenizer.MatchedPairError:
         print("Bashlex cannot parse: %s - MatchedPairError" % cmd)
         return None
@@ -348,12 +357,12 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
                             if bast_node.kind == 'word' and not bast_node.parts:
                                 token = normalize_word(bast_node)
                                 if constants.with_quotation(token):
-                                    tree = safe_bashlex_parse(token[1:-1])
+                                    subcommand = token[1:-1]
+                                    start_pos = bast_node.pos[0] + 1
                                 else:
-                                    # raise errors.SubCommandError(
-                                    #     'Missing quotes around command string: {}'.format(token),
-                                    #     num_tokens, i)
-                                    tree = safe_bashlex_parse(token)
+                                    subcommand = token
+                                    start_pos = bast_node.pos[0]
+                                tree = safe_bashlex_parse(subcommand, start_pos=start_pos)
                                 if tree is None:
                                     raise errors.SubCommandError(
                                         'Error in subcommand string: {}'.format(token),
