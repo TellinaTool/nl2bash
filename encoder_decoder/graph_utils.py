@@ -421,17 +421,10 @@ class NNModel(object):
     def beta_x(self):
         return self.hyperparams["beta_x"]
 
-    @property
-    def source_token_embedding_size(self):
-        return self.hyperparams["source_token_embedding_size"]
 
     @property
     def source_vocab_size(self):
         return self.hyperparams["source_vocab_size"]
-
-    @property
-    def target_token_embedding_size(self):
-        return self.hyperparams["target_token_embedding_size"]
 
     @property
     def target_vocab_size(self):
