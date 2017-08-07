@@ -24,7 +24,6 @@ import tensorflow as tf
 
 from bashlint import data_tools
 from encoder_decoder import classifiers
-from encoder_decoder import data_stats
 from encoder_decoder import data_utils
 from encoder_decoder import decode_tools
 from encoder_decoder import graph_utils
@@ -210,45 +209,6 @@ def write_predictions_to_file(test_file, output_file):
         model = create_model(sess, forward_only=True)
         decode_tools.write_predictions_to_file(
             test_file, output_file, sess, model, FLAGS)
-
-
-def cross_validation(train_set):
-    num_folds = FLAGS.num_folds
-    print("======== {}-fold Cross Validation ========".format(num_folds))
-
-    match_scores = []
-    dists = []
-
-    # divide training data into N-folds
-    train_folds = data_utils.fold_split_bucket(train_set, num_folds)
-    for fold_id in xrange(num_folds):
-        print("\nFold {}\n".format(fold_id))
-        if _buckets:
-            cv_train_set = [[] for _ in xrange(len(_buckets))]
-        else:
-            cv_train_set = []
-        for i in xrange(num_folds):
-            if i != fold_id:
-                if _buckets:
-                    for bucket_id in xrange(len(_buckets)):
-                        cv_train_set[bucket_id] += train_folds[i][bucket_id]
-                else:
-                    cv_train_set += train_folds[i]
-        cv_dev_set = train_folds[fold_id]
-        train(cv_train_set, cv_dev_set)
-        tf.reset_default_graph()
-        model_dir, decode_sig = decode(cv_dev_set)
-        tf.reset_default_graph()
-        match_score, _, dist, _ = \
-            eval(cv_dev_set, model_dir, decode_sig, verbose=False)
-        match_scores.append(match_score)
-        dists.append(dist)
-
-    print("cross validation template match score = {}"
-          .format(sum(match_scores) / num_folds))
-    print("cross validation template distance = {}"
-          .format(sum(dists) / num_folds))
-
 
 # --- Schedule experiments --- #
 
@@ -494,26 +454,11 @@ def gen_slot_filling_training_data_fun(sess, model, dataset, output_file):
 
 # --- Pre-processing --- #
 
-def load_data(use_buckets=True, load_mappings=True, load_pointers=True):
-    if use_buckets:
-        return data_utils.load_data(FLAGS, _buckets,
-                                    load_mappings=load_mappings,
-                                    load_pointers=load_pointers)
-    else:
-        return data_utils.load_data(FLAGS, None,
-                                    load_mappings=load_mappings,
-                                    load_pointers=load_pointers)
-
-
 def process_data():
     print("Preparing data in %s" % FLAGS.data_dir)
     data_utils.prepare_data(FLAGS)
 
 # --- Data Statistics --- #
-
-def data_statistics():
-    data_stats.data_stats(FLAGS)
-
 
 def main(_):
     # set GPU device
@@ -567,14 +512,8 @@ def main(_):
                          .format(FLAGS.decoder_topology))
     print("Saving models to {}".format(FLAGS.model_root_dir))
 
-    if FLAGS.data_stats:
-        data_statistics()
-    elif FLAGS.process_data:
+    if FLAGS.process_data:
         process_data()
-
-    elif FLAGS.write_predictions_to_file:
-        write_predictions_to_file(os.path.join(FLAGS.data_dir, '..', 'reader',
-            'data.final0502', 'test.3112.cm'), 'test.3112.explain')
 
     elif FLAGS.eval_local_slot_filling:
         train_path = os.path.join(FLAGS.model_dir, 'train.mappings.X.Y.npz')
@@ -585,9 +524,8 @@ def main(_):
         demo()
 
     else:
-        train_set, dev_set, test_set = load_data(
-            load_mappings=FLAGS.dataset.startswith("bash"),
-            load_pointers=FLAGS.dataset.startswith("bash"))
+        train_set, dev_set, test_set = \
+            data_utils.load_data(FLAGS, _buckets,load_mappings=False)
         dataset = test_set if FLAGS.test else dev_set
         if FLAGS.gen_eval_sheet:
             gen_eval_sheet(dataset)
@@ -609,8 +547,6 @@ def main(_):
         elif FLAGS.schedule_experiments:
             schedule_experiments(
                 train, decode, eval, train_set, dataset)
-        elif FLAGS.cross_valid:
-            cross_validation(train_set)
         else:
             # Train the model.
             train(train_set, dataset)
