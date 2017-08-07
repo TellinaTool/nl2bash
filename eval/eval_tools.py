@@ -44,7 +44,7 @@ def eval_set(model_dir, decode_sig, dataset, top_k, FLAGS, verbose=True):
     use_bucket = False if "knn" in model_dir else True
 
     tokenizer_selector = 'cm' if FLAGS.explain else 'nl'
-    grouped_dataset = data_utils.group_data(
+    grouped_dataset = data_utils.group_parallel_data(
         dataset, use_bucket=use_bucket, 
         use_temp=(eval_bash and FLAGS.normalized),
         tokenizer_selector=tokenizer_selector)
@@ -209,7 +209,7 @@ def manual_eval(model, dataset, FLAGS, output_dir, num_eval=None):
     eval_bash = FLAGS.dataset.startswith("bash")
     use_bucket = False if model == "knn" else True
     tokenizer_selector = 'cm' if FLAGS.explain else 'nl'
-    grouped_dataset = data_utils.group_data(
+    grouped_dataset = data_utils.group_parallel_data(
         dataset, use_bucket=use_bucket, use_temp=eval_bash,
         tokenizer_selector=tokenizer_selector)
 
@@ -421,7 +421,7 @@ def gen_eval_sheet(model, dataset, FLAGS, output_path):
         cmd_parser = data_tools.bash_parser if eval_bash \
             else data_tools.paren_parser
         tokenizer_selector = "cm" if FLAGS.explain else "nl"
-        grouped_dataset = data_utils.group_data(
+        grouped_dataset = data_utils.group_parallel_data(
             dataset, use_bucket=True, tokenizer_selector=tokenizer_selector)
 
         with DBConnection() as db:
