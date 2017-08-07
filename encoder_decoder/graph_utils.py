@@ -13,7 +13,7 @@ from tensorflow.python.util import nest
 from encoder_decoder import data_utils
 
 
-def define_model(FLAGS, model_constructor, buckets, forward_only):
+def define_model(FLAGS, session, model_constructor, buckets, forward_only):
     source, target = ('nl', 'cm') if not FLAGS.explain else ('cm', 'nl')
 
     params = collections.defaultdict()
@@ -146,10 +146,6 @@ def define_model(FLAGS, model_constructor, buckets, forward_only):
         FLAGS.grammatical_only = False
 
     model = model_constructor(params, buckets)
-    return model
-
-
-def initialize_model(FLAGS, model, session, forward_only):
     if forward_only or FLAGS.gen_slot_filling_training_data or \
             not FLAGS.create_fresh_params:
         ckpt = tf.train.get_checkpoint_state(
@@ -174,6 +170,8 @@ def initialize_model(FLAGS, model, session, forward_only):
         else:
             print("Initialize the graph with random parameters.")
             session.run(tf.global_variables_initializer())
+
+    return model
 
 
 def get_decode_signature(FLAGS):
