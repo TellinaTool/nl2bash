@@ -138,7 +138,10 @@ def ast2tokens(node, loose_constraints=False, ignore_flag_order=False,
                 suffix = ''
                 if node.children:
                     for child in node.children:
-                        suffix += child.arg_type
+                        if child.is_argument():
+                            suffix += child.arg_type
+                        elif child.is_utility():
+                            suffix += 'UTILITY'
                 token = token + '__' + suffix
             tokens.append(token)
             for child in node.children:
@@ -203,7 +206,7 @@ def ast2tokens(node, loose_constraints=False, ignore_flag_order=False,
                         token = node.arg_type
             else:
                 token = node.value
-            if w_pre and node.is_open_vocab():
+            if with_prefix and node.is_open_vocab():
                 token = node.simple_prefix + token
             if wat:
                 token = token + "_" + node.arg_type
