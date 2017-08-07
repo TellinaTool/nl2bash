@@ -39,27 +39,27 @@ parse_args.define_input_flags()
 
 # --- Define models --- #
 
-def define_model(forward_only, buckets=None):
+def define_model(session, forward_only, buckets=None):
     """
     Refer to parse_args.py for model parameter explanations.
     """
     if FLAGS.decoder_topology in ['basic_tree']:
         return graph_utils.define_model(
-            FLAGS, Seq2TreeModel, buckets, forward_only)
+            FLAGS, session, Seq2TreeModel, buckets, forward_only)
     elif FLAGS.decoder_topology in ['rnn']:
         return graph_utils.define_model(
-            FLAGS, Seq2SeqModel, buckets, forward_only)
+            FLAGS, session, Seq2SeqModel, buckets, forward_only)
     else:
         raise ValueError("Unrecognized decoder topology: {}."
                          .format(FLAGS.decoder_topology))
 
 # --- Run/train encoder-decoder models --- #
 
-def train(model, train_set, test_set):
+def train(train_set, test_set):
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
         log_device_placement=FLAGS.log_device_placement)) as sess:
         # Initialize model parameters
-        graph_utils.initialize_model(FLAGS, model, sess, forward_only=False)
+        model = define_model(sess, forward_only=True, buckets=train_set.buckets)
 
         train_bucket_sizes = [len(train_set.data_points[b])
                               for b in xrange(len(train_set.buckets))]
@@ -148,15 +148,17 @@ def train(model, train_set, test_set):
 
                 sys.stdout.flush()
 
-    return True
+        return model
 
 
-def decode(model, data_set, verbose=True):
+def decode(data_set, buckets=None, verbose=True):
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
         log_device_placement=FLAGS.log_device_placement)) as sess:
         # Initialize model parameters.
+        model = define_model(sess, forward_only=True, buckets=buckets)
         graph_utils.initialize_model(FLAGS, model, sess, forward_only=True)
         decode_tools.decode_set(sess, model, data_set, 3, FLAGS, verbose)
+        return model
 
 
 def eval(data_set, model_dir=None, decode_sig=None, verbose=True):
@@ -184,11 +186,11 @@ def gen_eval_sheet(dataset):
     print("prediction results saved to {}".format(output_path))
 
 
-def demo(model):
+def demo(buckets=None):
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
         log_device_placement=FLAGS.log_device_placement)) as sess:
         # Initialize model parameters.
-        graph_utils.initialize_model(FLAGS, model, sess, forward_only=True)
+        model = define_model(sess, forward_only=True, buckets=buckets)
         decode_tools.demo(sess, model, FLAGS)
 
 # --- Schedule experiments --- #
@@ -275,14 +277,12 @@ def main(_):
             manual_eval(dataset, 100)
 
         elif FLAGS.decode:
-            model = define_model(forward_only=True, buckets=train_set.buckets)
-            decode(model, dataset)
+            model = decode(dataset, buckets=train_set.buckets)
             if not FLAGS.explain:
                 eval(dataset, model.model_dir, model.decode_sig, verbose=False)
 
         elif FLAGS.demo:
-            model = define_model(forward_only=True, buckets=train_set.buckets)
-            demo(model)
+            demo(buckets=train_set.buckets)
 
         elif FLAGS.grid_search:
             meta_experiments.grid_search(
@@ -292,12 +292,11 @@ def main(_):
                 train, decode, eval, train_set, dataset)
         else:
             # Train the model.
-            model = define_model(forward_only=False, buckets=train_set.buckets)
-            train(model, train_set, dataset)
+            train(train_set, dataset)
 
             # Decode the new model on the development set.
             tf.reset_default_graph()
-            decode(dataset)
+            decode(dataset, buckets=train_set.buckets)
 
             # Run automatic evaluation on the development set.
             if not FLAGS.explain:
