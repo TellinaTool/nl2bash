@@ -426,18 +426,13 @@ def gen_eval_sheet(model, dataset, FLAGS, output_path):
 
         with DBConnection() as db:
             for nl_temp, data_group in grouped_dataset:
-                print(nl_temp)
-                nl_str = data_group[0].sc_txt
-
                 tg_strs = [dp.tg_txt for dp in data_group]
                 gt_trees = [cmd_parser(cm_str) for cm_str in tg_strs]
-                if any(data_tools.is_low_frequency(t) for t in gt_trees):
-                    continue
                 gt_trees = gt_trees + [cmd_parser(cmd)
-                                       for cmd in db.get_correct_temps(nl_str)]
+                                       for cmd in db.get_correct_temps(nl_temp)]
 
-                predictions = db.get_top_k_predictions(model, nl_str, k=10)
-
+                predictions = db.get_top_k_predictions(model, nl_temp, k=10)
+                print(nl_temp) 
                 example_id += 1
 
                 for i in xrange(min(3, len(predictions))):
