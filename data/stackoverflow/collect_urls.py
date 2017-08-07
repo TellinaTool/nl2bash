@@ -18,6 +18,7 @@ from bashlint import bash, data_tools
 CODE_REGEX = re.compile(r"<pre><code>([^<]+)<\/code><\/pre>")
 NUM_COMMAND_THRESHOLD = 40
 
+
 def extract_code(text):
     for match in CODE_REGEX.findall(text):
         if match.strip():

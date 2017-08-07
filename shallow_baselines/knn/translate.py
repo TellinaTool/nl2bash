@@ -32,8 +32,8 @@ data_dir = FLAGS.data_dir
 model_name = "knn"
 
 def decode_set(model, dataset, rev_sc_vocab, rev_tg_vocab, verbose=True):
-    grouped_dataset = data_utils.group_data_by_nl(dataset, use_bucket=False,
-                                                  use_temp=False)
+    grouped_dataset = data_utils.group_parallel_data(dataset, use_bucket=False,
+                                                     use_temp=False)
 
     with DBConnection() as db:
         db.remove_model(model_name)
