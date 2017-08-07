@@ -43,7 +43,7 @@ def define_model(FLAGS, model_constructor, buckets, forward_only):
     params["tg_token_use_attention"] = FLAGS.tg_token_use_attention
 
     params["sc_token"] = FLAGS.sc_token
-    # params["sc_token_dim"] = FLAGS.sc_token_dim
+    params["sc_token_dim"] = FLAGS.sc_token_dim
     params["sc_char"] = FLAGS.sc_char
     # params["sc_char_vocab_size"] = FLAGS.sc_char_vocab_size
     # params["sc_char_dim"] = FLAGS.sc_char_dim
