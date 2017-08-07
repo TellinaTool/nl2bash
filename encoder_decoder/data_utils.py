@@ -211,10 +211,10 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
             bucket_sizes = []
             if FLAGS.char:
                 bucket_size = (100, 100)
-                inc = 50
+                sc_inc, tg_inc = 50, 20
             else:
                 bucket_size = (30, 30)
-                inc = 10
+                sc_inc, tg_inc = 10, 10
             print_bucket_size(bucket_size)
             bucket = []
             for i in range(len(sorted_dataset)):
@@ -230,7 +230,7 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
                         dataset.append(bucket)
                         bucket_sizes.append(bucket_size)
                         bucket = []
-                        bucket_size = (bucket_size[0]+inc, bucket_size[1]+inc)
+                        bucket_size = (bucket_size[0]+sc_inc, bucket_size[1]+tg_inc)
                         print_bucket_size(bucket_size)
             if bucket:
                 dataset.append(bucket)
