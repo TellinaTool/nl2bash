@@ -257,8 +257,10 @@ def main(_):
         vocab = data_utils.load_vocabulary(FLAGS)
 
         print("Set dataset parameters")
-        FLAGS.max_sc_length = train_set.max_sc_length
-        FLAGS.max_tg_length = train_set.max_tg_length
+        FLAGS.max_sc_length = train_set.max_sc_length if not train_set.buckets else \
+            train_set.buckets[-1][0]
+        FLAGS.max_tg_length = train_set.max_tg_length if not train_set.buckets else \
+            train_set.buckets[-1][1]
         FLAGS.sc_vocab_size = len(vocab.sc_vocab)
         FLAGS.tg_vocab_size = len(vocab.tg_vocab)
         FLAGS.max_sc_token_size = vocab.max_sc_token_size
