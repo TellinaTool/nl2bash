@@ -44,7 +44,7 @@ def demo(sess, model, FLAGS):
     sys.stdout.flush()
     sentence = sys.stdin.readline()
 
-    vocabs = data_utils.load_vocab(FLAGS)
+    vocabs = data_utils.load_vocabulary(FLAGS)
 
     while sentence:
         batch_outputs, output_logits = translate_fun(sentence, sess, model,
@@ -395,7 +395,7 @@ def decode_set(sess, model, dataset, top_k, FLAGS, verbose=True):
     grouped_dataset = data_utils.group_parallel_data(
         dataset.data_points, use_bucket=model.buckets, use_temp=FLAGS.normalized,
         tokenizer_selector=tokenizer_selector)
-    vocabs = data_utils.load_vocab(FLAGS)
+    vocabs = data_utils.load_vocabulary(FLAGS)
     rev_sc_vocab = vocabs.rev_sc_vocab
 
     if FLAGS.fill_argument_slots:
