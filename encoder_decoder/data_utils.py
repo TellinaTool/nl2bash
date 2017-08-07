@@ -265,7 +265,7 @@ def load_vocabulary(FLAGS):
     vocab.max_tg_token_size = max_tg_token_size
 
     print('source vocabulary size = {}'.format(len(vocab.sc_vocab)))
-    print('target vocabulary size = {}'.foramt(len(vocab.tg_vocab)))
+    print('target vocabulary size = {}'.format(len(vocab.tg_vocab)))
     print('max source token size = {}'.format(vocab.max_sc_token_size))
     print('max target token size = {}'.format(vocab.max_tg_token_size))
 

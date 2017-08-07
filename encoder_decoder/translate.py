@@ -253,7 +253,7 @@ def main(_):
 
     else:
         train_set, dev_set, test_set = \
-            data_utils.load_data(FLAGS, use_bucket=True, load_mappings=False)
+            data_utils.load_data(FLAGS, use_buckets=True, load_mappings=False)
         vocab = data_utils.load_vocabulary(FLAGS)
 
         print("Set dataset parameters")
