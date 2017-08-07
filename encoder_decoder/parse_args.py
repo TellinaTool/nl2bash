@@ -66,16 +66,6 @@ def define_input_flags():
 
     # data hyperparameters
     tf.app.flags.DEFINE_string("dataset", "bash", "select dataset to use.")
-    tf.app.flags.DEFINE_integer("nl_known_vocab_size", 1000, "natural language vocabulary size.")
-    tf.app.flags.DEFINE_integer("nl_vocab_size", 1000, "natural language vocabulary size " +
-                                                       "(including unknown tokens).")
-    tf.app.flags.DEFINE_integer("cm_known_vocab_size", 1000, "command vocabulary size.")
-    tf.app.flags.DEFINE_integer("cm_vocab_size", 1000, "command vocabulary size " +
-                                                       "(including unknown tokens).")
-    tf.app.flags.DEFINE_integer("max_sc_length", 30, "maximum length of the source token sequence.")
-    tf.app.flags.DEFINE_integer("max_tg_length", 40, "maximum length of the target token sequence.")
-    tf.app.flags.DEFINE_integer("max_sc_token_size", 60, "maximum number of characters in a source token.")
-    tf.app.flags.DEFINE_integer("max_tg_token_size", 60, "maximum number of characters in a target token.")
     tf.app.flags.DEFINE_string("data_dir", os.path.join(os.path.dirname(__file__), "data"), "Data directory")
     tf.app.flags.DEFINE_boolean("sample_train", False, "Train on a subset of data if this is set to True.")
     tf.app.flags.DEFINE_integer("sample_size", 200, "Training data sample size")
@@ -179,12 +169,9 @@ def define_input_flags():
     tf.app.flags.DEFINE_boolean("sc_token", True,
                                 "Set to True to turn on the token channel in the encoder. On by default.")
     tf.app.flags.DEFINE_integer("sc_token_embedding_size", 1000, "source word embedding size.")
-    tf.app.flags.DEFINE_integer("sc_vocab_size", 1000, "source vocabulary size " +
-                                                       "(including low-frequency tokens).")
     tf.app.flags.DEFINE_integer("sc_token_dim", 300, "Basic token embedding dimensions.")
     tf.app.flags.DEFINE_boolean("sc_char", False,
                                 "Set to True to turn on the character channel in the encoder. Off by default.")
-    tf.app.flags.DEFINE_integer("sc_char_vocab_size", 1000, "source character vocabulary size.")
     tf.app.flags.DEFINE_integer("sc_char_dim", 300, "Dimension of each character embeddings.")
     tf.app.flags.DEFINE_string("sc_char_composition", 'rnn', "Specify the character to token composition function.")
     tf.app.flags.DEFINE_string("sc_char_rnn_cell", 'gru', "Type of RNN cell to use for the character model.")
@@ -192,11 +179,8 @@ def define_input_flags():
                                 "Number of layers in the RNN cell used for the character model.")
 
     tf.app.flags.DEFINE_integer("tg_token_embedding_size", 1000, "target word embedding size.")
-    tf.app.flags.DEFINE_integer("tg_vocab_size", 1000, "target vocabulary size " +
-                                                       "(including low-frequency tokens).")
     tf.app.flags.DEFINE_boolean("tg_char", False,
                                 "Set to True to turn on character RNN extention module in the decoder.")
-    tf.app.flags.DEFINE_integer("tg_char_vocab_size", 150, "Target character vocabulary size.")
     tf.app.flags.DEFINE_string("tg_char_composition", 'rnn',
                                "Specify the model configuration used for character generation in the target.")
     tf.app.flags.DEFINE_string("tg_char_rnn_cell", 'gru', "Type of RNN cell to use for the character model.")

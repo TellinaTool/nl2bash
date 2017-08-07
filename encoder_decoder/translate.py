@@ -22,7 +22,6 @@ from tqdm import tqdm
 
 import tensorflow as tf
 
-from bashlint import data_tools
 from encoder_decoder import classifiers
 from encoder_decoder import data_utils
 from encoder_decoder import decode_tools
@@ -38,36 +37,32 @@ from nlp_tools import tokenizer, slot_filling, constants
 FLAGS = tf.app.flags.FLAGS
 parse_args.define_input_flags()
 
-_buckets = graph_utils.get_buckets(FLAGS)
+# --- Define models --- #
 
-
-def create_model(session, forward_only, buckets=None):
+def define_model(forward_only, buckets=None):
     """
-    Refer parse_args.py for model parameter explanations.
+    Refer to parse_args.py for model parameter explanations.
     """
-    if buckets is None:
-        buckets = _buckets
-
     if FLAGS.decoder_topology in ['basic_tree']:
-        return graph_utils.create_model(
-            session, FLAGS, Seq2TreeModel, buckets, forward_only)
+        return graph_utils.define_model(
+            FLAGS, Seq2TreeModel, buckets, forward_only)
     elif FLAGS.decoder_topology in ['rnn']:
-        return graph_utils.create_model(
-            session, FLAGS, Seq2SeqModel, buckets, forward_only)
+        return graph_utils.define_model(
+            FLAGS, Seq2SeqModel, buckets, forward_only)
     else:
         raise ValueError("Unrecognized decoder topology: {}."
                          .format(FLAGS.decoder_topology))
 
 # --- Run/train encoder-decoder models --- #
 
-def train(train_set, dev_set):
+def train(model, train_set, test_set):
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
         log_device_placement=FLAGS.log_device_placement)) as sess:
+        # Initialize model parameters
+        graph_utils.initialize_model(FLAGS, model, sess, forward_only=False)
 
-        # Create model.
-        model = create_model(sess, forward_only=False)
-
-        train_bucket_sizes = [len(train_set[b]) for b in xrange(len(_buckets))]
+        train_bucket_sizes = [len(train_set.data_points[b])
+                              for b in xrange(len(train_set.buckets))]
         train_total_size = float(sum(train_bucket_sizes))
 
         # A bucket scale is a list of increasing numbers from 0 to 1 that we'll
@@ -91,7 +86,7 @@ def train(train_set, dev_set):
                 random_number_01 = np.random.random_sample()
                 bucket_id = min([i for i in xrange(len(train_buckets_scale))
                                  if train_buckets_scale[i] > random_number_01])
-                formatted_example = model.get_batch(train_set, bucket_id)
+                formatted_example = model.get_batch(train_set.data_points, bucket_id)
                 model_outputs = model.step(
                     sess, formatted_example, bucket_id, forward_only=False)
                 loss += model_outputs.losses
@@ -126,20 +121,20 @@ def train(train_set, dev_set):
 
                 epoch_time, loss, dev_loss = 0.0, 0.0, 0.0
                 # Run evals on development set and print the metrics.
-                dev_size = 10
-                repeated_samples = list(range(len(_buckets))) * dev_size
+                sample_size = 10
+                repeated_samples = list(range(len(train_set.buckets))) * sample_size
                 for bucket_id in repeated_samples:
-                    if len(dev_set[bucket_id]) == 0:
+                    if len(test_set.data_points[bucket_id]) == 0:
                         print("  eval: empty bucket %d" % (bucket_id))
                         continue
-                    formatted_example = model.get_batch(dev_set, bucket_id)
+                    formatted_example = model.get_batch(test_set.data_points, bucket_id)
                     model_outputs = model.step(
                         sess, formatted_example, bucket_id, forward_only=True)
                     eval_loss = model_outputs.losses
                     dev_loss += eval_loss
                     eval_ppx = math.exp(eval_loss) if eval_loss < 300 else float('inf')
                     print("  eval: bucket %d perplexity %.2f" % (bucket_id, eval_ppx))
-                dev_loss = dev_loss / dev_size
+                dev_loss = dev_loss / sample_size
 
                 dev_perplexity = math.exp(dev_loss) if dev_loss < 1000 else float('inf')
                 print("step %d learning rate %.4f dev_perplexity %.2f"
@@ -153,21 +148,15 @@ def train(train_set, dev_set):
 
                 sys.stdout.flush()
 
-    if not FLAGS.explain and (FLAGS.normalized or FLAGS.canonical):
-        tf.reset_default_graph()
-        gen_slot_filling_training_data(train_set, dev_set)
-
     return True
 
 
-def decode(data_set, verbose=True):
+def decode(model, data_set, verbose=True):
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
         log_device_placement=FLAGS.log_device_placement)) as sess:
-        # Create model and load parameters.
-        model = create_model(sess, forward_only=True)
+        # Initialize model parameters.
+        graph_utils.initialize_model(FLAGS, model, sess, forward_only=True)
         decode_tools.decode_set(sess, model, data_set, 3, FLAGS, verbose)
-
-        return model.model_dir, model.decode_sig
 
 
 def eval(data_set, model_dir=None, decode_sig=None, verbose=True):
@@ -195,20 +184,12 @@ def gen_eval_sheet(dataset):
     print("prediction results saved to {}".format(output_path))
 
 
-def demo():
+def demo(model):
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
         log_device_placement=FLAGS.log_device_placement)) as sess:
-        # Create model and load parameters.
-        model = create_model(sess, forward_only=True)
+        # Initialize model parameters.
+        graph_utils.initialize_model(FLAGS, model, sess, forward_only=True)
         decode_tools.demo(sess, model, FLAGS)
-
-def write_predictions_to_file(test_file, output_file):
-    with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
-        log_device_placement=FLAGS.log_device_placement)) as sess:
-        # Create model and load parameters.
-        model = create_model(sess, forward_only=True)
-        decode_tools.write_predictions_to_file(
-            test_file, output_file, sess, model, FLAGS)
 
 # --- Schedule experiments --- #
 
@@ -224,241 +205,12 @@ def schedule_experiments(train_fun, decode_fun, eval_fun, train_set, dev_set):
     meta_experiments.schedule_experiments(train_fun, decode_fun, eval_fun,
         train_set, dev_set, hyperparam_sets, FLAGS)
 
-
-# --- Slot filling experiments --- #
-
-def eval_local_slot_filling(train_path, test_path):
-    """
-    Evaluate accuracy of the local slot filling classifier.
-    :param train_path: path to the training data points stored on disk.
-    :param test_path: path to the test data points stored on disk.
-    :return:
-    """
-    train_X, train_Y = data_utils.load_slot_filling_data(train_path)
-    test_X, test_Y = data_utils.load_slot_filling_data(test_path)
-
-    # Create model.
-    model = classifiers.KNearestNeighborModel(FLAGS.num_nn_slot_filling,
-                                              train_X, train_Y)
-    model.eval(train_X, train_Y, verbose=True)
-    model.eval(test_X, test_Y, verbose=False)
-
-
-def eval_slot_filling(dataset):
-    """
-    Evaluate global slot filling algorithm F1 using ground truth templates.
-    """
-    vocabs = data_utils.load_vocab(FLAGS)
-    rev_tg_vocab = vocabs.rev_tg_vocab
-    rev_tg_full_vocab = vocabs.rev_tg_full_vocab
-
-    with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
-            log_device_placement=FLAGS.log_device_placement)) as sess:
-        # Create model.
-        FLAGS.beam_size = 1
-        FLAGS.token_decoding_algorithm = 'beam_search'
-        FLAGS.force_reading_input = True
-        model = graph_utils.create_model(
-            sess, FLAGS, Seq2SeqModel, buckets=_buckets, forward_only=True)
-
-        model_param_dir = os.path.join(
-            FLAGS.model_dir, 'train.mappings.X.Y.npz')
-        train_X, train_Y = data_utils.load_slot_filling_data(model_param_dir)
-        slot_filling_classifier = classifiers.KNearestNeighborModel(
-            FLAGS.num_nn_slot_filling, train_X, train_Y)
-        print('Slot filling classifier parameters loaded.')
-
-        num_correct_argument = 0.0
-        num_argument = 0.0
-        num_correct_align = 0.0
-        num_predict_align = 0.0
-        num_gt_align = 0.0
-        for bucket_id in xrange(len(_buckets)):
-            for data_id in xrange(len(dataset[bucket_id])):
-                dp = dataset[bucket_id][data_id]
-                gt_mappings = [tuple(m) for m in dp.mappings]
-                outputs = dp.tg_ids[1:-1]
-                full_outputs = dp.tg_full_ids[1:-1]
-                if gt_mappings:
-                    _, entities = tokenizer.ner_tokenizer(dp.sc_txt)
-                    nl_fillers = entities[0]
-                    encoder_inputs = [dp.sc_ids]
-                    encoder_full_inputs = [dp.sc_copy_ids] \
-                        if FLAGS.use_copy else [dp.sc_full_ids]
-                    decoder_inputs = [dp.tg_ids]
-                    decoder_full_inputs = [dp.tg_full_ids] \
-                        if FLAGS.use_copy else [dp.tg_copy_ids]
-                    pointer_targets = [dp.pointer_targets] \
-                        if FLAGS.use_copy else None
-                    formatted_example = model.format_example(
-                        [encoder_inputs, encoder_full_inputs],
-                        [decoder_inputs, decoder_full_inputs],
-                        pointer_targets=pointer_targets,
-                        bucket_id=bucket_id)
-                    model_outputs = model.step(sess, formatted_example,
-                        bucket_id, forward_only=True)
-                    encoder_outputs = model_outputs.encoder_hidden_states
-                    decoder_outputs = model_outputs.decoder_hidden_states
-                    print(decoder_outputs[:, 0, :])
-
-                    cm_slots = {}
-                    output_tokens = []
-                    for ii in xrange(len(outputs)):
-                        output = outputs[ii]
-                        if output < len(rev_tg_vocab):
-                            token = rev_tg_vocab[output]
-                            if "@@" in token:
-                                token = token.split("@@")[-1]
-                            output_tokens.append(token)
-                            if token.startswith('__ARG__'):
-                                token = token[len('__ARG__'):]
-                            if nl_fillers is not None and \
-                                    token in constants._ENTITIES:
-                                if ii > 0 and slot_filling.is_min_flag(
-                                        rev_tg_vocab[outputs[ii-1]]):
-                                    token_type = 'Timespan'
-                                else:
-                                    token_type = token
-                                cm_slots[ii] = (token, token_type)
-                        else:
-                            output_tokens.append(data_utils._UNK)
-                    if FLAGS.use_copy:
-                        P = pointer_targets[0][0] > 0
-                        pointers = model_outputs.pointers[0]
-                        pointers = np.multiply(
-                            np.sum(P.astype(float)[:pointers.shape[0],
-                                -pointers.shape[1]:], 1, keepdims=True), pointers)
-                    else:
-                        pointers = None
-                    tree, _, mappings = slot_filling.stable_slot_filling(
-                        output_tokens, nl_fillers, cm_slots, pointers,
-                        encoder_outputs[0], decoder_outputs[0], 
-                        slot_filling_classifier, verbose=True)
-    
-                    if mappings is not None:
-                        # print(gt_mappings)
-                        for mapping in mappings:
-                            # print(mapping)
-                            if mapping in gt_mappings:
-                                num_correct_align += 1
-                        num_predict_align += len(mappings)
-                    num_gt_align += len(gt_mappings)
-
-                    tokens = data_tools.ast2tokens(tree)
-                    if not tokens:
-                        continue
-                    for ii in xrange(len(outputs)):
-                        output = outputs[ii]
-                        token = rev_tg_vocab[output]
-                        if token.startswith('__ARG__'):
-                            token = token[len('__ARG__'):]
-                        if token in constants._ENTITIES:
-                            argument = rev_tg_full_vocab[full_outputs[ii]]
-                            if argument.startswith('__ARG__'):
-                                argument = argument[len('__ARG__'):]
-                            pred = tokens[ii]
-                            if constants.remove_quotation(argument) == \
-                                    constants.remove_quotation(pred):
-                                num_correct_argument += 1
-                            num_argument += 1
-            if gt_mappings:
-                break        
-        precision = num_correct_align / num_predict_align
-        recall = num_correct_align / num_gt_align
-        print("Argument Alignment Precision: {}".format(precision))
-        print("Argument Alignment Recall: {}".format(recall))
-        print("Argument Alignment F1: {}".format(
-            2 * precision * recall / (precision + recall)))
-
-        print("Argument filling accuracy: {}".format(
-            num_correct_argument / num_argument))
-
-
-def gen_slot_filling_training_data(train_set, dev_set):
-    with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
-        log_device_placement=FLAGS.log_device_placement)) as sess:
-        token_decoding_algorithm = FLAGS.token_decoding_algorithm
-        FLAGS.token_decoding_algorithm = 'greedy'
-        FLAGS.force_reading_input = True
-
-        # Create model and load parameters.
-        model = create_model(sess, forward_only=True)
-
-        # Save slot filling embeddings.
-        mapping_path = os.path.join(FLAGS.model_dir, 'train.mappings.X.Y.npz')
-        gen_slot_filling_training_data_fun(sess, model, train_set, mapping_path)
-        mapping_path = os.path.join(FLAGS.model_dir, 'dev.mappings.X.Y.npz')
-        gen_slot_filling_training_data_fun(sess, model, dev_set, mapping_path)
-
-        FLAGS.token_decoding_algorithm = token_decoding_algorithm
-        FLAGS.force_reading_input = False
-
-
-def gen_slot_filling_training_data_fun(sess, model, dataset, output_file):
-    print("saving slot filling mappings to {}".format(output_file))
-
-    X, Y = [], []
-    for bucket_id in xrange(len(_buckets)):
-        for i in xrange(len(dataset[bucket_id])):
-            dp = dataset[bucket_id][i]
-            if dp.mappings:
-                mappings = [tuple(m) for m in dp.mappings]
-                encoder_channel_inputs = [[dp.sc_ids], [dp.sc_full_ids]]
-                decoder_channel_inputs = [[dp.tg_ids], [dp.tg_full_ids]]
-                if FLAGS.use_copy:
-                    encoder_channel_inputs.append([dp.sc_copy_full_ids])
-                    pointer_targets = [dp.pointer_targets]
-                else:
-                    pointer_targets = None
-                formatted_example = model.format_example(
-                    encoder_channel_inputs, decoder_channel_inputs,
-                    pointer_targets=pointer_targets,
-                    bucket_id=bucket_id)
-                model_outputs = model.step(
-                    sess, formatted_example, bucket_id, forward_only=True)
-                encoder_outputs = model_outputs.encoder_hidden_states
-                decoder_outputs = model_outputs.decoder_hidden_states
-                # add positive examples
-                for f, s in mappings:
-                    # use reversed index for the encoder embedding matrix
-                    ff = _buckets[bucket_id][0] - f - 1
-                    assert(f <= encoder_outputs.shape[1])
-                    assert(s <= decoder_outputs.shape[1])
-                    X.append(np.concatenate([encoder_outputs[:, ff, :],
-                                             decoder_outputs[:, s, :]], axis=1))
-                    Y.append(np.array([[1, 0]]))
-                    # add negative examples
-                    # sample unmatched filler-slot pairs as negative examples
-                    if len(mappings) > 1:
-                        for n_s in [ss for _, ss in mappings if ss != s]:
-                            X.append(np.concatenate(
-                                [encoder_outputs[:, ff, :],
-                                 decoder_outputs[:, n_s, :]], axis=1))
-                            Y.append(np.array([[0, 1]]))
-                    # Debugging
-                    # if i == 0:
-                    #     print(ff)
-                    #     print(encoder_outputs[0])
-                    #     print(decoder_outputs[0])
-
-            if len(X) > 0 and len(X) % 1000 == 0:
-                print('{} examples gathered for generating slot filling features...'
-                      .format(len(X)))
-
-    assert(len(X) == len(Y))
-    X = np.concatenate(X, axis=0)
-    X = X / np.linalg.norm(X, axis=1)[:, None]
-    Y = np.concatenate(Y, axis=0)
-
-    np.savez(output_file, X, Y)
-
 # --- Pre-processing --- #
 
 def process_data():
     print("Preparing data in %s" % FLAGS.data_dir)
     data_utils.prepare_data(FLAGS)
 
-# --- Data Statistics --- #
 
 def main(_):
     # set GPU device
@@ -469,12 +221,6 @@ def main(_):
         os.path.dirname(__file__), "..", "data", FLAGS.dataset)
     print("Reading data from {}".format(FLAGS.data_dir))
 
-    # set up source and target length
-    FLAGS.max_sc_length = FLAGS.max_sc_length \
-        if not _buckets else _buckets[-1][0]
-    FLAGS.max_tg_length = FLAGS.max_tg_length \
-        if not _buckets else _buckets[-1][1]
-
     # set up encoder/decider dropout rate
     if FLAGS.universal_keep >= 0 and FLAGS.universal_keep < 1:
         FLAGS.sc_input_keep = FLAGS.universal_keep
@@ -483,16 +229,6 @@ def main(_):
         FLAGS.tg_output_keep = FLAGS.universal_keep
         FLAGS.attention_input_keep = FLAGS.universal_keep
         FLAGS.attention_output_keep = FLAGS.universal_keep
-
-    # set up source and target vocabulary size
-    FLAGS.sc_token_embedding_size = FLAGS.cm_known_vocab_size \
-        if FLAGS.explain else FLAGS.nl_known_vocab_size
-    FLAGS.sc_vocab_size = FLAGS.cm_vocab_size \
-        if FLAGS.explain else FLAGS.nl_vocab_size
-    FLAGS.tg_token_embedding_size = FLAGS.nl_known_vocab_size \
-        if FLAGS.explain else FLAGS.cm_known_vocab_size
-    FLAGS.tg_vocab_size = FLAGS.nl_vocab_size \
-        if FLAGS.explain else FLAGS.cm_vocab_size
 
     # adjust hyperparameters for batch normalization
     if FLAGS.recurrent_batch_normalization:
@@ -515,17 +251,19 @@ def main(_):
     if FLAGS.process_data:
         process_data()
 
-    elif FLAGS.eval_local_slot_filling:
-        train_path = os.path.join(FLAGS.model_dir, 'train.mappings.X.Y.npz')
-        dev_path = os.path.join(FLAGS.model_dir, 'dev.mappings.X.Y.npz')
-        eval_local_slot_filling(train_path, dev_path)
-
-    elif FLAGS.demo:
-        demo()
-
     else:
         train_set, dev_set, test_set = \
-            data_utils.load_data(FLAGS, _buckets,load_mappings=False)
+            data_utils.load_data(FLAGS, use_bucket=True, load_mappings=False)
+        vocab = data_utils.load_vocabulary(FLAGS)
+
+        print("Set dataset parameters")
+        FLAGS.max_sc_length = train_set.max_sc_length
+        FLAGS.max_tg_length = train_set.max_tg_length
+        FLAGS.sc_vocab_size = len(vocab.sc_vocab)
+        FLAGS.tg_vocab_size = len(vocab.tg_vocab)
+        FLAGS.max_sc_token_size = vocab.max_sc_token_size
+        FLAGS.max_tg_token_size = vocab.max_tg_token_size
+
         dataset = test_set if FLAGS.test else dev_set
         if FLAGS.gen_eval_sheet:
             gen_eval_sheet(dataset)
@@ -533,14 +271,17 @@ def main(_):
             eval(dataset, verbose=True)
         elif FLAGS.manual_eval:
             manual_eval(dataset, 100)
-        elif FLAGS.eval_slot_filling:
-            eval_slot_filling(dataset)
-        elif FLAGS.gen_slot_filling_training_data:
-            gen_slot_filling_training_data(train_set, dev_set)
+
         elif FLAGS.decode:
-            model_dir, decode_sig = decode(dataset)
+            model = define_model(forward_only=True, buckets=train_set.buckets)
+            decode(model, dataset)
             if not FLAGS.explain:
-                eval(dataset, model_dir, decode_sig, verbose=False)
+                eval(dataset, model.model_dir, model.decode_sig, verbose=False)
+
+        elif FLAGS.demo:
+            model = define_model(forward_only=True, buckets=train_set.buckets)
+            demo(model)
+
         elif FLAGS.grid_search:
             meta_experiments.grid_search(
                 train, decode, eval, train_set, dataset, FLAGS)
@@ -549,15 +290,16 @@ def main(_):
                 train, decode, eval, train_set, dataset)
         else:
             # Train the model.
-            train(train_set, dataset)
+            model = define_model(forward_only=True, buckets=train_set.buckets)
+            train(model, train_set, dataset)
 
             # Decode the new model on the development set.
             tf.reset_default_graph()
-            model_dir, decode_sig = decode(dataset)
+            decode(dataset)
 
             # Run automatic evaluation on the development set.
             if not FLAGS.explain:
-                eval(dataset, model_dir, decode_sig, verbose=False)
+                eval(dataset, model.model_dir, model.decode_sig, verbose=False)
 
     
 if __name__ == "__main__":

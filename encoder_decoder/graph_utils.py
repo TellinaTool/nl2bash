@@ -13,11 +13,11 @@ from tensorflow.python.util import nest
 from encoder_decoder import data_utils
 
 
-def create_model(session, FLAGS, model_constructor, buckets, forward_only):
+def define_model(FLAGS, model_constructor, buckets, forward_only):
+    source, target = ('nl', 'cm') if not FLAGS.explain else ('cm', 'nl')
+
     params = collections.defaultdict()
-    params["source_token_embedding_size"] = FLAGS.sc_token_embedding_size
     params["source_vocab_size"] = FLAGS.sc_vocab_size
-    params["target_token_embedding_size"] = FLAGS.tg_token_embedding_size
     params["target_vocab_size"] = FLAGS.tg_vocab_size
     params["max_source_length"] = FLAGS.max_sc_length
     params["max_target_length"] = FLAGS.max_tg_length
@@ -48,10 +48,10 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only):
     params["sc_char_composition"] = FLAGS.sc_char_composition
     params["sc_char_rnn_cell"] = FLAGS.sc_char_rnn_cell
     params["sc_char_rnn_num_layers"] = FLAGS.sc_char_rnn_num_layers
-    params["sc_token_features_path"] = os.path.join(FLAGS.data_dir,
-        "vocab%d.nl.token.feature.npy" % FLAGS.sc_vocab_size)
-    params["sc_char_features_path"] = os.path.join(FLAGS.data_dir,
-        "vocab%d.nl.char.feature.npy" % FLAGS.sc_vocab_size)
+    params["sc_token_features_path"] = os.path.join(
+        FLAGS.data_dir, "{}.vocab.token.feature.npy".format(source))
+    params["sc_char_features_path"] = os.path.join(
+        FLAGS.data_dir, "{}.vocab.char.feature.npy".format(source))
 
     params["tg_token_use_attention"] = FLAGS.tg_token_use_attention
     params["tg_char"] = FLAGS.tg_char
@@ -62,10 +62,10 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only):
     params["tg_char_rnn_num_layers"] = FLAGS.tg_char_rnn_num_layers
     params["tg_char_rnn_input_keep"] = FLAGS.tg_char_rnn_input_keep
     params["tg_char_rnn_output_keep"] = FLAGS.tg_char_rnn_output_keep
-    params["tg_token_features_path"] = os.path.join(FLAGS.data_dir,
-        "vocab%d.cm.token.feature.npy" % FLAGS.tg_vocab_size)
-    params["tg_char_features_path"] = os.path.join(FLAGS.data_dir,
-        "vocab%d.cm.char.feature.npy" % FLAGS.tg_vocab_size)
+    params["tg_token_features_path"] = os.path.join(
+        FLAGS.data_dir, "{}.vocab.token.feature.npy".format(target))
+    params["tg_char_features_path"] = os.path.join(
+        FLAGS.data_dir, "{}.vocab.char.feature.npy".format(target))
 
     params["gamma"] = FLAGS.gamma
 
@@ -144,12 +144,14 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only):
         FLAGS.grammatical_only = False
 
     model = model_constructor(params, buckets)
+    return model
 
-    ckpt = tf.train.get_checkpoint_state(
-        os.path.join(FLAGS.model_root_dir, FLAGS.model_dir))
 
+def initialize_model(FLAGS, model, session, forward_only):
     if forward_only or FLAGS.gen_slot_filling_training_data or \
             not FLAGS.create_fresh_params:
+        ckpt = tf.train.get_checkpoint_state(
+            os.path.join(FLAGS.model_root_dir, FLAGS.model_dir))
         print("Reading model parameters from %s" % ckpt.model_checkpoint_path)
         model.saver.restore(session, ckpt.model_checkpoint_path)
     else:
@@ -170,8 +172,6 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only):
         else:
             print("Initialize the graph with random parameters.")
             session.run(tf.global_variables_initializer())
-
-    return model
 
 
 def get_decode_signature(FLAGS):
@@ -232,37 +232,6 @@ def get_decode_signature(FLAGS):
         decode_sig += '.slot.filler'
     decode_sig += (".test" if FLAGS.test else ".dev")
     return model_subdir, decode_sig
-
-
-def get_buckets(FLAGS):
-    # We use a number of buckets and pad to the closest one for efficiency.
-    if FLAGS.dataset.startswith("bash"):
-        if FLAGS.decoder_topology in ['basic_tree']:
-            buckets = [(30, 72)] if not FLAGS.explain else [(72, 30)]
-        elif FLAGS.decoder_topology in ['rnn']:
-            if FLAGS.partial_token:
-                buckets = [(40, 50)] if not FLAGS.explain else [(50, 40)]
-            else:
-                buckets = [(30, 40)] if not FLAGS.explain else [(40, 30)]
-    elif FLAGS.dataset == "dummy":
-        buckets = [(20, 95), (30, 95), (45, 95)] if not FLAGS.explain else \
-            [(95, 20), (95, 30), (95, 45)]
-    elif FLAGS.dataset == "jobs":
-        buckets = [(20, 45)] if not FLAGS.explain else [(45, 20)]
-    elif FLAGS.dataset == "geo":
-        buckets = [(20, 70)] if not FLAGS.explain else [(70, 20)]
-    elif FLAGS.dataset == "atis":
-        buckets = [(20, 95), (30, 95), (40, 95)] if not FLAGS.explain else \
-            [(95, 20), (95, 30), (95, 40)]
-    elif FLAGS.dataset.startswith("regex-syn"):
-        buckets = [(25, 35)] if not FLAGS.explain else [(35, 25)]
-    elif FLAGS.dataset == 'regex-turk':
-        buckets = [(30, 35)] if not FLAGS.explain else [(35, 30)]
-    elif FLAGS.dataset == 'regex-kb13':
-        buckets = [(25, 55)] if not FLAGS.explain else [(55, 25)]
-    else:
-        raise AttributeError("Unrecognized dataset: {}".format(FLAGS.dataset))
-    return buckets
 
 
 def clean_dir(dir):
