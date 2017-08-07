@@ -94,6 +94,14 @@ CHAR_INIT_VOCAB = [
 data_splits = ['train', 'dev', 'test']
 
 
+class DataSet(object):
+    def __init__(self):
+        self.data_points = []
+        self.max_sc_length = -1
+        self.max_tg_length = -1
+        self.buckets = None
+
+
 class DataPoint(object):
     def __init__(self):
         self.sc_txt = None
@@ -110,25 +118,30 @@ class Vocab(object):
         self.tg_vocab = None
         self.rev_sc_vocab = None
         self.rev_tg_vocab = None
+        self.max_sc_token_size = -1
+        self.max_tg_token_size = -1
+
 
 # --- Data IO --- #
 
-def load_data(FLAGS, buckets=None, load_mappings=False):
+def load_data(FLAGS, use_buckets=True, load_mappings=False):
     print("Loading data from %s" % FLAGS.data_dir)
 
     source, target = ('nl', 'cm') if not FLAGS.explain else ('cm', 'nl')
 
-    train_set = read_data(FLAGS, 'train', source, target, buckets=buckets,
-                               add_start_token=True, add_end_token=True)
-    dev_set = read_data(FLAGS, 'dev', source, target, buckets=buckets,
-                               add_start_token=True, add_end_token=True)
-    test_set = read_data(FLAGS, 'test', source, target, buckets=buckets,
-                               add_start_token=True, add_end_token=True)
+    train_set = read_data(FLAGS, 'train', source, target,
+        use_buckets=use_buckets, add_start_token=True, add_end_token=True)
+    dev_set = read_data(FLAGS, 'dev', source, target,
+        use_buckets=use_buckets, buckets=train_set.buckets,
+        add_start_token=True, add_end_token=True)
+    test_set = read_data(FLAGS, 'test', source, target,
+        use_buckets=use_buckets, buckets=train_set.buckets,
+        add_start_token=True, add_end_token=True)
 
     return train_set, dev_set, test_set
 
 
-def read_data(FLAGS, split, source, target, buckets=None,
+def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
               add_start_token=False, add_end_token=False):
 
     def get_data_file_path(data_dir, split, lang, extension):
@@ -145,8 +158,6 @@ def read_data(FLAGS, split, source, target, buckets=None,
             tg_ids.append(EOS_ID)
         return tg_ids
 
-    dataset = [[] for _ in buckets] if buckets else []
-
     data_dir = FLAGS.data_dir
     sc_path = get_data_file_path(data_dir, split, source, 'filtered')
     tg_path = get_data_file_path(data_dir, split, target, 'filtered')
@@ -158,7 +169,11 @@ def read_data(FLAGS, split, source, target, buckets=None,
     print("source sequence indices file: {}".format(sc_id_path))
     print("target sequence indices file: {}".format(tg_id_path))
 
-    data_idx = 0
+    dataset = []
+
+    num_data = 0
+    max_sc_length = 0
+    max_tg_length = 0
     with open(sc_path) as sc_file:
         with open(tg_path) as tg_file:
             with open(sc_id_path) as sc_id_file:
@@ -169,19 +184,59 @@ def read_data(FLAGS, split, source, target, buckets=None,
                         data_point.tg_txt = tg_file.readline().strip()
                         data_point.sc_ids = \
                             get_source_ids(sc_id_file.readline().strip())
+                        if len(data_point.sc_ids) > max_sc_length:
+                            max_sc_length = len(data_point.sc_ids)
                         data_point.tg_ids = \
                             get_target_ids(tg_id_file.readline().strip())
-                        if buckets:
-                            for bucket_id, (sc_size, tg_size) in enumerate(buckets):
-                                if len(data_point.sc_ids) < sc_size \
-                                        and len(data_point.tg_ids) < tg_size:
-                                    dataset[bucket_id].append(data_point)
-                                    break
-                        else:
-                            dataset.append(data_point)
-                        data_idx += 1
+                        if len(data_point.tg_ids) > max_tg_length:
+                            max_tg_length = len(data_point.tg_ids)
+                        dataset.append(data_point)
+                        num_data += 1
 
-    print('{} data points read.'.format(data_idx))
+    print('{} data points read.'.format(num_data))
+    print('max_source_length = {}'.format(max_sc_length))
+    print('max_target_length = {}'.format(max_tg_length))
+
+    if use_buckets:
+        print('Group data points into buckets...')
+        # determine bucket sizes
+        sorted_dataset = sorted(dataset, key=lambda x:(len(x.sc_ids) * 1e6 + len(x.tg_ids)))
+
+        dataset = []
+        bucket_sizes = []
+        bucket = []
+        bucket_size = (30, 30)
+        print('bucket size = ({}, {})'.format(bucket_size[0], bucket_size[1]))
+        for i in range(len(sorted_dataset)):
+            data_point = sorted_dataset[i]
+            if len(data_point.sc_ids) < bucket_size[0] \
+                    and len(data_point.tg_ids) < bucket_size[1]:
+                bucket.append(data_point)
+            else:
+                # determine if a new bucket is needed
+                if split == 'train' and i / num_data >= 0.98:
+                    break
+                else:
+                    dataset.append(bucket)
+                    bucket_sizes.append(bucket_size)
+                    bucket = []
+                    bucket_size = (bucket_size[0]+10, bucket_size[1]+10)
+                    print('bucket size = ({}, {})'.format(bucket_size[0], bucket_size[1]))
+        if split in ['dev', 'test']:
+            assert(buckets is not None)
+            dataset = dataset[:len(buckets)]
+            if len(dataset) > len(buckets):
+                for bucket in dataset[len(buckets):]:
+                    for data_point in bucket:
+                        dataset[-1].append(data_point)
+
+    D = DataSet()
+    D.data_points = dataset
+    if split == 'train':
+        D.max_sc_length = max_sc_length
+        D.max_tg_length = max_tg_length
+        if use_buckets:
+            D.buckets = bucket_sizes
 
     return dataset
 
@@ -197,6 +252,23 @@ def load_vocabulary(FLAGS):
     vocab = Vocab()
     vocab.sc_vocab, vocab.rev_sc_vocab = initialize_vocabulary(source_vocab_path)
     vocab.tg_vocab, vocab.rev_tg_vocab = initialize_vocabulary(target_vocab_path)
+
+    max_sc_token_size = 0
+    for v in vocab.sc_vocab:
+        if len(v) > max_sc_token_size:
+            max_sc_token_size = len(v)
+    max_tg_token_size = 0
+    for v in vocab.tg_vocab:
+        if len(v) > max_tg_token_size:
+            max_tg_token_size = len(v)
+    vocab.max_sc_token_size = max_sc_token_size
+    vocab.max_tg_token_size = max_tg_token_size
+
+    print('source vocabulary size = {}'.format(len(vocab.sc_vocab)))
+    print('target vocabulary size = {}'.foramt(len(vocab.tg_vocab)))
+    print('max source token size = {}'.format(vocab.max_sc_token_size))
+    print('max target token size = {}'.format(vocab.max_tg_token_size))
+
     return vocab
 
 
@@ -226,6 +298,7 @@ def initialize_vocabulary(vocab_path):
         rev_vocab = [line.strip() for line in rev_vocab]
         vocab = dict([(x, y) for (y, x) in enumerate(rev_vocab)])
         rev_vocab = dict([(y, x) for (y, x) in enumerate(rev_vocab)])
+        assert(len(vocab) == len(rev_vocab))
         return vocab, rev_vocab
     else:
         raise ValueError("Vocabulary file %s not found.", vocab_path)
