@@ -161,7 +161,7 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
     data_dir = FLAGS.data_dir
     sc_path = get_data_file_path(data_dir, split, source, 'filtered')
     tg_path = get_data_file_path(data_dir, split, target, 'filtered')
-    id_ext = '.ids.char' if FLAGS.char else 'ids.token'
+    id_ext = 'ids.char' if FLAGS.char else 'ids.token'
     sc_id_path = get_data_file_path(data_dir, split, source, id_ext)
     tg_id_path = get_data_file_path(data_dir, split, target, id_ext)
     print("source file: {}".format(sc_path))
