@@ -197,42 +197,63 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
     print('max_source_length = {}'.format(max_sc_length))
     print('max_target_length = {}'.format(max_tg_length))
 
+    def print_bucket_size(bs):
+        print('bucket size = ({}, {})'.format(bs[0], bs[1]))
+
     if use_buckets:
         print('Group data points into buckets...')
         # determine bucket sizes
-        sorted_dataset = sorted(dataset, key=lambda x:(len(x.sc_ids) * 1e6 + len(x.tg_ids)))
+        sorted_dataset = sorted(
+            dataset, key=lambda x:(len(x.sc_ids) * 1e6 + len(x.tg_ids)))
 
         dataset = []
-        bucket_sizes = []
-        bucket = []
-        bucket_size = (30, 30)
-        print('bucket size = ({}, {})'.format(bucket_size[0], bucket_size[1]))
-        for i in range(len(sorted_dataset)):
-            data_point = sorted_dataset[i]
-            if len(data_point.sc_ids) < bucket_size[0] \
-                    and len(data_point.tg_ids) < bucket_size[1]:
-                bucket.append(data_point)
+        if split == 'train':
+            bucket_sizes = []
+            if FLAGS.char:
+                bucket_size = (100, 100)
+                inc = 50
             else:
-                # determine if a new bucket is needed
-                if split == 'train' and i / num_data >= 0.98:
-                    break
+                bucket_size = (30, 30)
+                inc = 10
+            print_bucket_size(bucket_size)
+            bucket = []
+            for i in range(len(sorted_dataset)):
+                data_point = sorted_dataset[i]
+                if len(data_point.sc_ids) < bucket_size[0] \
+                        and len(data_point.tg_ids) < bucket_size[1]:
+                    bucket.append(data_point)
+                else:
+                    # determine if a new bucket is needed
+                    if split == 'train' and i / num_data >= 0.98:
+                        break
+                    else:
+                        dataset.append(bucket)
+                        bucket_sizes.append(bucket_size)
+                        bucket = []
+                        bucket_size = (bucket_size[0]+inc, bucket_size[1]+inc)
+                        print_bucket_size(bucket_size)
+            if bucket:
+                dataset.append(bucket)
+                bucket_sizes.append(bucket_size)
+        else:
+            bucket_id = 0
+            bucket_size = buckets[bucket_id]
+            print_bucket_size(bucket_size)
+            bucket = []
+            for i in range(len(sorted_dataset)):
+                data_point = sorted_dataset[i]
+                if len(data_point.sc_ids) < bucket_size[0] \
+                        and len(data_point.tg_ids) < bucket_size[1]:
+                    bucket.append(data_point)
                 else:
                     dataset.append(bucket)
-                    bucket_sizes.append(bucket_size)
-                    bucket = []
-                    bucket_size = (bucket_size[0]+10, bucket_size[1]+10)
-                    print('bucket size = ({}, {})'.format(bucket_size[0], bucket_size[1]))
-        if bucket:
-            dataset.append(bucket)
-            bucket_sizes.append(bucket_size)
-
-        if split in ['dev', 'test']:
-            assert(buckets is not None)
-            dataset = dataset[:len(buckets)]
-            if len(dataset) > len(buckets):
-                for bucket in dataset[len(buckets):]:
-                    for data_point in bucket:
-                        dataset[-1].append(data_point)
+                    # determine if a new bucket is available
+                    if bucket_id < len(buckets) - 1:
+                        bucket_id += 1
+                        bucket_size = buckets[bucket_id]
+                        print_bucket_size(bucket_size)
+            if bucket:
+                dataset.append(bucket)
 
     D = DataSet()
     D.data_points = dataset
