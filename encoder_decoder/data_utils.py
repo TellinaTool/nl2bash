@@ -238,7 +238,7 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
         if use_buckets:
             D.buckets = bucket_sizes
 
-    return dataset
+    return D
 
 
 def load_vocabulary(FLAGS):
