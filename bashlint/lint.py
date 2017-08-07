@@ -150,7 +150,7 @@ def increment_bashlex_tree_offset(tree, offset):
         for child in tree.parts:
             increment_bashlex_tree_offset(child, offset)
 
-def safe_bashlex_parse(cmd, start_pos = 0):
+def safe_bashlex_parse(cmd, start_pos=0):
     try:
         tree = bparser.parse(cmd)
         if start_pos > 0:
@@ -236,24 +236,24 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
             else:
                 return False
 
-        def normalize_argument(node, current, arg_type):
+    def node_with_quotes(node):
+        return cmd[node.pos[0]] in ['"', '\''] \
+            or cmd[node.pos[1]-1] in ['"', '\'']
+
+    def recover_node_quotes(node):
+        return cmd[node.pos[0] : node.pos[1]]
+
+    def normalize_word(node, recover_quotes=True):
+        w = recover_node_quotes(node) if recover_quotes else node.word
+        return w
+
+    def normalize_argument(node, current, arg_type):
         value = normalize_word(node, recover_quotes)
         norm_node = ArgumentNode(value=value, arg_type=arg_type)
         attach_to_tree(norm_node, current)
         return norm_node
 
     def normalize_command(node, current=None):
-        def node_with_quotes(node):
-            return cmd[node.pos[0]] in ['"', '\''] \
-                or cmd[node.pos[1]-1] in ['"', '\'']
-
-        def recover_node_quotes(node):
-            return cmd[node.pos[0] : node.pos[1]]
-
-        def normalize_word(node, recover_quotes=True):
-            w = recover_node_quotes(node) if recover_quotes else node.word
-            return w
-
         bash_grammar = BashGrammar()
         bash_grammar.name2type = bg.name2type
 
@@ -358,16 +358,16 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
                                 if constants.with_quotation(token):
                                     subcommand = token[1:-1]
                                     start_pos = bast_node.pos[0] + 1
+                                    tree = safe_bashlex_parse(subcommand, start_pos=start_pos)
+                                    if tree is None:
+                                        raise errors.SubCommandError(
+                                            'Error in subcommand string: {}'.format(token),
+                                            num_tokens, i)
+                                    normalize(tree[0], current)
+                                    bash_grammar.push(token, next_state.type)
+                                    i += 1
                                 else:
-                                    subcommand = token
-                                    start_pos = bast_node.pos[0]
-                                tree = safe_bashlex_parse(subcommand, start_pos=start_pos)
-                                if tree is None:
-                                    raise errors.SubCommandError(
-                                        'Error in subcommand string: {}'.format(token),
-                                        num_tokens, i)
-                                normalize(tree[0], current)
-                                bash_grammar.push(token, next_state.type)
+                                    continue 
                             else:
                                 normalize(bast_node, current, 'command')
                                 i += 1
