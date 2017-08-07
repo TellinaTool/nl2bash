@@ -180,8 +180,6 @@ def decode(encoder_full_inputs, model_outputs, FLAGS, vocabs, sc_fillers=None,
 
     encoder_outputs = model_outputs.encoder_hidden_states
     decoder_outputs = model_outputs.decoder_hidden_states
-    # print("encoder_outputs.shape = {}".format(encoder_outputs.shape))
-    # print("decoder_outputs.shape = {}".format(decoder_outputs.shape))
 
     if FLAGS.fill_argument_slots:
         assert(sc_fillers is not None)
@@ -214,8 +212,7 @@ def decode(encoder_full_inputs, model_outputs, FLAGS, vocabs, sc_fillers=None,
             else:
                 if FLAGS.use_copy and FLAGS.copy_fun == 'copynet':
                     token = r_sc_vocab[encoder_full_inputs[
-                        len(encoder_full_inputs) - 1
-                         - (output - FLAGS.tg_vocab_size)][batch_id]]
+                        len(encoder_full_inputs) - 1 - (output - FLAGS.tg_vocab_size)][batch_id]]
                 else:
                     return data_utils._UNK
             return token
@@ -396,7 +393,7 @@ def decode_set(sess, model, dataset, top_k, FLAGS, verbose=True):
 
     tokenizer_selector = 'cm' if FLAGS.explain else 'nl'
     grouped_dataset = data_utils.group_parallel_data(
-        dataset, use_bucket=model.buckets, use_temp=FLAGS.normalized,
+        dataset.data_points, use_bucket=model.buckets, use_temp=FLAGS.normalized,
         tokenizer_selector=tokenizer_selector)
     vocabs = data_utils.load_vocab(FLAGS)
     rev_sc_vocab = vocabs.rev_sc_vocab
