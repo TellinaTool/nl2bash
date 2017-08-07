@@ -74,28 +74,23 @@ def demo(sess, model, FLAGS):
 def translate_fun(data_point, sess, model, vocabs, FLAGS,
                   slot_filling_classifier=None):
     if type(data_point) is str:
-        sc_ids, sc_full_ids, sc_copy_ids, sc_fillers = \
-            vectorize_query(data_point, vocabs, FLAGS)
+        sc_ids = query_to_token_ids(data_point, vocabs)
         tg_ids = [data_utils.ROOT_ID]
-        tg_full_ids = [data_utils.ROOT_ID]
         pointer_targets = np.zeros([1, FLAGS.max_tg_length, FLAGS.max_sc_length])
+        _, entities = tokenizer.ner_tokenizer(data_point)
     else:
         sc_ids = data_point[0].sc_ids
-        sc_full_ids = data_point[0].sc_full_ids
-        sc_copy_ids = data_point[0].sc_copy_ids
         tg_ids = data_point[0].tg_ids
-        tg_full_ids = data_point[0].tg_full_ids
         pointer_targets = data_point[0].pointer_targets
         _, entities = tokenizer.ner_tokenizer(data_point[0].sc_txt)
-        sc_fillers = entities[0]
+    sc_fillers = entities[0]
  
     # Which bucket does it belong to?
     bucket_id = min([b for b in xrange(len(model.buckets))
                     if model.buckets[b][0] > len(sc_ids)])
 
     # Get a 1-element batch to feed the sentence to the model.
-    formatted_example = model.format_example(
-        [[sc_ids], [sc_full_ids], [sc_copy_ids]], [[tg_ids], [tg_full_ids]],
+    formatted_example = model.format_example([[sc_ids]], [[tg_ids]],
         pointer_targets=pointer_targets, bucket_id=bucket_id)
 
     # Compute neural network decoding output
@@ -109,52 +104,13 @@ def translate_fun(data_point, sess, model, vocabs, FLAGS,
     return decoded_outputs, output_logits
 
 
-def vectorize_query(sentence, vocabs, FLAGS):
+def query_to_token_ids(sentence, vocabs):
     """
-    Vectorize an input query.
+    Convert a natural language query into feature vectors.
     """
     sc_vocab = vocabs.sc_vocab
-    tg_vocab = vocabs.tg_vocab
 
-    if FLAGS.char:
-        sc_ids, _ = data_utils.sentence_to_token_ids(sentence,
-            sc_vocab, data_tools.char_tokenizer)
-        sc_full_ids, _ = data_utils.sentence_to_token_ids(sentence,
-            sc_vocab, data_tools.char_tokenizer, use_unk=False)
-        sc_copy_ids = []
-    else:
-        if FLAGS.explain:
-            sentence = data_tools.bash_tokenizer(
-                sentence, arg_type_only=FLAGS.normalized)
-            sc_tokenizer = None
-            sc_full_tokenizer = None
-        else:
-            if FLAGS.dataset.startswith('bash') \
-                    or FLAGS.dataset in ['regex-turk', 'regex-kb13']:
-                sc_tokenizer = tokenizer.ner_tokenizer \
-                    if FLAGS.normalized else tokenizer.basic_tokenizer
-                sc_full_tokenizer = tokenizer.basic_tokenizer
-            else:
-                sc_tokenizer = tokenizer.space_tokenizer
-                sc_full_tokenizer = tokenizer.space_tokenizer
-        sc_ids, entities = data_utils.sentence_to_token_ids(
-            sentence, sc_vocab, sc_tokenizer)
-        sc_full_ids, _ = data_utils.sentence_to_token_ids(
-            sentence, sc_vocab, sc_full_tokenizer, use_unk=False)
-        sc_copy_ids, _ = data_utils.sentence_to_token_ids(sentence,
-            tg_vocab, tokenizer=sc_full_tokenizer, use_source_placeholder=True,
-            parallel_vocab_size=FLAGS.tg_vocab_size)
-
-    # Decode the output for this 1-element batch and apply output filtering.
-    sc_fillers = entities[0] if FLAGS.fill_argument_slots else None
-    
-    # Note that we only perform source word filtering when translating from
-    # natural language to bash
-    if not (FLAGS.dataset.startswith('bash') or FLAGS.dataset == 'regex-turk'
-            and not FLAGS.explain):
-        sc_ids = sc_full_ids
-
-    return sc_ids, sc_full_ids, sc_copy_ids, sc_fillers
+    return data_utils.nl_to_token_ids(sentence, tokenizer.basic_tokenizer, sc_vocab)
 
 
 def decode(encoder_full_inputs, model_outputs, FLAGS, vocabs, sc_fillers=None,
