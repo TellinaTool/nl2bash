@@ -238,7 +238,7 @@ def decode(encoder_full_inputs, model_outputs, FLAGS, vocabs, sc_fillers=None,
             if FLAGS.grammatical_only and not FLAGS.explain:
                 if FLAGS.dataset.startswith('bash'):
                     target = re.sub('( ;\s+)|( ;$)', ' \\; ', target)
-                    target_ast = data_tools.bash_parser(target)
+                    target_ast = data_tools.bash_parser(target, verbose=False)
                 elif FLAGS.dataset.startswith('regex'):
                     # TODO: check if a predicted regular expression is legal
                     target_ast = '__DUMMY_TREE__'

@@ -150,41 +150,50 @@ def increment_bashlex_tree_offset(tree, offset):
         for child in tree.parts:
             increment_bashlex_tree_offset(child, offset)
 
-def safe_bashlex_parse(cmd, start_pos=0):
+def safe_bashlex_parse(cmd, start_pos=0, verbose=False):
     try:
         tree = bparser.parse(cmd)
         if start_pos > 0:
             increment_bashlex_tree_offset(tree[0], start_pos)
     except tokenizer.MatchedPairError:
-        print("Bashlex cannot parse: %s - MatchedPairError" % cmd)
+        if verbose:
+            print("Bashlex cannot parse: %s - MatchedPairError" % cmd)
         return None
     except errors.ParsingError:
-        print("Bashlex cannot parse: %s - ParsingError" % cmd)
+        if verbose:
+            print("Bashlex cannot parse: %s - ParsingError" % cmd)
         return None
     except NotImplementedError:
-        print("Bashlex cannot parse: %s - NotImplementedError" % cmd)
+        if verbose:
+            print("Bashlex cannot parse: %s - NotImplementedError" % cmd)
         return None
     except IndexError:
-        print("Bashlex cannot parse: %s - IndexError" % cmd)
+        if verbose:
+            print("Bashlex cannot parse: %s - IndexError" % cmd)
         # empty command
         return None
     except AttributeError:
-        print("Bashlex cannot parse: %s - AttributeError" % cmd)
+        if verbose:
+            print("Bashlex cannot parse: %s - AttributeError" % cmd)
         # not a bash command
         return None
     except AssertionError:
-        print("Bashlex cannot parse: %s - AssertionError" % cmd)
+        if verbose:
+            print("Bashlex cannot parse: %s - AssertionError" % cmd)
         # not a bash command
         return None
     except NameError:
-        print("Bashlex cannot parse: %s - NameError" % cmd)
+        if verbose:
+            print("Bashlex cannot parse: %s - NameError" % cmd)
         # not a bash command
         return None
     except TypeError:
-        print("Bashlex cannot parse: %s - AssertionError" % cmd)
+        if verbose:
+            print("Bashlex cannot parse: %s - AssertionError" % cmd)
         return None
     if len(tree) > 1:
-        print("Doesn't support command with multiple root nodes: %s" % cmd)
+        if verbose:
+            print("Doesn't support command with multiple root nodes: %s" % cmd)
         return None
     return tree
 
@@ -358,7 +367,8 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
                                 if constants.with_quotation(token):
                                     subcommand = token[1:-1]
                                     start_pos = bast_node.pos[0] + 1
-                                    tree = safe_bashlex_parse(subcommand, start_pos=start_pos)
+                                    tree = safe_bashlex_parse(subcommand, start_pos=start_pos,
+                                                              verbose=verbose)
                                     if tree is None:
                                         raise errors.SubCommandError(
                                             'Error in subcommand string: {}'.format(token),
@@ -692,7 +702,7 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
             # not supported
             raise ValueError("Unsupported: %s" % node.kind)
 
-    tree = safe_bashlex_parse(cmd)
+    tree = safe_bashlex_parse(cmd, verbose=verbose)
     if tree is None:
         return tree
 
@@ -700,23 +710,30 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
     try:
         normalize(tree[0], normalized_tree)
     except ValueError as err:
-        print("%s - %s" % (err.args[0], cmd))
+        if verbose:
+            print("%s - %s" % (err.args[0], cmd))
         return None
     except AttributeError as err:
-        print("%s - %s" % (err.args[0], cmd))
+        if verbose:
+            print("%s - %s" % (err.args[0], cmd))
         return None
     except AssertionError as err:
-        print("%s - %s" % (err.args[0], cmd))
+        if verbose:
+            print("%s - %s" % (err.args[0], cmd))
         return None
     except errors.SubCommandError as err:
-        print("%s - %s" % (err.args[0], cmd))
+        if verbose:
+            print("%s - %s" % (err.args[0], cmd))
         return None
     except errors.LintParsingError as err:
-        print("%s - %s" % (err.args[0], cmd))
+        if verbose:
+            print("%s - %s" % (err.args[0], cmd))
         return None
     except errors.FlagError as err:
-        print("%s - %s" % (err.args[0], cmd))
+        if verbose:
+            print("%s - %s" % (err.args[0], cmd))
         return None
+
     if len(normalized_tree.children) == 0:
         # parsing not successful if the normalized tree consists of the root
         # node only
