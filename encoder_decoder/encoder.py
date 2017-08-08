@@ -149,7 +149,7 @@ class RNNEncoder(Encoder):
     def define_graph(self, encoder_inputs, input_embeddings=None):
         # Compute the continuous input representations
         if input_embeddings is None:
-            input_embeddings = encoder_inputs
+            input_embeddings = self.token_representations(encoder_inputs)
         with tf.variable_scope("encoder_rnn"):
             return rnn.RNNModel(self.cell, input_embeddings,
                 num_cell_layers=self.num_layers, dtype=tf.float32)
@@ -183,7 +183,7 @@ class BiRNNEncoder(Encoder):
 
         # Compute the continuous input representations
         if input_embeddings is None:
-            input_embeddings = encoder_inputs
+            input_embeddings = self.token_representations(encoder_inputs)
         with tf.variable_scope("encoder_rnn"):
             return rnn.BiRNNModel(self.fw_cell, self.bw_cell, input_embeddings,
                 num_cell_layers=self.num_layers, dtype=tf.float32)
