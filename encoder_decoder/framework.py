@@ -82,123 +82,126 @@ class EncoderDecoderModel(graph_utils.NNModel):
         self.target_weights = []        # weights at each position of the target sequence.
         self.pointer_targets = None
 
-        for i in xrange(self.max_source_length):
-            self.encoder_inputs.append(
-                tf.placeholder(
-                    tf.int32, shape=[None], name="encoder{0}".format(i)))
-            self.encoder_attn_masks.append(
-                tf.placeholder(
-                    tf.float32, shape=[None], name="attn_alignment{0}".format(i)))
+        with tf.variable_scope(tf.get_variable_scope()) as scope:
+            for i in xrange(self.max_source_length):
+                self.encoder_inputs.append(
+                    tf.placeholder(
+                        tf.int32, shape=[None], name="encoder{0}".format(i)))
+                self.encoder_attn_masks.append(
+                    tf.placeholder(
+                        tf.float32, shape=[None], name="attn_alignment{0}".format(i)))
 
-        for i in xrange(self.max_target_length + 1):
-            self.decoder_inputs.append(
-                tf.placeholder(
-                    tf.int32, shape=[None], name="decoder{0}".format(i)))
-            self.target_weights.append(
-                tf.placeholder(
-                    tf.float32, shape=[None], name="weight{0}".format(i)))
+            for i in xrange(self.max_target_length + 1):
+                self.decoder_inputs.append(
+                    tf.placeholder(
+                        tf.int32, shape=[None], name="decoder{0}".format(i)))
+                self.target_weights.append(
+                    tf.placeholder(
+                        tf.float32, shape=[None], name="weight{0}".format(i)))
 
-        # Our targets are decoder inputs shifted by one.
-        self.targets = [self.decoder_inputs[i + 1]
-                        for i in xrange(self.max_target_length)]
+            # Our targets are decoder inputs shifted by one.
+            self.targets = [self.decoder_inputs[i + 1]
+                            for i in xrange(self.max_target_length)]
 
-        if self.use_copy and self.copy_fun == 'supervised':
-            for i in xrange(self.max_target_length):
-                self.pointer_targets = tf.placeholder(
-                    tf.int32, shape=[None, None, None], name="pointer_targets")
+            if self.use_copy and self.copy_fun == 'supervised':
+                for i in xrange(self.max_target_length):
+                    self.pointer_targets = tf.placeholder(
+                        tf.int32, shape=[None, None, None], name="pointer_targets")
 
-        # Compute training outputs and losses in the forward direction.
-        if self.buckets:
-            self.output_symbols = []
-            self.output_logits = []
-            self.losses = []
-            self.attn_alignments = []
-            self.pointers = []
-            if self.tg_char:
-                self.char_output_symbols = []
-                self.char_output_logits = []
-            for bucket_id, bucket in enumerate(self.buckets):
-                print("creating bucket {} ({}, {})...".format(
-                        bucket_id, bucket[0], bucket[1]))
-                encode_decode_outputs = \
-                    self.encode_decode(
-                        [self.encoder_inputs[:bucket[0]]],
-                        self.encoder_attn_masks[:bucket[0]],
-                        self.decoder_inputs,
-                        self.targets[:bucket[1]],
-                        self.target_weights[:bucket[1]],
-                    )
-                bucket_output_symbols, bucket_output_logits, bucket_losses, \
-                    batch_attn_alignments = encode_decode_outputs[:4]
-                self.output_symbols.append(bucket_output_symbols)
-                self.output_logits.append(bucket_output_logits)
-                self.losses.append(bucket_losses)
-                self.attn_alignments.append(batch_attn_alignments)
-                if self.forward_only and self.tg_char:
-                     bucket_char_output_symbols, bucket_char_output_logits = \
-                         encode_decode_outputs[4:6]
-                     self.char_output_symbols.append(
-                         tf.reshape(bucket_char_output_symbols,
-                                    [self.max_target_length,
-                                     self.batch_size, self.beam_size,
-                                     self.max_target_token_size + 1]))
-                     self.char_output_logits.append(
-                         tf.reshape(bucket_char_output_logits,
-                                    [self.max_target_length,
-                                    self.batch_size, self.beam_size]))
-                if self.use_copy:
-                    self.pointers.append(encode_decode_outputs[-1])
-        else:
-            encode_decode_outputs = self.encode_decode(
-                                        [self.encoder_inputs],
-                                        self.encoder_attn_masks,
-                                        self.decoder_inputs,
-                                        self.targets,
-                                        self.target_weights
-                                    )
-            self.output_symbols, self.output_logits, self.losses, \
-                self.attn_alignments = encode_decode_outputs[:4]
-            if self.tg_char:
-                char_output_symbols, char_output_logits = \
-                    encode_decode_outputs[4:6]
-                self.char_output_symbols = tf.reshape(char_output_symbols,
-                                   [self.batch_size, self.beam_size,
-                                    self.max_target_length,
-                                    self.max_target_token_size])
-                self.char_output_logits = tf.reshape(char_output_logits,
-                                   [self.batch_size, self.beam_size,
-                                    self.max_target_length])
-            if self.forward_only and self.use_copy:
-                self.pointers = encode_decode_outputs[-1]
-
-        # Gradients and SGD updates in the backward direction.
-        if not self.forward_only:
-            params = tf.trainable_variables()
-            if self.optimizer == "sgd":
-                opt = tf.train.GradientDescentOptimizer(self.learning_rate)
-            elif self.optimizer == "adam":
-                opt = tf.train.AdamOptimizer(
-                    self.learning_rate, beta1=0.9, beta2=0.999,
-                    epsilon=self.adam_epsilon, )
-            else:
-                raise ValueError("Unrecognized optimizer type.")
-
+            # Compute training outputs and losses in the forward direction.
             if self.buckets:
-                self.gradient_norms = []
-                self.updates = []
-                for bucket_id, _ in enumerate(self.buckets):
-                    gradients = tf.gradients(self.losses[bucket_id], params)
+                self.output_symbols = []
+                self.output_logits = []
+                self.losses = []
+                self.attn_alignments = []
+                self.pointers = []
+                if self.tg_char:
+                    self.char_output_symbols = []
+                    self.char_output_logits = []
+                for bucket_id, bucket in enumerate(self.buckets):
+                    print("creating bucket {} ({}, {})...".format(
+                            bucket_id, bucket[0], bucket[1]))
+                    if bucket_id > 0:
+                        scope.reuse_variables()
+                    encode_decode_outputs = \
+                        self.encode_decode(
+                            [self.encoder_inputs[:bucket[0]]],
+                            self.encoder_attn_masks[:bucket[0]],
+                            self.decoder_inputs,
+                            self.targets[:bucket[1]],
+                            self.target_weights[:bucket[1]],
+                        )
+                    bucket_output_symbols, bucket_output_logits, bucket_losses, \
+                        batch_attn_alignments = encode_decode_outputs[:4]
+                    self.output_symbols.append(bucket_output_symbols)
+                    self.output_logits.append(bucket_output_logits)
+                    self.losses.append(bucket_losses)
+                    self.attn_alignments.append(batch_attn_alignments)
+                    if self.forward_only and self.tg_char:
+                         bucket_char_output_symbols, bucket_char_output_logits = \
+                             encode_decode_outputs[4:6]
+                         self.char_output_symbols.append(
+                             tf.reshape(bucket_char_output_symbols,
+                                        [self.max_target_length,
+                                         self.batch_size, self.beam_size,
+                                         self.max_target_token_size + 1]))
+                         self.char_output_logits.append(
+                             tf.reshape(bucket_char_output_logits,
+                                        [self.max_target_length,
+                                        self.batch_size, self.beam_size]))
+                    if self.use_copy:
+                        self.pointers.append(encode_decode_outputs[-1])
+            else:
+                encode_decode_outputs = self.encode_decode(
+                                            [self.encoder_inputs],
+                                            self.encoder_attn_masks,
+                                            self.decoder_inputs,
+                                            self.targets,
+                                            self.target_weights
+                                        )
+                self.output_symbols, self.output_logits, self.losses, \
+                    self.attn_alignments = encode_decode_outputs[:4]
+                if self.tg_char:
+                    char_output_symbols, char_output_logits = \
+                        encode_decode_outputs[4:6]
+                    self.char_output_symbols = tf.reshape(char_output_symbols,
+                                       [self.batch_size, self.beam_size,
+                                        self.max_target_length,
+                                        self.max_target_token_size])
+                    self.char_output_logits = tf.reshape(char_output_logits,
+                                       [self.batch_size, self.beam_size,
+                                        self.max_target_length])
+                if self.forward_only and self.use_copy:
+                    self.pointers = encode_decode_outputs[-1]
+
+            # Gradients and SGD updates in the backward direction.
+            if not self.forward_only:
+                params = tf.trainable_variables()
+                if self.optimizer == "sgd":
+                    opt = tf.train.GradientDescentOptimizer(self.learning_rate)
+                elif self.optimizer == "adam":
+                    opt = tf.train.AdamOptimizer(
+                        self.learning_rate, beta1=0.9, beta2=0.999,
+                        epsilon=self.adam_epsilon, )
+                else:
+                    raise ValueError("Unrecognized optimizer type.")
+
+                if self.buckets:
+                    self.gradient_norms = []
+                    self.updates = []
+                    for bucket_id, _ in enumerate(self.buckets):
+                        gradients = tf.gradients(self.losses[bucket_id], params)
+                        clipped_gradients, norm = tf.clip_by_global_norm(
+                            gradients, self.max_gradient_norm)
+                        self.gradient_norms.append(norm)
+                        self.updates.append(opt.apply_gradients(
+                            zip(clipped_gradients, params)))
+                else:
+                    gradients = tf.gradients(self.losses, params)
                     clipped_gradients, norm = tf.clip_by_global_norm(
                         gradients, self.max_gradient_norm)
-                    self.gradient_norms.append(norm)
-                    self.updates.append(opt.apply_gradients(
-                        zip(clipped_gradients, params)))
-            else:
-                gradients = tf.gradients(self.losses, params)
-                clipped_gradients, norm = tf.clip_by_global_norm(
-                    gradients, self.max_gradient_norm)
-                self.gradient_norms = norm
-                self.updates = opt.apply_gradients(zip(clipped_gradients, params))
+                    self.gradient_norms = norm
+                    self.updates = opt.apply_gradients(zip(clipped_gradients, params))
 
         self.saver = tf.train.Saver(tf.global_variables())
 
