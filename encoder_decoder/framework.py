@@ -88,57 +88,21 @@ class EncoderDecoderModel(graph_utils.NNModel):
             self.encoder_inputs.append(
                 tf.placeholder(
                     tf.int32, shape=[None], name="encoder{0}".format(i)))
-            self.encoder_full_inputs.append(
-                tf.placeholder(
-                    tf.int32, shape=[None], name="encoder_full{0}".format(i)))
             self.encoder_attn_masks.append(
                 tf.placeholder(
                     tf.float32, shape=[None], name="attn_alignment{0}".format(i)))
-        self.encoder_channel_inputs = \
-            [self.encoder_inputs, self.encoder_full_inputs]
-        if self.sc_char:
-            self.char_encoder_inputs = []
-            for i in xrange(self.max_source_length):
-                self.char_encoder_inputs.append(
-                    tf.placeholder(tf.int32, shape=[None, self.max_target_token_size],
-                                   name="char_encoder{0}".format(i)))
-            self.encoder_channel_inputs.append(self.char_encoder_inputs)
 
         for i in xrange(self.max_target_length + 1):
             self.decoder_inputs.append(
                 tf.placeholder(
                     tf.int32, shape=[None], name="decoder{0}".format(i)))
-            self.decoder_full_inputs.append(
-                tf.placeholder(
-                    tf.int32, shape=[None], name="decoder_full{0}".format(i)))
             self.target_weights.append(
                 tf.placeholder(
                     tf.float32, shape=[None], name="weight{0}".format(i)))
 
         # Our targets are decoder inputs shifted by one.
-        if self.use_copynet:
-            self.targets = [self.decoder_full_inputs[i + 1]
-                            for i in xrange(self.max_target_length)]
-        else:
-            self.targets = [self.decoder_inputs[i + 1]
-                            for i in xrange(self.max_target_length)]
-
-        if self.tg_char:
-            # inputs for character generation
-            self.char_decoder_inputs = []   # decoder inputs (always start with "_CGO")
-                                            # [batch_size*max_target_token_size, dim]
-            self.char_target_weights = []   # weights at each position of the target sequence
-            for i in xrange(self.max_target_length):
-                self.char_decoder_inputs.append(
-                    tf.placeholder(tf.int32,
-                                   shape=[None, self.max_target_token_size + 2],
-                                   name="char_decoder{0}".format(i)))
-                self.char_target_weights.append(
-                    tf.placeholder(tf.float32,
-                                   shape=[None, self.max_target_token_size + 1],
-                                   name="char_target_weight{0}".format(i)))
-            self.char_targets = [self.char_decoder_inputs[i][:, 1:]
-                                 for i in xrange(self.max_target_length)]
+        self.targets = [self.decoder_inputs[i + 1]
+                        for i in xrange(self.max_target_length)]
 
         if self.use_copy and self.copy_fun == 'supervised':
             for i in xrange(self.max_target_length):
@@ -163,8 +127,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
                         scope.reuse_variables()
                     encode_decode_outputs = \
                         self.encode_decode(
-                            [channel_input[:bucket[0]] for channel_input in
-                             self.encoder_channel_inputs],
+                            self.encoder_inputs[:bucket[0]],
                             self.encoder_attn_masks[:bucket[0]],
                             self.decoder_inputs,
                             self.targets[:bucket[1]],
@@ -192,7 +155,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
                         self.pointers.append(encode_decode_outputs[-1])
         else:
             encode_decode_outputs = self.encode_decode(
-                                        self.encoder_channel_inputs,
+                                        self.encoder_inputs,
                                         self.encoder_attn_masks,
                                         self.decoder_inputs,
                                         self.targets,
@@ -245,11 +208,11 @@ class EncoderDecoderModel(graph_utils.NNModel):
         self.saver = tf.train.Saver(tf.global_variables())
 
 
-    def encode_decode(self, encoder_channel_inputs, encoder_attn_masks,
+    def encode_decode(self, encoder_inputs, encoder_attn_masks,
                       decoder_inputs, targets, target_weights):
 
         encoder_outputs, encoder_states = \
-            self.encoder.define_graph(encoder_channel_inputs)
+            self.encoder.define_graph(encoder_inputs)
         if self.tg_token_use_attention:
             top_states = [tf.reshape(m, [-1, 1, self.encoder.output_dim])
                           for m in encoder_outputs]
