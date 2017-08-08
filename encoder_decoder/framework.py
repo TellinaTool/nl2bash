@@ -123,7 +123,6 @@ class EncoderDecoderModel(graph_utils.NNModel):
                             bucket_id, bucket[0], bucket[1]))
                     if bucket_id > 0:
                         scope.reuse_variables()
-                    print(bucket)
                     encode_decode_outputs = \
                         self.encode_decode(
                             [self.encoder_inputs[:bucket[0]]],
