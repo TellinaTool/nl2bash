@@ -132,8 +132,6 @@ def decode(encoder_full_inputs, model_outputs, FLAGS, vocabs, sc_fillers=None,
     """
     rev_sc_vocab = vocabs.rev_sc_vocab
     rev_tg_vocab = vocabs.rev_tg_vocab
-    rev_sc_char_vocab = vocabs.rev_sc_char_vocab
-    rev_tg_char_vocab = vocabs.rev_tg_char_vocab
 
     encoder_outputs = model_outputs.encoder_hidden_states
     decoder_outputs = model_outputs.decoder_hidden_states
@@ -191,55 +189,51 @@ def decode(encoder_full_inputs, model_outputs, FLAGS, vocabs, sc_fillers=None,
             if data_utils.EOS_ID in outputs:
                 outputs = outputs[:outputs.index(data_utils.EOS_ID)]
 
-            if FLAGS.char:
-                target = ''.join([as_str(output, rev_sc_char_vocab,
-                                         rev_tg_char_vocab)
-                    for output in outputs]).replace(constants._SPACE, ' ')
-            else:
-                output_tokens = []
-                tg_slots = {}
-                for token_id in xrange(len(outputs)):
-                    output = outputs[token_id]
-                    pred_token = as_str(output, rev_sc_vocab, rev_tg_vocab)
-                    if pred_token.startswith('__ARG__'):
-                        pred_token = pred_token[len('__ARG__'):]
-                    if '@@' in pred_token:
-                        pred_token = pred_token.split('@@')[-1]
-                    elif pred_token.startswith('__FLAG__'):
-                        pred_token = pred_token[8:]
-                    elif pred_token.startswith('__ARG__'):
-                        pred_token = pred_token[7:]
-                    # process argument slots
-                    if pred_token in constants._ENTITIES:
-                        if token_id > 0 and slot_filling.is_min_flag(
-                            rev_tg_vocab[outputs[token_id-1]]):
-                            pred_token_type = 'Timespan'
-                        else:
-                            pred_token_type = pred_token
-                        tg_slots[token_id] = (pred_token, pred_token_type)
-                    output_tokens.append(pred_token)
+            output_tokens = []
+            tg_slots = {}
+            for token_id in xrange(len(outputs)):
+                output = outputs[token_id]
+                pred_token = as_str(output, rev_sc_vocab, rev_tg_vocab)
+                if pred_token.startswith('__ARG__'):
+                    pred_token = pred_token[len('__ARG__'):]
+                if '@@' in pred_token:
+                    pred_token = pred_token.split('@@')[-1]
+                elif pred_token.startswith('__FLAG__'):
+                    pred_token = pred_token[8:]
+                elif pred_token.startswith('__ARG__'):
+                    pred_token = pred_token[7:]
+                # process argument slots
+                if pred_token in constants._ENTITIES:
+                    if token_id > 0 and slot_filling.is_min_flag(
+                        rev_tg_vocab[outputs[token_id-1]]):
+                        pred_token_type = 'Timespan'
+                    else:
+                        pred_token_type = pred_token
+                    tg_slots[token_id] = (pred_token, pred_token_type)
+                output_tokens.append(pred_token)
 
-                if FLAGS.partial_token:
-                    # process partial-token outputs
-                    merged_output_tokens = []
-                    buffer = ''
-                    load_buffer = False
-                    for token in output_tokens:
-                        if load_buffer:
-                            if token == data_utils._ARG_END:
-                                merged_output_tokens.append(buffer)
-                                load_buffer = False
-                                buffer = ''
-                            else:
-                                buffer += token
+            if FLAGS.partial_token:
+                # process partial-token outputs
+                merged_output_tokens = []
+                buffer = ''
+                load_buffer = False
+                for token in output_tokens:
+                    if load_buffer:
+                        if token == data_utils._ARG_END:
+                            merged_output_tokens.append(buffer)
+                            load_buffer = False
+                            buffer = ''
                         else:
-                            if token == data_utils._ARG_START:
-                                load_buffer = True
-                            else:
-                                merged_output_tokens.append(token)
-                    output_tokens = merged_output_tokens
+                            buffer += token
+                    else:
+                        if token == data_utils._ARG_START:
+                            load_buffer = True
+                        else:
+                            merged_output_tokens.append(token)
+                output_tokens = merged_output_tokens
 
-                target = ' '.join(output_tokens)
+            target = ' '.join(output_tokens)
+
             # Step 2: check if the predicted command template is grammatical
             if FLAGS.grammatical_only and not FLAGS.explain:
                 if FLAGS.dataset.startswith('bash'):
@@ -298,41 +292,7 @@ def decode(encoder_full_inputs, model_outputs, FLAGS, vocabs, sc_fillers=None,
             if beam_outputs:
                 batch_outputs.append(beam_outputs)
 
-    # Step 4: apply character decoding
-    if FLAGS.tg_char:
-        char_output_symbols = model_outputs.char_output_symbols
-        sentence_length = char_output_symbols.shape[0]
-        batch_char_outputs = []
-        batch_char_predictions = \
-            [np.transpose(np.reshape(x, [sentence_length, FLAGS.beam_size,
-                                         FLAGS.max_tg_token_size + 1]),x
-                          (1, 0, 2))
-             for x in np.split(char_output_symbols, batch_size, 1)]
-        for batch_id in xrange(len(batch_char_predictions)):
-            beam_char_outputs = []
-            top_k_char_predictions = batch_char_predictions[batch_id]
-            for k in xrange(len(top_k_char_predictions)):
-                top_k_char_prediction = top_k_char_predictions[k]
-                sent = []
-                for i in xrange(sentence_length):
-                    word = ''
-                    for j in xrange(FLAGS.max_tg_token_size):
-                        char_prediction = top_k_char_prediction[i, j]
-                        if char_prediction == data_utils.CEOS_ID or \
-                            char_prediction == data_utils.CPAD_ID:
-                            break
-                        elif char_prediction in rev_tg_char_vocab:
-                            word += rev_tg_char_vocab[char_prediction]
-                        else:
-                            word += data_utils._CUNK
-                    sent.append(word)
-                if data_utils._CATOM in sent:
-                    sent = sent[:sent[:].index(data_utils._CATOM)]
-                beam_char_outputs.append(' '.join(sent))
-            batch_char_outputs.append(beam_char_outputs)
-        return batch_outputs, batch_char_outputs
-    else:
-        return batch_outputs
+    return batch_outputs
 
 
 def decode_set(sess, model, dataset, top_k, FLAGS, verbose=True):
