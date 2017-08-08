@@ -202,6 +202,8 @@ def decode(encoder_full_inputs, model_outputs, FLAGS, vocabs, sc_fillers=None,
                     pred_token = pred_token[8:]
                 elif pred_token.startswith('__ARG__'):
                     pred_token = pred_token[7:]
+                elif '__' in pred_token:
+                    pred_token = pred_token.split('__')[0]
                 # process argument slots
                 if pred_token in constants._ENTITIES:
                     if token_id > 0 and slot_filling.is_min_flag(
@@ -336,8 +338,8 @@ def decode_set(sess, model, dataset, top_k, FLAGS, verbose=True):
         sc_txt = data_group[0].sc_txt
         sc_temp = ' '.join([rev_sc_vocab[i] for i in data_group[0].sc_ids])
         if verbose:
-            print('Example {}:'.format(example_id))
-            print('Original Source: {}'.format(sc_txt))
+            print('\nExample {}:'.format(example_id))
+            print('Original Source: {}'.format(sc_txt.strip()))
             print('Source: {}'.format(sc_temp))
             for j in xrange(len(data_group)):
                 print('GT Target {}: {}'.format(j+1, data_group[j].tg_txt))

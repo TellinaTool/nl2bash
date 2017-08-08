@@ -125,9 +125,10 @@ class EncoderDecoderModel(graph_utils.NNModel):
                             bucket_id, bucket[0], bucket[1]))
                     if bucket_id > 0:
                         scope.reuse_variables()
+                    print(bucket)
                     encode_decode_outputs = \
                         self.encode_decode(
-                            self.encoder_inputs[:bucket[0]],
+                            [self.encoder_inputs[:bucket[0]]],
                             self.encoder_attn_masks[:bucket[0]],
                             self.decoder_inputs,
                             self.targets[:bucket[1]],
@@ -155,7 +156,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
                         self.pointers.append(encode_decode_outputs[-1])
         else:
             encode_decode_outputs = self.encode_decode(
-                                        self.encoder_inputs,
+                                        [self.encoder_inputs],
                                         self.encoder_attn_masks,
                                         self.decoder_inputs,
                                         self.targets,
@@ -208,11 +209,11 @@ class EncoderDecoderModel(graph_utils.NNModel):
         self.saver = tf.train.Saver(tf.global_variables())
 
 
-    def encode_decode(self, encoder_inputs, encoder_attn_masks,
+    def encode_decode(self, encoder_channel_inputs, encoder_attn_masks,
                       decoder_inputs, targets, target_weights):
 
         encoder_outputs, encoder_states = \
-            self.encoder.define_graph(encoder_inputs)
+            self.encoder.define_graph(encoder_channel_inputs)
         if self.tg_token_use_attention:
             top_states = [tf.reshape(m, [-1, 1, self.encoder.output_dim])
                           for m in encoder_outputs]
