@@ -213,7 +213,7 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
                 bucket_size = (100, 100)
                 sc_inc, tg_inc = 50, 50
             else:
-                bucket_size = (30, 30)
+                bucket_size = (50, 50)
                 sc_inc, tg_inc = 10, 10
             print_bucket_size(bucket_size)
             bucket = []
@@ -575,12 +575,15 @@ def group_parallel_data(dataset, attribute='source', use_bucket=False,
     :return: list of (key, data group) tuples sorted by the key value.
     """
     if use_bucket:
-        dataset = functools.reduce(lambda x, y: x + y, dataset)
+        data_points = functools.reduce(lambda x, y: x + y, dataset.data_points)
+    else:
+        data_points = dataset.data_points
 
     grouped_dataset = {}
-    for i in xrange(len(dataset)):
-        attr = dataset[i].sc_txt \
-            if attribute == 'source' else dataset[i].tg_txt
+    for i in xrange(len(data_points)):
+        data_point = data_points[i]
+        attr = data_point.sc_txt \
+            if attribute == 'source' else data_point.tg_txt
         if use_temp:
             if tokenizer_selector == 'nl':
                 words, _ = tokenizer.ner_tokenizer(attr)
@@ -590,8 +593,8 @@ def group_parallel_data(dataset, attribute='source', use_bucket=False,
         else:
             temp = attr
         if temp in grouped_dataset:
-            grouped_dataset[temp].append(dataset[i])
+            grouped_dataset[temp].append(data_point)
         else:
-            grouped_dataset[temp] = [dataset[i]]
+            grouped_dataset[temp] = [data_point]
 
     return sorted(grouped_dataset.items(), key=lambda x: x[0])

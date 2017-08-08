@@ -213,7 +213,6 @@ class EncoderDecoderModel(graph_utils.NNModel):
             if self.forward_only and self.use_copy:
                 self.pointers = encode_decode_outputs[-1]
 
-
         # Gradients and SGD updates in the backward direction.
         if not self.forward_only:
             params = tf.trainable_variables()
