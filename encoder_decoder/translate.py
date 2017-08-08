@@ -59,7 +59,7 @@ def train(train_set, test_set):
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
         log_device_placement=FLAGS.log_device_placement)) as sess:
         # Initialize model parameters
-        model = define_model(sess, forward_only=True, buckets=train_set.buckets)
+        model = define_model(sess, forward_only=False, buckets=train_set.buckets)
 
         train_bucket_sizes = [len(train_set.data_points[b])
                               for b in xrange(len(train_set.buckets))]
@@ -156,7 +156,6 @@ def decode(data_set, buckets=None, verbose=True):
         log_device_placement=FLAGS.log_device_placement)) as sess:
         # Initialize model parameters.
         model = define_model(sess, forward_only=True, buckets=buckets)
-        graph_utils.initialize_model(FLAGS, model, sess, forward_only=True)
         decode_tools.decode_set(sess, model, data_set, 3, FLAGS, verbose)
         return model
 
@@ -255,7 +254,7 @@ def main(_):
 
     else:
         train_set, dev_set, test_set = \
-            data_utils.load_data(FLAGS, use_bucket=True, load_mappings=False)
+            data_utils.load_data(FLAGS, use_buckets=True, load_mappings=False)
         vocab = data_utils.load_vocabulary(FLAGS)
 
         print("Set dataset parameters")
@@ -292,7 +291,7 @@ def main(_):
                 train, decode, eval, train_set, dataset)
         else:
             # Train the model.
-            model = train(train_set, dataset)
+            train(train_set, dataset)
 
             # Decode the new model on the development set.
             tf.reset_default_graph()
