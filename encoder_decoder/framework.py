@@ -117,41 +117,37 @@ class EncoderDecoderModel(graph_utils.NNModel):
             if self.tg_char:
                 self.char_output_symbols = []
                 self.char_output_logits = []
-            with tf.variable_scope(tf.get_variable_scope()) as scope:
-                for bucket_id, bucket in enumerate(self.buckets):
-                    print("creating bucket {} ({}, {})...".format(
-                            bucket_id, bucket[0], bucket[1]))
-                    if bucket_id > 0:
-                        scope.reuse_variables()
-                    print(bucket)
-                    encode_decode_outputs = \
-                        self.encode_decode(
-                            [self.encoder_inputs[:bucket[0]]],
-                            self.encoder_attn_masks[:bucket[0]],
-                            self.decoder_inputs,
-                            self.targets[:bucket[1]],
-                            self.target_weights[:bucket[1]],
-                        )
-                    bucket_output_symbols, bucket_output_logits, bucket_losses, \
-                        batch_attn_alignments = encode_decode_outputs[:4]
-                    self.output_symbols.append(bucket_output_symbols)
-                    self.output_logits.append(bucket_output_logits)
-                    self.losses.append(bucket_losses)
-                    self.attn_alignments.append(batch_attn_alignments)
-                    if self.forward_only and self.tg_char:
-                         bucket_char_output_symbols, bucket_char_output_logits = \
-                             encode_decode_outputs[4:6]
-                         self.char_output_symbols.append(
-                             tf.reshape(bucket_char_output_symbols,
-                                        [self.max_target_length,
-                                         self.batch_size, self.beam_size,
-                                         self.max_target_token_size + 1]))
-                         self.char_output_logits.append(
-                             tf.reshape(bucket_char_output_logits,
-                                        [self.max_target_length,
-                                        self.batch_size, self.beam_size]))
-                    if self.use_copy:
-                        self.pointers.append(encode_decode_outputs[-1])
+            for bucket_id, bucket in enumerate(self.buckets):
+                print("creating bucket {} ({}, {})...".format(
+                        bucket_id, bucket[0], bucket[1]))
+                encode_decode_outputs = \
+                    self.encode_decode(
+                        [self.encoder_inputs[:bucket[0]]],
+                        self.encoder_attn_masks[:bucket[0]],
+                        self.decoder_inputs,
+                        self.targets[:bucket[1]],
+                        self.target_weights[:bucket[1]],
+                    )
+                bucket_output_symbols, bucket_output_logits, bucket_losses, \
+                    batch_attn_alignments = encode_decode_outputs[:4]
+                self.output_symbols.append(bucket_output_symbols)
+                self.output_logits.append(bucket_output_logits)
+                self.losses.append(bucket_losses)
+                self.attn_alignments.append(batch_attn_alignments)
+                if self.forward_only and self.tg_char:
+                     bucket_char_output_symbols, bucket_char_output_logits = \
+                         encode_decode_outputs[4:6]
+                     self.char_output_symbols.append(
+                         tf.reshape(bucket_char_output_symbols,
+                                    [self.max_target_length,
+                                     self.batch_size, self.beam_size,
+                                     self.max_target_token_size + 1]))
+                     self.char_output_logits.append(
+                         tf.reshape(bucket_char_output_logits,
+                                    [self.max_target_length,
+                                    self.batch_size, self.beam_size]))
+                if self.use_copy:
+                    self.pointers.append(encode_decode_outputs[-1])
         else:
             encode_decode_outputs = self.encode_decode(
                                         [self.encoder_inputs],
