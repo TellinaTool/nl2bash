@@ -146,10 +146,10 @@ class RNNEncoder(Encoder):
         self.cell = self.encoder_cell()
         self.output_dim = self.dim
 
-    def define_graph(self, encoder_inputs, input_embeddings=None):
+    def define_graph(self, channel_inputs, input_embeddings=None):
         # Compute the continuous input representations
         if input_embeddings is None:
-            input_embeddings = self.token_representations(encoder_inputs)
+            input_embeddings = self.token_representations(channel_inputs)
         with tf.variable_scope("encoder_rnn"):
             return rnn.RNNModel(self.cell, input_embeddings,
                 num_cell_layers=self.num_layers, dtype=tf.float32)
@@ -175,7 +175,7 @@ class BiRNNEncoder(Encoder):
         print("encoder input dimension = {}".format(self.dim))
         print("encoder output dimension = {}".format(self.output_dim))
 
-    def define_graph(self, encoder_inputs, input_embeddings=None):
+    def define_graph(self, channel_inputs, input_embeddings=None):
         # Each rnn in the bi-directional encoder have dimension which is half
         # of that of the decoder.
         # The hidden states of the two rnns are concatenated as the hidden
@@ -183,7 +183,7 @@ class BiRNNEncoder(Encoder):
 
         # Compute the continuous input representations
         if input_embeddings is None:
-            input_embeddings = self.token_representations(encoder_inputs)
+            input_embeddings = self.token_representations(channel_inputs)
         with tf.variable_scope("encoder_rnn"):
             return rnn.BiRNNModel(self.fw_cell, self.bw_cell, input_embeddings,
                 num_cell_layers=self.num_layers, dtype=tf.float32)
