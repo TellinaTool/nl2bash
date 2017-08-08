@@ -90,7 +90,7 @@ def translate_fun(data_point, sess, model, vocabs, FLAGS,
                     if model.buckets[b][0] > len(sc_ids)])
 
     # Get a 1-element batch to feed the sentence to the model.
-    formatted_example = model.format_example([[sc_ids]], [[tg_ids]],
+    formatted_example = model.format_batch([[sc_ids]], [[tg_ids]],
         pointer_targets=pointer_targets, bucket_id=bucket_id)
 
     # Compute neural network decoding output

@@ -447,8 +447,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
     # --- Graph Operations --- #
 
-    def format_batch(self, encoder_inputs, decoder_inputs,
-                       pointer_targets=None, bucket_id=-1):
+    def format_batch(self, encoder_inputs, decoder_inputs, pointer_targets=None,
+                     bucket_id=-1):
         """
         Convert the feature vectors into the dimensions required by the neural
         network.
@@ -482,6 +482,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 self.max_source_length, self.max_target_length
 
         batch_size = len(encoder_inputs)
+
         # create batch-major vectors
         batch_encoder_inputs = load_channel(
             encoder_inputs, encoder_size, reversed_output=True)
@@ -490,7 +491,6 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
         batch_encoder_input_masks = []
         batch_decoder_input_masks = []
-        # Batch encoder inputs are just re-indexed encoder_inputs.
         for length_idx in xrange(encoder_size):
             batch_encoder_input_mask = np.ones(batch_size, dtype=np.float32)
             for batch_idx in xrange(batch_size):
@@ -498,7 +498,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 if source == data_utils.PAD_ID:
                     batch_encoder_input_mask[batch_idx] = 0.0
             batch_encoder_input_masks.append(batch_encoder_input_mask)
-        # Batch decoder inputs are re-indexed decoder_inputs.
+
         for length_idx in xrange(decoder_size):
             # Create target_weights to be 0 for targets that are padding.
             batch_decoder_input_mask = np.ones(batch_size, dtype=np.float32)
