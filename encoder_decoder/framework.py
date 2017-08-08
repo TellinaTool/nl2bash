@@ -77,10 +77,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
         # Feeds for inputs.
         self.encoder_inputs = []        # encoder inputs.
-        self.encoder_full_inputs = []   # encoder inputs without unknown tokens.
         self.encoder_attn_masks = []    # mask out PAD symbols in the encoder
         self.decoder_inputs = []        # decoder inputs (always start with "_GO").
-        self.decoder_full_inputs = []   # decoder inputs without unknown tokens.
         self.target_weights = []        # weights at each position of the target sequence.
         self.pointer_targets = None
 
@@ -229,8 +227,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
                         encoder_states[-1], decoder_inputs,
                         encoder_attn_masks=encoder_attn_masks,
                         attention_states=attention_states,
-                        num_heads=num_heads,
-                        encoder_copy_inputs=self.encoder_full_inputs)
+                        num_heads=num_heads)
 
         bs_decoding = self.forward_only and \
                       self.token_decoding_algorithm == 'beam_search'

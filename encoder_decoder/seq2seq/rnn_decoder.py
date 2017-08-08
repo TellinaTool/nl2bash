@@ -38,8 +38,7 @@ class RNNDecoder(decoder.Decoder):
 
     def define_graph(self, encoder_state, decoder_inputs,
                      input_embeddings=None, encoder_attn_masks=None,
-                     attention_states=None, num_heads=1,
-                     encoder_copy_inputs=None):
+                     attention_states=None, num_heads=1):
         """
         :return output_symbols: batch of discrete output sequences
         :return output_logits: batch of output sequence scores
@@ -73,8 +72,6 @@ class RNNDecoder(decoder.Decoder):
                 beam_decoder = self.beam_decoder
                 state = beam_decoder.wrap_state(
                     encoder_state, self.output_project)
-                encoder_copy_inputs = graph_utils.wrap_inputs(
-                    beam_decoder, encoder_copy_inputs)
             else:
                 state = encoder_state
                 past_output_symbols = []
@@ -89,16 +86,26 @@ class RNNDecoder(decoder.Decoder):
                     for encoder_attn_mask in encoder_attn_masks]
                 encoder_attn_masks = tf.concat(axis=1, values=encoder_attn_masks)
                 decoder_cell = decoder.AttentionCellWrapper(
-                    decoder_cell, attention_states, encoder_attn_masks,
-                    encoder_copy_inputs, self.attention_function,
-                    self.attention_input_keep, self.attention_output_keep,
-                    num_heads, self.dim, self.num_layers, self.use_copy,
-                    self.vocab_size)
+                    decoder_cell,
+                    attention_states,
+                    encoder_attn_masks,
+                    self.attention_function,
+                    self.attention_input_keep,
+                    self.attention_output_keep,
+                    num_heads,
+                    self.dim,
+                    self.num_layers,
+                    self.use_copy,
+                    self.vocab_size
+                )
 
             if self.use_copy and self.copy_fun != 'supervised':
-                decoder_cell = decoder.CopyCellWrapper(decoder_cell,
-                    self.output_project, self.num_layers, encoder_copy_inputs,
-                    self.vocab_size, self.generation_mask)
+                decoder_cell = decoder.CopyCellWrapper(
+                    decoder_cell,
+                    self.output_project,
+                    self.num_layers,
+                    self.vocab_size,
+                    self.generation_mask)
 
             if bs_decoding:
                 decoder_cell = beam_decoder.wrap_cell(

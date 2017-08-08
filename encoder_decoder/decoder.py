@@ -148,9 +148,8 @@ class CopyCellWrapper(tf.nn.rnn_cell.RNNCell):
 
 class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
     def __init__(self, cell, attention_states, encoder_attn_masks,
-                 encoder_inputs, attention_function, attention_input_keep,
-                 attention_output_keep, num_heads, dim, num_layers, use_copy,
-                 tg_vocab_size=-1):
+            attention_function, attention_input_keep, attention_output_keep,
+            num_heads, dim, num_layers, use_copy, tg_vocab_size=-1):
         """
         Hidden layer above attention states.
 
@@ -181,12 +180,7 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
 
         self.cell = cell
         self.encoder_attn_masks = encoder_attn_masks
-        self.encoder_size = len(encoder_inputs)
         self.vocab_indices = tf.diag(tf.ones(tg_vocab_size))
-        encoder_inputs = tf.concat(axis=1,
-            values=[tf.expand_dims(x, 1) for x in encoder_inputs])
-        self.encoder_inputs_3d = tf.nn.embedding_lookup(
-            self.vocab_indices, encoder_inputs)
         self.num_heads = num_heads
         self.dim = dim
         self.num_layers = num_layers
