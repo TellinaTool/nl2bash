@@ -38,9 +38,9 @@ def bash_tokenizer(cmd, recover_quotation=True, loose_constraints=False,
                       with_prefix=with_prefix, with_suffix=with_suffix)
 
 
-def bash_parser(cmd, recover_quotation=True):
+def bash_parser(cmd, recover_quotation=True, verbose=True):
     """Parse bash command into AST."""
-    return lint.normalize_ast(cmd, recover_quotation)
+    return lint.normalize_ast(cmd, recover_quotation, verbose=verbose)
 
 
 def pretty_print(node, depth=0):
