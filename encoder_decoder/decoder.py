@@ -90,7 +90,6 @@ class Decoder(graph_utils.NNModel):
     def output_project(self):
         with tf.variable_scope(self.scope + "_output_project",
                                reuse=self.output_project_vars):
-            print("target vocabulary size = {}".format(self.vocab_size))
             w = tf.get_variable("proj_w", [self.dim, self.vocab_size])
             b = tf.get_variable("proj_b", [self.vocab_size])
             self.output_project_vars = True
