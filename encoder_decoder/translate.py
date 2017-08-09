@@ -295,7 +295,7 @@ def main(_):
 
             # Decode the new model on the development set.
             tf.reset_default_graph()
-            decode(dataset, buckets=train_set.buckets)
+            model = decode(dataset, buckets=train_set.buckets)
 
             # Run automatic evaluation on the development set.
             if not FLAGS.explain:

@@ -73,7 +73,6 @@ def demo(sess, model, FLAGS):
 
 def translate_fun(data_point, sess, model, vocabs, FLAGS,
                   slot_filling_classifier=None):
-    print('data_point: {}'.format(data_point))
     if type(data_point) is str:
         sc_ids = query_to_token_ids(data_point, vocabs)
         tg_ids = [data_utils.ROOT_ID]
