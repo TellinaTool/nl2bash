@@ -428,9 +428,10 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 else:
                     padded_inputs.append(input + paddings)
             for length_idx in xrange(output_length):
-                batch_inputs.append(
-                    np.array([padded_inputs[batch_idx][length_idx]
-                        for batch_idx in xrange(batch_size)], dtype=np.int32))
+                batched_dim = np.array([padded_inputs[batch_idx][length_idx]
+                        for batch_idx in xrange(batch_size)], dtype=np.int32)
+                print(batched_dim)
+                batch_inputs.append(batched_dim)
             return batch_inputs
 
         if bucket_id >= 0:
@@ -522,13 +523,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
         for l in xrange(decoder_size):
             input_feed[self.decoder_inputs[l].name] = E.decoder_inputs[l]
             input_feed[self.target_weights[l].name] = E.target_weights[l]
-        # Append dummy values to input variables
-        for l in xrange(encoder_size, self.max_source_length):
-            input_feed[self.encoder_inputs[l].name] = 0
-            input_feed[self.encoder_attn_masks[l].name] = 0
-        for l in xrange(decoder_size, self.max_target_length):
-            input_feed[self.decoder_inputs[l].name] = 0
-            input_feed[self.target_weights[l].name] = 0
+
         # Since our targets are decoder inputs shifted by one, we need one more.
         last_target = self.decoder_inputs[decoder_size].name
         input_feed[last_target] = np.zeros(E.decoder_inputs[0].shape, dtype=np.int32)
