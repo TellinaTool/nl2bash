@@ -86,9 +86,10 @@ def translate_fun(data_point, sess, model, vocabs, FLAGS,
     sc_fillers = entities[0]
  
     # Which bucket does it belong to?
-    bucket_id = min([b for b in xrange(len(model.buckets))
-                    if model.buckets[b][0] > len(sc_ids)])
-
+    bucket_ids = [b for b in xrange(len(model.buckets))
+                  if model.buckets[b][0] > len(sc_ids)]
+    bucket_id = min(bucket_ids) if bucket_ids else (len(model.buckets) - 1)
+    
     # Get a 1-element batch to feed the sentence to the model.
     formatted_example = model.format_batch([sc_ids], [tg_ids],
         pointer_targets=pointer_targets, bucket_id=bucket_id)
