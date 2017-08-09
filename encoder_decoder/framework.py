@@ -126,7 +126,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
                         self.encode_decode(
                             [self.encoder_inputs[:bucket[0]]],
                             self.encoder_attn_masks[:bucket[0]],
-                            self.decoder_inputs,
+                            self.decoder_inputs[:bucket[1]],
                             self.targets[:bucket[1]],
                             self.target_weights[:bucket[1]],
                         )
