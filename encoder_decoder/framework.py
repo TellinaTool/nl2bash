@@ -434,11 +434,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 batch_inputs.append(batched_dim)
             return batch_inputs
 
-        if bucket_id >= 0:
-            encoder_size, decoder_size = self.buckets[bucket_id]
-        else:
-            encoder_size, decoder_size = \
-                self.max_source_length, self.max_target_length
+        encoder_size, decoder_size = \
+            self.max_source_length, self.max_target_length
 
         batch_size = len(encoder_inputs)
 
