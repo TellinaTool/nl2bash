@@ -433,8 +433,11 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 batch_inputs.append(batched_dim)
             return batch_inputs
 
-        encoder_size, decoder_size = \
-            self.max_source_length, self.max_target_length
+        if bucket_id != -1:
+            encoder_size, decoder_size = self.buckets[bucket_id]
+        else:
+            encoder_size, decoder_size = \
+                self.max_source_length, self.max_target_length
 
         batch_size = len(encoder_inputs)
 
@@ -520,6 +523,13 @@ class EncoderDecoderModel(graph_utils.NNModel):
             input_feed[self.decoder_inputs[l].name] = E.decoder_inputs[l]
             input_feed[self.target_weights[l].name] = E.target_weights[l]
 
+        # Apply dummy values to encoder and decoder inputs
+        for l in xrange(encoder_size, self.max_source_length):
+            input_feed[self.encoder_inputs[l].name] = 0
+            input_feed[self.encoder_attn_masks[l].name] = 0
+        for l in xrange(decoder_size), self.max_target_length:
+            input_feed[self.decoder_inputs[l].name] = 0
+            input_feed[self.target_weights[l].name] = 0
         # Since our targets are decoder inputs shifted by one, we need one more.
         last_target = self.decoder_inputs[decoder_size].name
         input_feed[last_target] = np.zeros(E.decoder_inputs[0].shape, dtype=np.int32)
