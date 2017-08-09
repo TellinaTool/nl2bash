@@ -515,7 +515,6 @@ class EncoderDecoderModel(graph_utils.NNModel):
         Assign the data vectors to the corresponding neural network variables.
         """
         encoder_size, decoder_size = len(E.encoder_inputs), len(E.decoder_inputs)
-        print(encoder_size, decoder_size)
         input_feed = {}
         for l in xrange(encoder_size):
             input_feed[self.encoder_inputs[l].name] = E.encoder_inputs[l]
@@ -525,6 +524,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
             input_feed[self.target_weights[l].name] = E.target_weights[l]
         # Append dummy values to input variables
         for l in xrange(encoder_size, self.max_source_length):
+            print(l)
             input_feed[self.encoder_inputs[l].name] = 0
             input_feed[self.encoder_attn_masks[l].name] = 0
         for l in xrange(decoder_size, self.max_target_length):
