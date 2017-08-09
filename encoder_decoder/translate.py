@@ -134,7 +134,7 @@ def train(train_set, test_set):
                     dev_loss += eval_loss
                     eval_ppx = math.exp(eval_loss) if eval_loss < 300 else float('inf')
                     print("  eval: bucket %d perplexity %.2f" % (bucket_id, eval_ppx))
-                dev_loss = dev_loss / sample_size
+                dev_loss = dev_loss / len(repeated_samples)
 
                 dev_perplexity = math.exp(dev_loss) if dev_loss < 1000 else float('inf')
                 print("step %d learning rate %.4f dev_perplexity %.2f"
