@@ -184,16 +184,21 @@ def get_decode_signature(FLAGS):
     model_subdir = FLAGS.dataset
     if FLAGS.explain:
         model_subdir += '-expl'
+    if FLAGS.char:
+        model_subdir += '--char'
+    elif FLAGS.partial_token:
+        model_subdir += '--partial'
+    else:
+        if FLAGS.sc_token:
+            model_subdir += '-T'
+        if FLAGS.sc_char:
+            model_subdir += '-C'
+        if FLAGS.tg_char:
+            model_subdir += '-TC'
+            model_subdir += '-{}'.format(FLAGS.gamma)
     model_subdir += '-{}'.format(FLAGS.encoder_topology)
     model_subdir += '-{}'.format(FLAGS.rnn_cell)
     model_subdir += '-{}'.format(FLAGS.training_algorithm)
-    if FLAGS.sc_token:
-        model_subdir += '-T'
-    if FLAGS.sc_char:
-        model_subdir += '-C'
-    if FLAGS.tg_char:
-        model_subdir += '-TC'
-        model_subdir += '-{}'.format(FLAGS.gamma)
     if FLAGS.tg_token_use_attention:
         model_subdir += '-attention'
         model_subdir += '-{}'.format(FLAGS.attention_input_keep)
