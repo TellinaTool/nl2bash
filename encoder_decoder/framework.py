@@ -437,7 +437,6 @@ class EncoderDecoderModel(graph_utils.NNModel):
         else:
             encoder_size, decoder_size = \
                 self.max_source_length, self.max_target_length
-
         batch_size = len(encoder_inputs)
 
         # create batch-major vectors
