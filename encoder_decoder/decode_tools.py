@@ -348,7 +348,6 @@ def decode_set(sess, model, dataset, top_k, FLAGS, verbose=True):
             sc_temp = ' '.join(sc_tokens)
         tg_txts = [dp.tg_txt for dp in data_group]
         tg_asts = [data_tools.bash_parser(tg_txt) for tg_txt in tg_txts]
-        pred_file.write(sc_temp + '|||')
         if verbose:
             print('\nExample {}:'.format(example_id))
             print('Original Source: {}'.format(sc_txt.strip()))
@@ -361,7 +360,7 @@ def decode_set(sess, model, dataset, top_k, FLAGS, verbose=True):
         if FLAGS.tg_char:
             batch_outputs, batch_char_outputs = batch_outputs
 
-        eval_row = '{},{},'.format(example_id, sc_temp.strip())
+        eval_row = '{},"{}",'.format(example_id, sc_temp.strip().replace('"', '""'))
         if batch_outputs:
             if FLAGS.token_decoding_algorithm == 'greedy':
                 tree, pred_cmd = batch_outputs[0]
@@ -382,7 +381,7 @@ def decode_set(sess, model, dataset, top_k, FLAGS, verbose=True):
                     if j > 0:
                         eval_row = ',,'
                     if j < len(tg_txts):
-                        eval_row += '{},'.format(tg_txts[j].strip())
+                        eval_row += '"{}",'.format(tg_txts[j].strip().replace('"', '""'))
                     else:
                         eval_row += ','
                     top_k_pred_tree, top_k_pred_cmd = top_k_predictions[j]
@@ -392,7 +391,7 @@ def decode_set(sess, model, dataset, top_k, FLAGS, verbose=True):
                     else:
                         pred_cmd = top_k_pred_cmd
                     pred_file.write('{}|||'.format(pred_cmd))
-                    eval_row += '{},'.format(pred_cmd)
+                    eval_row += '"{}",'.format(pred_cmd.replace('"', '""'))
                     temp_match = tree_dist.one_match(tg_asts, top_k_pred_tree,
                                                      ignore_arg_value=True)
                     str_match = tree_dist.one_match(tg_asts, top_k_pred_tree,
