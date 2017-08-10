@@ -16,6 +16,7 @@ import numpy as np
 import shutil
 
 from encoder_decoder import classifiers, data_utils
+from eval import tree_dist
 from bashlint import data_tools
 from nlp_tools import constants, slot_filling, tokenizer
 
@@ -332,6 +333,9 @@ def decode_set(sess, model, dataset, top_k, FLAGS, verbose=True):
     pred_file_path = os.path.join(model.model_dir, 'predictions.{}.{}'.format(
         model.decode_sig, ts))
     pred_file = open(pred_file_path, 'w')
+    eval_file_path = os.path.join(model.model_dir, 'predictions.{}.{}.csv'.format(
+        model.decode_sig, ts))
+    eval_file = open(eval_file_path, 'w')
     for example_id in xrange(len(grouped_dataset)):
         key, data_group = grouped_dataset[example_id]
 
@@ -342,6 +346,9 @@ def decode_set(sess, model, dataset, top_k, FLAGS, verbose=True):
             sc_temp = sc_temp.replace(constants._SPACE, ' ')
         else:
             sc_temp = ' '.join(sc_tokens)
+        tg_txts = [dp.tg_txt for dp in data_group]
+        tg_asts = [data_tools.bash_parser(tg_txt) for tg_txt in tg_txts]
+        pred_file.write(sc_temp + '|||')
         if verbose:
             print('\nExample {}:'.format(example_id))
             print('Original Source: {}'.format(sc_txt.strip()))
@@ -354,6 +361,7 @@ def decode_set(sess, model, dataset, top_k, FLAGS, verbose=True):
         if FLAGS.tg_char:
             batch_outputs, batch_char_outputs = batch_outputs
 
+        eval_row = '{},{},'.format(example_id, sc_temp.strip())
         if batch_outputs:
             if FLAGS.token_decoding_algorithm == 'greedy':
                 tree, pred_cmd = batch_outputs[0]
@@ -371,6 +379,12 @@ def decode_set(sess, model, dataset, top_k, FLAGS, verbose=True):
                 top_k_scores = output_logits[0]
                 num_preds = min(FLAGS.beam_size, top_k, len(top_k_predictions))
                 for j in xrange(num_preds):
+                    if j > 0:
+                        eval_row = ',,'
+                    if j < len(tg_txts):
+                        eval_row += '{},'.format(tg_txts[j].strip())
+                    else:
+                        eval_row += ','
                     top_k_pred_tree, top_k_pred_cmd = top_k_predictions[j]
                     if nl2bash:
                         pred_cmd = data_tools.ast2command(
@@ -378,6 +392,15 @@ def decode_set(sess, model, dataset, top_k, FLAGS, verbose=True):
                     else:
                         pred_cmd = top_k_pred_cmd
                     pred_file.write('{}|||'.format(pred_cmd))
+                    eval_row += '{},'.format(pred_cmd)
+                    temp_match = tree_dist.one_match(tg_asts, top_k_pred_tree,
+                                                     ignore_arg_value=True)
+                    str_match = tree_dist.one_match(tg_asts, top_k_pred_tree,
+                                                    ignore_arg_value=False)
+                    if temp_match:
+                        eval_row += 'y,'
+                    if str_match:
+                        eval_row += 'y'
                     if verbose:
                         print('Prediction {}: {} ({})'.format(
                             j+1, pred_cmd, top_k_scores[j]))
@@ -385,16 +408,19 @@ def decode_set(sess, model, dataset, top_k, FLAGS, verbose=True):
                             print('Character-based prediction {}: {}'.format(
                                 j+1, top_k_char_predictions[j]))
                 pred_file.write('\n')
+                eval_file.write('{}\n'.format(eval_row))
         else:
             print(APOLOGY_MSG)
             pred_file.write('\n')
+            eval_file.write('{}\n'.format(eval_row))
+            eval_file.write('\n')
+            eval_file.write('\n')
     pred_file.close()
+    eval_file.close()
     shutil.copyfile(pred_file_path, os.path.join(FLAGS.model_dir,
         'predictions.{}.latest'.format(model.decode_sig)))
-
-
-def gen_eval_sheet(dataset, FLAGS, model_dir):
-    
+    shutil.copyfile(eval_file_path, os.path.join(FLAGS.model_dir,
+        'predictions.{}.latest.csv'.format(model.decode_sig)))
 
 
 def visualize_attn_alignments(M, source, target, rev_sc_vocab,
