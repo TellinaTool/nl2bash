@@ -225,8 +225,16 @@ def decode(encoder_full_inputs, model_outputs, FLAGS, vocabs, sc_fillers=None,
                         else:
                             merged_output_tokens.append(token)
                 output_tokens = merged_output_tokens
-
-            target = ' '.join(output_tokens)
+    
+            if FLAGS.char:
+                target = ''
+                for char in output_tokens:
+                    if char == data_utils.constants._SPACE:
+                        target += ' '
+                    else:
+                        target += char
+            else:
+                target = ' '.join(output_tokens)
 
             # Step 2: check if the predicted command template is grammatical
             if FLAGS.grammatical_only and not FLAGS.explain:
@@ -328,7 +336,12 @@ def decode_set(sess, model, dataset, top_k, FLAGS, verbose=True):
         key, data_group = grouped_dataset[example_id]
 
         sc_txt = data_group[0].sc_txt
-        sc_temp = ' '.join([rev_sc_vocab[i] for i in data_group[0].sc_ids])
+        sc_tokens = [rev_sc_vocab[i] for i in data_group[0].sc_ids]
+        if FLAGS.char:
+            sc_temp = ''.join(sc_tokens)
+            sc_temp = sc_temp.replace(constants._SPACE, ' ')
+        else:
+            sc_temp = ' '.join(sc_tokens)
         if verbose:
             print('\nExample {}:'.format(example_id))
             print('Original Source: {}'.format(sc_txt.strip()))

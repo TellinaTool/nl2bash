@@ -432,13 +432,11 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 batch_inputs.append(batched_dim)
             return batch_inputs
 
-        print(self.buckets, bucket_id)
         if bucket_id != -1:
             encoder_size, decoder_size = self.buckets[bucket_id]
         else:
             encoder_size, decoder_size = \
                 self.max_source_length, self.max_target_length
-        print(encoder_size, decoder_size)
         batch_size = len(encoder_inputs)
 
         # create batch-major vectors
@@ -517,7 +515,6 @@ class EncoderDecoderModel(graph_utils.NNModel):
         encoder_size, decoder_size = len(E.encoder_inputs), len(E.decoder_inputs)
         input_feed = {}
         for l in xrange(encoder_size):
-            print(l, len(self.encoder_inputs))
             input_feed[self.encoder_inputs[l].name] = E.encoder_inputs[l]
             input_feed[self.encoder_attn_masks[l].name] = E.encoder_attn_masks[l]
         for l in xrange(decoder_size):
