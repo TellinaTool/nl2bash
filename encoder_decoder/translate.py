@@ -177,12 +177,8 @@ def manual_eval(dataset, num_eval):
 
 
 def gen_eval_sheet(dataset):
-    model_dir, decode_sig = graph_utils.get_decode_signature(FLAGS)
-    print("evaluating " + decode_sig)
-
-    output_path = os.path.join(FLAGS.model_root_dir, model_dir, "predictions.csv")
-    eval_tools.gen_eval_sheet(decode_sig, dataset, FLAGS, output_path)
-    print("prediction results saved to {}".format(output_path))
+    model_dir, _ = graph_utils.get_decode_signature(FLAGS)
+    decode_tools.gen_eval_sheet(dataset, FLAGS, model_dir)
 
 
 def demo(buckets=None):
