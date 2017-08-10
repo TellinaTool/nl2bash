@@ -227,6 +227,7 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
             for b in range(num_buckets):
                 buckets.append((min_bucket_sc + b * sc_inc,
                                 min_bucket_tg + b * tg_inc))
+            buckets = list(set(buckets))
         else:
             num_buckets = len(buckets)
             assert(num_buckets > 1)
