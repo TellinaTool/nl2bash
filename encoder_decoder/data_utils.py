@@ -522,7 +522,6 @@ def string_to_partial_tokens(s):
         4. _ARG_START which indicates the beginning of an argument token
         5. _ARG_END which indicates the end of an argument token
     """
-    print(s)
     partial_tokens = []
 
     for token in s:
