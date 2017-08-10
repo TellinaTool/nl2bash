@@ -432,7 +432,6 @@ def gen_eval_sheet(model, dataset, FLAGS, output_path):
                                        for cmd in db.get_correct_temps(nl_temp)]
 
                 predictions = db.get_top_k_predictions(model, nl_temp, k=10)
-                print(nl_temp) 
                 example_id += 1
 
                 for i in xrange(min(3, len(predictions))):
