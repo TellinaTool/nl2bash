@@ -401,6 +401,7 @@ def decode_set(sess, model, dataset, top_k, FLAGS, verbose=True):
                         eval_row += 'y,'
                     if str_match:
                         eval_row += 'y'
+                    eval_file.write('{}\n'.format(eval_row))
                     if verbose:
                         print('Prediction {}: {} ({})'.format(
                             j+1, pred_cmd, top_k_scores[j]))
@@ -408,7 +409,6 @@ def decode_set(sess, model, dataset, top_k, FLAGS, verbose=True):
                             print('Character-based prediction {}: {}'.format(
                                 j+1, top_k_char_predictions[j]))
                 pred_file.write('\n')
-                eval_file.write('{}\n'.format(eval_row))
         else:
             print(APOLOGY_MSG)
             pred_file.write('\n')
