@@ -161,7 +161,12 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
     data_dir = FLAGS.data_dir
     sc_path = get_data_file_path(data_dir, split, source, 'filtered')
     tg_path = get_data_file_path(data_dir, split, target, 'filtered')
-    id_ext = 'ids.char' if FLAGS.char else 'ids.token'
+    if FLAGS.char:
+        id_ext = 'ids.char'
+    elif FLAGS.partial_token:
+        id_ext = 'ids.partial.token'
+    else:
+        id_ext = 'ids.token'
     sc_id_path = get_data_file_path(data_dir, split, source, id_ext)
     tg_id_path = get_data_file_path(data_dir, split, target, id_ext)
     print("source file: {}".format(sc_path))
@@ -212,6 +217,9 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
             if FLAGS.char:
                 bucket_size = (100, 100)
                 sc_inc, tg_inc = 100, 100
+            elif FLAGS.partial_token:
+                bucket_size = (40, 40)
+                sc_inc, tg_inc = (10, 10)
             else:
                 bucket_size = (30, 30)
                 sc_inc, tg_inc = 10, 10
@@ -353,8 +361,8 @@ def prepare_dataset(data_dir, split):
     cm_path = os.path.join(data_dir, split + '.cm.filtered')
     nl_list, cm_list = read_parallel_data(nl_path, cm_path)
 
-    # character-based processing
-    nl_chars, cm_chars = characterize_parallel_data(nl_list, cm_list)
+    # character based processing
+    nl_chars, cm_chars = parallel_data_to_characters(nl_list, cm_list)
     nl_char_vocab_path = os.path.join(data_dir, 'nl.vocab.char')
     cm_char_vocab_path = os.path.join(data_dir, 'cm.vocab.char')
     if split == 'train':
@@ -372,8 +380,30 @@ def prepare_dataset(data_dir, split):
             cm_char_ids = string_to_char_ids(data_point, cm_char_vocab)
             cm_char_file.write('{}\n'.format(' '.join([str(x) for x in cm_char_ids])))
 
-    # token-based processing
-    nl_tokens, cm_tokens = tokenize_parallel_data(nl_list, cm_list)
+    # partial-token based processing
+    nl_partial_tokens, cm_partial_tokens = parallel_data_to_partial_tokens(
+        nl_list, cm_list)
+    nl_partial_vocab_path = os.path.join(data_dir, 'nl.vocab.partial.token')
+    cm_partial_vocab_path = os.path.join(data_dir, 'cm.vocab.partial.token')
+    if split == 'train':
+        nl_partial_vocab = create_nl_vocabulary(
+            nl_partial_vocab_path, nl_partial_tokens)
+        cm_partial_vocab = create_cm_vocabulary(
+            cm_partial_vocab_path, cm_partial_tokens)
+    else:
+        nl_partial_vocab, _ = initialize_vocabulary(nl_partial_vocab_path)
+        cm_partial_vocab, _ = initialize_vocabulary(cm_partial_vocab_path)
+    with open(os.path.join(data_dir, split + '.nl.ids.partial.token'), 'w') as o_f:
+        for data_point in nl_partial_tokens:
+            nl_partial_token_ids = nl_to_partial_token_ids(data_point, nl_partial_vocab)
+            o_f.write('{}\n'.format(' '.join([str(x) for x in nl_partial_token_ids])))
+    with open(os.path.join(data_dir, split + '.cm.ids.partial.token'), 'w') as o_f:
+        for data_point in cm_partial_tokens:
+            cm_partial_token_ids = cm_to_partial_token_ids(data_point, cm_partial_vocab)
+            o_f.write('{}\n'.format(' '.join([str(x) for x in cm_partial_token_ids])))
+
+    # token based processing
+    nl_tokens, cm_tokens = parallel_data_to_tokens(nl_list, cm_list)
     nl_vocab_path = os.path.join(data_dir, 'nl.vocab.token')
     cm_vocab_path = os.path.join(data_dir, 'cm.vocab.token')
     if split == 'train':
@@ -402,7 +432,7 @@ def read_parallel_data(nl_path, cm_path):
     return nl_list, cm_list
 
 
-def characterize_parallel_data(nl_list, cm_list):
+def parallel_data_to_characters(nl_list, cm_list):
     nl_data = []
     for nl in nl_list:
         nl_data_point = []
@@ -424,11 +454,15 @@ def characterize_parallel_data(nl_list, cm_list):
     return nl_data, cm_data
 
 
-def tokenize_parallel_data(nl_list, cm_list):
-    nl_data = [nl_to_tokens(nl, tokenizer.basic_tokenizer)
-                         for nl in nl_list]
-    cm_data = [cm_to_tokens(cm, data_tools.bash_tokenizer)
-                         for cm in cm_list]
+def parallel_data_to_partial_tokens(nl_list, cm_list):
+    nl_data = [nl_to_partial_tokens(nl, tokenizer.basic_tokenizer) for nl in nl_list]
+    cm_data = [cm_to_partial_tokens(cm, data_tools.bash_tokenizer) for cm in cm_list]
+    return nl_data, cm_data
+
+
+def parallel_data_to_tokens(nl_list, cm_list):
+    nl_data = [nl_to_tokens(nl, tokenizer.basic_tokenizer) for nl in nl_list]
+    cm_data = [cm_to_tokens(cm, data_tools.bash_tokenizer) for cm in cm_list]
     return nl_data, cm_data
 
 
@@ -447,6 +481,97 @@ def string_to_char_ids(s, vocabulary):
             else:
                 char_ids.append(CUNK_ID)
     return char_ids
+
+
+def nl_to_partial_token_ids(s, vocabulary):
+    """
+    Split a natural language string into a sequence of partial tokens and map
+    them into their indices in the vocabular.
+    """
+    partial_tokens = s if isinstance(s, list) else \
+        nl_to_partial_tokens(s, tokenizer.basic_tokenizer)
+    return [vocabulary[pt] for pt in partial_tokens]
+
+
+def cm_to_partial_token_ids(s, vocabulary):
+    """
+    Split a command string into a sequence of partial tokens and map them into
+    their indices in the vocabular.
+    """
+    partial_tokens = s if isinstance(s, list) else \
+        cm_to_partial_tokens(s, data_tools.bash_tokenizer)
+    return [vocabulary[pt] for pt in partial_tokens]
+
+
+def nl_to_partial_tokens(s, tokenizer):
+    return string_to_partial_tokens(nl_to_tokens(s, tokenizer))
+
+
+def cm_to_partial_tokens(s, tokenizer):
+    return string_to_partial_tokens(cm_to_tokens(s, tokenizer))
+
+
+def string_to_partial_tokens(s):
+    """
+    Split a sequence of tokens into a sequence of partial tokens.
+
+    A partial token may consist of
+        1. continuous span of alphabetical letters
+        2. continuous span of digits
+        3. a non-alpha-numerical character
+        4. _ARG_START which indicates the beginning of an argument token
+        5. _ARG_END which indicates the end of an argument token
+    """
+    print(s)
+    partial_tokens = []
+
+    for token in s:
+        if not token:
+            continue
+        if token.isalpha() or token.isnumeric():
+            partial_tokens.append(token)
+        else:
+            arg_partial_tokens = []
+            pt = ''
+            reading_alpha = False
+            reading_numeric = False
+            for c in token:
+                if reading_alpha:
+                    if c.isalpha():
+                        pt += c
+                    else:
+                        arg_partial_tokens.append(pt)
+                        reading_alpha = False
+                        pt = c
+                        if c.isnumeric():
+                            reading_numeric = True
+                elif reading_numeric:
+                    if c.isnumeric():
+                        pt += c
+                    else:
+                        arg_partial_tokens.append(pt)
+                        reading_numeric = False
+                        pt = c
+                        if c.isalpha():
+                            reading_numeric = True
+                else:
+                    if pt:
+                        arg_partial_tokens.append(pt)
+                    pt = c
+                    if c.isalpha():
+                        reading_alpha = True
+                    elif c.isnumeric():
+                        reading_numeric = True
+            if pt:
+                arg_partial_tokens.append(pt)
+            if len(arg_partial_tokens) > 1:
+                partial_tokens.append(_ARG_START)
+                partial_tokens.extend(arg_partial_tokens)
+                partial_tokens.append(_ARG_END)
+            else:
+                partial_tokens.extend(arg_partial_tokens)
+
+    return partial_tokens
 
 
 def nl_to_tokens(s, tokenizer):
@@ -598,3 +723,8 @@ def group_parallel_data(dataset, attribute='source', use_bucket=False,
             grouped_dataset[temp] = [data_point]
 
     return sorted(grouped_dataset.items(), key=lambda x: x[0])
+
+
+if __name__ == '__main__':
+    print(nl_to_partial_token_ids('Change directory #! 77/7/home_school to the directory containing the "oracle" executable', {}))
+    print(cm_to_partial_token_ids('cd "$(dirname "$(which oracle)")"', {}))
