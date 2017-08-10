@@ -219,8 +219,10 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
             print('max_target_length after filtering = {}'.format(max_tg_length))
             num_buckets = 3
             min_bucket_sc, min_bucket_tg = 30, 30
-            sc_inc = int((max_sc_length - min_bucket_sc) / (num_buckets-1)) + 1
-            tg_inc = int((max_tg_length - min_bucket_tg) / (num_buckets-1)) + 1
+            sc_inc = int((max_sc_length - min_bucket_sc) / (num_buckets-1)) + 1 \
+                if max_sc_length > min_bucket_sc else 0
+            tg_inc = int((max_tg_length - min_bucket_tg) / (num_buckets-1)) + 1 \
+                if max_tg_length > min_bucket_tg else 0
             buckets = []
             for b in range(num_buckets):
                 buckets.append((min_bucket_sc + b * sc_inc,
