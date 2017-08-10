@@ -397,7 +397,8 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
                                 current.value += ('::' + input[j].word)
                                 bash_grammar.push(input[j], EXEC_COMMAND_S)
                             else:
-                                print("Warning: -exec missing stop token - ; added")
+                                if verbose:
+                                    print("Warning: -exec missing stop token - ; added")
                                 current.value += ('::' + ';')
                                 bash_grammar.push(';', EXEC_COMMAND_S)
                             i = j + 1
