@@ -18,7 +18,7 @@ import os, sys
 if sys.version_info > (3, 0):
     from six.moves import xrange
 
-from bashlint import nast, data_tools
+from bashlint import bash, nast, data_tools
 from nlp_tools import constants, ops, slot_filling, tokenizer
 
 # Special token symbols
@@ -539,7 +539,10 @@ def string_to_partial_tokens(s):
     for token in s:
         if not token:
             continue
-        if token.isalpha() or token.isnumeric() or '<FLAG_SUFFIX>' in token:
+        if token.isalpha() or token.isnumeric() or '<FLAG_SUFFIX>' in token \
+                or token in bash.binary_logic_operators \
+                or token in bash.left_associate_unary_logic_operators \
+                or token in bash.right_associate_unary_logic_operators:
             partial_tokens.append(token)
         else:
             arg_partial_tokens = []
@@ -738,4 +741,4 @@ def group_parallel_data(dataset, attribute='source', use_bucket=False,
 
 if __name__ == '__main__':
     # print(nl_to_partial_token_ids('Change directory #! 77/7/home_school to the directory containing the "oracle" executable', {}))
-    print(cm_to_partial_token_ids('find . -type f -mtime +30d', {}))
+    print(cm_to_partial_token_ids("find /tmp/1 -iname '*.txt' -not -iname '[0-9A-Za-z]*.txt'", {}))
