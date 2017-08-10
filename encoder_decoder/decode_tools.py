@@ -380,6 +380,10 @@ def decode_set(sess, model, dataset, top_k, FLAGS, verbose=True):
         'predictions.{}.latest'.format(model.decode_sig)))
 
 
+def gen_eval_sheet(dataset, FLAGS, model_dir):
+    
+
+
 def visualize_attn_alignments(M, source, target, rev_sc_vocab,
                               rev_tg_vocab, output_path):
     target_length, source_length = M.shape
