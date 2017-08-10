@@ -211,10 +211,10 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
             # Compute bucket sizes, excluding outliers
             # A. Determine maximum source length
             sorted_dataset = sorted(dataset, key=lambda x:len(x.sc_ids), reverse=True)
-            max_sc_length = len(sorted_dataset[int(len(sorted_dataset) * 0.02)].sc_ids)
+            max_sc_length = len(sorted_dataset[int(len(sorted_dataset) * 0.01)].sc_ids)
             # B. Determine maximum target length
             sorted_dataset = sorted(dataset, key=lambda x:len(x.tg_ids), reverse=True)
-            max_tg_length = len(sorted_dataset[int(len(sorted_dataset) * 0.02)].tg_ids)
+            max_tg_length = len(sorted_dataset[int(len(sorted_dataset) * 0.01)].tg_ids)
             print('max_source_length after filtering = {}'.format(max_sc_length))
             print('max_target_length after filtering = {}'.format(max_tg_length))
             num_buckets = 3
@@ -227,10 +227,10 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
             for b in range(num_buckets):
                 buckets.append((min_bucket_sc + b * sc_inc,
                                 min_bucket_tg + b * tg_inc))
-            buckets = list(set(buckets))
+            buckets = sorted(list(set(buckets)), key=lambda x:100*x[0]+x[1])
         else:
             num_buckets = len(buckets)
-            assert(num_buckets > 1)
+            assert(num_buckets >= 1)
 
         dataset2 = [[] for b in xrange(num_buckets)]
         for i in range(len(dataset)):
@@ -258,7 +258,12 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
 def load_vocabulary(FLAGS):
     data_dir = FLAGS.data_dir
     source, target = ('nl', 'cm') if not FLAGS.explain else ('cm', 'nl')
-    vocab_ext = 'vocab.char' if FLAGS.char else 'vocab.token'
+    if FLAGS.char:
+        vocab_ext = 'vocab.char'
+    elif FLAGS.partial_token:
+        vocab_ext = 'vocab.partial.token'
+    else:
+        vocab_ext = 'vocab.token'
 
     source_vocab_path = os.path.join(data_dir, '{}.{}'.format(source, vocab_ext))
     target_vocab_path = os.path.join(data_dir, '{}.{}'.format(target, vocab_ext))
@@ -711,7 +716,11 @@ def group_parallel_data(dataset, attribute='source', use_bucket=False,
                 words = data_tools.bash_tokenizer(attr, arg_type_only=True)
             temp = ' '.join(words)
         else:
-            temp = attr
+            if tokenizer_selector == 'nl':
+                words, _ = tokenizer.basic_tokenizer(attr)
+                temp = ' '.join(words)
+            else:
+                temp = attr
         if temp in grouped_dataset:
             grouped_dataset[temp].append(data_point)
         else:
