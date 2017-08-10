@@ -218,8 +218,8 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
                 bucket_size = (150, 150)
                 sc_inc, tg_inc = 150, 150
             elif FLAGS.partial_token:
-                bucket_size = (40, 40)
-                sc_inc, tg_inc = (10, 10)
+                bucket_size = (60, 60)
+                sc_inc, tg_inc = (40, 40)
             else:
                 bucket_size = (30, 30)
                 sc_inc, tg_inc = 10, 10
@@ -328,7 +328,7 @@ def initialize_vocabulary(vocab_path):
         rev_vocab = []
         with tf.gfile.GFile(vocab_path, mode="r") as f:
             rev_vocab.extend(f.readlines())
-        rev_vocab = [line.strip() for line in rev_vocab]
+        rev_vocab = [line[:-1] for line in rev_vocab]
         vocab = dict([(x, y) for (y, x) in enumerate(rev_vocab)])
         rev_vocab = dict([(y, x) for (y, x) in enumerate(rev_vocab)])
         assert(len(vocab) == len(rev_vocab))
@@ -490,8 +490,13 @@ def nl_to_partial_token_ids(s, vocabulary):
     """
     partial_tokens = s if isinstance(s, list) else \
         nl_to_partial_tokens(s, tokenizer.basic_tokenizer)
-    print(partial_tokens)
-    return [vocabulary[pt] for pt in partial_tokens]
+    partial_token_ids = []
+    for pt in partial_tokens:
+        if pt in vocabulary:
+            partial_token_ids.append(vocabulary[pt])
+        else:
+            partial_token_ids.append(UNK_ID)
+    return partial_token_ids
 
 
 def cm_to_partial_token_ids(s, vocabulary):
@@ -501,8 +506,13 @@ def cm_to_partial_token_ids(s, vocabulary):
     """
     partial_tokens = s if isinstance(s, list) else \
         cm_to_partial_tokens(s, data_tools.bash_tokenizer)
-    print(partial_tokens)
-    return [vocabulary[pt] for pt in partial_tokens]
+    partial_token_ids = []
+    for pt in partial_tokens:
+        if pt in vocabulary:
+            partial_token_ids.append(vocabulary[pt])
+        else:
+            partial_token_ids.append(UNK_ID)
+    return partial_token_ids
 
 
 def nl_to_partial_tokens(s, tokenizer):
