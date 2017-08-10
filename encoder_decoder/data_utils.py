@@ -210,7 +210,7 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
         # determine bucket sizes
         sorted_dataset = sorted(
             dataset, key=lambda x:(len(x.sc_ids) * 1e6 + len(x.tg_ids)))
-
+        
         dataset = []
         if split == 'train':
             bucket_sizes = []
@@ -218,8 +218,8 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
                 bucket_size = (150, 150)
                 sc_inc, tg_inc = 150, 150
             elif FLAGS.partial_token:
-                bucket_size = (60, 60)
-                sc_inc, tg_inc = (40, 40)
+                bucket_size = (30, 30)
+                sc_inc, tg_inc = (20, 20)
             else:
                 bucket_size = (30, 30)
                 sc_inc, tg_inc = 10, 10
@@ -232,7 +232,7 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
                     bucket.append(data_point)
                 else:
                     # determine if a new bucket is needed
-                    if split == 'train' and i / num_data >= 0.95:
+                    if i / num_data >= 0.95:
                         break
                     else:
                         dataset.append(bucket)
