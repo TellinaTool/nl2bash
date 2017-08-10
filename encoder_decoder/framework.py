@@ -530,6 +530,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
         for l in xrange(decoder_size), self.max_target_length:
             input_feed[self.decoder_inputs[l].name] = 0
             input_feed[self.target_weights[l].name] = 0
+
         # Since our targets are decoder inputs shifted by one, we need one more.
         last_target = self.decoder_inputs[decoder_size].name
         input_feed[last_target] = np.zeros(E.decoder_inputs[0].shape, dtype=np.int32)
