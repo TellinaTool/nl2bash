@@ -211,33 +211,36 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
             # Compute bucket sizes, excluding outliers
             # A. Determine maximum source length
             sorted_dataset = sorted(dataset, key=lambda x:len(x.sc_ids), reverse=True)
-            max_sc_length = len(sorted_dataset[int(len(sorted_dataset) * 0.05)].sc_ids)
+            max_sc_length = len(sorted_dataset[int(len(sorted_dataset) * 0.02)].sc_ids)
             # B. Determine maximum target length
             sorted_dataset = sorted(dataset, key=lambda x:len(x.tg_ids), reverse=True)
-            max_tg_length = len(sorted_dataset[int(len(sorted_dataset) * 0.05)].tg_ids)
+            max_tg_length = len(sorted_dataset[int(len(sorted_dataset) * 0.02)].tg_ids)
             print('max_source_length after filtering = {}'.format(max_sc_length))
             print('max_target_length after filtering = {}'.format(max_tg_length))
             num_buckets = 3
             min_bucket_sc, min_bucket_tg = 30, 30
-            sc_inc = int((max_sc_length - min_bucket_sc) / num_buckets) + 1
-            tg_inc = int((max_tg_length - min_bucket_tg) / num_buckets) + 1
-            bucket_sizes = []
+            sc_inc = int((max_sc_length - min_bucket_sc) / (num_buckets-1)) + 1
+            tg_inc = int((max_tg_length - min_bucket_tg) / (num_buckets-1)) + 1
+            buckets = []
             for b in range(num_buckets):
-                bucket_sizes.append((min_bucket_sc + b * sc_inc))
-                bucket_sizes.append((min_bucket_tg + b * tg_inc))
+                buckets.append((min_bucket_sc + b * sc_inc,
+                                min_bucket_tg + b * tg_inc))
         else:
-            assert(len(buckets) > 0)
+            num_buckets = len(buckets)
+            assert(num_buckets > 1)
 
-        dataset = [[] for bucket in buckets]
-        for i in range(len(sorted_dataset)):
-            data_point = sorted_dataset[i]
+        dataset2 = [[] for b in xrange(num_buckets)]
+        for i in range(len(dataset)):
+            data_point = dataset[i]
             # compute bucket id
             bucket_ids = [b for b in xrange(len(buckets))
                           if buckets[b][0] > len(data_point.sc_ids) and
-                          buckets[b][1] > len(data_point.sc_ids)]
+                          buckets[b][1] > len(data_point.tg_ids)]
             bucket_id = min(bucket_ids) if bucket_ids else (len(buckets)-1)
-            dataset[bucket_id].append(bucket)
-
+            dataset2[bucket_id].append(data_point)
+        dataset = dataset2
+        print(len(functools.reduce(lambda x, y: x + y, dataset)))
+      
     D = DataSet()
     D.data_points = dataset
     if split == 'train':
