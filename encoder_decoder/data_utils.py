@@ -490,6 +490,7 @@ def nl_to_partial_token_ids(s, vocabulary):
     """
     partial_tokens = s if isinstance(s, list) else \
         nl_to_partial_tokens(s, tokenizer.basic_tokenizer)
+    print(partial_tokens)
     return [vocabulary[pt] for pt in partial_tokens]
 
 
@@ -500,6 +501,7 @@ def cm_to_partial_token_ids(s, vocabulary):
     """
     partial_tokens = s if isinstance(s, list) else \
         cm_to_partial_tokens(s, data_tools.bash_tokenizer)
+    print(partial_tokens)
     return [vocabulary[pt] for pt in partial_tokens]
 
 
@@ -527,7 +529,7 @@ def string_to_partial_tokens(s):
     for token in s:
         if not token:
             continue
-        if token.isalpha() or token.isnumeric():
+        if token.isalpha() or token.isnumeric() or '<FLAG_SUFFIX>' in token:
             partial_tokens.append(token)
         else:
             arg_partial_tokens = []
@@ -725,5 +727,5 @@ def group_parallel_data(dataset, attribute='source', use_bucket=False,
 
 
 if __name__ == '__main__':
-    print(nl_to_partial_token_ids('Change directory #! 77/7/home_school to the directory containing the "oracle" executable', {}))
-    print(cm_to_partial_token_ids('cd "$(dirname "$(which oracle)")"', {}))
+    # print(nl_to_partial_token_ids('Change directory #! 77/7/home_school to the directory containing the "oracle" executable', {}))
+    print(cm_to_partial_token_ids('find . -type f -mtime +30d', {}))
