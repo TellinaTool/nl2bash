@@ -422,7 +422,8 @@ def gen_eval_sheet(model, dataset, FLAGS, output_path):
             else data_tools.paren_parser
         tokenizer_selector = "cm" if FLAGS.explain else "nl"
         grouped_dataset = data_utils.group_parallel_data(
-            dataset, use_bucket=True, tokenizer_selector=tokenizer_selector)
+            dataset, use_temp=False, use_bucket=True, 
+            tokenizer_selector=tokenizer_selector)
 
         with DBConnection() as db:
             for nl_temp, data_group in grouped_dataset:
