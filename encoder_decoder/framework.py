@@ -525,12 +525,16 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
         # Apply dummy values to encoder and decoder inputs
         for l in xrange(encoder_size, self.max_source_length):
-            input_feed[self.encoder_inputs[l].name] = 0
-            input_feed[self.encoder_attn_masks[l].name] = 0
-        for l in xrange(decoder_size), self.max_target_length:
-            input_feed[self.decoder_inputs[l].name] = 0
-            input_feed[self.target_weights[l].name] = 0
-
+            input_feed[self.encoder_inputs[l].name] = np.zeros(
+                E.encoder_inputs[-1].shape, dtype=np.int32)
+            input_feed[self.encoder_attn_masks[l].name] = np.zeros(
+                E.encoder_attn_masks[-1].shape, dtype=np.int32)
+        for l in xrange(decoder_size, self.max_target_length):
+            input_feed[self.decoder_inputs[l].name] = np.zeros(
+                E.decoder_inputs[-1].shape, dtype=np.int32)
+            input_feed[self.target_weights[l].name] = np.zeros(
+                E.target_weights[-1].shape, dtype=np.int32)
+        
         # Since our targets are decoder inputs shifted by one, we need one more.
         last_target = self.decoder_inputs[decoder_size].name
         input_feed[last_target] = np.zeros(E.decoder_inputs[0].shape, dtype=np.int32)
