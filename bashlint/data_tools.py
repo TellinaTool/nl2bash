@@ -142,7 +142,7 @@ def ast2tokens(node, loose_constraints=False, ignore_flag_order=False,
                             suffix += child.arg_type
                         elif child.is_utility():
                             suffix += 'UTILITY'
-                token = token + '__' + suffix
+                token = token + '<FLAG_SUFFIX>' + suffix
             tokens.append(token)
             for child in node.children:
                 tokens += to_tokens_fun(child)
