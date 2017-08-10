@@ -210,8 +210,8 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
         if split == 'train':
             bucket_sizes = []
             if FLAGS.char:
-                bucket_size = (100, 100)
-                sc_inc, tg_inc = 100, 100
+                bucket_size = (150, 150)
+                sc_inc, tg_inc = 150, 150
             else:
                 bucket_size = (30, 30)
                 sc_inc, tg_inc = 10, 10
@@ -224,7 +224,7 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
                     bucket.append(data_point)
                 else:
                     # determine if a new bucket is needed
-                    if split == 'train' and i / num_data >= 0.98:
+                    if split == 'train' and i / num_data >= 0.95:
                         break
                     else:
                         dataset.append(bucket)
