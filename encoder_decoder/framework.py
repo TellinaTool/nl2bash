@@ -26,8 +26,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
         Hyperparameters:
           source_vocab_size: size of the source vocabulary.
           target_vocab_size: size of the target vocabulary.
-          buckets: a list of pairs (I, O), where I specifies maximum input length
-            that will be processed in that bucket, and O specifies maximum output
+          buckets: a list of pairs (I, O), where I specifies maximum input lengt            that will be processed in that bucket, and O specifies maximum output
             length. Training instances that have inputs longer than I or outputs
             longer than O will be pushed to the next bucket and padded accordingly.
             We assume that the list is sorted, e.g., [(2, 4), (8, 16)].
