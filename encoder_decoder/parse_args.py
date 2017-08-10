@@ -44,8 +44,6 @@ def define_input_flags():
                                 "Set to True for manual evaluation.")
     tf.app.flags.DEFINE_boolean("eval", False,
                                 "Set to True for quantitive evaluation.")
-    tf.app.flags.DEFINE_boolean("gen_eval_sheet", False,
-                                "Set to True to print out model predictions for manual evaluation.")
     tf.app.flags.DEFINE_boolean("process_data", False,
                                 "Set to True for data preprocessing.")
     tf.app.flags.DEFINE_boolean("decode", False,

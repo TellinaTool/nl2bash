@@ -176,11 +176,6 @@ def manual_eval(dataset, num_eval):
         decode_sig, dataset, FLAGS, FLAGS.model_root_dir, num_eval)
 
 
-def gen_eval_sheet(dataset):
-    model_dir, _ = graph_utils.get_decode_signature(FLAGS)
-    decode_tools.gen_eval_sheet(dataset, FLAGS, model_dir)
-
-
 def demo(buckets=None):
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
         log_device_placement=FLAGS.log_device_placement)) as sess:
@@ -264,9 +259,7 @@ def main(_):
         FLAGS.max_tg_token_size = vocab.max_tg_token_size
 
         dataset = test_set if FLAGS.test else dev_set
-        if FLAGS.gen_eval_sheet:
-            gen_eval_sheet(dataset)
-        elif FLAGS.eval:
+        if FLAGS.eval:
             eval(dataset, verbose=True)
         elif FLAGS.manual_eval:
             manual_eval(dataset, 100)
