@@ -422,7 +422,8 @@ def parallel_data_to_characters(nl_list, cm_list):
     nl_data = []
     for nl in nl_list:
         nl_data_point = []
-        for c in nl:
+        nl_tokens = nl_to_tokens(nl, nlp_tools.basic_tokenizer, lemmatization=True):
+        for c in ' '.join(nl_tokens):
             if c == ' ':
                 nl_data_point.append(constants._SPACE)
             else:
@@ -431,7 +432,8 @@ def parallel_data_to_characters(nl_list, cm_list):
     cm_data = []
     for cm in cm_list:
         cm_data_point = []
-        for c in cm:
+        cm_tokens = cm_to_tokens(cm, data_tools.bash_tokenizer)
+        for c in ' '.join(cm_tokens):
             if c == ' ':
                 cm_data_point.append(constants._SPACE)
             else:
@@ -574,11 +576,11 @@ def string_to_partial_tokens(s):
     return partial_tokens
 
 
-def nl_to_tokens(s, tokenizer):
+def nl_to_tokens(s, tokenizer, lemmatization=True):
     """
     Split a natural language string into a sequence of tokens.
     """
-    tokens, _ = tokenizer(s)
+    tokens, _ = tokenizer(s, lemmatization=lemmatization)
     return tokens
 
 
