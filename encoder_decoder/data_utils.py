@@ -504,14 +504,14 @@ def cm_to_partial_token_ids(s, vocabulary):
 
 
 def nl_to_partial_tokens(s, tokenizer):
-    return string_to_partial_tokens(nl_to_tokens(s, tokenizer))
+    return string_to_partial_tokens(nl_to_tokens(s, tokenizer, use_arg_start_end=False))
 
 
 def cm_to_partial_tokens(s, tokenizer):
     return string_to_partial_tokens(cm_to_tokens(s, tokenizer))
 
 
-def string_to_partial_tokens(s):
+def string_to_partial_tokens(s, use_arg_start_end=True):
     """
     Split a sequence of tokens into a sequence of partial tokens.
 
@@ -567,9 +567,11 @@ def string_to_partial_tokens(s):
             if pt:
                 arg_partial_tokens.append(pt)
             if len(arg_partial_tokens) > 1:
-                partial_tokens.append(_ARG_START)
+                if use_arg_start_end:
+                    partial_tokens.append(_ARG_START)
                 partial_tokens.extend(arg_partial_tokens)
-                partial_tokens.append(_ARG_END)
+                if use_arg_start_end
+                    partial_tokens.append(_ARG_END)
             else:
                 partial_tokens.extend(arg_partial_tokens)
 
