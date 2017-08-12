@@ -108,6 +108,10 @@ def grid_search(train_fun, decode_fun, eval_fun, train_set, dev_set, FLAGS):
             train_set, dev_set, test_set = \
                 data_utils.load_data(FLAGS, use_buckets=True, load_mappings=False)
             vocab = data_utils.load_vocabulary(FLAGS)
+            FLAGS.sc_vocab_size = len(vocab.sc_vocab)
+            FLAGS.tg_vocab_size = len(vocab.tg_vocab)
+            FLAGS.max_sc_token_size = vocab.max_sc_token_size
+            FLAGS.max_tg_token_size = vocab.max_tg_token_size
 
         for t in xrange(num_trials):
             seed = random.getrandbits(32)
