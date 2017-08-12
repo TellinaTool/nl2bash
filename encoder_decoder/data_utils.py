@@ -152,7 +152,7 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
         source_ids = []
         for x in s.split():
             ind = int(x)
-            if svf[ind] >= FLAGS.min_vocab_frquency:
+            if svf[ind] >= FLAGS.min_vocab_frequency:
                 source_ids.append(ind)
             else:
                 source_ids.append(UNK_ID)
