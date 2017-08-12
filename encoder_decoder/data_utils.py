@@ -143,6 +143,7 @@ def load_data(FLAGS, use_buckets=True, load_mappings=False):
 
 def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
               add_start_token=False, add_end_token=False):
+    vocab = load_vocabulary(FLAGS)
     svf, tvf = load_vocabulary_frequency(FLAGS)
 
     def get_data_file_path(data_dir, split, lang, extension):
@@ -152,7 +153,8 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
         source_ids = []
         for x in s.split():
             ind = int(x)
-            if svf[ind] >= FLAGS.min_vocab_frequency:
+            token = vocab.rev_sc_vocab[ind] if ind in vocab.rev_sc_vocab else ''
+            if not '<FLAG_SUFFIX>' in token and svf[ind] >= FLAGS.min_vocab_frequency:
                 source_ids.append(ind)
             else:
                 source_ids.append(UNK_ID)
@@ -162,7 +164,8 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
         target_ids = []
         for x in s.split():
             ind = int(x)
-            if tvf[ind] >= FLAGS.min_vocab_frequency:
+            token = vocab.rev_tg_vocab[ind] if ind in vocab.rev_tg_vocab else ''
+            if not '<FLAG_SUFFIX>' in token and tvf[ind] >= FLAGS.min_vocab_frequency:
                 target_ids.append(ind)
             else:
                 target_ids.append(UNK_ID)
