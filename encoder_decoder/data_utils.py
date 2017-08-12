@@ -363,30 +363,25 @@ def load_vocabulary_frequency(FLAGS):
     source_vocab_path = os.path.join(data_dir, '{}.{}'.format(source, vocab_ext))
     target_vocab_path = os.path.join(data_dir, '{}.{}'.format(target, vocab_ext))
 
-    sc_vocab_freq, tg_vocab_freq = {}, {}
-
-    with open(source_vocab_path) as f:
-        counter = 0
-        for line in f:
-            if line.startswith('\t'):
-                v = line[0]
-                freq = line.strip()
-            else:
-                v, freq = line.rsplit('\t', 1)
-            sc_vocab_freq[counter] = int(freq)
-            counter += 1
-    with open(target_vocab_path) as f:
-        counter = 0
-        for line in f:
-            if line.startswith('\t'):
-                v = line[0]
-                freq = line.strip()
-            else:
-                v, freq = line.rsplit('\t', 1)
-            tg_vocab_freq[counter] = int(freq)
-            counter += 1
+    sc_vocab_freq = initialize_vocabulary_frequency(source_vocab_path)
+    tg_vocab_freq = initialize_vocabulary_frequency(target_vocab_path)
 
     return sc_vocab_freq, tg_vocab_freq
+
+
+def initialize_vocabulary_frequency(vocab_path):
+    vocab_freq = {}
+    with open(vocab_path) as f:
+        counter = 0
+        for line in f:
+            if line.startswith('\t'):
+                v = line[0]
+                freq = line.strip()
+            else:
+                v, freq = line.rsplit('\t', 1)
+            vocab_freq[counter] = int(freq)
+            counter += 1
+    return vocab_freq
 
 
 # --- Data Preparation --- #
