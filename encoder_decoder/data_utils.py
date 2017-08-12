@@ -334,9 +334,10 @@ def initialize_vocabulary(vocab_path, min_frequency=1):
                 line = f.readline()
                 if line:
                     if line.startswith('\t'):
-                        v, freq = line[0], line.strip()   
+                        v = line[0]
+                        freq = line.strip()   
                     else:
-                        v, freq = line[:-1].split('\t')
+                        v, freq = line[:-1].rsplit('\t', 1)
                     if int(freq) >= min_frequency:
                         V.append(v)
                 else:
@@ -367,13 +368,21 @@ def load_vocabulary_frequency(FLAGS):
     with open(source_vocab_path) as f:
         counter = 0
         for line in f:
-            v, freq = line.split('\t')
+            if line.startswith('\t'):
+                v = line[0]
+                freq = line.strip()
+            else:
+                v, freq = line.rsplit('\t', 1)
             sc_vocab_freq[counter] = int(freq)
             counter += 1
     with open(target_vocab_path) as f:
         counter = 0
         for line in f:
-            v, freq = line.split('\t')
+            if line.startswith('\t'):
+                v = line[0]
+                freq = line.strip()
+            else:
+                v, freq = line.rsplit('\t', 1)
             tg_vocab_freq[counter] = int(freq)
             counter += 1
 
