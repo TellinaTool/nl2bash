@@ -291,7 +291,7 @@ def load_vocabulary(FLAGS):
     return vocab
 
 
-def initialize_vocabulary(vocab_path):
+def initialize_vocabulary(vocab_path, min_frequency=1):
     """Initialize vocabulary from file.
 
     We assume the vocabulary is stored one-item-per-line, so a file:
@@ -311,10 +311,14 @@ def initialize_vocabulary(vocab_path):
       ValueError: if the provided vocab_path does not exist.
     """
     if tf.gfile.Exists(vocab_path):
-        rev_vocab = []
+        V= []
         with tf.gfile.GFile(vocab_path, mode="r") as f:
-            rev_vocab.extend(f.readlines())
-        rev_vocab = [line[:-1] for line in rev_vocab]
+            while(True):
+                line = f.readline()
+                if line:
+                    v, freq = line.strip().split('\t')
+                    if int(freq) >= min_frequency:
+                        V.append(v)
         vocab = dict([(x, y) for (y, x) in enumerate(rev_vocab)])
         rev_vocab = dict([(y, x) for (y, x) in enumerate(rev_vocab)])
         assert(len(vocab) == len(rev_vocab))
@@ -636,24 +640,24 @@ def create_nl_vocabulary(vocab_path, dataset, min_word_frequency=1,
             if not isinstance(data_point, list) else data_point
         for token in tokens:
             vocab[token] += 1
-    sorted_vocab = [x for x, y in sorted(vocab.items(), key=lambda x:x[1],
-                        reverse=True) if y >= min_word_frequency]
+    sorted_vocab = [(x, y) for x, y in sorted(vocab.items(), key=lambda x:x[1],
+                    reverse=True) if y >= min_word_frequency]
     
     if is_character_model:
         # Character model
         init_vocab = CHAR_INIT_VOCAB
     else:
         init_vocab = TOKEN_INIT_VOCAB
-    vocab = list(init_vocab)
-    for v in sorted_vocab:
+    vocab = [(v, 1000000) for v in init_vocab]
+    for v, f in sorted_vocab:
         if not v in init_vocab:
-            vocab.append(v)
+            vocab.append((v, f))
 
     with open(vocab_path, 'w') as vocab_file:
-        for v in vocab:
-            vocab_file.write('{}\n'.format(v))
+        for v, f in vocab:
+            vocab_file.write('{}\t{}\n'.format(v, f))
 
-    return dict([(x, y) for y, x in enumerate(vocab)])
+    return dict([(x[0], y) for y, x in enumerate(vocab)])
 
 
 def create_cm_vocabulary(vocab_path, dataset, min_word_frequency=1,
@@ -667,24 +671,24 @@ def create_cm_vocabulary(vocab_path, dataset, min_word_frequency=1,
             if not isinstance(data_point, list) else data_point
         for token in tokens:
             vocab[token] += 1
-    sorted_vocab = [x for x, y in sorted(vocab.items(), key=lambda x:x[1],
-                        reverse=True) if y >= min_word_frequency]
+    sorted_vocab = [(x, y) for (x, y) in sorted(vocab.items(), key=lambda x:x[1],
+                    reverse=True) if y >= min_word_frequency]
             
     if is_character_model:
         # Character model
         init_vocab = CHAR_INIT_VOCAB
     else:
         init_vocab = TOKEN_INIT_VOCAB
-    vocab = list(init_vocab)
-    for v in sorted_vocab:
+    vocab = [(v, 1000000) for v in init_vocab]
+    for v, f in sorted_vocab:
         if not v in init_vocab:
-            vocab.append(v)
+            vocab.append((v, f))
 
     with open(vocab_path, 'w') as vocab_file:
-        for v in vocab:
-            vocab_file.write('{}\n'.format(v))
+        for v, f in vocab:
+            vocab_file.write('{}\t{}\n'.format(v, f))
 
-    return dict([(x, y) for y, x in enumerate(vocab)])
+    return dict([(x[0], y) for y, x in enumerate(vocab)])
 
 
 def group_parallel_data(dataset, attribute='source', use_bucket=False,
