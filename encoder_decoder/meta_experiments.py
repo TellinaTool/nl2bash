@@ -17,7 +17,7 @@ if sys.version_info > (3, 0):
 import tensorflow as tf
 from tensorflow.python.util import nest
 
-from encoder_decoder import graph_utils
+from encoder_decoder import data_utils, graph_utils
 
 
 hyperparam_range = {
@@ -64,16 +64,28 @@ def grid_search(train_fun, decode_fun, eval_fun, train_set, dev_set, FLAGS):
             hyperparameters[i], hp_range[hyperparameters[i]]))
     print()
 
+    if FLAGS.dataset.startswith('bash'):
+        metrics = ['top1_temp_ms', 'top1_cms', 'top3_temp_ms', 'top3_cms']
+        metrics_weights = [0.4, 0.4, 0.1, 0.1]
+    else:
+        metrics = ['top1_temp_ms']
+        metrics_weights = [1]
+    metrics_signature = '+'.join(
+        ['{}x{}'.format(m, mw) for m, mw in zip(metrics, metrics_weights)])
+
+    # Generate grid
     param_grid = [v for v in hp_range[hyperparameters[0]]]
     for i in xrange(1, num_hps):
         param_grid = itertools.product(param_grid, hp_range[hyperparameters[i]])
-
+    # Initialize metrics value
     best_hp_set = [-1] * num_hps
     best_seed = -1
     best_metrics_value = 0
 
     for row in param_grid:
         row = nest.flatten(row)
+
+        # Set current hyperaramter set
         for i in xrange(num_hps):
             setattr(FLAGS, hyperparameters[i], row[i])
             if hyperparameters[i] == 'universal_keep':
@@ -91,14 +103,11 @@ def grid_search(train_fun, decode_fun, eval_fun, train_set, dev_set, FLAGS):
         # Try different random seed if tuning initialization
         num_trials = 5 if FLAGS.initialization else 1
 
-        if FLAGS.dataset.startswith('bash'):
-            metrics = ['top1_temp_ms', 'top1_cms', 'top3_temp_ms', 'top3_cms']
-            metrics_weights = [0.4, 0.4, 0.1, 0.1]
-        else:
-            metrics = ['top1_temp_ms']
-            metrics_weights = [1]
-        metrics_signature = '+'.join(
-            ['{}x{}'.format(m, mw) for m, mw in zip(metrics, metrics_weights)])
+        if 'min_vocab_frequency' in hyperparameters:
+            # Read train and dev sets from disk
+            train_set, dev_set, test_set = \
+                data_utils.load_data(FLAGS, use_buckets=True, load_mappings=False)
+            vocab = data_utils.load_vocabulary(FLAGS)
 
         for t in xrange(num_trials):
             seed = random.getrandbits(32)
