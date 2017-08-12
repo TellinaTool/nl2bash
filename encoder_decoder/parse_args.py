@@ -31,7 +31,7 @@ def define_input_flags():
     tf.app.flags.DEFINE_boolean('schedule_experiments', False,
                                 'Set to True for running multiple experiments with different ' +
                                 'set of hyperparameters sequentially.')
-    tf.app.flags.DEFINE_string('tuning', 'initialization,output_keep_prob, num_samples',
+    tf.app.flags.DEFINE_string('tuning', 'initialization,output_keep_prob,num_samples',
                                'List of hyperparamters to tune.')
     tf.app.flags.DEFINE_boolean('initialization', False,
                                 'Set to try multiple random intialization and select the best one.')

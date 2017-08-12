@@ -42,6 +42,8 @@ def grid_search(train_fun, decode_fun, eval_fun, train_set, dev_set, FLAGS):
     '''
     Perform hyperparameter tuning of a model using grid-search.
 
+    Usage: ./run-script.sh --grid_search --tuning hp1,...
+
     :param train_fun: Function to train the model.
     :param decode_fun: Function to decode from the trained model.
     :param eval_fun: Function to evaluate the decoding results.
