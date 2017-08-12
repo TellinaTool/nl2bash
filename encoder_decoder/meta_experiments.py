@@ -198,9 +198,9 @@ def single_round_model_eval(train_fun, decode_fun, eval_fun, train_set,
         train_fun(train_set, dev_set)
         
         tf.reset_default_graph()
-        model_dir, decode_sig = decode_fun(dev_set, verbose=False)
+        model = decode_fun(dev_set, verbose=False)
 
-        M = eval_fun(dev_set, model_dir, decode_sig, verbose=False)
+        M = eval_fun(dev_set, model.model_dir, model.decode_sig, verbose=False)
 
         metrics_value = 0
         for m, m_w in zip(metrics, metrics_weights):
