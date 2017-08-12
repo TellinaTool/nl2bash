@@ -316,11 +316,16 @@ def initialize_vocabulary(vocab_path, min_frequency=1):
             while(True):
                 line = f.readline()
                 if line:
-                    v, freq = line.strip().split('\t')
+                    if line.startswith('\t'):
+                        v, freq = line[0], line.strip()   
+                    else:
+                        v, freq = line[:-1].split('\t')
                     if int(freq) >= min_frequency:
                         V.append(v)
-        vocab = dict([(x, y) for (y, x) in enumerate(rev_vocab)])
-        rev_vocab = dict([(y, x) for (y, x) in enumerate(rev_vocab)])
+                else:
+                    break
+        vocab = dict([(x, y) for (y, x) in enumerate(V)])
+        rev_vocab = dict([(y, x) for (y, x) in enumerate(V)])
         assert(len(vocab) == len(rev_vocab))
         return vocab, rev_vocab
     else:
