@@ -143,20 +143,34 @@ def load_data(FLAGS, use_buckets=True, load_mappings=False):
 
 def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
               add_start_token=False, add_end_token=False):
+    svf, tvf = load_vocabulary_frequency(FLAGS)
 
     def get_data_file_path(data_dir, split, lang, extension):
         return os.path.join(data_dir, '{}.{}.{}'.format(split, lang, extension))
 
     def get_source_ids(s):
-        return [int(x) for x in s.split()]
+        source_ids = []
+        for x in s.split():
+            ind = int(x)
+            if svf[ind] >= FLAGS.min_vocab_frquency:
+                source_ids.append(ind)
+            else:
+                source_ids.append(UNK_ID)
+        return source_ids
 
     def get_target_ids(s):
-        tg_ids = [int(x) for x in s.split()]
+        target_ids = []
+        for x in s.split():
+            ind = int(x)
+            if tvf[ind] >= FLAGS.min_vocab_frequency:
+                target_ids.append(ind)
+            else:
+                target_ids.append(UNK_ID)
         if add_start_token:
-            tg_ids.insert(0, ROOT_ID)
+            target_ids.insert(0, ROOT_ID)
         if add_end_token:
-            tg_ids.append(EOS_ID)
-        return tg_ids
+            target_ids.append(EOS_ID)
+        return target_ids
 
     data_dir = FLAGS.data_dir
     sc_path = get_data_file_path(data_dir, split, source, 'filtered')
@@ -269,8 +283,11 @@ def load_vocabulary(FLAGS):
     target_vocab_path = os.path.join(data_dir, '{}.{}'.format(target, vocab_ext))
 
     vocab = Vocab()
-    vocab.sc_vocab, vocab.rev_sc_vocab = initialize_vocabulary(source_vocab_path)
-    vocab.tg_vocab, vocab.rev_tg_vocab = initialize_vocabulary(target_vocab_path)
+    min_vocab_frequency = 1 if FLAGS.char else FLAGS.min_vocab_frequency
+    vocab.sc_vocab, vocab.rev_sc_vocab = initialize_vocabulary(
+        source_vocab_path, min_vocab_frequency)
+    vocab.tg_vocab, vocab.rev_tg_vocab = initialize_vocabulary(
+        target_vocab_path, min_vocab_frequency)
 
     max_sc_token_size = 0
     for v in vocab.sc_vocab:
@@ -325,6 +342,37 @@ def initialize_vocabulary(vocab_path, min_frequency=1):
         return vocab, rev_vocab
     else:
         raise ValueError("Vocabulary file %s not found.", vocab_path)
+
+
+def load_vocabulary_frequency(FLAGS):
+    data_dir = FLAGS.data_dir
+    source, target = ('nl', 'cm') if not FLAGS.explain else ('cm', 'nl')
+    if FLAGS.char:
+        vocab_ext = 'vocab.char'
+    elif FLAGS.partial_token:
+        vocab_ext = 'vocab.partial.token'
+    else:
+        vocab_ext = 'vocab.token'
+
+    source_vocab_path = os.path.join(data_dir, '{}.{}'.format(source, vocab_ext))
+    target_vocab_path = os.path.join(data_dir, '{}.{}'.format(target, vocab_ext))
+
+    sc_vocab_freq, tg_vocab_freq = {}, {}
+
+    with open(source_vocab_path) as f:
+        counter = 0
+        for line in f:
+            v, freq = line.split('\t')
+            sc_vocab_freq[counter] = int(freq)
+            counter += 1
+    with open(target_vocab_path) as f:
+        counter = 0
+        for line in f:
+            v, freq = line.split('\t')
+            tg_vocab_freq[counter] = int(freq)
+            counter += 1
+
+    return sc_vocab_freq, tg_vocab_freq
 
 
 # --- Data Preparation --- #
