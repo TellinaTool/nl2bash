@@ -483,7 +483,7 @@ def parallel_data_to_characters(nl_list, cm_list):
     nl_data = []
     for nl in nl_list:
         nl_data_point = []
-        nl_tokens = nl_to_tokens(nl, tokenizer.basic_tokenizer, lemmatization=True)
+        nl_tokens = nl_to_tokens(nl, tokenizer.basic_tokenizer, lemmatization=False)
         for c in ' '.join(nl_tokens):
             if c == ' ':
                 nl_data_point.append(constants._SPACE)
