@@ -452,7 +452,7 @@ def prepare_channel(data_dir, nl_list, cm_list, split, channel,
             cm_ids = cm_string_to_ids(data_point, cm_vocab)
             o_f.write('{}\n'.format(' '.join([str(x) for x in cm_ids])))
     alignments = compute_alignments(data_dir, nl_tokens, cm_tokens, split, channel)
-    with open(os.path.join(data_dir, '{}.{}.align'.format(split, channel)), 'rb') as f:
+    with open(os.path.join(data_dir, '{}.{}.align'.format(split, channel)), 'wb') as f:
         pickle.dump(alignments, f)
 
 
