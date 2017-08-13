@@ -417,21 +417,24 @@ def prepare_dataset_split(data_dir, split):
 
     # character based processing
     prepare_channel(data_dir, nl_list, cm_list, split, channel='char',
+                    parallel_data_to_tokens=parallel_data_to_characters,
                     nl_string_to_ids=string_to_char_ids,
                     cm_string_to_ids=string_to_char_ids)
     # partial-token based processing
     prepare_channel(data_dir, nl_list, cm_list, split, channel='partial.token',
+                    parallel_data_to_tokens=parallel_data_to_partial_tokens,
                     nl_string_to_ids=nl_to_partial_token_ids,
                     cm_string_to_ids=cm_to_partial_token_ids)
     # token based processing
     prepare_channel(data_dir, nl_list, cm_list, split, channel='token',
+                    parallel_data_to_tokens=parallel_data_to_tokens,
                     nl_string_to_ids=nl_to_token_ids,
                     cm_string_to_ids=cm_to_token_ids)
 
 
 def prepare_channel(data_dir, nl_list, cm_list, split, channel,
-                    nl_string_to_ids, cm_string_to_ids):
-    nl_tokens, cm_tokens = parallel_data_to_characters(nl_list, cm_list)
+                    parallel_data_to_tokens, nl_string_to_ids, cm_string_to_ids):
+    nl_tokens, cm_tokens = parallel_data_to_tokens(nl_list, cm_list)
     nl_vocab_path = os.path.join(data_dir, 'nl.vocab.{}'.format(channel))
     cm_vocab_path = os.path.join(data_dir, 'cm.vocab.{}'.format(channel))
     if split == 'train':
@@ -448,7 +451,7 @@ def prepare_channel(data_dir, nl_list, cm_list, split, channel,
         for data_point in cm_tokens:
             cm_ids = cm_string_to_ids(data_point, cm_vocab)
             o_f.write('{}\n'.format(' '.join([str(x) for x in cm_ids])))
-    alignments = compute_alignments()
+    alignments = compute_alignments(nl_tokens, cm_tokens)
     with open(os.path.join(data_dir, '{}.{}.align'.format(split, channel)), 'rb') as f:
         pickle.dump(alignments, f)
 
@@ -679,12 +682,15 @@ def compute_pair_alignment(nl_tokens, cm_tokens):
     """
     Compute the alignments between two parallel sequences.
     """
+    init_vocab = set(TOKEN_INIT_VOCAB + CHAR_INIT_VOCAB)
     m = len(nl_tokens)
     n = len(cm_tokens)
+
     A = np.zeros([m, n], dtype=np.int32)
+
     for i, x in enumerate(nl_tokens):
         for j, y in enumerate(cm_tokens):
-            if x == y:
+            if not x in init_vocab and x == y:
                 A[i, j] = 1
     return A
 
