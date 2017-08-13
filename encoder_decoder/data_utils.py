@@ -553,7 +553,7 @@ def string_to_partial_tokens(s, use_arg_start_end=True):
                         reading_numeric = False
                         pt = c
                         if c.isalpha():
-                            reading_numeric = True
+                            reading_alpha = True
                 else:
                     if pt:
                         arg_partial_tokens.append(pt)
@@ -711,5 +711,5 @@ def group_parallel_data(dataset, attribute='source', use_bucket=False,
 
 
 if __name__ == '__main__':
-    # print(nl_to_partial_token('Change directory #! 77/7/home_school to the directory containing the "oracle" executable', {}))
-    print(cm_to_partial_token("find /tmp/1 -iname '*.txt' -not -iname '[0-9A-Za-z]*.txt'", {}))
+    print(nl_to_partial_tokens('Execute md5sum command on files found by the find command', tokenizer=tokenizer.basic_tokenizer))
+    print(cm_to_partial_tokens("find . -iname \"MyCProgram.c\" -exec md5sum {} \;", tokenizer=data_tools.bash_tokenizer))
