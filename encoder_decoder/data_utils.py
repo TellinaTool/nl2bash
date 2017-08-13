@@ -485,7 +485,6 @@ def parallel_data_to_characters(nl_list, cm_list):
                 cm_data_point.append(constants._SPACE)
             else:
                 cm_data_point.append(c)
-        print(cm_data_point)
         cm_data.append(cm_data_point)
     return nl_data, cm_data
 
