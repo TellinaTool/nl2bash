@@ -154,7 +154,7 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
         for x in s.split():
             ind = int(x)
             token = vocab.rev_sc_vocab[ind] if ind in vocab.rev_sc_vocab else ''
-            if not '<FLAG_SUFFIX>' in token and svf[ind] >= FLAGS.min_vocab_frequency:
+            if '<FLAG_SUFFIX>' in token or svf[ind] >= FLAGS.min_vocab_frequency:
                 source_ids.append(ind)
             else:
                 source_ids.append(UNK_ID)
@@ -165,7 +165,7 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
         for x in s.split():
             ind = int(x)
             token = vocab.rev_tg_vocab[ind] if ind in vocab.rev_tg_vocab else ''
-            if not '<FLAG_SUFFIX>' in token and tvf[ind] >= FLAGS.min_vocab_frequency:
+            if '<FLAG_SUFFIX>' in token or tvf[ind] >= FLAGS.min_vocab_frequency:
                 target_ids.append(ind)
             else:
                 target_ids.append(UNK_ID)
