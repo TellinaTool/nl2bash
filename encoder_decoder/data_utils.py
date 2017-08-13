@@ -423,13 +423,13 @@ def prepare_dataset_split(data_dir, split):
     # partial-token based processing
     prepare_channel(data_dir, nl_list, cm_list, split, channel='partial.token',
                     parallel_data_to_tokens=parallel_data_to_partial_tokens,
-                    nl_string_to_ids=nl_to_partial_token_ids,
-                    cm_string_to_ids=cm_to_partial_token_ids)
+                    nl_string_to_ids=tokens_to_ids,
+                    cm_string_to_ids=tokens_to_ids)
     # token based processing
     prepare_channel(data_dir, nl_list, cm_list, split, channel='token',
                     parallel_data_to_tokens=parallel_data_to_tokens,
-                    nl_string_to_ids=nl_to_token_ids,
-                    cm_string_to_ids=cm_to_token_ids)
+                    nl_string_to_ids=tokens_to_ids,
+                    cm_string_to_ids=tokens_to_ids)
 
 
 def prepare_channel(data_dir, nl_list, cm_list, split, channel,
@@ -517,38 +517,6 @@ def string_to_char_ids(s, vocabulary):
     return char_ids
 
 
-def nl_to_partial_token_ids(s, vocabulary):
-    """
-    Split a natural language string into a sequence of partial tokens and map
-    them into their indices in the vocabular.
-    """
-    partial_tokens = s if isinstance(s, list) else \
-        nl_to_partial_tokens(s, tokenizer.basic_tokenizer)
-    partial_token_ids = []
-    for pt in partial_tokens:
-        if pt in vocabulary:
-            partial_token_ids.append(vocabulary[pt])
-        else:
-            partial_token_ids.append(UNK_ID)
-    return partial_token_ids
-
-
-def cm_to_partial_token_ids(s, vocabulary):
-    """
-    Split a command string into a sequence of partial tokens and map them into
-    their indices in the vocabular.
-    """
-    partial_tokens = s if isinstance(s, list) else \
-        cm_to_partial_tokens(s, data_tools.bash_tokenizer)
-    partial_token_ids = []
-    for pt in partial_tokens:
-        if pt in vocabulary:
-            partial_token_ids.append(vocabulary[pt])
-        else:
-            partial_token_ids.append(UNK_ID)
-    return partial_token_ids
-
-
 def nl_to_partial_tokens(s, tokenizer):
     return string_to_partial_tokens(nl_to_tokens(s, tokenizer), use_arg_start_end=False)
 
@@ -632,21 +600,6 @@ def nl_to_tokens(s, tokenizer, lemmatization=True):
     return tokens
 
 
-def nl_to_token_ids(s, tokenizer, vocabulary):
-    """
-    Split a natural language string into a sequence of tokens and map the
-    tokens into their indices in the vocabulary.
-    """
-    tokens = nl_to_tokens(s, tokenizer) if not isinstance(s, list) else s
-    token_ids = []
-    for token in tokens:
-        if token in vocabulary:
-            token_ids.append(vocabulary[token])
-        else:
-            token_ids.append(UNK_ID)
-    return token_ids
-
-
 def cm_to_tokens(s, tokenizer, loose_constraints=True, with_suffix=True):
     """
     Split a command string into a sequence of tokens.
@@ -656,16 +609,14 @@ def cm_to_tokens(s, tokenizer, loose_constraints=True, with_suffix=True):
     return tokens
 
 
-def cm_to_token_ids(s, tokenizer, vocabulary):
+def tokens_to_ids(tokens, vocabulary):
     """
-    Split a command string into a sequence of tokens and map the tokens into
-    their indices in the vocabulary.
+    Map tokens into their indices in the vocabulary.
     """
-    tokens = cm_to_tokens(s, tokenizer) if not isinstance(s, list) else s
     token_ids = []
-    for token in tokens:
-        if token in vocabulary:
-            token_ids.append(vocabulary[token])
+    for t in tokens:
+        if t in vocabulary:
+            token_ids.append(vocabulary[t])
         else:
             token_ids.append(UNK_ID)
     return token_ids
