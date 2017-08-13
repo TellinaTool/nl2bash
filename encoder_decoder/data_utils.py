@@ -418,8 +418,8 @@ def prepare_dataset_split(data_dir, split):
     # character based processing
     prepare_channel(data_dir, nl_list, cm_list, split, channel='char',
                     parallel_data_to_tokens=parallel_data_to_characters,
-                    nl_string_to_ids=string_to_char_ids,
-                    cm_string_to_ids=string_to_char_ids)
+                    nl_string_to_ids=tokens_to_ids,
+                    cm_string_to_ids=tokens_to_ids)
     # partial-token based processing
     prepare_channel(data_dir, nl_list, cm_list, split, channel='partial.token',
                     parallel_data_to_tokens=parallel_data_to_partial_tokens,
@@ -478,7 +478,8 @@ def parallel_data_to_characters(nl_list, cm_list):
     cm_data = []
     for cm in cm_list:
         cm_data_point = []
-        cm_tokens = cm_to_tokens(cm, data_tools.bash_tokenizer)
+        cm_tokens = cm_to_tokens(cm, data_tools.bash_tokenizer,
+                                 with_prefix=False, with_suffix=False)
         for c in ' '.join(cm_tokens):
             if c == ' ':
                 cm_data_point.append(constants._SPACE)
@@ -498,23 +499,6 @@ def parallel_data_to_tokens(nl_list, cm_list):
     nl_data = [nl_to_tokens(nl, tokenizer.basic_tokenizer) for nl in nl_list]
     cm_data = [cm_to_tokens(cm, data_tools.bash_tokenizer) for cm in cm_list]
     return nl_data, cm_data
-
-
-def string_to_char_ids(s, vocabulary):
-    """
-    Split a string into a sequence of characters and map the characters into
-    their indices in the vocabulary.
-    """
-    char_ids = []
-    for c in s:
-        if c in vocabulary:
-            char_ids.append(vocabulary[c])
-        else:
-            if c == ' ':
-                char_ids.append(vocabulary[constants._SPACE])
-            else:
-                char_ids.append(CUNK_ID)
-    return char_ids
 
 
 def nl_to_partial_tokens(s, tokenizer):
@@ -600,12 +584,13 @@ def nl_to_tokens(s, tokenizer, lemmatization=True):
     return tokens
 
 
-def cm_to_tokens(s, tokenizer, loose_constraints=True, with_suffix=True):
+def cm_to_tokens(s, tokenizer, loose_constraints=True, with_prefix=False,
+                 with_suffix=True):
     """
     Split a command string into a sequence of tokens.
     """
     tokens = tokenizer(s, loose_constraints=loose_constraints, 
-                       with_suffix=with_suffix)
+                       with_prefix=with_prefix, with_suffix=with_suffix)
     return tokens
 
 
@@ -726,5 +711,5 @@ def group_parallel_data(dataset, attribute='source', use_bucket=False,
 
 
 if __name__ == '__main__':
-    # print(nl_to_partial_token_ids('Change directory #! 77/7/home_school to the directory containing the "oracle" executable', {}))
-    print(cm_to_partial_token_ids("find /tmp/1 -iname '*.txt' -not -iname '[0-9A-Za-z]*.txt'", {}))
+    # print(nl_to_partial_token('Change directory #! 77/7/home_school to the directory containing the "oracle" executable', {}))
+    print(cm_to_partial_token("find /tmp/1 -iname '*.txt' -not -iname '[0-9A-Za-z]*.txt'", {}))
