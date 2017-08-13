@@ -109,7 +109,7 @@ class DataPoint(object):
         self.tg_txt = None
         self.sc_ids = None
         self.tg_ids = None
-        self.mappings = None        # CopyNet training
+        self.alignments = None      # CopyNet training
         self.sc_fillers = None      # TODO: this field is no longer used
 
 
@@ -451,7 +451,7 @@ def prepare_channel(data_dir, nl_list, cm_list, split, channel,
         for data_point in cm_tokens:
             cm_ids = cm_string_to_ids(data_point, cm_vocab)
             o_f.write('{}\n'.format(' '.join([str(x) for x in cm_ids])))
-    alignments = compute_alignments(nl_tokens, cm_tokens)
+    alignments = compute_alignments(data_dir, nl_tokens, cm_tokens, split, channel)
     with open(os.path.join(data_dir, '{}.{}.align'.format(split, channel)), 'rb') as f:
         pickle.dump(alignments, f)
 
@@ -671,14 +671,15 @@ def cm_to_token_ids(s, tokenizer, vocabulary):
     return token_ids
 
 
-def compute_alignments(nl_list, cm_list):
+def compute_alignments(data_dir, nl_list, cm_list, split, channel):
     alignments = []
-    for nl_tokens, cm_tokens in zip(nl_list, cm_list):
-        alignments.append(compute_pair_alignment(nl_tokens, cm_tokens))
+    with open(os.path.join(data_dir, '{}.{}.align.readable'.format(split, channel)), 'w') as o_f:
+        for nl_tokens, cm_tokens in zip(nl_list, cm_list):
+            alignments.append(compute_pair_alignment(nl_tokens, cm_tokens, o_f))
     return alignments
 
 
-def compute_pair_alignment(nl_tokens, cm_tokens):
+def compute_pair_alignment(nl_tokens, cm_tokens, out_file):
     """
     Compute the alignments between two parallel sequences.
     """
@@ -692,6 +693,9 @@ def compute_pair_alignment(nl_tokens, cm_tokens):
         for j, y in enumerate(cm_tokens):
             if not x in init_vocab and x == y:
                 A[i, j] = 1
+                out_file.write('{}-{} '.format(i, j))
+    out_file.write('\n')
+
     return A
 
 
