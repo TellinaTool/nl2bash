@@ -502,7 +502,7 @@ def parallel_data_to_tokens(nl_list, cm_list):
 
 
 def nl_to_partial_tokens(s, tokenizer):
-    return string_to_partial_tokens(nl_to_tokens(s, tokenizer), use_arg_start_end=False)
+    return string_to_partial_tokens(nl_to_tokens(s, tokenizer))
 
 
 def cm_to_partial_tokens(s, tokenizer):
