@@ -11,6 +11,7 @@ import tensorflow as tf
 import collections
 import functools
 import numpy as np
+import pickle
 import random
 import re
 import os, sys
@@ -401,77 +402,55 @@ def prepare_data(FLAGS):
         (4) cm token ids
     """
     data_dir = FLAGS.data_dir
-    prepare_dataset(data_dir, 'train')
-    prepare_dataset(data_dir, 'dev')
-    prepare_dataset(data_dir, 'test')
+    prepare_dataset_split(data_dir, 'train')
+    prepare_dataset_split(data_dir, 'dev')
+    prepare_dataset_split(data_dir, 'test')
 
 
-def prepare_dataset(data_dir, split):
+def prepare_dataset_split(data_dir, split):
+    """
+    Process a specific dataset split.
+    """
     nl_path = os.path.join(data_dir, split + '.nl.filtered')
     cm_path = os.path.join(data_dir, split + '.cm.filtered')
     nl_list, cm_list = read_parallel_data(nl_path, cm_path)
 
     # character based processing
-    nl_chars, cm_chars = parallel_data_to_characters(nl_list, cm_list)
-    nl_char_vocab_path = os.path.join(data_dir, 'nl.vocab.char')
-    cm_char_vocab_path = os.path.join(data_dir, 'cm.vocab.char')
-    if split == 'train':
-        nl_char_vocab = create_nl_vocabulary(nl_char_vocab_path, nl_chars)
-        cm_char_vocab = create_cm_vocabulary(cm_char_vocab_path, cm_chars)
-    else:
-        nl_char_vocab, _ = initialize_vocabulary(nl_char_vocab_path)
-        cm_char_vocab, _ = initialize_vocabulary(cm_char_vocab_path)
-    with open(os.path.join(data_dir, split + '.nl.ids.char'), 'w') as nl_char_file:
-        for data_point in nl_chars:
-            nl_char_ids = string_to_char_ids(data_point, nl_char_vocab)
-            nl_char_file.write('{}\n'.format(' '.join([str(x) for x in nl_char_ids])))
-    with open(os.path.join(data_dir, split + '.cm.ids.char'), 'w') as cm_char_file:
-        for data_point in cm_chars:
-            cm_char_ids = string_to_char_ids(data_point, cm_char_vocab)
-            cm_char_file.write('{}\n'.format(' '.join([str(x) for x in cm_char_ids])))
-
+    prepare_channel(data_dir, nl_list, cm_list, split, channel='char',
+                    nl_string_to_ids=string_to_char_ids,
+                    cm_string_to_ids=string_to_char_ids)
     # partial-token based processing
-    nl_partial_tokens, cm_partial_tokens = parallel_data_to_partial_tokens(
-        nl_list, cm_list)
-    nl_partial_vocab_path = os.path.join(data_dir, 'nl.vocab.partial.token')
-    cm_partial_vocab_path = os.path.join(data_dir, 'cm.vocab.partial.token')
-    if split == 'train':
-        nl_partial_vocab = create_nl_vocabulary(
-            nl_partial_vocab_path, nl_partial_tokens)
-        cm_partial_vocab = create_cm_vocabulary(
-            cm_partial_vocab_path, cm_partial_tokens)
-    else:
-        nl_partial_vocab, _ = initialize_vocabulary(nl_partial_vocab_path)
-        cm_partial_vocab, _ = initialize_vocabulary(cm_partial_vocab_path)
-    with open(os.path.join(data_dir, split + '.nl.ids.partial.token'), 'w') as o_f:
-        for data_point in nl_partial_tokens:
-            nl_partial_token_ids = nl_to_partial_token_ids(data_point, nl_partial_vocab)
-            o_f.write('{}\n'.format(' '.join([str(x) for x in nl_partial_token_ids])))
-    with open(os.path.join(data_dir, split + '.cm.ids.partial.token'), 'w') as o_f:
-        for data_point in cm_partial_tokens:
-            cm_partial_token_ids = cm_to_partial_token_ids(data_point, cm_partial_vocab)
-            o_f.write('{}\n'.format(' '.join([str(x) for x in cm_partial_token_ids])))
-
+    prepare_channel(data_dir, nl_list, cm_list, split, channel='partial.token',
+                    nl_string_to_ids=nl_to_partial_token_ids,
+                    cm_string_to_ids=cm_to_partial_token_ids)
     # token based processing
-    nl_tokens, cm_tokens = parallel_data_to_tokens(nl_list, cm_list)
-    nl_vocab_path = os.path.join(data_dir, 'nl.vocab.token')
-    cm_vocab_path = os.path.join(data_dir, 'cm.vocab.token')
+    prepare_channel(data_dir, nl_list, cm_list, split, channel='token',
+                    nl_string_to_ids=nl_to_token_ids,
+                    cm_string_to_ids=cm_to_token_ids)
+
+
+def prepare_channel(data_dir, nl_list, cm_list, split, channel,
+                    nl_string_to_ids, cm_string_to_ids):
+    nl_tokens, cm_tokens = parallel_data_to_characters(nl_list, cm_list)
+    nl_vocab_path = os.path.join(data_dir, 'nl.vocab.{}'.format(channel))
+    cm_vocab_path = os.path.join(data_dir, 'cm.vocab.{}'.format(channel))
     if split == 'train':
-        nl_vocab = create_nl_vocabulary(
-            nl_vocab_path, nl_tokens, min_word_frequency=2)
-        cm_vocab = create_nl_vocabulary(
-            cm_vocab_path, cm_tokens, min_word_frequency=1)
+        nl_vocab = create_vocabulary(nl_vocab_path, nl_tokens)
+        cm_vocab = create_vocabulary(cm_vocab_path, cm_tokens)
     else:
         nl_vocab, _ = initialize_vocabulary(nl_vocab_path)
         cm_vocab, _ = initialize_vocabulary(cm_vocab_path)
-    with open(os.path.join(data_dir, split + '.nl.ids.token'), 'w') as nl_token_file:
+    with open(os.path.join(data_dir, '{}.nl.ids.{}'.format(split, channel)), 'w') as o_f:
         for data_point in nl_tokens:
-            nl_token_ids = nl_to_token_ids(data_point, None, nl_vocab)
-            nl_token_file.write('{}\n'.format(' '.join([str(x) for x in nl_token_ids])))
-    with open(os.path.join(data_dir, split + '.cm.ids.token'), 'w') as cm_token_file:
+            nl_ids = nl_string_to_ids(data_point, nl_vocab)
+            o_f.write('{}\n'.format(' '.join([str(x) for x in nl_ids])))
+    with open(os.path.join(data_dir, '{}.cm.ids.{}'.format(split, channel)), 'w') as o_f:
         for data_point in cm_tokens:
-            cm_token_ids = cm_to_token_ids(data_point, None, cm_vocab)
-            cm_token_file.write('{}\n'.format(' '.join([str(x) for x in cm_token_ids])))
+            cm_ids = cm_string_to_ids(data_point, cm_vocab)
+            o_f.write('{}\n'.format(' '.join([str(x) for x in cm_ids])))
+    alignments = compute_alignments()
+    with open(os.path.join(data_dir, '{}.{}.align'.format(split, channel)), 'rb') as f:
+        pickle.dump(alignments, f)
 
 
 def read_parallel_data(nl_path, cm_path):
@@ -689,51 +668,39 @@ def cm_to_token_ids(s, tokenizer, vocabulary):
     return token_ids
 
 
-def create_nl_vocabulary(vocab_path, dataset, min_word_frequency=1,
-                         tokenizer=None, is_character_model=False):
+def compute_alignments(nl_list, cm_list):
+    alignments = []
+    for nl_tokens, cm_tokens in zip(nl_list, cm_list):
+        alignments.append(compute_pair_alignment(nl_tokens, cm_tokens))
+    return alignments
+
+
+def compute_pair_alignment(nl_tokens, cm_tokens):
     """
-    Compute the natural language vocabulary and save to file.
+    Compute the alignments between two parallel sequences.
+    """
+    m = len(nl_tokens)
+    n = len(cm_tokens)
+    A = np.zeros([m, n], dtype=np.int32)
+    for i, x in enumerate(nl_tokens):
+        for j, y in enumerate(cm_tokens):
+            if x == y:
+                A[i, j] = 1
+    return A
+
+
+def create_vocabulary(vocab_path, dataset, min_word_frequency=1,
+                      is_character_model=False):
+    """
+    Compute the vocabulary of a tokenized dataset and save to file.
     """
     vocab = collections.defaultdict(int)
     for data_point in dataset:
-        tokens = nl_to_tokens(data_point, tokenizer) \
-            if not isinstance(data_point, list) else data_point
-        for token in tokens:
+        for token in data_point:
             vocab[token] += 1
     sorted_vocab = [(x, y) for x, y in sorted(vocab.items(), key=lambda x:x[1],
                     reverse=True) if y >= min_word_frequency]
     
-    if is_character_model:
-        # Character model
-        init_vocab = CHAR_INIT_VOCAB
-    else:
-        init_vocab = TOKEN_INIT_VOCAB
-    vocab = [(v, 1000000) for v in init_vocab]
-    for v, f in sorted_vocab:
-        if not v in init_vocab:
-            vocab.append((v, f))
-
-    with open(vocab_path, 'w') as vocab_file:
-        for v, f in vocab:
-            vocab_file.write('{}\t{}\n'.format(v, f))
-
-    return dict([(x[0], y) for y, x in enumerate(vocab)])
-
-
-def create_cm_vocabulary(vocab_path, dataset, min_word_frequency=1,
-                         tokenizer=None, is_character_model=False):
-    """
-    Compute the natural language vocabulary and save to file.
-    """
-    vocab = collections.defaultdict(int)
-    for data_point in dataset:
-        tokens = cm_to_tokens(data_point, tokenizer) \
-            if not isinstance(data_point, list) else data_point
-        for token in tokens:
-            vocab[token] += 1
-    sorted_vocab = [(x, y) for (x, y) in sorted(vocab.items(), key=lambda x:x[1],
-                    reverse=True) if y >= min_word_frequency]
-            
     if is_character_model:
         # Character model
         init_vocab = CHAR_INIT_VOCAB
