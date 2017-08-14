@@ -106,8 +106,7 @@ class RNNDecoder(decoder.Decoder):
                     self.output_project,
                     self.num_layers,
                     encoder_copy_inputs,
-                    self.vocab_size,
-                    self.generation_mask)
+                    self.vocab_size)
 
             if bs_decoding:
                 decoder_cell = beam_decoder.wrap_cell(

@@ -93,8 +93,8 @@ class Decoder(graph_utils.NNModel):
 
 
 class CopyCellWrapper(tf.nn.rnn_cell.RNNCell):
-    def __init__(self, cell, output_project, num_layers, encoder_copy_inputs,
-                 tg_vocab_size, generation_mask):
+    def __init__(self, cell, output_project, num_layers,
+                 encoder_copy_inputs, tg_vocab_size):
         self.cell = cell
         self.output_project = output_project
         self.num_layers = num_layers
@@ -104,8 +104,6 @@ class CopyCellWrapper(tf.nn.rnn_cell.RNNCell):
         # [batch_size x max_source_length]
         self.encoder_copy_inputs = \
             tf.concat(axis=1, values=[tf.expand_dims(x, 1) for x in encoder_copy_inputs])
-
-        self.generation_mask = generation_mask
 
         print("CopyCellWrapper added!")
 
@@ -117,7 +115,7 @@ class CopyCellWrapper(tf.nn.rnn_cell.RNNCell):
 
         # <generation probability, copying probability>
         W, b = self.output_project
-        gen_logit = tf.matmul(output, W) + b - 1e12 * (1 - self.generation_mask)
+        gen_logit = tf.matmul(output, W) + b
         pointers = alignments[1]
         copy_logit = pointers - 1e12 * tf.cast(
             (self.encoder_copy_inputs == data_utils.UNK_ID) or
