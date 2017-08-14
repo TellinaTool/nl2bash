@@ -63,7 +63,6 @@ def ast2tokens(node, loose_constraints=False, ignore_flag_order=False,
     """
     Convert a bash ast into a list of tokens.
     """
-
     if not node:
         return []
 

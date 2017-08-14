@@ -38,7 +38,8 @@ class RNNDecoder(decoder.Decoder):
 
     def define_graph(self, encoder_state, decoder_inputs,
                      input_embeddings=None, encoder_attn_masks=None,
-                     attention_states=None, num_heads=1):
+                     attention_states=None, num_heads=1,
+                     encoder_copy_inputs=None):
         """
         :return output_symbols: batch of discrete output sequences
         :return output_logits: batch of output sequence scores
@@ -104,6 +105,7 @@ class RNNDecoder(decoder.Decoder):
                     decoder_cell,
                     self.output_project,
                     self.num_layers,
+                    encoder_copy_inputs,
                     self.vocab_size,
                     self.generation_mask)
 
@@ -242,10 +244,10 @@ class RNNDecoder(decoder.Decoder):
                 # so far dummy zero vectors are used
                 if self.use_copy and self.copy_fun == 'copynet':
                     outputs = [tf.zeros([self.batch_size * self.beam_size, self.vocab_size])
-                           for s in states]
+                           for _ in states]
                 else:
                     outputs = [tf.zeros([self.batch_size * self.beam_size, self.dim])
-                           for s in states]
+                           for _ in states]
                 return top_k_outputs, top_k_logits, outputs, states, attn_alignments, pointers
             else:
                 # Greedy output
