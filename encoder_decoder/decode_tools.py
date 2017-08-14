@@ -82,7 +82,7 @@ def translate_fun(data_point, sess, model, vocabs, FLAGS,
     else:
         sc_ids = data_point[0].sc_ids
         tg_ids = data_point[0].tg_ids
-        pointer_targets = data_point[0].mappings
+        pointer_targets = data_point[0].alignments
         _, entities = tokenizer.ner_tokenizer(data_point[0].sc_txt)
     sc_fillers = entities[0]
  
