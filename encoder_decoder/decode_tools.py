@@ -148,19 +148,6 @@ def decode(encoder_full_inputs, model_outputs, FLAGS, vocabs, sc_fillers=None,
     batch_outputs = []
     num_output_examples = 0
 
-    # Prepare copied indices if the model is trained with explicit copy
-    # alignments.
-    if FLAGS.use_copy and FLAGS.copy_fun == 'supervised':
-        pointers = model_outputs.pointers
-        sc_length = pointers.shape[1]
-        tg_length = pointers.shape[2]
-        if FLAGS.token_decoding_algorithm == 'greedy':
-            batch_pointers = np.reshape(pointers,
-                [batch_size, 1, sc_length, tg_length])
-        else:
-            batch_pointers = np.reshape(pointers,
-                [batch_size, FLAGS.beam_size, sc_length, tg_length])
-
     for batch_id in xrange(batch_size):
         def as_str(output, r_sc_vocab, r_tg_vocab):
             if output < FLAGS.tg_vocab_size:

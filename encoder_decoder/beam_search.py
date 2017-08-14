@@ -217,7 +217,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         cell_inputs = inputs
 
         past_cell_state = self.get_last_cell_state(past_cell_states)
-        if self.use_copy and self.copy_fun != 'supervised':
+        if self.use_copy and self.copy_fun == 'copynet':
             cell_output, cell_state, alignments, attns, read_copy_source = \
                 self.cell(cell_inputs, past_cell_state, scope)
         elif self.use_attention:
@@ -286,7 +286,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
                        tf.cast(tf.not_equal(tf.reshape(symbols, [-1]),
                                             self.stop_token), tf.float32)
 
-        if self.use_copy and self.copy_fun != 'supervised':
+        if self.use_copy and self.copy_fun == 'copynet':
             ranked_read_copy_source = tf.gather(read_copy_source, parent_refs)
         if self.use_attention:
             ranked_alignments = nest_map(

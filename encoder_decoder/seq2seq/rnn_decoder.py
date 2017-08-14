@@ -99,7 +99,7 @@ class RNNDecoder(decoder.Decoder):
                     self.vocab_size
                 )
 
-            if self.use_copy and self.copy_fun != 'supervised':
+            if self.use_copy and self.copy_fun == 'copynet':
                 decoder_cell = decoder.CopyCellWrapper(
                     decoder_cell,
                     self.output_project,
@@ -128,7 +128,7 @@ class RNNDecoder(decoder.Decoder):
                             ) = state
                             input = past_beam_symbols[:, -1]
                         elif self.decoding_algorithm == "greedy":
-                            if self.use_copy and self.copy_fun != 'supervised':
+                            if self.use_copy and self.copy_fun == 'copynet':
                                 epsilon = tf.constant(1e-12)
                                 projected_output = tf.log(output + epsilon)
                             else:
@@ -145,7 +145,7 @@ class RNNDecoder(decoder.Decoder):
 
                 input_embedding = tf.nn.embedding_lookup(input_embeddings, input)
 
-                if self.use_copynet:
+                if self.copynet:
                     if i == 0:
                         attn_dim = attention_states.get_shape()[2]
                         selective_reads = tf.zeros([self.batch_size, attn_dim])
@@ -178,7 +178,7 @@ class RNNDecoder(decoder.Decoder):
                 # Tensor list --> tenosr
                 attn_alignments = tf.concat(axis=1,
                     values=[tf.expand_dims(x[0], 1) for x in alignments_list])
-            if self.use_copynet:
+            if self.copynet:
                 pointers = tf.concat(axis=1,
                     values=[tf.expand_dims(x[1], 1) for x in alignments_list])
             else:
@@ -240,7 +240,7 @@ class RNNDecoder(decoder.Decoder):
 
                 # TODO: correct beam search output logits computation
                 # so far dummy zero vectors are used
-                if self.use_copy and self.copy_fun != 'supervised':
+                if self.use_copy and self.copy_fun == 'copynet':
                     outputs = [tf.zeros([self.batch_size * self.beam_size, self.vocab_size])
                            for s in states]
                 else:
@@ -249,7 +249,7 @@ class RNNDecoder(decoder.Decoder):
                 return top_k_outputs, top_k_logits, outputs, states, attn_alignments, pointers
             else:
                 # Greedy output
-                if self.use_copynet:
+                if self.copynet:
                     epsilon = tf.constant(1e-12)
                     projected_output = tf.log(output + epsilon)
                 else:
@@ -266,7 +266,8 @@ class RNNDecoder(decoder.Decoder):
 
 
     def decoder_cell(self):
-        if self.use_copy and self.copy_fun != 'supervised':
+        if self.use_copy and self.copy_fun == 'copy':
+            # Selective Reading
             input_size = 2 * self.dim
         else:
             input_size = self.dim
