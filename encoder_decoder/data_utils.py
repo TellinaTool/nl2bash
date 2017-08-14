@@ -93,6 +93,7 @@ CHAR_INIT_VOCAB = [
 ]
 
 data_splits = ['train', 'dev', 'test']
+TOKEN_SEPARATOR = '||||'
 
 
 class DataSet(object):
@@ -151,9 +152,6 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
 
     def get_data_file_path(data_dir, split, lang, channel):
         return os.path.join(data_dir, '{}.{}.{}'.format(split, lang, channel))
-
-    def get_copy_data_file_path(data_dir, split, lang, pos, channel):
-        return os.path.join(data_dir, '{}.{}.copy.{}.ids.{}'.format(split, lang, pos, channel))
 
     def get_source_ids(s):
         source_ids = []
@@ -224,18 +222,23 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
     print('max_target_length = {}'.format(max_tg_length))
 
     if FLAGS.use_copy and FLAGS.copy_fun == 'copynet':
-        tg_vocab = {} 
+        tg_vocab = {}
         for v in vocab.tg_vocab:
             if tvf[vocab.tg_vocab[v]] >= FLAGS.min_vocab_frequency:
                 tg_vocab[v] = vocab.tg_vocab[v]
-        for data_point in dataset:
-            sc_tokens = [vocab.rev_sc_vocab[ind] for ind in data_point.sc_ids]
-            tg_tokens = [vocab.rev_tg_vocab[ind] for ind in data_point.tg_ids]
-            data_point.csc_ids, data_point.ctg_ids = \
-                compute_copy_indices(sc_tokens, tg_tokens, tg_vocab, channel)
-            print(data_point.csc_ids)
-            print(data_point.ctg_ids)
-            print()
+        sc_token_path = get_data_file_path(data_dir, split, source, channel)
+        tg_token_path = get_data_file_path(data_dir, split, target, channel)
+        with open(sc_token_path) as sc_token_file:
+            with open(tg_token_path) as tg_token_file:
+                for sc_tokens in sc_token_file.readlines():
+                    sc_tokens = sc_tokens.strip().split(TOKEN_SEPARATOR)
+                    tg_tokens = tg_token_file.readline().strip().split(TOKEN_SEPARATOR)
+                    data_point.csc_ids, data_point.ctg_ids = \
+                        compute_copy_indices(sc_tokens, tg_tokens, tg_vocab, channel)
+                    print(data_point.csc_ids)
+                    print(data_point.ctg_ids)
+                    print()
+
     def print_bucket_size(bs):
         print('bucket size = ({}, {})'.format(bs[0], bs[1]))
 
@@ -451,6 +454,14 @@ def prepare_dataset_split(data_dir, split):
 def prepare_channel(data_dir, nl_list, cm_list, split, channel,
                     parallel_data_to_tokens, nl_string_to_ids, cm_string_to_ids):
     nl_tokens, cm_tokens = parallel_data_to_tokens(nl_list, cm_list)
+    nl_token_path = os.path.join(data_dir, '{}.nl.{}'.format(split, channel), 'w')
+    cm_token_path = os.path.join(data_dir, '{}.cm.{}'.format(split, channel), 'w')
+    with open(nl_token_path, 'w') as o_f:
+        for data_point in nl_tokens:
+            o_f.write('{}\n'.format(TOKEN_SEPARATOR.join(data_point)))
+    with open(cm_token_path, 'w') as o_f:
+        for data_point in cm_tokens:
+            o_f.write('{}\n'.format(TOKEN_SEPARATOR.join(data_point)))
     nl_vocab_path = os.path.join(data_dir, 'nl.vocab.{}'.format(channel))
     cm_vocab_path = os.path.join(data_dir, 'cm.vocab.{}'.format(channel))
     if split == 'train':
@@ -486,7 +497,8 @@ def parallel_data_to_characters(nl_list, cm_list):
     nl_data = []
     for nl in nl_list:
         nl_data_point = []
-        nl_tokens = nl_to_tokens(nl, tokenizer.basic_tokenizer, lemmatization=False)
+        nl_tokens = nl_to_tokens(nl, tokenizer.basic_tokenizer,
+                                 lemmatization=False)
         for c in ' '.join(nl_tokens):
             if c == ' ':
                 nl_data_point.append(constants._SPACE)
