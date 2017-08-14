@@ -67,6 +67,7 @@ class RNNDecoder(decoder.Decoder):
             outputs = []
             states = []
             alignments_list = []
+            pointers = None
 
             # applying cell wrappers: ["attention", "beam"]
             if bs_decoding:
@@ -182,8 +183,6 @@ class RNNDecoder(decoder.Decoder):
             if self.copynet:
                 pointers = tf.concat(axis=1,
                     values=[tf.expand_dims(x[1], 1) for x in alignments_list])
-            else:
-                pointers = None
 
             if bs_decoding:
                 # Beam-search output
@@ -220,9 +219,9 @@ class RNNDecoder(decoder.Decoder):
                         c_states, h_states = past_cell_states
                         states = list(zip(
                             [tf.squeeze(x, axis=[1])
-                             for x in tf.split(axis=1, num_or_size_splits=c_states.get_shape()[1], value=c_states)],
+                                for x in tf.split(axis=1, num_or_size_splits=c_states.get_shape()[1], value=c_states)],
                             [tf.squeeze(x, axis=[1])
-                             for x in tf.split(axis=1, num_or_size_splits=h_states.get_shape()[1], value=h_states)]))
+                                for x in tf.split(axis=1, num_or_size_splits=h_states.get_shape()[1], value=h_states)]))
                     else:
                         layered_states = [list(zip(
                                 [tf.squeeze(x, axis=[1]) 
