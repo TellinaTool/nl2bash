@@ -93,17 +93,17 @@ class Decoder(graph_utils.NNModel):
 
 
 class CopyCellWrapper(tf.nn.rnn_cell.RNNCell):
-    def __init__(self, cell, output_project, num_layers, encoder_inputs,
+    def __init__(self, cell, output_project, num_layers, encoder_copy_inputs,
                  tg_vocab_size, generation_mask):
         self.cell = cell
         self.output_project = output_project
         self.num_layers = num_layers
         self.tg_vocab_size = tg_vocab_size
 
-        self.encoder_size = len(encoder_inputs)
+        self.encoder_size = len(encoder_copy_inputs)
         # [batch_size x max_source_length]
-        self.encoder_inputs = \
-            tf.concat(axis=1, values=[tf.expand_dims(x, 1) for x in encoder_inputs])
+        self.encoder_copy_inputs = \
+            tf.concat(axis=1, values=[tf.expand_dims(x, 1) for x in encoder_copy_inputs])
 
         self.generation_mask = generation_mask
 
@@ -120,15 +120,15 @@ class CopyCellWrapper(tf.nn.rnn_cell.RNNCell):
         gen_logit = tf.matmul(output, W) + b - 1e12 * (1 - self.generation_mask)
         pointers = alignments[1]
         copy_logit = pointers - 1e12 * tf.cast(
-            (self.encoder_inputs == data_utils.UNK_ID) or
-            (self.encoder_inputs == data_utils.ARG_UNK_ID) or
-            (self.encoder_inputs == data_utils.FLAG_UNK_ID), tf.float32)
+            (self.encoder_copy_inputs == data_utils.UNK_ID) or
+            (self.encoder_copy_inputs == data_utils.ARG_UNK_ID) or
+            (self.encoder_copy_inputs == data_utils.FLAG_UNK_ID), tf.float32)
 
         prob = tf.nn.softmax(tf.concat([gen_logit, copy_logit], axis=1))
         gen_prob = tf.slice(prob, [0, 0], [-1, self.tg_vocab_size])
         copy_prob = tf.slice(prob, [0, self.tg_vocab_size], [-1, -1])
         copy_prob = tf.squeeze(tf.matmul(tf.expand_dims(copy_prob, 1),
-            tf.one_hot(self.encoder_inputs, self.tg_vocab_size)), 1)
+            tf.one_hot(self.encoder_copy_inputs, self.tg_vocab_size)), 1)
 
         # mixture probability
         mix_prob = gen_prob + copy_prob
