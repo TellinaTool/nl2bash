@@ -430,6 +430,7 @@ def prepare_dataset_split(data_dir, split):
     """
     Process a specific dataset split.
     """
+    print("Split - {}".format(split))
     nl_path = os.path.join(data_dir, split + '.nl.filtered')
     cm_path = os.path.join(data_dir, split + '.cm.filtered')
     nl_list, cm_list = read_parallel_data(nl_path, cm_path)
@@ -453,9 +454,10 @@ def prepare_dataset_split(data_dir, split):
 
 def prepare_channel(data_dir, nl_list, cm_list, split, channel,
                     parallel_data_to_tokens, nl_string_to_ids, cm_string_to_ids):
+    print("    channel - {}".format(channel))
     nl_tokens, cm_tokens = parallel_data_to_tokens(nl_list, cm_list)
-    nl_token_path = os.path.join(data_dir, '{}.nl.{}'.format(split, channel), 'w')
-    cm_token_path = os.path.join(data_dir, '{}.cm.{}'.format(split, channel), 'w')
+    nl_token_path = os.path.join(data_dir, '{}.nl.{}'.format(split, channel))
+    cm_token_path = os.path.join(data_dir, '{}.cm.{}'.format(split, channel))
     with open(nl_token_path, 'w') as o_f:
         for data_point in nl_tokens:
             o_f.write('{}\n'.format(TOKEN_SEPARATOR.join(data_point)))
@@ -639,9 +641,10 @@ def tokens_to_ids(tokens, vocabulary):
 
 def compute_copy_indices(sc_tokens, tg_tokens, tg_vocab, channel):
     csc_ids, ctg_ids = [], []
+    init_vocab = CHAR_INIT_VOCAB if channel == 'char' else TOKEN_INIT_VOCAB
     for i, sc_token in enumerate(sc_tokens):
         if sc_token in tg_tokens:
-            if sc_token in tg_vocab:
+            if (not sc_token in init_vocab) and sc_token in tg_vocab:
                 csc_ids.append(tg_vocab[sc_token])
             else:
                 csc_ids.append(len(tg_vocab) + sc_tokens.index(sc_token))
