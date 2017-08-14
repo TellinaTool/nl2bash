@@ -30,7 +30,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
             that will be processed in that bucket, and O specifies maximum output
             length. Training instances that have inputs longer than I or outputs
             longer than O will be pushed to the next bucket and padded accordingly.
-            We assume that the list is sorted, e.g., [(2, 4), (8, 16)].
+            We assume that the list is sorted, e.g., [(2, 4), (8, 16)].e
           size: number of units in each layer of the model.
           num_layers: number of layers in the model.
           max_gradient_norm: gradients will be clipped to maximally this norm.
@@ -134,6 +134,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
                             self.decoder_inputs[:bucket[1]],
                             self.targets[:bucket[1]],
                             self.target_weights[:bucket[1]],
+                            encoder_copy_inputs=self.encoder_copy_inputs[:bucket[0]]
                         )
                     bucket_output_symbols, bucket_output_logits, bucket_losses, \
                         batch_attn_alignments = encode_decode_outputs[:4]
@@ -155,12 +156,13 @@ class EncoderDecoderModel(graph_utils.NNModel):
                                         self.batch_size, self.beam_size]))
         else:
             encode_decode_outputs = self.encode_decode(
-                                        [self.encoder_inputs],
-                                        self.encoder_attn_masks,
-                                        self.decoder_inputs,
-                                        self.targets,
-                                        self.target_weights
-                                    )
+                [self.encoder_inputs],
+                self.encoder_attn_masks,
+                self.decoder_inputs,
+                self.targets,
+                self.target_weights,
+                encoder_copy_inputs=self.encoder_copy_inputs
+            )
             self.output_symbols, self.output_logits, self.losses, \
                 self.attn_alignments = encode_decode_outputs[:4]
             if self.tg_char:
@@ -207,7 +209,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
 
     def encode_decode(self, encoder_channel_inputs, encoder_attn_masks,
-                      decoder_inputs, targets, target_weights):
+                      decoder_inputs, targets, target_weights,
+                      encoder_copy_inputs=None):
 
         encoder_outputs, encoder_states = \
             self.encoder.define_graph(encoder_channel_inputs)
@@ -228,7 +231,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
                         encoder_attn_masks=encoder_attn_masks,
                         attention_states=attention_states,
                         num_heads=num_heads,
-                        encoder_copy_inputs=self.encoder_copy_inputs)
+                        encoder_copy_inputs=encoder_copy_inputs)
 
         bs_decoding = self.forward_only and \
                       self.token_decoding_algorithm == 'beam_search'
