@@ -380,17 +380,16 @@ class BashGrammar(object):
                     name = name.strip()
                     if not name in self.name2type:
                         self.name2type[name] = type
-                        # print(name, type)
                     else:
                         raise ValueError('Ambiguity in name type: "{}" ({} vs. {})'.format(
                             name, self.name2type[name], type))
             elif reading_synopsis:
                 self.make_utility(line)
 
-        print('{} utilities'.format(len(self.grammar)))
-        for utility in bash.top_100_utilities:
-            if not utility in self.grammar:
-                print(utility)
+        print('Bashlint: {} utilities'.format(len(self.grammar)))
+        # for utility in bash.top_100_utilities:
+        #     if not utility in self.grammar:
+        #         print(utility)
 
     def make_utility(self, line):
         line = line.strip()
