@@ -26,7 +26,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
         Hyperparameters:
           source_vocab_size: size of the source vocabulary.
           target_vocab_size: size of the target vocabulary.
-          buckets: a list of pairs (I, O), where I specifies maximum input lengt            that will be processed in that bucket, and O specifies maximum output
+          buckets: a list of pairs (I, O), where I specifies maximum input length
+            that will be processed in that bucket, and O specifies maximum output
             length. Training instances that have inputs longer than I or outputs
             longer than O will be pushed to the next bucket and padded accordingly.
             We assume that the list is sorted, e.g., [(2, 4), (8, 16)].
@@ -78,8 +79,10 @@ class EncoderDecoderModel(graph_utils.NNModel):
         self.encoder_inputs = []        # encoder inputs.
         self.encoder_attn_masks = []    # mask out PAD symbols in the encoder
         self.decoder_inputs = []        # decoder inputs (always start with "_GO").
+        self.targets = []               # decoder targets
         self.target_weights = []        # weights at each position of the target sequence.
-        self.pointer_targets = None
+        if self.copynet:
+            self.encoder_copy_inputs = []
 
         for i in xrange(self.max_source_length):
             self.encoder_inputs.append(
@@ -89,22 +92,26 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 tf.placeholder(
                     tf.float32, shape=[None], name="attn_alignment{0}".format(i)))
 
-        for i in xrange(self.max_target_length + 1):
+        for j in xrange(self.max_target_length + 1):
             self.decoder_inputs.append(
                 tf.placeholder(
-                    tf.int32, shape=[None], name="decoder{0}".format(i)))
+                    tf.int32, shape=[None], name="decoder{0}".format(j)))
             self.target_weights.append(
                 tf.placeholder(
-                    tf.float32, shape=[None], name="weight{0}".format(i)))
+                    tf.float32, shape=[None], name="weight{0}".format(j)))
+            # Our targets are decoder inputs shifted by one.
+            if j > 1 and not self.copynet:
+                self.targets.append(self.decoder_inputs[j])
 
-        # Our targets are decoder inputs shifted by one.
-        self.targets = [self.decoder_inputs[i + 1]
-                        for i in xrange(self.max_target_length)]
-
-        if self.use_copy and self.copy_fun == 'supervised':
-            for i in xrange(self.max_target_length):
-                self.pointer_targets = tf.placeholder(
-                    tf.int32, shape=[None, None, None], name="pointer_targets")
+        if self.copynet:
+            for i in xrange(self.max_source_length):
+                self.encoder_copy_inputs.append(
+                    tf.placeholder(
+                        tf.int32, shape=[None], name="encoder_copy{0}".format(i)))
+            for j in xrange(self.max_target_length):
+                self.targets.append(
+                    tf.placeholder(
+                        tf.int32, shape=[None], name="copy_target{0}".format(i)))
 
         # Compute training outputs and losses in the forward direction.
         if self.buckets:
@@ -112,7 +119,6 @@ class EncoderDecoderModel(graph_utils.NNModel):
             self.output_logits = []
             self.losses = []
             self.attn_alignments = []
-            self.pointers = []
             if self.tg_char:
                 self.char_output_symbols = []
                 self.char_output_logits = []
@@ -147,8 +153,6 @@ class EncoderDecoderModel(graph_utils.NNModel):
                              tf.reshape(bucket_char_output_logits,
                                         [self.max_target_length,
                                         self.batch_size, self.beam_size]))
-                    if self.use_copy:
-                        self.pointers.append(encode_decode_outputs[-1])
         else:
             encode_decode_outputs = self.encode_decode(
                                         [self.encoder_inputs],
@@ -169,8 +173,6 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 self.char_output_logits = tf.reshape(char_output_logits,
                                    [self.batch_size, self.beam_size,
                                     self.max_target_length])
-            if self.forward_only and self.use_copy:
-                self.pointers = encode_decode_outputs[-1]
 
         # Gradients and SGD updates in the backward direction.
         if not self.forward_only:
@@ -225,7 +227,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
                         encoder_states[-1], decoder_inputs,
                         encoder_attn_masks=encoder_attn_masks,
                         attention_states=attention_states,
-                        num_heads=num_heads)
+                        num_heads=num_heads,
+                        encoder_copy_inputs=self.encoder_copy_inputs)
 
         bs_decoding = self.forward_only and \
                       self.token_decoding_algorithm == 'beam_search'
@@ -253,18 +256,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
         attention_reg = self.attention_regularization(attn_alignments) \
             if self.tg_token_use_attention else 0
 
-        # C. Supervised Copying Loss (if any)
-        if self.use_copy and self.copy_fun == 'supervised':
-            if bs_decoding:
-                pointer_targets = self.decoder.beam_decoder.wrap_input(
-                    self.pointer_targets)
-            else:
-                pointer_targets = self.pointer_targets
-            copy_loss = self.copy_loss(pointers, pointer_targets)
-        else:
-            copy_loss = 0
-
-        # D. Character Sequence Loss
+        # C. Character Sequence Loss
         if self.tg_char:
             # re-arrange character inputs
             char_decoder_inputs = [
@@ -300,7 +292,6 @@ class EncoderDecoderModel(graph_utils.NNModel):
        
         losses = encoder_decoder_token_loss + \
                  self.gamma * encoder_decoder_char_loss + \
-                 self.chi * copy_loss + \
                  self.beta * attention_reg
 
         # store encoder/decoder output states
@@ -351,18 +342,6 @@ class EncoderDecoderModel(graph_utils.NNModel):
         return avg_log_perps
 
 
-    def copy_loss(self, pointers, pointer_targets):
-        raw_loss = tf.reshape(
-                tf.nn.softmax_cross_entropy_with_logits(
-                     logits=tf.reshape(pointers, [-1, self.max_source_length]), 
-                     labels=tf.reshape(pointer_targets, [-1, self.max_source_length])),
-                [-1, self.max_target_length])
-        copy_positions = tf.cast(tf.reduce_sum(pointer_targets, 2), tf.floatf2)
-        return tf.reduce_mean(
-                tf.reduce_sum(tf.multiply(raw_loss, copy_positions), 1) /
-                (tf.reduce_sum(copy_positions, 1) + 1e-12))
-
-
     def attention_regularization(self, attn_alignments):
         """Entropy regularization term.
 
@@ -404,18 +383,21 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
     # --- Graph Operations --- #
 
-    def format_batch(self, encoder_inputs, decoder_inputs, pointer_targets=None,
-                     bucket_id=-1):
+    def format_batch(self, encoder_input_channels, decoder_input_channels, bucket_id=-1):
         """
         Convert the feature vectors into the dimensions required by the neural
         network.
+
+        :param encoder_input_channels:
+            channel 0 - seq2seq encoder inputs
+            channel 1 - copynet encoder copy inputs
+        :param decoder_input_channels:
+            channel 0 - seq2seq decoder inputs
+            channel 1 - copynet decoder targets
         """
         def load_channel(inputs, output_length, reversed_output=True):
             """
-            :param inputs: batch of feature vectors
-            :param output_length: length of the output sequence
-            :param reversed_output: if set, reverse the padded inputs
-            :return: batched input sequence
+            Concert a batch of feature vectors into a batched feature vector.
             """
             padded_inputs = []
             batch_inputs = []
@@ -437,13 +419,18 @@ class EncoderDecoderModel(graph_utils.NNModel):
         else:
             encoder_size, decoder_size = \
                 self.max_source_length, self.max_target_length
-        batch_size = len(encoder_inputs)
+        batch_size = len(encoder_input_channels[0])
 
         # create batch-major vectors
         batch_encoder_inputs = load_channel(
-            encoder_inputs, encoder_size, reversed_output=True)
+            encoder_input_channels[0], encoder_size, reversed_output=True)
         batch_decoder_inputs = load_channel(
-            decoder_inputs, decoder_size, reversed_output=False)
+            decoder_input_channels[0], decoder_size, reversed_output=False)
+        if self.copynet:
+            batch_encoder_copy_inputs = load_channel(
+                encoder_input_channels[1], encoder_size, reversed_output=True)
+            batch_copy_targets = load_channel(
+                decoder_input_channels[1], decoder_size, reversed_output=False)
 
         batch_encoder_input_masks = []
         batch_decoder_input_masks = []
@@ -472,10 +459,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
         E.encoder_attn_masks = batch_encoder_input_masks
         E.decoder_inputs = batch_decoder_inputs
         E.target_weights = batch_decoder_input_masks
-
-        if self.use_copy and self.copy_fun == 'supervised':
-            E.pointer_targets = np.concatenate(pointer_targets, 0)\
-                [:, :decoder_size, -encoder_size:]
+        E.encoder_copy_inputs = batch_encoder_copy_inputs
+        E.copy_targets = batch_copy_targets
 
         return E
 
@@ -486,7 +471,9 @@ class EncoderDecoderModel(graph_utils.NNModel):
         convert the feature vectors into the dimensions required by the neural
         network.
         """
-        encoder_inputs, decoder_inputs, pointer_targets = [], [], []
+        encoder_inputs, decoder_inputs = [], []
+        if self.copynet:
+            encoder_copy_inputs, copy_targets = [], []
 
         if bucket_id == -1:
             sample_pool = data
@@ -501,11 +488,18 @@ class EncoderDecoderModel(graph_utils.NNModel):
             data_point = sample_pool[i]
             encoder_inputs.append(data_point.sc_ids)
             decoder_inputs.append(data_point.tg_ids)
-            if self.use_copy and self.copy_fun == 'supervised':
-                pointer_targets.append(data_point.pointer_targets)
+            if self.copynet:
+                encoder_copy_inputs.append(data_point.csc_ids)
+                copy_targets.append(data_point.ctg_ids)
 
-        return self.format_batch(encoder_inputs, decoder_inputs,
-            pointer_targets=pointer_targets, bucket_id=bucket_id)
+        encoder_input_channels = [encoder_inputs]
+        decoder_input_channels = [decoder_inputs]
+        if self.copynet:
+            encoder_input_channels.append(encoder_copy_inputs)
+            decoder_input_channels.append(copy_targets)
+
+        return self.format_batch(
+            encoder_input_channels, decoder_input_channels, bucket_id=bucket_id)
 
 
     def feed_input(self, E):
@@ -520,6 +514,12 @@ class EncoderDecoderModel(graph_utils.NNModel):
         for l in xrange(decoder_size):
             input_feed[self.decoder_inputs[l].name] = E.decoder_inputs[l]
             input_feed[self.target_weights[l].name] = E.target_weights[l]
+        if self.copynet:
+            for l in xrange(encoder_size):
+                input_feed[self.encoder_copy_inputs[l].name] = \
+                    E.encoder_copy_inputs[l]
+            for l in xrange(decoder_size):
+                input_feed[self.targets[l].name] = E.copy_targets[l]
 
         # Apply dummy values to encoder and decoder inputs
         for l in xrange(encoder_size, self.max_source_length):
@@ -527,18 +527,21 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 E.encoder_inputs[-1].shape, dtype=np.int32)
             input_feed[self.encoder_attn_masks[l].name] = np.zeros(
                 E.encoder_attn_masks[-1].shape, dtype=np.int32)
+            if self.copynet:
+                input_feed[self.encoder_copy_inputs[l].name] = \
+                    np.zeros(E.encoder_copy_inputs[-1].shape, dtype=np.int32)
         for l in xrange(decoder_size, self.max_target_length):
             input_feed[self.decoder_inputs[l].name] = np.zeros(
                 E.decoder_inputs[-1].shape, dtype=np.int32)
             input_feed[self.target_weights[l].name] = np.zeros(
                 E.target_weights[-1].shape, dtype=np.int32)
+            if self.copynet:
+                input_feed[self.targets[l].name] = np.zeros(
+                    E.copy_targets[-1].shape, dtype=np.int32)
         
         # Since our targets are decoder inputs shifted by one, we need one more.
         last_target = self.decoder_inputs[decoder_size].name
         input_feed[last_target] = np.zeros(E.decoder_inputs[0].shape, dtype=np.int32)
-
-        if self.use_copy and self.copy_fun == 'supervised':
-            input_feed[self.pointer_targets.name] = E.pointer_targets
 
         return input_feed
 
@@ -594,12 +597,6 @@ class EncoderDecoderModel(graph_utils.NNModel):
         output_feed['encoder_hidden_states'] = self.encoder_hidden_states
         output_feed['decoder_hidden_states'] = self.decoder_hidden_states
 
-        if self.use_copy:
-            if bucket_id == -1:
-                output_feed['pointers'] = self.pointers
-            else:
-                output_feed['pointers'] = self.pointers[bucket_id]
-
         extra_update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
         if extra_update_ops and not forward_only:
             outputs, extra_updates = session.run(
@@ -639,7 +636,8 @@ class Example(object):
         self.encoder_attn_masks = None
         self.decoder_inputs = None
         self.target_weights = None
-        self.pointer_targets = None
+        self.encoder_copy_inputs = None         # Copynet
+        self.copy_targets = None                # Copynet
 
 
 class Output(object):
