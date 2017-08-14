@@ -46,7 +46,7 @@ class Decoder(graph_utils.NNModel):
         self.decoding_algorithm = decoding_algorithm
 
         self.vocab_size = self.target_vocab_size
-        if self.use_copynet:
+        if self.use_copy:
             self.vocab_size += self.max_source_length
         
         # variable sharing
@@ -67,10 +67,6 @@ class Decoder(graph_utils.NNModel):
             locally_normalized=(self.training_algorithm != "bso")
         ) if self.decoding_algorithm == "beam_search" else None
 
-        # Mask out words not in the target vocab when computing generation
-        # probabilities
-        if self.use_copy and self.copy_fun != 'supervised':
-            self.generation_mask = np.load(self.generation_mask_path)
         self.output_project = self.output_project()
 
     def embeddings(self):

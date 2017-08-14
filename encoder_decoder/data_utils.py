@@ -109,7 +109,9 @@ class DataPoint(object):
         self.tg_txt = None
         self.sc_ids = None
         self.tg_ids = None
-        self.alignments = None      # CopyNet training
+        self.csc_ids = None         # CopyNet training source ids
+        self.ctg_ids = None         # CopyNet training target ids
+        self.alignments = None
         self.sc_fillers = None      # TODO: this field is no longer used
 
 
@@ -147,8 +149,11 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
     vocab = load_vocabulary(FLAGS)
     svf, tvf = load_vocabulary_frequency(FLAGS)
 
-    def get_data_file_path(data_dir, split, lang, extension):
-        return os.path.join(data_dir, '{}.{}.{}'.format(split, lang, extension))
+    def get_data_file_path(data_dir, split, lang, channel):
+        return os.path.join(data_dir, '{}.{}.ids.{}'.format(split, lang, channel))
+
+    def get_copy_data_file_path(data_dir, split, lang, pos, channel):
+        return os.path.join(data_dir, '{}.{}.copy.{}.ids.{}'.format(split, lang, pos, channel))
 
     def get_source_ids(s):
         source_ids = []
@@ -180,20 +185,19 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
     sc_path = get_data_file_path(data_dir, split, source, 'filtered')
     tg_path = get_data_file_path(data_dir, split, target, 'filtered')
     if FLAGS.char:
-        id_ext = 'ids.char'
+        channel = 'char'
     elif FLAGS.partial_token:
-        id_ext = 'ids.partial.token'
+        channel = 'partial.token'
     else:
-        id_ext = 'ids.token'
-    sc_id_path = get_data_file_path(data_dir, split, source, id_ext)
-    tg_id_path = get_data_file_path(data_dir, split, target, id_ext)
+        channel = 'token'
+    sc_id_path = get_data_file_path(data_dir, split, source, channel)
+    tg_id_path = get_data_file_path(data_dir, split, target, channel)
     print("source file: {}".format(sc_path))
     print("target file: {}".format(tg_path))
     print("source sequence indices file: {}".format(sc_id_path))
     print("target sequence indices file: {}".format(tg_id_path))
 
     dataset = []
-
     num_data = 0
     max_sc_length = 0
     max_tg_length = 0
@@ -215,10 +219,17 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
                             max_tg_length = len(data_point.tg_ids)
                         dataset.append(data_point)
                         num_data += 1
-
     print('{} data points read.'.format(num_data))
     print('max_source_length = {}'.format(max_sc_length))
     print('max_target_length = {}'.format(max_tg_length))
+
+    if FLAGS.use_copy and FLAGS.copy_fun == 'copynet':
+        tg_vocab = set([v for v in vocab.tg_vocab if tvf[v] >= FLAGS.min_vocab_frequency])
+        for data_point in dataset:
+            sc_tokens = [vocab.sc_vocab[ind] for ind in data_point.sc_ids]
+            tg_tokens = [vocab.tg_vocab[ind] for ind in data_point.tg_ids]
+            data_point.csc_ids, data_point.ctg_ids = \
+                compute_copy_indices(sc_tokens, tg_tokens, tg_vocab, channel)
 
     def print_bucket_size(bs):
         print('bucket size = ({}, {})'.format(bs[0], bs[1]))
@@ -451,6 +462,8 @@ def prepare_channel(data_dir, nl_list, cm_list, split, channel,
         for data_point in cm_tokens:
             cm_ids = cm_string_to_ids(data_point, cm_vocab)
             o_f.write('{}\n'.format(' '.join([str(x) for x in cm_ids])))
+
+    # Copying
     alignments = compute_alignments(data_dir, nl_tokens, cm_tokens, split, channel)
     with open(os.path.join(data_dir, '{}.{}.align'.format(split, channel)), 'wb') as f:
         pickle.dump(alignments, f)
@@ -605,6 +618,30 @@ def tokens_to_ids(tokens, vocabulary):
         else:
             token_ids.append(UNK_ID)
     return token_ids
+
+
+def compute_copy_indices(sc_tokens, tg_tokens, tg_vocab, channel):
+    csc_ids, ctg_ids = [], []
+    for i, sc_token in enumerate(sc_tokens):
+        if sc_token in tg_tokens:
+            if sc_token in tg_vocab:
+                csc_ids.append(tg_vocab[sc_token])
+            else:
+                csc_ids.append(len(tg_vocab) + sc_tokens.index(sc_token))
+        else:
+            csc_ids.append(len(tg_vocab) + i)
+    for j, tg_token in enumerate(tg_tokens):
+        if tg_token in tg_vocab:
+            ctg_ids.append(tg_vocab[tg_token])
+        else:
+            if tg_token in sc_tokens:
+                ctg_ids.append(len(tg_vocab) + sc_tokens.index(tg_token))
+            else:
+                if channel == 'char':
+                    ctg_ids.append(CUNK_ID)
+                else:
+                    ctg_ids.append(UNK_ID)
+    return csc_ids, ctg_ids
 
 
 def compute_alignments(data_dir, nl_list, cm_list, split, channel):

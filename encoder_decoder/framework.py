@@ -217,7 +217,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
             attention_states = None
 
         num_heads = 2 if (self.tg_token_use_attention and 
-                          self.use_copynet) else 1
+                          self.copynet) else 1
 
         # --- Run encode-decode steps --- #
         output_symbols, output_logits, outputs, states, attn_alignments, \
@@ -237,7 +237,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
             if bs_decoding:
                 targets = graph_utils.wrap_inputs(
                     self.decoder.beam_decoder, targets)
-            if self.use_copynet:
+            if self.copynet:
                 step_loss_fun = graph_utils.sparse_cross_entropy
             else:
                 step_loss_fun = graph_utils.softmax_loss(
