@@ -290,15 +290,14 @@ def is_simple(ast):
     return True
 
 
-def is_low_frequency(ast):
-    """Check if a tree contains a low-frequency utilities."""
-    if ast.kind == "utility" and ast.value in \
-            (bash.utilities_20_to_15 + bash.utilities_15_to_10):
-        return True
+def select(ast, utility_set):
+    """Check if a tree contains only utilities from a specific set."""
+    if ast.kind == 'utility' and not ast.value in utility_set:
+        return False
     for child in ast.children:
-        if is_low_frequency(child):
-            return True
-    return False
+        if not select(child, utility_set):
+            return False
+    return True
 
 
 def get_utilities(ast):
