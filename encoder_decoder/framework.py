@@ -56,7 +56,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
         # Decoder.
         decoder_embedding_dim = self.encoder.output_dim
-        decoder_dim = (decoder_embedding_dim + self.encoder_copy_inputs.output_dim) if self.copynet \
+        decoder_dim = (decoder_embedding_dim + self.encoder.output_dim) if self.copynet \
             else decoder_embedding_dim
         self.define_decoder(decoder_dim, decoder_embedding_dim,
                             self.tg_token_use_attention,
