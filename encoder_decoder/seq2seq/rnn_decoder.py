@@ -266,7 +266,7 @@ class RNNDecoder(decoder.Decoder):
 
 
     def decoder_cell(self):
-        if self.use_copy and self.copy_fun == 'copy':
+        if self.copynet:
             # Selective Reading
             input_size = 2 * self.dim
         else:
