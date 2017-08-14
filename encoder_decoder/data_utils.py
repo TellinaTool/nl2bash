@@ -222,10 +222,6 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
     print('max_target_length = {}'.format(max_tg_length))
 
     if FLAGS.use_copy and FLAGS.copy_fun == 'copynet':
-        tg_vocab = {}
-        for v in vocab.tg_vocab:
-            if tvf[vocab.tg_vocab[v]] >= FLAGS.min_vocab_frequency:
-                tg_vocab[v] = vocab.tg_vocab[v]
         sc_token_path = get_data_file_path(data_dir, split, source, channel)
         tg_token_path = get_data_file_path(data_dir, split, target, channel)
         with open(sc_token_path) as sc_token_file:
@@ -234,7 +230,7 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
                     sc_tokens = sc_tokens.strip().split(TOKEN_SEPARATOR)
                     tg_tokens = tg_token_file.readline().strip().split(TOKEN_SEPARATOR)
                     data_point.csc_ids, data_point.ctg_ids = \
-                        compute_copy_indices(sc_tokens, tg_tokens, tg_vocab, channel)
+                        compute_copy_indices(sc_tokens, tg_tokens, vocab.tg_vocab, channel)
                     print(data_point.csc_ids)
                     print(data_point.ctg_ids)
                     print()
