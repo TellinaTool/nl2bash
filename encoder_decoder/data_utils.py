@@ -150,7 +150,7 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
     svf, tvf = load_vocabulary_frequency(FLAGS)
 
     def get_data_file_path(data_dir, split, lang, channel):
-        return os.path.join(data_dir, '{}.{}.ids.{}'.format(split, lang, channel))
+        return os.path.join(data_dir, '{}.{}.{}'.format(split, lang, channel))
 
     def get_copy_data_file_path(data_dir, split, lang, pos, channel):
         return os.path.join(data_dir, '{}.{}.copy.{}.ids.{}'.format(split, lang, pos, channel))
@@ -190,8 +190,8 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
         channel = 'partial.token'
     else:
         channel = 'token'
-    sc_id_path = get_data_file_path(data_dir, split, source, channel)
-    tg_id_path = get_data_file_path(data_dir, split, target, channel)
+    sc_id_path = get_data_file_path(data_dir, split, source, 'ids.'+channel)
+    tg_id_path = get_data_file_path(data_dir, split, target, 'ids.'+channel)
     print("source file: {}".format(sc_path))
     print("target file: {}".format(tg_path))
     print("source sequence indices file: {}".format(sc_id_path))
@@ -224,13 +224,18 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
     print('max_target_length = {}'.format(max_tg_length))
 
     if FLAGS.use_copy and FLAGS.copy_fun == 'copynet':
-        tg_vocab = set([v for v in vocab.tg_vocab if tvf[v] >= FLAGS.min_vocab_frequency])
+        tg_vocab = {} 
+        for v in vocab.tg_vocab:
+            if tvf[vocab.tg_vocab[v]] >= FLAGS.min_vocab_frequency:
+                tg_vocab[v] = vocab.tg_vocab[v]
         for data_point in dataset:
-            sc_tokens = [vocab.sc_vocab[ind] for ind in data_point.sc_ids]
-            tg_tokens = [vocab.tg_vocab[ind] for ind in data_point.tg_ids]
+            sc_tokens = [vocab.rev_sc_vocab[ind] for ind in data_point.sc_ids]
+            tg_tokens = [vocab.rev_tg_vocab[ind] for ind in data_point.tg_ids]
             data_point.csc_ids, data_point.ctg_ids = \
                 compute_copy_indices(sc_tokens, tg_tokens, tg_vocab, channel)
-
+            print(data_point.csc_ids)
+            print(data_point.ctg_ids)
+            print()
     def print_bucket_size(bs):
         print('bucket size = ({}, {})'.format(bs[0], bs[1]))
 
