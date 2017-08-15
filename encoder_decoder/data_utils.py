@@ -226,8 +226,8 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
         tg_token_path = get_data_file_path(data_dir, split, target, channel)
         with open(sc_token_path) as sc_token_file:
             with open(tg_token_path) as tg_token_file:
-                for sc_tokens in sc_token_file.readlines():
-                    sc_tokens = sc_tokens.strip().split(TOKEN_SEPARATOR)
+                for i, data_point in enumerate(dataset):
+                    sc_tokens = sc_token_file.readline().strip().split(TOKEN_SEPARATOR)
                     tg_tokens = tg_token_file.readline().strip().split(TOKEN_SEPARATOR)
                     data_point.csc_ids, data_point.ctg_ids = \
                         compute_copy_indices(sc_tokens, tg_tokens, vocab.tg_vocab, channel)
