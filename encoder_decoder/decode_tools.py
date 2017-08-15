@@ -75,7 +75,8 @@ def demo(sess, model, FLAGS):
 def translate_fun(data_point, sess, model, vocabs, FLAGS,
                   slot_filling_classifier=None):
     if type(data_point) is str:
-        encoder_features = query_to_encoder_features(data_point, vocabs, FLAGS)
+        encoder_tokens, encoder_features = \
+            query_to_encoder_features(data_point, vocabs, FLAGS)
         tg_ids = [data_utils.ROOT_ID]
         decoder_features = [[tg_ids]]
         if FLAGS.use_copy and FLAGS.copy_fun == 'copynet':
@@ -83,6 +84,10 @@ def translate_fun(data_point, sess, model, vocabs, FLAGS,
             decoder_features.append([ctg_ids])
         _, entities = tokenizer.ner_tokenizer(data_point)
     else:
+        if FLAGS.use_copy and FLAGS.copy_fun == 'copynet':
+            encoder_tokens = query_to_tokens(data_point[0].sc_txt, FLAGS)
+        else:
+            encoder_tokens = None
         encoder_features = [[data_point[0].sc_ids]]
         decoder_features = [[data_point[0].tg_ids]]
         _, entities = tokenizer.ner_tokenizer(data_point[0].sc_txt)
@@ -105,7 +110,7 @@ def translate_fun(data_point, sess, model, vocabs, FLAGS,
                                forward_only=True)
     output_logits = model_outputs.output_logits
 
-    decoded_outputs = decode(None, model_outputs, FLAGS, vocabs, 
+    decoded_outputs = decode(encoder_tokens, model_outputs, FLAGS, vocabs, 
         [sc_fillers], slot_filling_classifier)
 
     return decoded_outputs, output_logits
@@ -124,6 +129,7 @@ def query_to_encoder_features(sentence, vocabs, FLAGS):
     else:
         tokens = data_utils.nl_to_characters(sentence)
         init_vocab = data_utils.CHAR_INIT_VOCAB
+    encoder_tokens = [tokens]
     sc_ids = data_utils.tokens_to_ids(tokens, vocabs.sc_vocab)
     encoder_features = [[sc_ids]]
     if FLAGS.use_copy and FLAGS.copy_fun == 'copynet':
@@ -134,10 +140,24 @@ def query_to_encoder_features(sentence, vocabs, FLAGS):
             else:
                 csc_ids.append(len(vocabs.tg_vocab) + i)
         encoder_features.append([csc_ids])
-    return encoder_features
+    return encoder_tokens, encoder_features
 
 
-def decode(encoder_full_inputs, model_outputs, FLAGS, vocabs, sc_fillers=None,
+def query_to_tokens(sentence, FLAGS):
+    if FLAGS.char:
+        tokens = data_utils.nl_to_tokens(sentence, tokenizer.basic_tokenizer)
+        init_vocab = data_utils.TOKEN_INIT_VOCAB
+    elif FLAGS.partial_token:
+        tokens = data_utils.nl_to_partial_tokens(sentence, tokenizer.basic_tokenizer)
+        init_vocab = data_utils.CHAR_INIT_VOCAB
+    else:
+        tokens = data_utils.nl_to_characters(sentence)
+        init_vocab = data_utils.CHAR_INIT_VOCAB
+    encoder_tokens = [tokens]
+    return encoder_tokens
+
+
+def decode(encoder_tokens, model_outputs, FLAGS, vocabs, sc_fillers=None,
            slot_filling_classifier=None):
     """
     Transform the neural network output into readable strings and apply output
@@ -176,8 +196,8 @@ def decode(encoder_full_inputs, model_outputs, FLAGS, vocabs, sc_fillers=None,
                 token = r_tg_vocab[output]
             else:
                 if FLAGS.use_copy and FLAGS.copy_fun == 'copynet':
-                    token = r_sc_vocab[encoder_full_inputs[
-                        len(encoder_full_inputs) - 1 - (output - FLAGS.tg_vocab_size)][batch_id]]
+                    token = encoder_tokens[batch_id][
+                        len(encoder_tokens) - 1 - (output - FLAGS.tg_vocab_size)]
                 else:
                     return data_utils._UNK
             return token
@@ -198,7 +218,8 @@ def decode(encoder_full_inputs, model_outputs, FLAGS, vocabs, sc_fillers=None,
             # If there is an EOS symbol in outputs, cut them at that point.
             if data_utils.EOS_ID in outputs:
                 outputs = outputs[:outputs.index(data_utils.EOS_ID)]
-
+            if data_utils.PAD_ID in outputs:
+                outputs = outputs[:outputs.index(data_utils.PAD_ID)]
             output_tokens = []
             tg_slots = {}
             for token_id in xrange(len(outputs)):
