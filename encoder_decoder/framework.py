@@ -81,8 +81,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
         self.decoder_inputs = []        # decoder inputs (always start with "_GO").
         self.targets = []               # decoder targets
         self.target_weights = []        # weights at each position of the target sequence.
-        if self.copynet:
-            self.encoder_copy_inputs = []
+        self.encoder_copy_inputs = []
 
         for i in xrange(self.max_source_length):
             self.encoder_inputs.append(
@@ -472,8 +471,9 @@ class EncoderDecoderModel(graph_utils.NNModel):
         E.encoder_attn_masks = batch_encoder_input_masks
         E.decoder_inputs = batch_decoder_inputs
         E.target_weights = batch_decoder_input_masks
-        E.encoder_copy_inputs = batch_encoder_copy_inputs
-        E.copy_targets = batch_copy_targets
+        if self.use_copy:
+            E.encoder_copy_inputs = batch_encoder_copy_inputs
+            E.copy_targets = batch_copy_targets
 
         return E
 
