@@ -138,7 +138,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
                             self.target_weights[:bucket[1]],
                             encoder_copy_inputs=self.encoder_copy_inputs[:bucket[0]]
                         )
-                    self.output_symbols.append(encode_decode_outputs['ouptut_symbols'])
+                    self.output_symbols.append(encode_decode_outputs['output_symbols'])
                     self.output_logits.append(encode_decode_outputs['output_logits'])
                     self.losses.append(encode_decode_outputs['losses'])
                     self.attn_alignments.append(encode_decode_outputs['attn_alignments'])
