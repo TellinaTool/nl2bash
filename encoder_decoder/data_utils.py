@@ -231,9 +231,10 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
                     tg_tokens = tg_token_file.readline().strip().split(TOKEN_SEPARATOR)
                     data_point.csc_ids, data_point.ctg_ids = \
                         compute_copy_indices(sc_tokens, tg_tokens, vocab.tg_vocab, channel)
-                    print(data_point.csc_ids)
-                    print(data_point.ctg_ids)
-                    print()
+                    # print(data_point.csc_ids)
+                    # print(data_point.ctg_ids)
+                    # print()
+    data_size = len(dataset)
 
     def print_bucket_size(bs):
         print('bucket size = ({}, {})'.format(bs[0], bs[1]))
@@ -274,11 +275,11 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
                           buckets[b][1] > len(data_point.tg_ids)]
             bucket_id = min(bucket_ids) if bucket_ids else (len(buckets)-1)
             dataset2[bucket_id].append(data_point)
-            print(data_point.csc_ids)
-            print(data_point.ctg_ids)
-            print()
+            # print(data_point.csc_ids)
+            # print(data_point.ctg_ids)
+            # print()
         dataset = dataset2
-        print(len(functools.reduce(lambda x, y: x + y, dataset)))
+        assert(len(functools.reduce(lambda x, y: x + y, dataset)) == data_size)
       
     D = DataSet()
     D.data_points = dataset

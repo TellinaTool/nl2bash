@@ -659,3 +659,4 @@ class Output(object):
         self.attn_alignments = None
         self.encoder_hidden_states = None
         self.decoder_hidden_states = None
+        self.pointers = None
