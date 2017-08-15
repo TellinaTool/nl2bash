@@ -122,6 +122,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
             if self.tg_char:
                 self.char_output_symbols = []
                 self.char_output_logits = []
+            if self.use_copy:
+                self.pointers = []
             for bucket_id, bucket in enumerate(self.buckets):
                 with tf.variable_scope(tf.get_variable_scope(),
                                        reuse=True if bucket_id > 0 else None):
@@ -136,15 +138,13 @@ class EncoderDecoderModel(graph_utils.NNModel):
                             self.target_weights[:bucket[1]],
                             encoder_copy_inputs=self.encoder_copy_inputs[:bucket[0]]
                         )
-                    bucket_output_symbols, bucket_output_logits, bucket_losses, \
-                        batch_attn_alignments = encode_decode_outputs[:4]
-                    self.output_symbols.append(bucket_output_symbols)
-                    self.output_logits.append(bucket_output_logits)
-                    self.losses.append(bucket_losses)
-                    self.attn_alignments.append(batch_attn_alignments)
+                    self.output_symbols.append(encode_decode_outputs['ouptut_symbols'])
+                    self.output_logits.append(encode_decode_outputs['output_logits'])
+                    self.losses.append(encode_decode_outputs['losses'])
+                    self.attn_alignments.append(encode_decode_outputs['attn_alignments'])
                     if self.forward_only and self.tg_char:
-                         bucket_char_output_symbols, bucket_char_output_logits = \
-                             encode_decode_outputs[4:6]
+                         bucket_char_output_symbols = encode_decode_outputs['char_output_symbols']
+                         bucket_char_output_logits =  encode_decode_outputs['char_output_logits']
                          self.char_output_symbols.append(
                              tf.reshape(bucket_char_output_symbols,
                                         [self.max_target_length,
@@ -154,6 +154,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
                              tf.reshape(bucket_char_output_logits,
                                         [self.max_target_length,
                                         self.batch_size, self.beam_size]))
+                    if self.use_copy:
+                        self.pointers.append(encode_decode_outputs['pointers'])
         else:
             encode_decode_outputs = self.encode_decode(
                 [self.encoder_inputs],
@@ -163,11 +165,13 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 self.target_weights,
                 encoder_copy_inputs=self.encoder_copy_inputs
             )
-            self.output_symbols, self.output_logits, self.losses, \
-                self.attn_alignments = encode_decode_outputs[:4]
+            self.output_symbols = encode_decode_outputs['output_symbols']
+            self.output_logits = encode_decode_outputs['output_logits']
+            self.losses = encode_decode_outputs['losses']
+            self.attn_alignments = encode_decode_outputs['attn_alignments']
             if self.tg_char:
-                char_output_symbols, char_output_logits = \
-                    encode_decode_outputs[4:6]
+                char_output_symbols = encode_decode_outputs['char_output_symbols']
+                char_output_logits = encode_decode_outputs['char_output_logits']
                 self.char_output_symbols = tf.reshape(char_output_symbols,
                                    [self.batch_size, self.beam_size,
                                     self.max_target_length,
@@ -175,6 +179,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 self.char_output_logits = tf.reshape(char_output_logits,
                                    [self.batch_size, self.beam_size,
                                     self.max_target_length])
+            if self.use_copy:
+                self.pointers = encode_decode_outputs['pointers']
 
         # Gradients and SGD updates in the backward direction.
         if not self.forward_only:
@@ -316,12 +322,16 @@ class EncoderDecoderModel(graph_utils.NNModel):
             values=[tf.reshape(d_o, [-1, 1, self.decoder.dim])
                     for d_o in top_states])
 
-        O = [output_symbols, output_logits, losses, attn_alignments]
+        O = {}
+        O['output_symbols'] = output_symbols
+        O['output_logits'] = output_logits
+        O['losses'] = losses
+        O['attn_alignments'] = attn_alignments
         if self.tg_char:
-            O.append(char_output_symbols)
-            O.append(char_output_logits)
+            O['char_output_symbols'] = char_output_symbols
+            O['char_output_logits'] = char_output_logits
         if self.use_copy:
-            O.append(pointers)
+            O['pointers'] = pointers
         return O
 
 
@@ -492,9 +502,6 @@ class EncoderDecoderModel(graph_utils.NNModel):
             encoder_inputs.append(data_point.sc_ids)
             decoder_inputs.append(data_point.tg_ids)
             if self.copynet:
-                print(data_point.csc_ids)
-                print(data_point.ctg_ids)
-                print() 
                 encoder_copy_inputs.append(data_point.csc_ids)
                 copy_targets.append(data_point.ctg_ids)
 
@@ -602,6 +609,9 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
         output_feed['encoder_hidden_states'] = self.encoder_hidden_states
         output_feed['decoder_hidden_states'] = self.decoder_hidden_states
+
+        if self.use_copy:
+            output_feed['pointers'] = self.pointers
 
         extra_update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
         if extra_update_ops and not forward_only:
