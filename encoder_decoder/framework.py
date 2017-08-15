@@ -216,7 +216,14 @@ class EncoderDecoderModel(graph_utils.NNModel):
     def encode_decode(self, encoder_channel_inputs, encoder_attn_masks,
                       decoder_inputs, targets, target_weights,
                       encoder_copy_inputs=None):
+        bs_decoding = self.forward_only and \
+                      self.token_decoding_algorithm == 'beam_search'
 
+        if bs_decoding:
+            targets = graph_utils.wrap_inputs(
+                self.decoder.beam_decoder, targets)
+            encoder_copy_inputs = graph_utils.wrap_inputs(
+                self.decoder.beam_decoder, encoder_copy_inputs)
         encoder_outputs, encoder_states = \
             self.encoder.define_graph(encoder_channel_inputs)
         if self.tg_token_use_attention:
@@ -238,19 +245,10 @@ class EncoderDecoderModel(graph_utils.NNModel):
                         num_heads=num_heads,
                         encoder_copy_inputs=encoder_copy_inputs)
 
-        bs_decoding = self.forward_only and \
-                      self.token_decoding_algorithm == 'beam_search'
-
         # --- Compute Losses --- #
 
         # A. Sequence Loss
         if self.forward_only or self.training_algorithm == "standard":
-            if bs_decoding:
-                targets = graph_utils.wrap_inputs(
-                    self.decoder.beam_decoder, targets)
-                if self.copynet:
-                    encoder_copy_inputs = graph_utils.wrap_inputs(
-                        self.decoder.beam_decoder, encoder_copy_inputs)
             if self.copynet:
                 step_loss_fun = graph_utils.sparse_cross_entropy
             else:
