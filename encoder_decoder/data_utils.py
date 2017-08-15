@@ -274,6 +274,9 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
                           buckets[b][1] > len(data_point.tg_ids)]
             bucket_id = min(bucket_ids) if bucket_ids else (len(buckets)-1)
             dataset2[bucket_id].append(data_point)
+            print(data_point.csc_ids)
+            print(data_point.ctg_ids)
+            print()
         dataset = dataset2
         print(len(functools.reduce(lambda x, y: x + y, dataset)))
       
