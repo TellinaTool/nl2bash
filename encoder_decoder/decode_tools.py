@@ -145,14 +145,13 @@ def query_to_encoder_features(sentence, vocabs, FLAGS):
 
 def query_to_tokens(sentence, FLAGS):
     if FLAGS.char:
-        tokens = data_utils.nl_to_tokens(sentence, tokenizer.basic_tokenizer)
-        init_vocab = data_utils.TOKEN_INIT_VOCAB
+        tokens = data_utils.nl_to_tokens(
+            sentence, tokenizer.basic_tokenizer, lemmatization=False)
     elif FLAGS.partial_token:
-        tokens = data_utils.nl_to_partial_tokens(sentence, tokenizer.basic_tokenizer)
-        init_vocab = data_utils.CHAR_INIT_VOCAB
+        tokens = data_utils.nl_to_partial_tokens(
+            sentence, tokenizer.basic_tokenizer, lemmatization=False)
     else:
         tokens = data_utils.nl_to_characters(sentence)
-        init_vocab = data_utils.CHAR_INIT_VOCAB
     encoder_tokens = [tokens]
     return encoder_tokens
 

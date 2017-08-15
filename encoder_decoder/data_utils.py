@@ -535,8 +535,9 @@ def cm_to_characters(cm):
     return cm_data_point
 
 
-def nl_to_partial_tokens(s, tokenizer):
-    return string_to_partial_tokens(nl_to_tokens(s, tokenizer))
+def nl_to_partial_tokens(s, tokenizer, lemmatization=True):
+    return string_to_partial_tokens(
+        nl_to_tokens(s, tokenizer, lemmatization=lemmatization))
 
 
 def cm_to_partial_tokens(s, tokenizer):
