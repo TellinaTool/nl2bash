@@ -492,6 +492,9 @@ class EncoderDecoderModel(graph_utils.NNModel):
             encoder_inputs.append(data_point.sc_ids)
             decoder_inputs.append(data_point.tg_ids)
             if self.copynet:
+                print(data_point.csc_ids)
+                print(data_point.ctg_ids)
+                print() 
                 encoder_copy_inputs.append(data_point.csc_ids)
                 copy_targets.append(data_point.ctg_ids)
 
