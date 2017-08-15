@@ -249,6 +249,9 @@ class EncoderDecoderModel(graph_utils.NNModel):
             if bs_decoding:
                 targets = graph_utils.wrap_inputs(
                     self.decoder.beam_decoder, targets)
+                if self.copynet:
+                    encoder_copy_inputs = graph_utils.wrap_inputs(
+                        self.decoder.beam_decoder, encoder_copy_inputs)
             if self.copynet:
                 step_loss_fun = graph_utils.sparse_cross_entropy
             else:
