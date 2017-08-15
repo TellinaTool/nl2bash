@@ -77,18 +77,18 @@ def translate_fun(data_point, sess, model, vocabs, FLAGS,
     if type(data_point) is str:
         encoder_features = query_to_encoder_features(data_point, vocabs, FLAGS)
         tg_ids = [data_utils.ROOT_ID]
-        decoder_features = [tg_ids]
+        decoder_features = [[tg_ids]]
         if FLAGS.use_copy and FLAGS.copy_fun == 'copynet':
             ctg_ids = [data_utils.ROOT_ID]
-            decoder_features.append(ctg_ids)
+            decoder_features.append([ctg_ids])
         _, entities = tokenizer.ner_tokenizer(data_point)
     else:
-        encoder_features = [data_point[0].sc_ids]
-        decoder_features = [data_point[0].tg_ids]
+        encoder_features = [[data_point[0].sc_ids]]
+        decoder_features = [[data_point[0].tg_ids]]
         _, entities = tokenizer.ner_tokenizer(data_point[0].sc_txt)
         if FLAGS.use_copy and FLAGS.copy_fun == 'copynet':
-            encoder_features.append(data_point[0].csc_ids)
-            decoder_features.append(data_point[0].ctg_ids)
+            encoder_features.append([data_point[0].csc_ids])
+            decoder_features.append([data_point[0].ctg_ids])
     sc_fillers = entities[0]
  
     # Which bucket does it belong to?
@@ -125,7 +125,7 @@ def query_to_encoder_features(sentence, vocabs, FLAGS):
         tokens = data_utils.nl_to_characters(sentence)
         init_vocab = data_utils.CHAR_INIT_VOCAB
     sc_ids = data_utils.tokens_to_ids(tokens, vocabs.sc_vocab)
-    encoder_features = [sc_ids]
+    encoder_features = [[sc_ids]]
     if FLAGS.use_copy and FLAGS.copy_fun == 'copynet':
         csc_ids = []
         for i, t in enumerate(tokens):
@@ -133,7 +133,7 @@ def query_to_encoder_features(sentence, vocabs, FLAGS):
                 csc_ids.append(vocabs.tg_vocab)
             else:
                 csc_ids.append(len(vocabs.tg_vocab) + i)
-        encoder_features.append(csc_ids)
+        encoder_features.append([csc_ids])
     return encoder_features
 
 
