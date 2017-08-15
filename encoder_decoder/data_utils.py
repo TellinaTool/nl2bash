@@ -430,6 +430,13 @@ def prepare_dataset_split(data_dir, split):
     """
     Process a specific dataset split.
     """
+    def read_parallel_data(nl_path, cm_path):
+        with open(nl_path) as f:
+            nl_list = [nl.strip() for nl in f.readlines()]
+        with open(cm_path) as f:
+            cm_list = [cm.strip() for cm in f.readlines()]
+        return nl_list, cm_list
+
     print("Split - {}".format(split))
     nl_path = os.path.join(data_dir, split + '.nl.filtered')
     cm_path = os.path.join(data_dir, split + '.cm.filtered')
@@ -487,37 +494,9 @@ def prepare_channel(data_dir, nl_list, cm_list, split, channel,
         pickle.dump(alignments, f)
 
 
-def read_parallel_data(nl_path, cm_path):
-    with open(nl_path) as f:
-        nl_list = [nl.strip() for nl in f.readlines()]
-    with open(cm_path) as f:
-        cm_list = [cm.strip() for cm in f.readlines()]
-    return nl_list, cm_list
-
-
 def parallel_data_to_characters(nl_list, cm_list):
-    nl_data = []
-    for nl in nl_list:
-        nl_data_point = []
-        nl_tokens = nl_to_tokens(nl, tokenizer.basic_tokenizer,
-                                 lemmatization=False)
-        for c in ' '.join(nl_tokens):
-            if c == ' ':
-                nl_data_point.append(constants._SPACE)
-            else:
-                nl_data_point.append(c)
-        nl_data.append(nl_data_point)
-    cm_data = []
-    for cm in cm_list:
-        cm_data_point = []
-        cm_tokens = cm_to_tokens(cm, data_tools.bash_tokenizer,
-                                 with_prefix=False, with_suffix=False)
-        for c in ' '.join(cm_tokens):
-            if c == ' ':
-                cm_data_point.append(constants._SPACE)
-            else:
-                cm_data_point.append(c)
-        cm_data.append(cm_data_point)
+    nl_data = [nl_to_characters(nl) for nl in nl_list]
+    cm_data = [cm_to_characters(cm) for cm in cm_list]
     return nl_data, cm_data
 
 
@@ -531,6 +510,29 @@ def parallel_data_to_tokens(nl_list, cm_list):
     nl_data = [nl_to_tokens(nl, tokenizer.basic_tokenizer) for nl in nl_list]
     cm_data = [cm_to_tokens(cm, data_tools.bash_tokenizer) for cm in cm_list]
     return nl_data, cm_data
+
+
+def nl_to_characters(nl):
+    nl_data_point = []
+    nl_tokens = nl_to_tokens(nl, tokenizer.basic_tokenizer, lemmatization=False)
+    for c in ' '.join(nl_tokens):
+        if c == ' ':
+            nl_data_point.append(constants._SPACE)
+        else:
+            nl_data_point.append(c)
+    return nl_data_point
+
+
+def cm_to_characters(cm):
+    cm_data_point = []
+    cm_tokens = cm_to_tokens(
+        cm, data_tools.bash_tokenizer, with_prefix=False, with_suffix=False)
+    for c in ' '.join(cm_tokens):
+        if c == ' ':
+            cm_data_point.append(constants._SPACE)
+        else:
+            cm_data_point.append(c)
+    return cm_data_point
 
 
 def nl_to_partial_tokens(s, tokenizer):
@@ -643,13 +645,10 @@ def compute_copy_indices(sc_tokens, tg_tokens, tg_vocab, channel):
     csc_ids, ctg_ids = [], []
     init_vocab = CHAR_INIT_VOCAB if channel == 'char' else TOKEN_INIT_VOCAB
     for i, sc_token in enumerate(sc_tokens):
-        if sc_token in tg_tokens:
-            if (not sc_token in init_vocab) and sc_token in tg_vocab:
-                csc_ids.append(tg_vocab[sc_token])
-            else:
-                csc_ids.append(len(tg_vocab) + sc_tokens.index(sc_token))
+        if (not sc_token in init_vocab) and sc_token in tg_vocab:
+            csc_ids.append(tg_vocab[sc_token])
         else:
-            csc_ids.append(len(tg_vocab) + i)
+            csc_ids.append(len(tg_vocab) + sc_tokens.index(sc_token))
     for j, tg_token in enumerate(tg_tokens):
         if tg_token in tg_vocab:
             ctg_ids.append(tg_vocab[tg_token])
