@@ -90,7 +90,6 @@ def translate_fun(data_point, sess, model, vocabs, FLAGS,
             encoder_tokens = None
         encoder_features = [[data_point[0].sc_ids]]
         decoder_features = [[data_point[0].tg_ids]]
-        print(encoder_features)
         _, entities = tokenizer.ner_tokenizer(data_point[0].sc_txt)
         if FLAGS.use_copy and FLAGS.copy_fun == 'copynet':
             encoder_features.append([data_point[0].csc_ids])
@@ -196,8 +195,11 @@ def decode(encoder_tokens, model_outputs, FLAGS, vocabs, sc_fillers=None,
                 token = r_tg_vocab[output]
             else:
                 if FLAGS.use_copy and FLAGS.copy_fun == 'copynet':
-                    token = encoder_tokens[batch_id][
-                        len(encoder_tokens) - 1 - (output - FLAGS.tg_vocab_size)]
+                    source_id = len(encoder_tokens) - 1 - (output - FLAGS.tg_vocab_size)
+                    if source_id > 0 and source_id < len(encoder_tokens[batch_id]):
+                        token = encoder_tokens[batch_id][source_id]
+                    else:
+                        return data_utils._CUNK
                 else:
                     return data_utils._UNK
             return token
@@ -224,12 +226,7 @@ def decode(encoder_tokens, model_outputs, FLAGS, vocabs, sc_fillers=None,
             tg_slots = {}
             for token_id in xrange(len(outputs)):
                 output = outputs[token_id]
-<<<<<<< HEAD
-                pred_token = as_str(output, rev_sc_vocab, rev_tg_vocab)
-                print(output, pred_token)    
-=======
                 pred_token = as_str(output, rev_tg_vocab)
->>>>>>> 7db90e31e5ec4aff9c296d1c108098b3047c876b
                 if '<FLAG_SUFFIX>' in pred_token:
                     pred_token = pred_token.split('<FLAG_SUFFIX>')[0]
                 # process argument slots
