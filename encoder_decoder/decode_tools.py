@@ -121,13 +121,13 @@ def query_to_encoder_features(sentence, vocabs, FLAGS):
     Convert a natural language query into feature vectors used by the encoder.
     """
     if FLAGS.char:
-        tokens = data_utils.nl_to_tokens(sentence, tokenizer.basic_tokenizer)
+        tokens = data_utils.nl_to_characters(sentence)
         init_vocab = data_utils.TOKEN_INIT_VOCAB
     elif FLAGS.partial_token:
         tokens = data_utils.nl_to_partial_tokens(sentence, tokenizer.basic_tokenizer)
         init_vocab = data_utils.CHAR_INIT_VOCAB
     else:
-        tokens = data_utils.nl_to_characters(sentence)
+        tokens = data_utils.nl_to_tokens(sentence, tokenizer.basic_tokenizer)
         init_vocab = data_utils.CHAR_INIT_VOCAB
     encoder_tokens = [tokens]
     sc_ids = data_utils.tokens_to_ids(tokens, vocabs.sc_vocab)
