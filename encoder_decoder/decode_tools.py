@@ -90,6 +90,7 @@ def translate_fun(data_point, sess, model, vocabs, FLAGS,
             encoder_tokens = None
         encoder_features = [[data_point[0].sc_ids]]
         decoder_features = [[data_point[0].tg_ids]]
+        print(encoder_features)
         _, entities = tokenizer.ner_tokenizer(data_point[0].sc_txt)
         if FLAGS.use_copy and FLAGS.copy_fun == 'copynet':
             encoder_features.append([data_point[0].csc_ids])
@@ -224,6 +225,7 @@ def decode(encoder_tokens, model_outputs, FLAGS, vocabs, sc_fillers=None,
             for token_id in xrange(len(outputs)):
                 output = outputs[token_id]
                 pred_token = as_str(output, rev_sc_vocab, rev_tg_vocab)
+                print(output, pred_token)    
                 if '<FLAG_SUFFIX>' in pred_token:
                     pred_token = pred_token.split('<FLAG_SUFFIX>')[0]
                 # process argument slots
@@ -265,7 +267,7 @@ def decode(encoder_tokens, model_outputs, FLAGS, vocabs, sc_fillers=None,
                         target += char
             else:
                 target = ' '.join(output_tokens)
-            print(target)
+            
             # Step 2: check if the predicted command template is grammatical
             if FLAGS.grammatical_only and not FLAGS.explain:
                 if FLAGS.dataset.startswith('bash'):
