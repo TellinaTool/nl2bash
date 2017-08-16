@@ -148,14 +148,14 @@ class RNNDecoder(decoder.Decoder):
                 input_embedding = tf.nn.embedding_lookup(input_embeddings, input)
 
                 if self.copynet:
-                    if i == 0:
-                        attn_dim = attention_states.get_shape()[2]
-                        selective_reads = tf.zeros([self.batch_size, attn_dim])
-                        if bs_decoding:
-                            selective_reads = beam_decoder.wrap_input(selective_reads)
-                    else:
-                        selective_reads = attns[-1] * read_copy_source
-                    input_embedding = tf.concat(axis=1, values=[input_embedding, selective_reads])
+                    # if i == 0:
+                    #     attn_dim = attention_states.get_shape()[2]
+                    #     selective_reads = tf.zeros([self.batch_size, attn_dim])
+                    #     if bs_decoding:
+                    #         selective_reads = beam_decoder.wrap_input(selective_reads)
+                    # else:
+                    #     selective_reads = attns[-1] * read_copy_source
+                    # input_embedding = tf.concat(axis=1, values=[input_embedding, selective_reads])
                     output, state, alignments, attns, read_copy_source = \
                         decoder_cell(input_embedding, state)
                     alignments_list.append(alignments)
@@ -266,11 +266,7 @@ class RNNDecoder(decoder.Decoder):
 
 
     def decoder_cell(self):
-        if self.copynet:
-            # Selective Reading
-            input_size = 2 * self.dim
-        else:
-            input_size = self.dim
+        input_size = self.dim
         with tf.variable_scope(self.scope + "_decoder_cell") as scope:
             cell = rnn.create_multilayer_cell(
                 self.rnn_cell, scope, self.dim, self.num_layers,

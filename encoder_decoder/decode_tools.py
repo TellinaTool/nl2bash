@@ -256,6 +256,8 @@ def decode(encoder_tokens, model_outputs, FLAGS, vocabs, sc_fillers=None,
                             load_buffer = True
                         else:
                             merged_output_tokens.append(token)
+                if buffer:
+                    merged_output_tokens.append(buffer)
                 output_tokens = merged_output_tokens
     
             if FLAGS.char:
