@@ -172,7 +172,6 @@ def decode(encoder_tokens, model_outputs, FLAGS, vocabs, sc_fillers=None,
           how to parse and a dummy string for those we don't
         - target is the output string
     """
-    rev_sc_vocab = vocabs.rev_sc_vocab
     rev_tg_vocab = vocabs.rev_tg_vocab
 
     encoder_outputs = model_outputs.encoder_hidden_states
