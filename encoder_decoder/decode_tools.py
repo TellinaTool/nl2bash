@@ -194,11 +194,11 @@ def decode(encoder_tokens, model_outputs, FLAGS, vocabs, sc_fillers=None,
                 token = r_tg_vocab[output]
             else:
                 if FLAGS.use_copy and FLAGS.copy_fun == 'copynet':
-                    source_id = len(encoder_tokens) - 1 - (output - FLAGS.tg_vocab_size)
-                    if source_id > 0 and source_id < len(encoder_tokens[batch_id]):
+                    source_id = len(encoder_tokens[batch_id]) - 1 - (output - FLAGS.tg_vocab_size)
+                    if source_id >= 0 and source_id < len(encoder_tokens[batch_id]):
                         token = encoder_tokens[batch_id][source_id]
                     else:
-                        return data_utils._CUNK
+                        return data_utils._UNK
                 else:
                     return data_utils._UNK
             return token
