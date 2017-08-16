@@ -421,12 +421,13 @@ def prepare_data(FLAGS):
         (4) cm token ids
     """
     data_dir = FLAGS.data_dir
-    prepare_dataset_split(data_dir, 'train')
-    prepare_dataset_split(data_dir, 'dev')
-    prepare_dataset_split(data_dir, 'test')
+    channel = FLAGS.channel if FLAGS.channel else ''
+    prepare_dataset_split(data_dir, 'train', channel=channel)
+    prepare_dataset_split(data_dir, 'dev', channel=channel)
+    prepare_dataset_split(data_dir, 'test', channel=channel)
 
 
-def prepare_dataset_split(data_dir, split):
+def prepare_dataset_split(data_dir, split, channel=''):
     """
     Process a specific dataset split.
     """
@@ -443,25 +444,29 @@ def prepare_dataset_split(data_dir, split):
     nl_list, cm_list = read_parallel_data(nl_path, cm_path)
 
     # character based processing
-    prepare_channel(data_dir, nl_list, cm_list, split, channel='char',
-                    parallel_data_to_tokens=parallel_data_to_characters,
-                    nl_string_to_ids=tokens_to_ids,
-                    cm_string_to_ids=tokens_to_ids)
+    if not channel or channel == 'char':
+        prepare_channel(data_dir, nl_list, cm_list, split, channel='char',
+                        parallel_data_to_tokens=parallel_data_to_characters,
+                        nl_string_to_ids=tokens_to_ids,
+                        cm_string_to_ids=tokens_to_ids)
     # partial-token based processing
-    prepare_channel(data_dir, nl_list, cm_list, split, channel='partial.token',
-                    parallel_data_to_tokens=parallel_data_to_partial_tokens,
-                    nl_string_to_ids=tokens_to_ids,
-                    cm_string_to_ids=tokens_to_ids)
+    if not channel or channel == 'partial.token':
+        prepare_channel(data_dir, nl_list, cm_list, split, channel='partial.token',
+                        parallel_data_to_tokens=parallel_data_to_partial_tokens,
+                        nl_string_to_ids=tokens_to_ids,
+                        cm_string_to_ids=tokens_to_ids)
     # token based processing
-    prepare_channel(data_dir, nl_list, cm_list, split, channel='token',
-                    parallel_data_to_tokens=parallel_data_to_tokens,
-                    nl_string_to_ids=tokens_to_ids,
-                    cm_string_to_ids=tokens_to_ids)
+    if not channel or channel == 'token':
+        prepare_channel(data_dir, nl_list, cm_list, split, channel='token',
+                        parallel_data_to_tokens=parallel_data_to_tokens,
+                        nl_string_to_ids=tokens_to_ids,
+                        cm_string_to_ids=tokens_to_ids)
 
 
 def prepare_channel(data_dir, nl_list, cm_list, split, channel,
                     parallel_data_to_tokens, nl_string_to_ids, cm_string_to_ids):
     print("    channel - {}".format(channel))
+    # Tokenize data
     nl_tokens, cm_tokens = parallel_data_to_tokens(nl_list, cm_list)
     nl_token_path = os.path.join(data_dir, '{}.nl.{}'.format(split, channel))
     cm_token_path = os.path.join(data_dir, '{}.cm.{}'.format(split, channel))
@@ -471,6 +476,7 @@ def prepare_channel(data_dir, nl_list, cm_list, split, channel,
     with open(cm_token_path, 'w') as o_f:
         for data_point in cm_tokens:
             o_f.write('{}\n'.format(TOKEN_SEPARATOR.join(data_point)))
+    # Create or load vocabulary
     nl_vocab_path = os.path.join(data_dir, 'nl.vocab.{}'.format(channel))
     cm_vocab_path = os.path.join(data_dir, 'cm.vocab.{}'.format(channel))
     if split == 'train':
@@ -487,8 +493,7 @@ def prepare_channel(data_dir, nl_list, cm_list, split, channel,
         for data_point in cm_tokens:
             cm_ids = cm_string_to_ids(data_point, cm_vocab)
             o_f.write('{}\n'.format(' '.join([str(x) for x in cm_ids])))
-
-    # Copying
+    # For copying
     alignments = compute_alignments(data_dir, nl_tokens, cm_tokens, split, channel)
     with open(os.path.join(data_dir, '{}.{}.align'.format(split, channel)), 'wb') as f:
         pickle.dump(alignments, f)
