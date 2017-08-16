@@ -46,7 +46,7 @@ class Decoder(graph_utils.NNModel):
         self.decoding_algorithm = decoding_algorithm
 
         self.vocab_size = self.target_vocab_size
-        if self.use_copy:
+        if self.copynet:
             self.vocab_size += self.max_source_length
         
         # variable sharing
