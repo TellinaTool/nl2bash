@@ -100,7 +100,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
                     tf.float32, shape=[None], name="weight{0}".format(j)))
             # Our targets are decoder inputs shifted by one.
             if j > 1 and not self.copynet:
-                self.targets.append(self.decoder_inputs[j])
+                self.targets.append(self.decoder_inputs[j-1])
 
         if self.copynet:
             for i in xrange(self.max_source_length):
