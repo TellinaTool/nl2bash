@@ -190,7 +190,7 @@ def decode(encoder_tokens, model_outputs, FLAGS, vocabs, sc_fillers=None,
     num_output_examples = 0
 
     for batch_id in xrange(batch_size):
-        def as_str(output, r_sc_vocab, r_tg_vocab):
+        def as_str(output, r_tg_vocab):
             if output < FLAGS.tg_vocab_size:
                 token = r_tg_vocab[output]
             else:
@@ -223,7 +223,7 @@ def decode(encoder_tokens, model_outputs, FLAGS, vocabs, sc_fillers=None,
             tg_slots = {}
             for token_id in xrange(len(outputs)):
                 output = outputs[token_id]
-                pred_token = as_str(output, rev_sc_vocab, rev_tg_vocab)
+                pred_token = as_str(output, rev_tg_vocab)
                 if '<FLAG_SUFFIX>' in pred_token:
                     pred_token = pred_token.split('<FLAG_SUFFIX>')[0]
                 # process argument slots
