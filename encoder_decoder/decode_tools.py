@@ -372,7 +372,7 @@ def decode_set(sess, model, dataset, top_k, FLAGS, verbose=True):
     for example_id in xrange(len(grouped_dataset)):
         key, data_group = grouped_dataset[example_id]
 
-        sc_txt = data_group[0].sc_txt
+        sc_txt = data_group[0].sc_txt.strip()
         sc_tokens = [rev_sc_vocab[i] for i in data_group[0].sc_ids]
         if FLAGS.char:
             sc_temp = ''.join(sc_tokens)
@@ -383,7 +383,7 @@ def decode_set(sess, model, dataset, top_k, FLAGS, verbose=True):
         tg_asts = [data_tools.bash_parser(tg_txt) for tg_txt in tg_txts]
         if verbose:
             print('\nExample {}:'.format(example_id))
-            print('Original Source: {}'.format(sc_txt.strip()))
+            print('Original Source: {}'.format(sc_txt))
             print('Source: {}'.format(sc_temp))
             for j in xrange(len(data_group)):
                 print('GT Target {}: {}'.format(j+1, data_group[j].tg_txt))
@@ -393,7 +393,7 @@ def decode_set(sess, model, dataset, top_k, FLAGS, verbose=True):
         if FLAGS.tg_char:
             batch_outputs, batch_char_outputs = batch_outputs
 
-        eval_row = '{},"{}",'.format(example_id, sc_temp.strip().replace('"', '""'))
+        eval_row = '{},"{}",'.format(example_id, sc_txt)
         if batch_outputs:
             if FLAGS.token_decoding_algorithm == 'greedy':
                 tree, pred_cmd = batch_outputs[0]
