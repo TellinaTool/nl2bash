@@ -513,6 +513,10 @@ def parallel_data_to_tokens(nl_list, cm_list):
     return nl_data, cm_data
 
 
+def parallel_data_to_normalized_tokens(nl_list, cm_list):
+    pass
+
+
 def nl_to_characters(nl):
     nl_data_point = []
     nl_tokens = nl_to_tokens(nl, tokenizer.basic_tokenizer, lemmatization=False)
