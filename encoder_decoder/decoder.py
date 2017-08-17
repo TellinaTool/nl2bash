@@ -120,10 +120,10 @@ class CopyCellWrapper(tf.nn.rnn_cell.RNNCell):
         gen_prob = tf.slice(prob, [0, 0], [-1, self.tg_vocab_size])
         copy_prob = tf.slice(prob, [0, self.tg_vocab_size], [-1, -1])
         copy_vocab_prob = tf.squeeze(tf.matmul(tf.expand_dims(copy_prob, 1),
-            tf.one_hot(self.encoder_copy_inputs, self.tg_vocab_size)), 1)
+            tf.one_hot(self.encoder_copy_inputs, depth=self.tg_vocab_size+copy_prob.get_shape()[1].value)), 1)
 
         # mixture probability
-        mix_prob = tf.concat([gen_prob, tf.zeros(tf.shape(copy_prob))]) + \
+        mix_prob = tf.concat([gen_prob, tf.zeros(tf.shape(copy_prob))], 1) + \
                    copy_vocab_prob
 
         # selective reads

@@ -245,12 +245,13 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
         print('Group data points into buckets...')
         if split == 'train':
             # Compute bucket sizes, excluding outliers
+            length_cutoff = 0.01
             # A. Determine maximum source length
             sorted_dataset = sorted(dataset, key=lambda x:len(x.sc_ids), reverse=True)
-            max_sc_length = len(sorted_dataset[int(len(sorted_dataset) * 0.01)].sc_ids)
+            max_sc_length = len(sorted_dataset[int(len(sorted_dataset) * length_cutoff)].sc_ids)
             # B. Determine maximum target length
             sorted_dataset = sorted(dataset, key=lambda x:len(x.tg_ids), reverse=True)
-            max_tg_length = len(sorted_dataset[int(len(sorted_dataset) * 0.01)].tg_ids)
+            max_tg_length = len(sorted_dataset[int(len(sorted_dataset) * length_cutoff)].tg_ids)
             print('max_source_length after filtering = {}'.format(max_sc_length))
             print('max_target_length after filtering = {}'.format(max_tg_length))
             num_buckets = 3
@@ -277,9 +278,6 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
                           buckets[b][1] > len(data_point.tg_ids)]
             bucket_id = min(bucket_ids) if bucket_ids else (len(buckets)-1)
             dataset2[bucket_id].append(data_point)
-            # print(data_point.csc_ids)
-            # print(data_point.ctg_ids)
-            # print()
         dataset = dataset2
         assert(len(functools.reduce(lambda x, y: x + y, dataset)) == data_size)
       
@@ -463,7 +461,7 @@ def prepare_dataset_split(data_dir, split, channel=''):
     # normalized token based processing
     if not channel or channel == 'normalized.token':
         prepare_channel(data_dir, nl_list, cm_list, split, channel='normalized.token',
-                        prepare_data_to_tokens=parallel_data_to_normalized_tokens)
+                        parallel_data_to_tokens=parallel_data_to_normalized_tokens)
 
 
 def prepare_channel(data_dir, nl_list, cm_list, split, channel, parallel_data_to_tokens):
@@ -540,16 +538,17 @@ def nl_to_characters(nl):
 def cm_to_characters(cm):
     cm_data_point = []
     cm_tokens = cm_to_tokens(
-        cm, data_tools.bash_tokenizer, with_prefix=True, with_flag_argtype=False)
+        cm, data_tools.bash_tokenizer, with_prefix=True, 
+        with_flag_argtype=True)
     for t in cm_tokens:
         if not '<KIND_PREFIX>' in t:
-            cm_tokens.append(t)
+            cm_data_point.append(t)
         else:
             kind, token = t.split('<KIND_PREFIX>', 1)
             if kind.lower() == 'utility':
-                cm_tokens.append(token)
+                cm_data_point.append(token)
             elif kind.lower() == 'flag':
-                cm_tokens.append(token)
+                cm_data_point.append(token)
             else:
                 for c in token:
                     cm_data_point.append(c)
@@ -559,7 +558,8 @@ def cm_to_characters(cm):
 
 def nl_to_partial_tokens(s, tokenizer, lemmatization=True):
     return string_to_partial_tokens(
-        nl_to_tokens(s, tokenizer, lemmatization=lemmatization))
+        nl_to_tokens(s, tokenizer, lemmatization=lemmatization), 
+                     use_arg_start_end=False)
 
 
 def cm_to_partial_tokens(s, tokenizer):
