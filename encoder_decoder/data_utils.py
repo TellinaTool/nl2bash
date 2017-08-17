@@ -186,6 +186,8 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
         channel = 'char'
     elif FLAGS.partial_token:
         channel = 'partial.token'
+    elif FLAGS.normalized:
+        channel = 'normalized.token'
     else:
         channel = 'token'
     sc_id_path = get_data_file_path(data_dir, split, source, 'ids.'+channel)
@@ -297,6 +299,8 @@ def load_vocabulary(FLAGS):
         vocab_ext = 'vocab.char'
     elif FLAGS.partial_token:
         vocab_ext = 'vocab.partial.token'
+    elif FLAGS.normalized:
+        vocab_ext = 'vocab.normalized.token'
     else:
         vocab_ext = 'vocab.token'
 
