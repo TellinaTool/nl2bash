@@ -516,7 +516,10 @@ def parallel_data_to_tokens(nl_list, cm_list):
 
 
 def parallel_data_to_normalized_tokens(nl_list, cm_list):
-    pass
+    nl_data = [nl_to_tokens(nl, tokenizer.ner_tokenizer) for nl in nl_list]
+    cm_data = [cm_to_tokens(cm, data_tools.bash_tokenizer, arg_type_only=True)
+               for cm in cm_list]
+    return nl_data, cm_data
 
 
 def nl_to_characters(nl):
@@ -533,12 +536,20 @@ def nl_to_characters(nl):
 def cm_to_characters(cm):
     cm_data_point = []
     cm_tokens = cm_to_tokens(
-        cm, data_tools.bash_tokenizer, with_prefix=False, with_suffix=False)
-    for c in ' '.join(cm_tokens):
-        if c == ' ':
-            cm_data_point.append(constants._SPACE)
+        cm, data_tools.bash_tokenizer, with_prefix=True, with_flag_argtype=False)
+    for t in cm_tokens:
+        if not '<KIND_PREFIX>' in t:
+            cm_tokens.append(t)
         else:
-            cm_data_point.append(c)
+            kind, token = t.split('<KIND_PREFIX>', 1)
+            if kind.lower() == 'utility':
+                cm_tokens.append(token)
+            elif kind.lower() == 'flag':
+                cm_tokens.append(token)
+            else:
+                for c in token:
+                    cm_data_point.append(c)
+        cm_data_point.append(constants._SPACE)
     return cm_data_point
 
 
@@ -626,13 +637,14 @@ def nl_to_tokens(s, tokenizer, lemmatization=True):
     return tokens
 
 
-def cm_to_tokens(s, tokenizer, loose_constraints=True, with_prefix=False,
-                 with_suffix=True):
+def cm_to_tokens(s, tokenizer, loose_constraints=True, arg_type_only=False,
+                 with_prefix=False, with_flag_argtype=True):
     """
     Split a command string into a sequence of tokens.
     """
-    tokens = tokenizer(s, loose_constraints=loose_constraints, 
-                       with_prefix=with_prefix, with_suffix=with_suffix)
+    tokens = tokenizer(s, loose_constraints=loose_constraints,
+                       arg_type_only=arg_type_only, with_prefix=with_prefix,
+                       with_flag_argtype=with_flag_argtype)
     return tokens
 
 
