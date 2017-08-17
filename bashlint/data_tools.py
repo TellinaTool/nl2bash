@@ -29,13 +29,13 @@ def char_tokenizer(sentence):
 
 
 def bash_tokenizer(cmd, recover_quotation=True, loose_constraints=False,
-        ignore_flag_order=False, arg_type_only=False, with_parent=False,
-        with_prefix=False, with_suffix=False):
+        ignore_flag_order=False, arg_type_only=False, with_flag_head=False,
+        with_flag_argtype=False, with_prefix=False):
     """Tokenize a bash command."""
     tree = lint.normalize_ast(cmd, recover_quotation)
     return ast2tokens(tree, loose_constraints, ignore_flag_order,
-                      arg_type_only, with_parent=with_parent,
-                      with_prefix=with_prefix, with_suffix=with_suffix)
+                      arg_type_only, with_flag_head=with_flag_head,
+                      with_prefix=with_prefix, with_flag_argtype=with_flag_argtype)
 
 
 def bash_parser(cmd, recover_quotation=True, verbose=True):
@@ -58,10 +58,25 @@ def pretty_print(node, depth=0):
 
 def ast2tokens(node, loose_constraints=False, ignore_flag_order=False,
                arg_type_only=False, keep_common_args=False,
-               with_arg_type=False, with_parent=False, index_arg=False,
-               with_prefix=False, with_suffix=False):
+               with_arg_type=False, with_flag_head=False,
+               with_flag_argtype=False, with_prefix=False,
+               indexing_args=False):
     """
     Convert a bash ast into a list of tokens.
+
+    :param loose_constraints: If set, do not check semantic coherence between
+        flags and arguments.
+    :param ignore_flag_order: If set, output flags in alphabetical order.
+    :param arg_type_only: If set, output argument semantic types instead of the
+        actual value.
+    :param: keep_common_args: If set, keep common arguments such as "/", "."
+        and do not replace them with semantic types. Effective only when
+        arg_type_only is set.
+    :param with_arg_type: If set, append argument type to argument token.
+    :param with_flag_head: If set, add utility prefix to flag token.
+    :param with_flag_argtype: If set, append argument type suffix to flag token.
+    :param with_prefix: If set, add node kind prefix to token.
+    :param indexing_args: If set, append order index to argument token.
     """
     if not node:
         return []
@@ -69,10 +84,6 @@ def ast2tokens(node, loose_constraints=False, ignore_flag_order=False,
     lc = loose_constraints
     ifo = ignore_flag_order
     ato = arg_type_only
-    kca = keep_common_args
-    wat = with_arg_type
-    w_par = with_parent
-    ia = index_arg
 
     def to_tokens_fun(node):
         tokens = []
@@ -113,7 +124,10 @@ def ast2tokens(node, loose_constraints=False, ignore_flag_order=False,
                 tokens += to_tokens_fun(node.children[0])
                 tokens.append(")")
         elif node.is_utility():
-            tokens.append(node.value)
+            token = node.value
+            if with_prefix:
+                token = node.prefix + token
+            tokens.append(token)
             children = sorted(node.children, key=lambda x:x.value) \
                 if ifo else node.children
             for child in children:
@@ -126,14 +140,14 @@ def ast2tokens(node, loose_constraints=False, ignore_flag_order=False,
                 token = value
             else:
                 token = node.value
-            if w_par:
+            if with_flag_head:
                 if node.parent:
                     token = node.utility.value + "@@" + token
                 else:
                     token = token
             if with_prefix:
-                token = node.simple_prefix + token
-            if with_suffix:
+                token = node.prefix + token
+            if with_flag_argtype:
                 suffix = ''
                 if node.children:
                     for child in node.children:
@@ -190,8 +204,9 @@ def ast2tokens(node, loose_constraints=False, ignore_flag_order=False,
         elif node.is_argument() or node.kind in ["t"]:
             assert(loose_constraints or node.get_num_of_children() == 0)
             if ato and node.is_open_vocab():
-                if kca and node.value in bash.common_arguments:
+                if keep_common_args:
                     # keep frequently-occurred arguments in the vocabulary
+                    # TODO: define criteria for "common args"
                     token = node.value
                 else:
                     if node.arg_type in constants._QUANTITIES:
@@ -205,11 +220,11 @@ def ast2tokens(node, loose_constraints=False, ignore_flag_order=False,
                         token = node.arg_type
             else:
                 token = node.value
-            if with_prefix and node.is_open_vocab():
-                token = node.simple_prefix + token
-            if wat:
+            if with_prefix:
+                token = node.prefix + token
+            if with_arg_type:
                 token = token + "_" + node.arg_type
-            if ia and node.to_index():
+            if indexing_args and node.to_index():
                 token = token + "-{:02d}".format(node.index)
 
             tokens.append(token)
@@ -246,19 +261,18 @@ def cmd2template(cmd, recover_quotation=True, arg_type_only=True,
 
 def ast2list(node, order='dfs', _list=None, ignore_flag_order=False,
              arg_type_only=False, keep_common_args=False,
-             with_parent=False, with_prefix=False):
+             with_flag_head=False, with_prefix=False):
     """Linearize the AST."""
     if order == 'dfs':
         if node.is_argument() and node.is_open_vocab() and arg_type_only:
             token = node.arg_type
-        elif node.is_option() and with_parent:
+        elif node.is_option() and with_flag_head:
             token = node.utility.value + '@@' + node.value if node.utility \
                 else node.value
         else:
             token = node.value
         if with_prefix:
-            if node.is_option() or (node.is_argument() and node.is_open_vocab()):
-                token = node.simple_prefix + token
+            token = node.prefix + token
         _list.append(token)
         if node.get_num_of_children() > 0:
             if node.is_utility() and ignore_flag_order:
@@ -267,7 +281,7 @@ def ast2list(node, order='dfs', _list=None, ignore_flag_order=False,
                 children = node.children
             for child in children:
                 ast2list(child, order, _list, ignore_flag_order, arg_type_only,
-                         keep_common_args, with_parent, with_prefix)
+                         keep_common_args, with_flag_head, with_prefix)
             _list.append(nast._H_NO_EXPAND)
         else:
             _list.append(nast._V_NO_EXPAND)

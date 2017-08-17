@@ -134,16 +134,8 @@ class Node(object):
         return index
 
     @property
-    def simple_prefix(self):
-        if self.is_option():
-            return '__FLAG__'
-        if self.is_argument():
-            return '__ARG__'
-        return ''
-
-    @property
     def prefix(self):
-        return self.kind.upper() + "_"
+        return self.kind.upper() + "<KIND_PREFIX>"
 
     @property
     def symbol(self):
