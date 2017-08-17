@@ -570,7 +570,7 @@ def string_to_partial_tokens(s, use_arg_start_end=True):
     """
     Split a sequence of tokens into a sequence of partial tokens.
 
-    A partial token may consist of
+    A partial token sequence may consist of
         1. continuous span of alphabetical letters
         2. continuous span of digits
         3. a non-alpha-numerical character
