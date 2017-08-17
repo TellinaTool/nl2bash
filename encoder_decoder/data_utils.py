@@ -243,7 +243,7 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
         print('Group data points into buckets...')
         if split == 'train':
             # Compute bucket sizes, excluding outliers
-            length_cutoff = 0.05 if FLAGS.char else 0.02
+            length_cutoff = 0.01
             # A. Determine maximum source length
             sorted_dataset = sorted(dataset, key=lambda x:len(x.sc_ids), reverse=True)
             max_sc_length = len(sorted_dataset[int(len(sorted_dataset) * length_cutoff)].sc_ids)
@@ -457,7 +457,7 @@ def prepare_dataset_split(data_dir, split, channel=''):
     # normalized token based processing
     if not channel or channel == 'normalized.token':
         prepare_channel(data_dir, nl_list, cm_list, split, channel='normalized.token',
-                        prepare_data_to_tokens=parallel_data_to_normalized_tokens)
+                        parallel_data_to_tokens=parallel_data_to_normalized_tokens)
 
 
 def prepare_channel(data_dir, nl_list, cm_list, split, channel, parallel_data_to_tokens):
@@ -534,16 +534,17 @@ def nl_to_characters(nl):
 def cm_to_characters(cm):
     cm_data_point = []
     cm_tokens = cm_to_tokens(
-        cm, data_tools.bash_tokenizer, with_prefix=True, with_flag_argtype=False)
+        cm, data_tools.bash_tokenizer, with_prefix=True, 
+        with_flag_argtype=True)
     for t in cm_tokens:
         if not '<KIND_PREFIX>' in t:
-            cm_tokens.append(t)
+            cm_data_point.append(t)
         else:
             kind, token = t.split('<KIND_PREFIX>', 1)
             if kind.lower() == 'utility':
-                cm_tokens.append(token)
+                cm_data_point.append(token)
             elif kind.lower() == 'flag':
-                cm_tokens.append(token)
+                cm_data_point.append(token)
             else:
                 for c in token:
                     cm_data_point.append(c)
