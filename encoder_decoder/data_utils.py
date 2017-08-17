@@ -243,12 +243,13 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
         print('Group data points into buckets...')
         if split == 'train':
             # Compute bucket sizes, excluding outliers
+            length_cutoff = 0.05 if FLAGS.char else 0.02
             # A. Determine maximum source length
             sorted_dataset = sorted(dataset, key=lambda x:len(x.sc_ids), reverse=True)
-            max_sc_length = len(sorted_dataset[int(len(sorted_dataset) * 0.01)].sc_ids)
+            max_sc_length = len(sorted_dataset[int(len(sorted_dataset) * length_cutoff)].sc_ids)
             # B. Determine maximum target length
             sorted_dataset = sorted(dataset, key=lambda x:len(x.tg_ids), reverse=True)
-            max_tg_length = len(sorted_dataset[int(len(sorted_dataset) * 0.01)].tg_ids)
+            max_tg_length = len(sorted_dataset[int(len(sorted_dataset) * length_cutoff)].tg_ids)
             print('max_source_length after filtering = {}'.format(max_sc_length))
             print('max_target_length after filtering = {}'.format(max_tg_length))
             num_buckets = 3
@@ -275,9 +276,6 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
                           buckets[b][1] > len(data_point.tg_ids)]
             bucket_id = min(bucket_ids) if bucket_ids else (len(buckets)-1)
             dataset2[bucket_id].append(data_point)
-            # print(data_point.csc_ids)
-            # print(data_point.ctg_ids)
-            # print()
         dataset = dataset2
         assert(len(functools.reduce(lambda x, y: x + y, dataset)) == data_size)
       
@@ -542,7 +540,8 @@ def cm_to_characters(cm):
 
 def nl_to_partial_tokens(s, tokenizer, lemmatization=True):
     return string_to_partial_tokens(
-        nl_to_tokens(s, tokenizer, lemmatization=lemmatization))
+        nl_to_tokens(s, tokenizer, lemmatization=lemmatization), 
+                     use_arg_start_end=False)
 
 
 def cm_to_partial_tokens(s, tokenizer):
