@@ -1,5 +1,5 @@
 """
-Functions for converting raw data into feature vectors.
+Library for converting raw data into feature vectors.
 """
 
 from __future__ import absolute_import

@@ -431,13 +431,12 @@ def gen_eval_sheet(model, dataset, FLAGS, output_path):
                 gt_trees = [cmd_parser(cm_str) for cm_str in tg_strs]
                 gt_trees = gt_trees + [cmd_parser(cmd)
                                        for cmd in db.get_correct_temps(nl_temp)]
-
                 predictions = db.get_top_k_predictions(model, nl_temp, k=10)
                 example_id += 1
 
                 for i in xrange(min(3, len(predictions))):
                     if i == 0:
-                        output_str = '{},{},'.format(example_id, nl_temp.strip())
+                        output_str = '{},{},'.format(example_id, data_group[0].sc_txt)
                     else:
                         output_str = ',,'
                     pred_cmd, score = predictions[i]
