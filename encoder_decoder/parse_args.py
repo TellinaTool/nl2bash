@@ -70,8 +70,6 @@ def define_input_flags():
     tf.app.flags.DEFINE_integer('sample_size', 200, 'Training data sample size')
     tf.app.flags.DEFINE_boolean('canonical', False, 'Set to True for learning with normalized command with ' +
                                                     'canonical option order.')
-    tf.app.flags.DEFINE_boolean('lemmatized', True, 'Set to True for learning with lemmatized natural language words.')
-    tf.app.flags.DEFINE_boolean('normalized', False, 'Set to True for learning with normalized command.')
     tf.app.flags.DEFINE_boolean('full', False, 'Set to True for learning with all tokens.')
 
     tf.app.flags.DEFINE_integer('min_vocab_frequency', 1,
@@ -167,6 +165,7 @@ def define_input_flags():
                                 'Set to True to train a character-based translation model.')
     tf.app.flags.DEFINE_boolean('partial_token', False,
                                 'Set to True to train a partial-token-based translation model.')
+    tf.app.flags.DEFINE_boolean('normalized', False, 'Set to True for learning with normalized command.')
 
     # channel network hyperparameters
     tf.app.flags.DEFINE_boolean('sc_token', True,
