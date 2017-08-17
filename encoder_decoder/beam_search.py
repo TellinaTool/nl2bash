@@ -210,7 +210,6 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
                 logprobs = tf.nn.log_softmax(tf.matmul(cell_output, W) + b)
             else:
                 logprobs = tf.matmul(cell_output, W) + b
-        num_classes = logprobs.get_shape()[1].value
 
         # Note: masking out entries to -inf plays poorly with top_k, so just
         # subtract out a large number.
@@ -222,6 +221,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         # [-100 -100 0 -100 -100 -100]
         # [-100 -100 0 -100 -100 -100]
         # [-100 -100 0 -100 -100 -100]
+        num_classes = logprobs.get_shape()[1].value
         done_mask = tf.reshape(
             tf.cast(tf.not_equal(tf.range(num_classes), self.stop_token),
                     tf.float32) * -1e18,
