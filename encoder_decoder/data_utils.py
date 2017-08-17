@@ -334,9 +334,10 @@ def load_vocabulary(FLAGS):
 def initialize_vocabulary(vocab_path, min_frequency=1):
     """Initialize vocabulary from file.
 
-    We assume the vocabulary is stored one-item-per-line, so a file:
-      dog
-      cat
+    The vocabulary is stored one-item-per-line, followed by its frequency in
+    in the training set:
+      dog   4
+      cat   3
     will result in a vocabulary {"dog": 0, "cat": 1}, and this function will
     also return the reversed-vocabulary ["dog", "cat"].
 
@@ -446,25 +447,22 @@ def prepare_dataset_split(data_dir, split, channel=''):
     # character based processing
     if not channel or channel == 'char':
         prepare_channel(data_dir, nl_list, cm_list, split, channel='char',
-                        parallel_data_to_tokens=parallel_data_to_characters,
-                        nl_string_to_ids=tokens_to_ids,
-                        cm_string_to_ids=tokens_to_ids)
+                        parallel_data_to_tokens=parallel_data_to_characters)
     # partial-token based processing
     if not channel or channel == 'partial.token':
         prepare_channel(data_dir, nl_list, cm_list, split, channel='partial.token',
-                        parallel_data_to_tokens=parallel_data_to_partial_tokens,
-                        nl_string_to_ids=tokens_to_ids,
-                        cm_string_to_ids=tokens_to_ids)
+                        parallel_data_to_tokens=parallel_data_to_partial_tokens)
     # token based processing
     if not channel or channel == 'token':
         prepare_channel(data_dir, nl_list, cm_list, split, channel='token',
-                        parallel_data_to_tokens=parallel_data_to_tokens,
-                        nl_string_to_ids=tokens_to_ids,
-                        cm_string_to_ids=tokens_to_ids)
+                        parallel_data_to_tokens=parallel_data_to_tokens)
+    # normalized token based processing
+    if not channel or channel == 'normalized.token':
+        prepare_channel(data_dir, nl_list, cm_list, split, channel='normalized.token',
+                        prepare_data_to_tokens=parallel_data_to_normalized_tokens)
 
 
-def prepare_channel(data_dir, nl_list, cm_list, split, channel,
-                    parallel_data_to_tokens, nl_string_to_ids, cm_string_to_ids):
+def prepare_channel(data_dir, nl_list, cm_list, split, channel, parallel_data_to_tokens):
     print("    channel - {}".format(channel))
     # Tokenize data
     nl_tokens, cm_tokens = parallel_data_to_tokens(nl_list, cm_list)
@@ -487,11 +485,11 @@ def prepare_channel(data_dir, nl_list, cm_list, split, channel,
         cm_vocab, _ = initialize_vocabulary(cm_vocab_path)
     with open(os.path.join(data_dir, '{}.nl.ids.{}'.format(split, channel)), 'w') as o_f:
         for data_point in nl_tokens:
-            nl_ids = nl_string_to_ids(data_point, nl_vocab)
+            nl_ids = tokens_to_ids(data_point, nl_vocab)
             o_f.write('{}\n'.format(' '.join([str(x) for x in nl_ids])))
     with open(os.path.join(data_dir, '{}.cm.ids.{}'.format(split, channel)), 'w') as o_f:
         for data_point in cm_tokens:
-            cm_ids = cm_string_to_ids(data_point, cm_vocab)
+            cm_ids = tokens_to_ids(data_point, cm_vocab)
             o_f.write('{}\n'.format(' '.join([str(x) for x in cm_ids])))
     # For copying
     alignments = compute_alignments(data_dir, nl_tokens, cm_tokens, split, channel)
