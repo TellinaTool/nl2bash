@@ -533,13 +533,13 @@ def gen_error_analysis_sheet(model_dir, decode_sig, dataset, FLAGS, top_k=3):
         with open(arg_error_path, 'w') as arg_error_file:
             arg_error_file.write(
                 'example_id, description, ground_truth, prediction, ' +
-                'correct command, correct template\n')
+                'correct template, correct command\n')
             for example in argument_errors[:100]:
                 for line in example:
                     arg_error_file.write('{}\n'.format(line))
             grammar_error_file.write(
                 'example_id, description, ground_truth, prediction, ' +
-                'correct command, correct template\n')
+                'correct template, correct command\n')
             for example in grammar_errors[:100]:
                 for line in example:
                     grammar_error_file.write('{}\n'.format(line))
