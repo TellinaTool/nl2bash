@@ -494,7 +494,7 @@ def gen_error_analysis_sheet(model_dir, decode_sig, dataset, FLAGS, top_k=3):
                         example_id, data_group[0].sc_txt.strip())
                 else:
                     output_str = ',,'
-                pred_cmd, score = predictions[i]
+                pred_cmd = predictions[i]
                 tree = cmd_parser(pred_cmd)
 
                 # evaluation ignoring flag orders
@@ -513,7 +513,6 @@ def gen_error_analysis_sheet(model_dir, decode_sig, dataset, FLAGS, top_k=3):
                         argument_errors.append(output_str)
                     else:
                         grammar_errors.append(output_str)
-            example_id += 1
 
     grammar_error_path = os.path.join(model_dir, 'grammar.error.analysis.csv')
     arg_error_path = os.path.join(model_dir, 'argument.error.analysis.csv')
