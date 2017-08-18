@@ -176,6 +176,13 @@ def manual_eval(dataset, num_eval):
         decode_sig, dataset, FLAGS, FLAGS.model_root_dir, num_eval)
 
 
+def gen_error_analysis_sheet(dataset, model_dir=None, decode_sig=None):
+    if model_dir is None:
+        model_subdir, decode_sig = graph_utils.get_decode_signature(FLAGS)
+        model_dir = os.path.join(FLAGS.model_root_dir, model_subdir)
+    eval_tools.gen_error_analysis_sheet(model_dir, decode_sig, dataset, FLAGS)
+
+
 def demo(buckets=None):
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
         log_device_placement=FLAGS.log_device_placement)) as sess:
@@ -263,6 +270,8 @@ def main(_):
             eval(dataset, verbose=True)
         elif FLAGS.manual_eval:
             manual_eval(dataset, 100)
+        elif FLAGS.gen_error_analysis_sheet:
+            gen_error_analysis_sheet(dataset)
 
         elif FLAGS.decode:
             model = decode(dataset, buckets=train_set.buckets)
