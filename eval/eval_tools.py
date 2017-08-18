@@ -533,13 +533,15 @@ def gen_error_analysis_sheet(model_dir, decode_sig, dataset, FLAGS, top_k=3):
             arg_error_file.write(
                 'example_id, description, ground_truth, prediction, ' +
                 'correct command, correct template\n')
-            for line in argument_errors[:100]:
-                arg_error_file.write('{}\n'.format(line))
+            for example in argument_errors[:100]:
+                for line in example:
+                    arg_error_file.write('{}\n'.format(line))
             grammar_error_file.write(
                 'example_id, description, ground_truth, prediction, ' +
                 'correct command, correct template\n')
-            for line in grammar_errors[:100]:
-                grammar_error_file.write('{}\n'.format(line))
+            for example in grammar_errors[:100]:
+                for line in example:
+                    grammar_error_file.write('{}\n'.format(line))
 
 
 def import_manual_annotations_from_files(input_dir):
