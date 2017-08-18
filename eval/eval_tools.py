@@ -517,10 +517,10 @@ def gen_error_analysis_sheet(model_dir, decode_sig, dataset, FLAGS, top_k=3):
                     else:
                         if i == 0:
                             grammar_error = True
-                    example.append(output_str)
+                example.append(output_str)
             if grammar_error:
                 grammar_errors.append(example)
-            else:
+            elif argument_error:
                 argument_errors.append(example)
 
     grammar_error_path = os.path.join(model_dir, 'grammar.error.analysis.csv')
