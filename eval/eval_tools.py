@@ -436,6 +436,7 @@ def gen_eval_sheet(model, dataset, FLAGS, output_path):
 
                 for i in xrange(min(3, len(predictions))):
                     if i == 0:
+                        print(data_group[0].sc_txt)
                         output_str = '{},{},'.format(example_id, data_group[0].sc_txt)
                     else:
                         output_str = ',,'
