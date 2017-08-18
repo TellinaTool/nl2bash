@@ -369,6 +369,8 @@ def decode_set(sess, model, dataset, top_k, FLAGS, verbose=True):
     eval_file_path = os.path.join(model.model_dir, 'predictions.{}.{}.csv'.format(
         model.decode_sig, ts))
     eval_file = open(eval_file_path, 'w')
+    eval_file.write('example_id, description, ground_truth, prediction, ' +
+                    'correct command, correct template\n')
     for example_id in xrange(len(grouped_dataset)):
         key, data_group = grouped_dataset[example_id]
 
