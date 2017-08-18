@@ -491,8 +491,8 @@ def gen_error_analysis_sheet(model_dir, decode_sig, dataset, FLAGS, top_k=3):
             grammar_error, argument_error = False, False
             for i in xrange(min(3, len(predictions))):
                 if i == 0:
-                    output_str = '{},{},'.format(
-                        example_id, data_group[0].sc_txt.strip())
+                    output_str = '{},"{}",'.format(
+                        example_id, data_group[0].sc_txt.strip().replace('"', '""'))
                 else:
                     output_str = ',,'
                 pred_cmd = predictions[i]
@@ -504,10 +504,11 @@ def gen_error_analysis_sheet(model_dir, decode_sig, dataset, FLAGS, top_k=3):
                 str_match = tree_dist.one_match(
                     gt_trees, tree, ignore_arg_value=False)
                 if i < len(tg_strs):
-                    output_str += '{},'.format(tg_strs[i].strip())
+                    output_str += '"{}",'.format(
+                        tg_strs[i].strip().replace('"', '""'))
                 else:
                     output_str += ','
-                output_str += '{},'.format(pred_cmd)
+                output_str += '"{}",'.format(pred_cmd.replace('"', '""'))
                 if not str_match:
                     if temp_match:
                         output_str += 'y,'
