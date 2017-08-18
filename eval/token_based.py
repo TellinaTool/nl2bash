@@ -30,7 +30,7 @@ def get_content_tokens(ast):
     content_tokens = collections.defaultdict(int)
     for token in data_tools.ast2tokens(
             ast, loose_constraints=True, arg_type_only=True, with_prefix=True,
-            with_suffix=True):
+            with_flag_argtype=True):
         if not token.startswith('__ARG__'):
             if token.startswith('__FLAG__'):
                 token = token[len('__FLAG__'):]
