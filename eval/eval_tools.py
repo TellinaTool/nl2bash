@@ -10,6 +10,7 @@ import copy
 import csv
 import numpy as np
 import os, sys
+import random
 
 if sys.version_info > (3, 0):
     from six.moves import xrange
@@ -462,67 +463,74 @@ def gen_error_analysis_sheet(model_dir, decode_sig, dataset, FLAGS, top_k=3):
     """
     Generate error analysis evaluation sheet.
     """
+    # print evaluation form header
+    eval_bash = FLAGS.dataset.startswith("bash")
+    cmd_parser = data_tools.bash_parser if eval_bash \
+        else data_tools.paren_parser
+    tokenizer_selector = "cm" if FLAGS.explain else "nl"
+    grouped_dataset = data_utils.group_parallel_data(
+        dataset, use_temp=False, use_bucket=True,
+        tokenizer_selector=tokenizer_selector)
+
+    prediction_list = load_predictions(model_dir, decode_sig, top_k)
+    if len(grouped_dataset) != len(prediction_list):
+        raise ValueError("ground truth and predictions length must be equal: {} vs. {}"
+            .format(len(grouped_dataset), len(prediction_list)))
+
+    example_id = 0
+    with DBConnection() as db:
+        grammar_errors, argument_errors = [], []
+        for nl_temp, data_group in grouped_dataset:
+            tg_strs = [dp.tg_txt for dp in data_group]
+            gt_trees = [cmd_parser(cm_str) for cm_str in tg_strs]
+            gt_trees = gt_trees + \
+                [cmd_parser(cmd) for cmd in db.get_correct_temps(nl_temp)]
+            predictions = prediction_list[example_id]
+            example_id += 1
+
+            for i in xrange(min(3, len(predictions))):
+                if i == 0:
+                    output_str = '{},{},'.format(
+                        example_id, data_group[0].sc_txt.strip())
+                else:
+                    output_str = ',,'
+                pred_cmd, score = predictions[i]
+                tree = cmd_parser(pred_cmd)
+
+                # evaluation ignoring flag orders
+                temp_match = tree_dist.one_match(
+                    gt_trees, tree, ignore_arg_value=True)
+                str_match = tree_dist.one_match(
+                    gt_trees, tree, ignore_arg_value=False)
+                if i < len(tg_strs):
+                    output_str += '{},'.format(tg_strs[i].strip())
+                else:
+                    output_str += ','
+                output_str += '{},'.format(pred_cmd)
+                if not str_match:
+                    if temp_match:
+                        output_str += 'y,'
+                        argument_errors.append(output_str)
+                    else:
+                        grammar_errors.append(output_str)
+            example_id += 1
+
     grammar_error_path = os.path.join(model_dir, 'grammar.error.analysis.csv')
     arg_error_path = os.path.join(model_dir, 'argument.error.analysis.csv')
+    random.shuffle(argument_errors)
+    random.shuffle(grammar_errors)
     with open(grammar_error_path, 'w') as grammar_error_file:
         with open(arg_error_path, 'w') as arg_error_file:
-            # print evaluation form header
             arg_error_file.write(
                 'example_id, description, ground_truth, prediction, ' +
                 'correct command, correct template\n')
+            for line in argument_errors[:100]:
+                arg_error_file.write('{}\n'.format(line))
             grammar_error_file.write(
                 'example_id, description, ground_truth, prediction, ' +
                 'correct command, correct template\n')
-
-            eval_bash = FLAGS.dataset.startswith("bash")
-            cmd_parser = data_tools.bash_parser if eval_bash \
-                else data_tools.paren_parser
-            tokenizer_selector = "cm" if FLAGS.explain else "nl"
-            grouped_dataset = data_utils.group_parallel_data(
-                dataset, use_temp=False, use_bucket=True,
-                tokenizer_selector=tokenizer_selector)
-
-            prediction_list = load_predictions(model_dir, decode_sig, top_k)
-            if len(grouped_dataset) != len(prediction_list):
-                raise ValueError("ground truth and predictions length must be equal: {} vs. {}"
-                    .format(len(grouped_dataset), len(prediction_list)))
-
-            example_id = 0
-            with DBConnection() as db:
-                for nl_temp, data_group in grouped_dataset:
-                    tg_strs = [dp.tg_txt for dp in data_group]
-                    gt_trees = [cmd_parser(cm_str) for cm_str in tg_strs]
-                    gt_trees = gt_trees + \
-                        [cmd_parser(cmd) for cmd in db.get_correct_temps(nl_temp)]
-                    predictions = prediction_list[example_id]
-                    example_id += 1
-
-                    for i in xrange(min(3, len(predictions))):
-                        if i == 0:
-                            output_str = '{},{},'.format(
-                                example_id, data_group[0].sc_txt.strip())
-                        else:
-                            output_str = ',,'
-                        pred_cmd, score = predictions[i]
-                        tree = cmd_parser(pred_cmd)
-
-                        # evaluation ignoring flag orders
-                        temp_match = tree_dist.one_match(
-                            gt_trees, tree, ignore_arg_value=True)
-                        str_match = tree_dist.one_match(
-                            gt_trees, tree, ignore_arg_value=False)
-                        if i < len(tg_strs):
-                            output_str += '{},'.format(tg_strs[i].strip())
-                        else:
-                            output_str += ','
-                        output_str += '{},'.format(pred_cmd)
-                        if not str_match:
-                            if temp_match:
-                                output_str += 'y,'
-                                arg_error_file.write(output_str + '\n')
-                            else:
-                                grammar_error_file.write(output_str, '\n')
-                    example_id += 1
+            for line in grammar_errors[:100]:
+                grammar_error_file.write('{}\n'.format(line))
 
 
 def import_manual_annotations_from_files(input_dir):
