@@ -487,7 +487,8 @@ def gen_error_analysis_sheet(model_dir, decode_sig, dataset, FLAGS, top_k=3):
                 [cmd_parser(cmd) for cmd in db.get_correct_temps(nl_temp)]
             predictions = prediction_list[example_id]
             example_id += 1
-
+            example = []
+            grammar_error, argument_error = False, False
             for i in xrange(min(3, len(predictions))):
                 if i == 0:
                     output_str = '{},{},'.format(
@@ -510,9 +511,16 @@ def gen_error_analysis_sheet(model_dir, decode_sig, dataset, FLAGS, top_k=3):
                 if not str_match:
                     if temp_match:
                         output_str += 'y,'
-                        argument_errors.append(output_str)
+                        if i == 0:
+                            argument_error = True
                     else:
-                        grammar_errors.append(output_str)
+                        if i == 0:
+                            grammar_error = True
+                    example.append(output_str)
+            if grammar_error:
+                grammar_errors.append(example)
+            else:
+                argument_errors.append(example)
             example_id += 1
 
     grammar_error_path = os.path.join(model_dir, 'grammar.error.analysis.csv')
