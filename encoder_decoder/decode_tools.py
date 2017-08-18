@@ -395,7 +395,7 @@ def decode_set(sess, model, dataset, top_k, FLAGS, verbose=True):
         if FLAGS.tg_char:
             batch_outputs, batch_char_outputs = batch_outputs
 
-        eval_row = '{},"{}",'.format(example_id, sc_txt)
+        eval_row = '{},"{}",'.format(example_id, sc_txt.replace('"', '""'))
         if batch_outputs:
             if FLAGS.token_decoding_algorithm == 'greedy':
                 tree, pred_cmd = batch_outputs[0]
