@@ -19,15 +19,8 @@ from nlp_tools import constants
 flag_suffix = '<FLAG_SUFFIX>'
 
 
-def char_tokenizer(sentence):
-    chars = []
-    for c in sentence:
-        if c == ' ':
-            chars.append(constants._SPACE)
-        else:
-            chars.append(c)
-        chars.append(constants._SPACE)
-    return chars
+def correct_errors_and_normalize_surface(cm):
+    return lint.correct_errors_and_normalize_surface(cm)
 
 
 def bash_tokenizer(cmd, recover_quotation=True, loose_constraints=False,
