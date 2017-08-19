@@ -229,8 +229,8 @@ def decode(encoder_tokens, model_outputs, FLAGS, vocabs, sc_fillers=None,
             for token_id in xrange(len(outputs)):
                 output = outputs[token_id]
                 pred_token = as_str(output, rev_tg_vocab)
-                if '<FLAG_SUFFIX>' in pred_token:
-                    pred_token = pred_token.split('<FLAG_SUFFIX>')[0]
+                if data_tools.flag_suffix in pred_token:
+                    pred_token = pred_token.split(data_tools.flag_suffix)[0]
                 # process argument slots
                 if pred_token in constants._ENTITIES:
                     if token_id > 0 and slot_filling.is_min_flag(
