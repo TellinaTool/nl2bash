@@ -228,9 +228,6 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
                     tg_tokens = tg_token_file.readline().strip().split(TOKEN_SEPARATOR)
                     data_point.csc_ids, data_point.ctg_ids = \
                         compute_copy_indices(sc_tokens, tg_tokens, vocab.tg_vocab, channel)
-                    # print(data_point.csc_ids)
-                    # print(data_point.ctg_ids)
-                    # print()
     data_size = len(dataset)
 
     def print_bucket_size(bs):
@@ -520,36 +517,54 @@ def parallel_data_to_normalized_tokens(nl_list, cm_list):
     return nl_data, cm_data
 
 
-def nl_to_characters(nl):
-    nl_data_point = []
-    nl_tokens = nl_to_tokens(nl, tokenizer.basic_tokenizer, lemmatization=False)
-    for c in ' '.join(nl_tokens):
+def string_to_characters(s):
+    chars = []
+    for c in s:
         if c == ' ':
-            nl_data_point.append(constants._SPACE)
+            chars.append(constants._SPACE)
         else:
-            nl_data_point.append(c)
+            chars.append(c)
+        chars.append(constants._SPACE)
+    return chars
+
+
+def nl_to_characters(nl, use_preprocessing=False):
+    nl_data_point = []
+    if use_preprocessing:
+        nl_tokens = nl_to_tokens(nl, tokenizer.basic_tokenizer, lemmatization=False)
+        for c in ' '.join(nl_tokens):
+            if c == ' ':
+                nl_data_point.append(constants._SPACE)
+            else:
+                nl_data_point.append(c)
+    else:
+        nl_data_point = string_to_characters(nl)
     return nl_data_point
 
 
-def cm_to_characters(cm):
+def cm_to_characters(cm, use_preprocessing=False):
     cm_data_point = []
-    cm_tokens = cm_to_tokens(
-        cm, data_tools.bash_tokenizer, with_prefix=True, 
-        with_flag_argtype=True)
-    for i, t in enumerate(cm_tokens):
-        if not '<KIND_PREFIX>' in t:
-            cm_data_point.append(t)
-        else:
-            kind, token = t.split('<KIND_PREFIX>', 1)
-            if kind.lower() == 'utility':
-                cm_data_point.append(token)
-            elif kind.lower() == 'flag':
-                cm_data_point.append(token)
+    if use_preprocessing:
+        cm_tokens = cm_to_tokens(
+            cm, data_tools.bash_tokenizer, with_prefix=True,
+            with_flag_argtype=True)
+        for i, t in enumerate(cm_tokens):
+            if not '<KIND_PREFIX>' in t:
+                cm_data_point.append(t)
             else:
-                for c in token:
-                    cm_data_point.append(c)
-        if i < len(cm_tokens) - 1:
-            cm_data_point.append(constants._SPACE)
+                kind, token = t.split('<KIND_PREFIX>', 1)
+                if kind.lower() == 'utility':
+                    cm_data_point.append(token)
+                elif kind.lower() == 'flag':
+                    cm_data_point.append(token)
+                else:
+                    for c in token:
+                        cm_data_point.append(c)
+            if i < len(cm_tokens) - 1:
+                cm_data_point.append(constants._SPACE)
+    else:
+        cm = data_tools.correct_errors_and_normalize_surface(cm)
+        cm_data_point = string_to_characters(cm)
     return cm_data_point
 
 
