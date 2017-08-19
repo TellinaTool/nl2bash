@@ -148,7 +148,6 @@ def load_data(FLAGS, use_buckets=True, load_mappings=False):
 def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
               add_start_token=False, add_end_token=False):
     vocab = load_vocabulary(FLAGS)
-    svf, tvf = load_vocabulary_frequency(FLAGS)
 
     def get_data_file_path(data_dir, split, lang, channel):
         return os.path.join(data_dir, '{}.{}.{}'.format(split, lang, channel))
