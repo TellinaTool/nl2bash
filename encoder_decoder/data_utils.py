@@ -148,7 +148,6 @@ def load_data(FLAGS, use_buckets=True, load_mappings=False):
 def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
               add_start_token=False, add_end_token=False):
     vocab = load_vocabulary(FLAGS)
-    svf, tvf = load_vocabulary_frequency(FLAGS)
 
     def get_data_file_path(data_dir, split, lang, channel):
         return os.path.join(data_dir, '{}.{}.{}'.format(split, lang, channel))
@@ -537,7 +536,7 @@ def cm_to_characters(cm):
     cm_tokens = cm_to_tokens(
         cm, data_tools.bash_tokenizer, with_prefix=True, 
         with_flag_argtype=True)
-    for t in cm_tokens:
+    for i, t in enumerate(cm_tokens):
         if not '<KIND_PREFIX>' in t:
             cm_data_point.append(t)
         else:
@@ -549,7 +548,8 @@ def cm_to_characters(cm):
             else:
                 for c in token:
                     cm_data_point.append(c)
-        cm_data_point.append(constants._SPACE)
+        if i < len(cm_tokens) - 1:
+            cm_data_point.append(constants._SPACE)
     return cm_data_point
 
 
