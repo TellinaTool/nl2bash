@@ -155,22 +155,18 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
 
     def get_source_ids(s):
         source_ids = []
-        for x in s.split():
-            ind = int(x)
-            token = vocab.rev_sc_vocab[ind] if ind in vocab.rev_sc_vocab else ''
-            if '<FLAG_SUFFIX>' in token or svf[ind] >= FLAGS.min_vocab_frequency:
-                source_ids.append(ind)
+        for token in s.split(TOKEN_SEPARATOR):
+            if token in vocab.sc_vocab:
+                source_ids.append(vocab.sc_vocab[token])
             else:
                 source_ids.append(UNK_ID)
         return source_ids
 
     def get_target_ids(s):
         target_ids = []
-        for x in s.split():
-            ind = int(x)
-            token = vocab.rev_tg_vocab[ind] if ind in vocab.rev_tg_vocab else ''
-            if '<FLAG_SUFFIX>' in token or tvf[ind] >= FLAGS.min_vocab_frequency:
-                target_ids.append(ind)
+        for token in s.split(TOKEN_SEPARATOR):
+            if token in vocab.tg_vocab:
+                target_ids.append(vocab.tg_vocab[token])
             else:
                 target_ids.append(UNK_ID)
         if add_start_token:
@@ -190,12 +186,12 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
         channel = 'normalized.token'
     else:
         channel = 'token'
-    sc_id_path = get_data_file_path(data_dir, split, source, 'ids.'+channel)
-    tg_id_path = get_data_file_path(data_dir, split, target, 'ids.'+channel)
+    sc_token_path = get_data_file_path(data_dir, split, source, channel)
+    tg_token_path = get_data_file_path(data_dir, split, target, channel)
     print("source file: {}".format(sc_path))
     print("target file: {}".format(tg_path))
-    print("source sequence indices file: {}".format(sc_id_path))
-    print("target sequence indices file: {}".format(tg_id_path))
+    print("source sequence indices file: {}".format(sc_token_path))
+    print("target sequence indices file: {}".format(tg_token_path))
 
     dataset = []
     num_data = 0
@@ -203,18 +199,18 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
     max_tg_length = 0
     with open(sc_path) as sc_file:
         with open(tg_path) as tg_file:
-            with open(sc_id_path) as sc_id_file:
-                with open(tg_id_path) as tg_id_file:
+            with open(sc_token_path) as sc_token_file:
+                with open(tg_token_path) as tg_token_file:
                     for sc_txt in sc_file.readlines():
                         data_point = DataPoint()
                         data_point.sc_txt = sc_txt
                         data_point.tg_txt = tg_file.readline().strip()
                         data_point.sc_ids = \
-                            get_source_ids(sc_id_file.readline().strip())
+                            get_source_ids(sc_token_file.readline().strip())
                         if len(data_point.sc_ids) > max_sc_length:
                             max_sc_length = len(data_point.sc_ids)
                         data_point.tg_ids = \
-                            get_target_ids(tg_id_file.readline().strip())
+                            get_target_ids(tg_token_file.readline().strip())
                         if len(data_point.tg_ids) > max_tg_length:
                             max_tg_length = len(data_point.tg_ids)
                         dataset.append(data_point)
@@ -364,7 +360,8 @@ def initialize_vocabulary(vocab_path, min_frequency=1):
                         freq = line.strip()   
                     else:
                         v, freq = line[:-1].rsplit('\t', 1)
-                    if int(freq) >= min_frequency:
+                    if int(freq) >= min_frequency \
+                            or data_tools.flag_suffix in v:
                         V.append(v)
                 else:
                     break
@@ -582,7 +579,8 @@ def string_to_partial_tokens(s, use_arg_start_end=True):
     for token in s:
         if not token:
             continue
-        if token.isalpha() or token.isnumeric() or '<FLAG_SUFFIX>' in token \
+        if token.isalpha() or token.isnumeric() \
+                or data_tools.flag_suffix in token \
                 or token in bash.binary_logic_operators \
                 or token in bash.left_associate_unary_logic_operators \
                 or token in bash.right_associate_unary_logic_operators:
