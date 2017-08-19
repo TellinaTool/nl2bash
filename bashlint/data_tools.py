@@ -241,11 +241,12 @@ def ast2command(node, loose_constraints=False, ignore_flag_order=False):
 
 
 def ast2template(node, loose_constraints=False, ignore_flag_order=False,
-                 arg_type_only=True, index_arg=False):
+                 arg_type_only=True, indexing_args=False):
     # convert a bash AST to a template that contains only reserved words and
     # argument types flags are alphabetically ordered
     tokens = ast2tokens(node, loose_constraints, ignore_flag_order,
-                        arg_type_only=arg_type_only, index_arg=index_arg)
+                        arg_type_only=arg_type_only, 
+                        indexing_args=indexing_args)
     return ' '.join(tokens) 
 
 
