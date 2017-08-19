@@ -378,6 +378,7 @@ def decode_set(sess, model, dataset, top_k, FLAGS, verbose=True):
         key, data_group = grouped_dataset[example_id]
 
         sc_txt = data_group[0].sc_txt.strip()
+        print(data_group[0].sc_ids)
         sc_tokens = [rev_sc_vocab[i] for i in data_group[0].sc_ids]
         if FLAGS.char:
             sc_temp = ''.join(sc_tokens)
