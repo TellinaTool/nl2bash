@@ -126,6 +126,9 @@ def query_to_encoder_features(sentence, vocabs, FLAGS):
     elif FLAGS.partial_token:
         tokens = data_utils.nl_to_partial_tokens(sentence, tokenizer.basic_tokenizer)
         init_vocab = data_utils.CHAR_INIT_VOCAB
+    elif FLAGS.normalized:
+        tokens = data_utils.nl_to_tokens(sentence, tokenizer.ner_tokenizer)
+        init_vocab = data_utils.TOKEN_INIT_VOCAB
     else:
         tokens = data_utils.nl_to_tokens(sentence, tokenizer.basic_tokenizer)
         init_vocab = data_utils.CHAR_INIT_VOCAB
@@ -370,7 +373,7 @@ def decode_set(sess, model, dataset, top_k, FLAGS, verbose=True):
         model.decode_sig, ts))
     eval_file = open(eval_file_path, 'w')
     eval_file.write('example_id, description, ground_truth, prediction, ' +
-                    'correct command, correct template\n')
+                    'correct template, correct command\n')
     for example_id in xrange(len(grouped_dataset)):
         key, data_group = grouped_dataset[example_id]
 
