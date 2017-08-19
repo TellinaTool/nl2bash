@@ -16,6 +16,8 @@ if sys.version_info > (3, 0):
 from bashlint import bash, nast, lint
 from nlp_tools import constants
 
+flag_suffix = '<FLAG_SUFFIX>'
+
 
 def char_tokenizer(sentence):
     chars = []
@@ -155,7 +157,7 @@ def ast2tokens(node, loose_constraints=False, ignore_flag_order=False,
                             suffix += child.arg_type
                         elif child.is_utility():
                             suffix += 'UTILITY'
-                token = token + '<FLAG_SUFFIX>' + suffix
+                token = token + flag_suffix + suffix
             tokens.append(token)
             for child in node.children:
                 tokens += to_tokens_fun(child)
