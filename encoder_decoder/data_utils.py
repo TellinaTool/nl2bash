@@ -347,7 +347,7 @@ def initialize_vocabulary(vocab_path, min_frequency=1):
       ValueError: if the provided vocab_path does not exist.
     """
     if tf.gfile.Exists(vocab_path):
-        V= []
+        V = []
         with tf.gfile.GFile(vocab_path, mode="r") as f:
             while(True):
                 line = f.readline()
