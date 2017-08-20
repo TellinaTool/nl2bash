@@ -93,7 +93,7 @@ CHAR_INIT_VOCAB = [
 ]
 
 data_splits = ['train', 'dev', 'test']
-TOKEN_SEPARATOR = '||||'
+TOKEN_SEPARATOR = '<TOKEN_SEPARATOR>'
 
 
 class DataSet(object):
