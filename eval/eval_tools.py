@@ -517,6 +517,8 @@ def gen_error_analysis_sheet(model_dir, decode_sig, dataset, FLAGS, top_k=3):
                     else:
                         if i == 0:
                             grammar_error = True
+                else:
+                    output_str += 'y,y'
                 example.append(output_str)
             if grammar_error:
                 grammar_errors.append(example)
