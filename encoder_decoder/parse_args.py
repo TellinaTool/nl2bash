@@ -64,7 +64,7 @@ def define_input_flags():
 
     # data hyperparameters
     tf.app.flags.DEFINE_string('dataset', 'bash', 'select dataset to use.')
-    tf.app.flags.DEFINE_string('channel', 'token', 'translation feature channel.')
+    tf.app.flags.DEFINE_string('channel', '', 'translation feature channel.')
     tf.app.flags.DEFINE_string('data_dir', os.path.join(os.path.dirname(__file__), 'data'), 'Data directory')
     tf.app.flags.DEFINE_boolean('sample_train', False, 'Train on a subset of data if this is set to True.')
     tf.app.flags.DEFINE_integer('sample_size', 200, 'Training data sample size')
