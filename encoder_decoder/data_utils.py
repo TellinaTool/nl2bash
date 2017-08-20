@@ -167,6 +167,7 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
             if token in vocab.tg_vocab:
                 target_ids.append(vocab.tg_vocab[token])
             else:
+                print(token)
                 target_ids.append(UNK_ID)
         if add_start_token:
             target_ids.insert(0, ROOT_ID)
