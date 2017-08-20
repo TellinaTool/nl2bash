@@ -228,6 +228,7 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
                     tg_tokens = tg_token_file.readline().strip().split(TOKEN_SEPARATOR)
                     data_point.csc_ids, data_point.ctg_ids = \
                         compute_copy_indices(sc_tokens, tg_tokens, vocab.tg_vocab, channel)
+    
     data_size = len(dataset)
 
     def print_bucket_size(bs):
@@ -376,6 +377,8 @@ def load_vocabulary_frequency(FLAGS):
         vocab_ext = 'vocab.char'
     elif FLAGS.partial_token:
         vocab_ext = 'vocab.partial.token'
+    elif FLAGS.normalized:
+        vocab_ext = 'vocab.normalized.token'
     else:
         vocab_ext = 'vocab.token'
 

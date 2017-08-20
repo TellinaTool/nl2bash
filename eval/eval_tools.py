@@ -495,7 +495,7 @@ def gen_error_analysis_sheet(model_dir, decode_sig, dataset, FLAGS, top_k=3):
                         example_id, data_group[0].sc_txt.strip().replace('"', '""'))
                 else:
                     output_str = ',,'
-                pred_cmd, score = predictions[i]
+                pred_cmd = predictions[i]
                 tree = cmd_parser(pred_cmd)
 
                 # evaluation ignoring flag orders
@@ -527,6 +527,8 @@ def gen_error_analysis_sheet(model_dir, decode_sig, dataset, FLAGS, top_k=3):
 
     grammar_error_path = os.path.join(model_dir, 'grammar.error.analysis.csv')
     arg_error_path = os.path.join(model_dir, 'argument.error.analysis.csv')
+    print("Saving grammar errors to {}".format(grammar_error_path))
+    print("Saving argument errors to {}".format(arg_error_path))
     random.shuffle(argument_errors)
     random.shuffle(grammar_errors)
     with open(grammar_error_path, 'w') as grammar_error_file:
