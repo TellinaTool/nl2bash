@@ -120,18 +120,18 @@ def query_to_encoder_features(sentence, vocabs, FLAGS):
     """
     Convert a natural language query into feature vectors used by the encoder.
     """
-    if FLAGS.char:
+    if FLAGS.channel == 'char':
         tokens = data_utils.nl_to_characters(sentence)
-        init_vocab = data_utils.TOKEN_INIT_VOCAB
-    elif FLAGS.partial_token:
+        init_vocab = data_utils.CHAR_INIT_VOCAB
+    elif FLAGS.channel == 'partial.token':
         tokens = data_utils.nl_to_partial_tokens(sentence, tokenizer.basic_tokenizer)
-        init_vocab = data_utils.CHAR_INIT_VOCAB
-    elif FLAGS.normalized:
-        tokens = data_utils.nl_to_tokens(sentence, tokenizer.ner_tokenizer)
         init_vocab = data_utils.TOKEN_INIT_VOCAB
-    else:
-        tokens = data_utils.nl_to_tokens(sentence, tokenizer.basic_tokenizer)
-        init_vocab = data_utils.CHAR_INIT_VOCAB
+    elif FLAGS.channel == 'token':
+        if FLAGS.normalized:
+            tokens = data_utils.nl_to_tokens(sentence, tokenizer.ner_tokenizer)
+        else:
+            tokens = data_utils.nl_to_tokens(sentence, tokenizer.basic_tokenizer)
+        init_vocab = data_utils.TOKEN_INIT_VOCAB
     encoder_tokens = [tokens]
     sc_ids = data_utils.tokens_to_ids(tokens, vocabs.sc_vocab)
     encoder_features = [[sc_ids]]
@@ -147,14 +147,14 @@ def query_to_encoder_features(sentence, vocabs, FLAGS):
 
 
 def query_to_tokens(sentence, FLAGS):
-    if FLAGS.char:
-        tokens = data_utils.nl_to_tokens(
-            sentence, tokenizer.basic_tokenizer, lemmatization=False)
-    elif FLAGS.partial_token:
+    if FLAGS.channel == 'char':
+        tokens = data_utils.nl_to_characters(sentence)
+    elif FLAGS.channel == 'partial.token':
         tokens = data_utils.nl_to_partial_tokens(
             sentence, tokenizer.basic_tokenizer, lemmatization=False)
-    else:
-        tokens = data_utils.nl_to_characters(sentence)
+    elif FLAGS.channel == 'token':
+        tokens = data_utils.nl_to_tokens(
+            sentence, tokenizer.basic_tokenizer, lemmatization=False)
     encoder_tokens = [tokens]
     return encoder_tokens
 
@@ -263,7 +263,7 @@ def decode(encoder_tokens, model_outputs, FLAGS, vocabs, sc_fillers=None,
                     merged_output_tokens.append(buffer)
                 output_tokens = merged_output_tokens
     
-            if FLAGS.char:
+            if FLAGS.channel == 'char':
                 target = ''
                 for char in output_tokens:
                     if char == data_utils.constants._SPACE:
@@ -379,7 +379,7 @@ def decode_set(sess, model, dataset, top_k, FLAGS, verbose=True):
 
         sc_txt = data_group[0].sc_txt.strip()
         sc_tokens = [rev_sc_vocab[i] for i in data_group[0].sc_ids]
-        if FLAGS.char:
+        if FLAGS.channel == 'channel':
             sc_temp = ''.join(sc_tokens)
             sc_temp = sc_temp.replace(constants._SPACE, ' ')
         else:
