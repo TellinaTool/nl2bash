@@ -68,7 +68,7 @@ def eval_set(model_dir, decode_sig, dataset, top_k, FLAGS, verbose=True):
         for data_id in xrange(len(grouped_dataset)):
             data_group = grouped_dataset[data_id]
             sc_str = data_group[0].sc_txt.strip()
-            sc_tokens = [rev_sc_vocab[i] ]
+            sc_tokens = [rev_sc_vocab[i] for i in data_group[0].sc_ids]
             if FLAGS.char:
                 sc_temp = ''.join(sc_tokens)
                 sc_temp = sc_temp.replace(constants._SPACE, ' ')
