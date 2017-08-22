@@ -182,9 +182,9 @@ def get_decode_signature(FLAGS):
     model_subdir = FLAGS.dataset
     if FLAGS.explain:
         model_subdir += '-expl'
-    if FLAGS.char:
+    if FLAGS.channel == 'char':
         model_subdir += '--char'
-    elif FLAGS.partial_token:
+    elif FLAGS.channel == 'partial.token':
         model_subdir += '--partial'
     else:
         if FLAGS.sc_token:

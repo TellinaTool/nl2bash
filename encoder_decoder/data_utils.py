@@ -177,16 +177,10 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
     data_dir = FLAGS.data_dir
     sc_path = get_data_file_path(data_dir, split, source, 'filtered')
     tg_path = get_data_file_path(data_dir, split, target, 'filtered')
-    if FLAGS.char:
-        channel = 'char'
-    elif FLAGS.partial_token:
-        channel = 'partial.token'
-    elif FLAGS.normalized:
-        channel = 'normalized.token'
-    else:
-        channel = 'token'
-    sc_token_path = get_data_file_path(data_dir, split, source, channel)
-    tg_token_path = get_data_file_path(data_dir, split, target, channel)
+    token_ext = 'normalized.{}'.format(FLAGS.channel) \
+        if FLAGS.normalized else FLAGS.channel
+    sc_token_path = get_data_file_path(data_dir, split, source, token_ext)
+    tg_token_path = get_data_file_path(data_dir, split, target, token_ext)
     print("source file: {}".format(sc_path))
     print("target file: {}".format(tg_path))
     print("source sequence indices file: {}".format(sc_token_path))
@@ -301,7 +295,7 @@ def load_vocabulary(FLAGS):
     target_vocab_path = os.path.join(data_dir, '{}.{}'.format(target, vocab_ext))
 
     vocab = Vocab()
-    min_vocab_frequency = 1 if FLAGS.char else FLAGS.min_vocab_frequency
+    min_vocab_frequency = 1 if FLAGS.channel == 'char' else FLAGS.min_vocab_frequency
     vocab.sc_vocab, vocab.rev_sc_vocab = initialize_vocabulary(
         source_vocab_path, min_vocab_frequency)
     vocab.tg_vocab, vocab.rev_tg_vocab = initialize_vocabulary(
@@ -373,14 +367,9 @@ def initialize_vocabulary(vocab_path, min_frequency=1):
 def load_vocabulary_frequency(FLAGS):
     data_dir = FLAGS.data_dir
     source, target = ('nl', 'cm') if not FLAGS.explain else ('cm', 'nl')
-    if FLAGS.char:
-        vocab_ext = 'vocab.char'
-    elif FLAGS.partial_token:
-        vocab_ext = 'vocab.partial.token'
-    elif FLAGS.normalized:
-        vocab_ext = 'vocab.normalized.token'
-    else:
-        vocab_ext = 'vocab.token'
+    token_ext = 'normalized.{}'.format(FLAGS.channel) \
+        if FLAGS.normalized else FLAGS.channel
+    vocab_ext = 'vocab.{}'.format(token_ext)
 
     source_vocab_path = os.path.join(data_dir, '{}.{}'.format(source, vocab_ext))
     target_vocab_path = os.path.join(data_dir, '{}.{}'.format(target, vocab_ext))
@@ -521,6 +510,7 @@ def parallel_data_to_normalized_tokens(nl_list, cm_list):
 
 
 def string_to_characters(s):
+    assert(isinstance(s, str))
     chars = []
     for c in s:
         if c == ' ':
