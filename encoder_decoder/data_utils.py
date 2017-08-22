@@ -282,14 +282,9 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
 def load_vocabulary(FLAGS):
     data_dir = FLAGS.data_dir
     source, target = ('nl', 'cm') if not FLAGS.explain else ('cm', 'nl')
-    if FLAGS.char:
-        vocab_ext = 'vocab.char'
-    elif FLAGS.partial_token:
-        vocab_ext = 'vocab.partial.token'
-    elif FLAGS.normalized:
-        vocab_ext = 'vocab.normalized.token'
-    else:
-        vocab_ext = 'vocab.token'
+    token_ext = 'normalized.{}'.format(FLAGS.channel) \
+        if FLAGS.normalized else FLAGS.channel
+    vocab_ext = 'vocab.{}'.format(token_ext)
 
     source_vocab_path = os.path.join(data_dir, '{}.{}'.format(source, vocab_ext))
     target_vocab_path = os.path.join(data_dir, '{}.{}'.format(target, vocab_ext))
