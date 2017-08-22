@@ -126,7 +126,7 @@ def query_to_encoder_features(sentence, vocabs, FLAGS):
     elif FLAGS.channel == 'partial.token':
         tokens = data_utils.nl_to_partial_tokens(sentence, tokenizer.basic_tokenizer)
         init_vocab = data_utils.TOKEN_INIT_VOCAB
-    elif FLAGS.channel == 'token':
+    else:
         if FLAGS.normalized:
             tokens = data_utils.nl_to_tokens(sentence, tokenizer.ner_tokenizer)
         else:
@@ -152,7 +152,7 @@ def query_to_tokens(sentence, FLAGS):
     elif FLAGS.channel == 'partial.token':
         tokens = data_utils.nl_to_partial_tokens(
             sentence, tokenizer.basic_tokenizer, lemmatization=False)
-    elif FLAGS.channel == 'token':
+    else:
         tokens = data_utils.nl_to_tokens(
             sentence, tokenizer.basic_tokenizer, lemmatization=False)
     encoder_tokens = [tokens]

@@ -410,6 +410,8 @@ def prepare_data(FLAGS):
     """
     data_dir = FLAGS.data_dir
     channel = FLAGS.channel if FLAGS.channel else ''
+    if channel and FLAGS.normalized:
+        channel = 'normalized.{}'.format(channel)
     prepare_dataset_split(data_dir, 'train', channel=channel)
     prepare_dataset_split(data_dir, 'dev', channel=channel)
     prepare_dataset_split(data_dir, 'test', channel=channel)
