@@ -289,26 +289,6 @@ def list2ast(list, order='dfs'):
     return lint.normalize_seq(list, order)
 
 
-def is_simple(ast):
-    """Check if a tree contains only high-frequency utilities."""
-    if ast.kind == "utility" and not ast.value in bash.top_100_utilities:
-        return False
-    for child in ast.children:
-        if not is_simple(child):
-            return False
-    return True
-
-
-def select(ast, utility_set):
-    """Check if a tree contains only utilities from a specific set."""
-    if ast.kind == 'utility' and not ast.value in utility_set:
-        return False
-    for child in ast.children:
-        if not select(child, utility_set):
-            return False
-    return True
-
-
 def get_utilities(ast):
     def get_utilities_fun(node):
         utilities = set([])
@@ -332,10 +312,10 @@ def fill_default_value(node):
     if node.is_argument():
         if node.value in constants._ENTITIES:
             if node.arg_type == 'Path' and node.parent.is_utility() \
-                and node.parent.value == 'find':
+                    and node.parent.value == 'find':
                 node.value = '.'
             elif node.arg_type == 'Regex':
-                if  node.parent.is_utility() and node.parent.value == 'grep':
+                if node.parent.is_utility() and node.parent.value == 'grep':
                     node.value = '\'.*\''
                 elif node.parent.is_option() and node.parent.value == '-name' \
                     and node.value == 'Regex':
