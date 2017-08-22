@@ -68,6 +68,7 @@ def define_input_flags():
     tf.app.flags.DEFINE_string('data_dir', os.path.join(os.path.dirname(__file__), 'data'), 'Data directory')
     tf.app.flags.DEFINE_boolean('sample_train', False, 'Train on a subset of data if this is set to True.')
     tf.app.flags.DEFINE_integer('sample_size', 200, 'Training data sample size')
+    tf.app.flags.DEFINE_boolean('normalized', False, 'Set to True for learning with normalized command.')
     tf.app.flags.DEFINE_boolean('canonical', False, 'Set to True for learning with normalized command with ' +
                                                     'canonical option order.')
     tf.app.flags.DEFINE_boolean('full', False, 'Set to True for learning with all tokens.')
@@ -161,13 +162,6 @@ def define_input_flags():
                                 'Set to True for raw evaluation of the slot-filling classifier.')
     tf.app.flags.DEFINE_boolean('gen_error_analysis_sheet', False,
                                 'Set to True to generate error analysis spreadsheet.')
-
-    # granularity control
-    tf.app.flags.DEFINE_boolean('char', False,
-                                'Set to True to train a character-based translation model.')
-    tf.app.flags.DEFINE_boolean('partial_token', False,
-                                'Set to True to train a partial-token-based translation model.')
-    tf.app.flags.DEFINE_boolean('normalized', False, 'Set to True for learning with normalized command.')
 
     # channel network hyperparameters
     tf.app.flags.DEFINE_boolean('sc_token', True,
