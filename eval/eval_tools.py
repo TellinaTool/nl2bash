@@ -70,7 +70,7 @@ def eval_set(model_dir, decode_sig, dataset, top_k, FLAGS, verbose=True):
             print(data_group)
             sc_str = data_group[0].sc_txt.strip()
             sc_tokens = [rev_sc_vocab[i] for i in data_group[0].sc_ids]
-            if FLAGS.char:
+            if FLAGS.channel == 'char':
                 sc_temp = ''.join(sc_tokens)
                 sc_temp = sc_temp.replace(constants._SPACE, ' ')
             else:

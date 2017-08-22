@@ -10,7 +10,7 @@ from __future__ import print_function
 import itertools
 import numpy as np
 import random
-import sys
+import os, sys
 if sys.version_info > (3, 0):
     from six.moves import xrange
 
@@ -73,6 +73,15 @@ def grid_search(train_fun, decode_fun, eval_fun, train_set, dev_set, FLAGS):
     metrics_signature = '+'.join(
         ['{}x{}'.format(m, mw) for m, mw in zip(metrics, metrics_weights)])
 
+    # Grid search experiment log
+    grid_search_log_file_name = 'grid_search_log.{}'.format(FLAGS.channel)
+    if FLAGS.use_copy:
+        grid_search_log_file_name += '.{}'.format(FLAGS.copy_fun)
+    if FLAGS.normalized:
+        grid_search_log_file_name += '.normalized'
+    grid_search_log_file = open(os.path.join(
+        FLAGS.model_root_dir, grid_search_log_file_name), 'w')
+
     # Generate grid
     param_grid = [v for v in hp_range[hyperparameters[0]]]
     for i in xrange(1, num_hps):
@@ -123,6 +132,13 @@ def grid_search(train_fun, decode_fun, eval_fun, train_set, dev_set, FLAGS):
                 print('* {}: {}'.format(hyperparameters[i], row[i]))
             print('random seed: {}'.format(seed))
             print('{} = {}'.format(metrics_signature, metrics_value))
+            grid_search_log_file.write('Parameter set: \n')
+            for i in xrange(num_hps):
+                grid_search_log_file.write('* {}: {}\n'.format(
+                    hyperparameters[i], row[i]))
+            grid_search_log_file.write('random seed: {}\n'.format(seed))
+            grid_search_log_file.write('{} = {}\n\n'.format(
+                metrics_signature, metrics_value))
             print('Best parameter set so far: ')
             for i in xrange(num_hps):
                 print('* {}: {}'.format(hyperparameters[i], best_hp_set[i]))
@@ -142,6 +158,16 @@ def grid_search(train_fun, decode_fun, eval_fun, train_set, dev_set, FLAGS):
     print('Best seed = {}'.format(best_seed))
     print('Best {} = {}'.format(metrics, best_metrics_value))
     print('*****************************')
+    grid_search_log_file.write('*****************************\n')
+    grid_search_log_file.write('Best parameter set: \n')
+    for i in xrange(num_hps):
+        grid_search_log_file.write(
+            '* {}: {}\n'.format(hyperparameters[i], best_hp_set[i]))
+    grid_search_log_file.write('Best seed = {}\n'.format(best_seed))
+    grid_search_log_file.write(
+        'Best {} = {}\n'.format(metrics, best_metrics_value))
+    grid_search_log_file.write('*****************************')
+    grid_search_log_file.close()
 
 
 def schedule_experiments(train_fun, decode_fun, eval_fun, train_set, dev_set,
@@ -196,7 +222,7 @@ def single_round_model_eval(train_fun, decode_fun, eval_fun, train_set,
     tf.reset_default_graph()
     try:
         train_fun(train_set, dev_set)
-        
+
         tf.reset_default_graph()
         model = decode_fun(dev_set, buckets=train_set.buckets,
                            verbose=False)
