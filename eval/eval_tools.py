@@ -15,11 +15,12 @@ import random
 if sys.version_info > (3, 0):
     from six.moves import xrange
 
-from encoder_decoder import data_utils
 from bashlint import data_tools, nast
+from encoder_decoder import data_utils
 from eval import token_based, tree_dist, zss
 from eval.eval_db import DBConnection
 from eval.dfa_equal import regexDFAEquals
+from nlp_tools import constants
 
 
 error_types = {
@@ -49,10 +50,8 @@ def eval_set(model_dir, decode_sig, dataset, top_k, FLAGS, verbose=True):
         dataset, use_bucket=use_bucket, 
         use_temp=(eval_bash and FLAGS.normalized),
         tokenizer_selector=tokenizer_selector)
-    top_k_temp_correct = np.zeros([len(grouped_dataset), top_k])
-    top_k_str_correct = np.zeros([len(grouped_dataset), top_k])
-    if eval_bash:
-        top_k_cms = np.zeros([len(grouped_dataset), top_k])
+    vocabs = data_utils.load_vocabulary(FLAGS)
+    rev_sc_vocab = vocabs.rev_sc_vocab
 
     prediction_list = load_predictions(model_dir, decode_sig, top_k)
     if len(grouped_dataset) != len(prediction_list):
@@ -61,9 +60,20 @@ def eval_set(model_dir, decode_sig, dataset, top_k, FLAGS, verbose=True):
     
     with DBConnection() as db:
         num_eval = 0
+        top_k_temp_correct = np.zeros([len(grouped_dataset), top_k])
+        top_k_str_correct = np.zeros([len(grouped_dataset), top_k])
+        if eval_bash:
+            top_k_cms = np.zeros([len(grouped_dataset), top_k])
+
         for data_id in xrange(len(grouped_dataset)):
-            key, data_group = grouped_dataset[data_id]
-            sc_str = data_group[0].sc_txt
+            data_group = grouped_dataset[data_id]
+            sc_str = data_group[0].sc_txt.strip()
+            sc_tokens = [rev_sc_vocab[i] ]
+            if FLAGS.char:
+                sc_temp = ''.join(sc_tokens)
+                sc_temp = sc_temp.replace(constants._SPACE, ' ')
+            else:
+                sc_temp = ' '.join(sc_tokens)
             tg_strs = [dp.tg_txt.strip() for dp in data_group]
             num_gts = len(tg_strs)
             if eval_bash:
@@ -76,7 +86,7 @@ def eval_set(model_dir, decode_sig, dataset, top_k, FLAGS, verbose=True):
             if verbose:
                 print("Example {} ({})".format(data_id, len(tg_strs)))
                 print("Original Source: {}".format(sc_str))
-                print("Source: {}".format(key))
+                print("Source: {}".format(sc_temp))
                 for j in xrange(len(tg_strs)):
                     print("GT Target {}: ".format(j+1) + tg_strs[j].strip())
             num_eval += (1 if eval_bash else num_gts)
