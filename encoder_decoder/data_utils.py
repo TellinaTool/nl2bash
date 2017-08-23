@@ -183,8 +183,8 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
     tg_token_path = get_data_file_path(data_dir, split, target, token_ext)
     print("source file: {}".format(sc_path))
     print("target file: {}".format(tg_path))
-    print("source sequence indices file: {}".format(sc_token_path))
-    print("target sequence indices file: {}".format(tg_token_path))
+    print("source tokenized sequence file: {}".format(sc_token_path))
+    print("target tokenized sequence file: {}".format(tg_token_path))
 
     dataset = []
     num_data = 0
@@ -213,15 +213,21 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
     print('max_target_length = {}'.format(max_tg_length))
 
     if FLAGS.use_copy and FLAGS.copy_fun == 'copynet':
-        sc_token_path = get_data_file_path(data_dir, split, source, token_ext)
-        tg_token_path = get_data_file_path(data_dir, split, target, token_ext)
+        copy_token_ext = 'copy.{}'.format(token_ext)
+        sc_copy_token_path = get_data_file_path(data_dir, split, source, copy_token_ext)
+        tg_copy_token_path = get_data_file_path(data_dir, split, target, copy_token_ext)
         with open(sc_token_path) as sc_token_file:
             with open(tg_token_path) as tg_token_file:
-                for i, data_point in enumerate(dataset):
-                    sc_tokens = sc_token_file.readline().strip().split(TOKEN_SEPARATOR)
-                    tg_tokens = tg_token_file.readline().strip().split(TOKEN_SEPARATOR)
-                    data_point.csc_ids, data_point.ctg_ids = \
-                        compute_copy_indices(sc_tokens, tg_tokens, vocab.tg_vocab, token_ext)
+                with open(sc_copy_token_path) as sc_copy_token_file:
+                    with open(tg_copy_token_path) as tg_copy_token_file:
+                        for i, data_point in enumerate(dataset):
+                            sc_tokens = sc_token_file.readline().strip().split(TOKEN_SEPARATOR)
+                            tg_tokens = tg_token_file.readline().strip().split(TOKEN_SEPARATOR)
+                            sc_copy_tokens = sc_copy_token_file.readline().strip().split(TOKEN_SEPARATOR)
+                            tg_copy_tokens = tg_copy_token_file.readline().strip().split(TOKEN_SEPARATOR)
+                            data_point.csc_ids, data_point.ctg_ids = \
+                                compute_copy_indices(sc_tokens, tg_tokens,
+                                    sc_copy_tokens, tg_copy_tokens, vocab.tg_vocab, token_ext)
     
     data_size = len(dataset)
 
@@ -446,39 +452,55 @@ def prepare_dataset_split(data_dir, split, channel=''):
                         parallel_data_to_tokens=parallel_data_to_normalized_tokens)
 
 
-def prepare_channel(data_dir, nl_list, cm_list, split, channel, parallel_data_to_tokens):
+def prepare_channel(data_dir, nl_list, cm_list, split, channel,
+                    parallel_data_to_tokens):
     print("    channel - {}".format(channel))
     # Tokenize data
-    nl_tokens, cm_tokens = parallel_data_to_tokens(nl_list, cm_list)
-    nl_token_path = os.path.join(data_dir, '{}.nl.{}'.format(split, channel))
-    cm_token_path = os.path.join(data_dir, '{}.cm.{}'.format(split, channel))
-    with open(nl_token_path, 'w') as o_f:
-        for data_point in nl_tokens:
-            o_f.write('{}\n'.format(TOKEN_SEPARATOR.join(data_point)))
-    with open(cm_token_path, 'w') as o_f:
-        for data_point in cm_tokens:
-            o_f.write('{}\n'.format(TOKEN_SEPARATOR.join(data_point)))
+    nl_tokens, cm_tokens = \
+        parallel_data_to_tokens(nl_list, cm_list)
+    save_channel_features_to_file(data_dir, split, channel, nl_tokens, cm_tokens,
+                                  feature_separator=TOKEN_SEPARATOR)
     # Create or load vocabulary
     nl_vocab_path = os.path.join(data_dir, 'nl.vocab.{}'.format(channel))
     cm_vocab_path = os.path.join(data_dir, 'cm.vocab.{}'.format(channel))
-    if split == 'train':
-        nl_vocab = create_vocabulary(nl_vocab_path, nl_tokens)
-        cm_vocab = create_vocabulary(cm_vocab_path, cm_tokens)
-    else:
-        nl_vocab, _ = initialize_vocabulary(nl_vocab_path)
-        cm_vocab, _ = initialize_vocabulary(cm_vocab_path)
-    with open(os.path.join(data_dir, '{}.nl.ids.{}'.format(split, channel)), 'w') as o_f:
-        for data_point in nl_tokens:
-            nl_ids = tokens_to_ids(data_point, nl_vocab)
-            o_f.write('{}\n'.format(' '.join([str(x) for x in nl_ids])))
-    with open(os.path.join(data_dir, '{}.cm.ids.{}'.format(split, channel)), 'w') as o_f:
-        for data_point in cm_tokens:
-            cm_ids = tokens_to_ids(data_point, cm_vocab)
-            o_f.write('{}\n'.format(' '.join([str(x) for x in cm_ids])))
+    nl_vocab = create_vocabulary(nl_vocab_path, nl_tokens) \
+        if split == 'train' else initialize_vocabulary(nl_vocab_path)[0]
+    cm_vocab = create_vocabulary(cm_vocab_path, cm_tokens) \
+        if split == 'train' else initialize_vocabulary(cm_vocab_path)
+    nl_ids = [tokens_to_ids(data_point, nl_vocab) for data_point in nl_tokens]
+    cm_ids = [tokens_to_ids(data_point, cm_vocab) for data_point in cm_tokens]
+    save_channel_features_to_file(data_dir, split, channel, nl_ids, cm_ids,
+                                  feature_separator=' ')
     # For copying
+    if channel == 'char':
+        nl_copy_tokens, cm_copy_tokens = nl_tokens, cm_tokens
+    else:
+        if channel == 'partial.token':
+            nl_copy_tokens = [nl_to_partial_tokens(nl, tokenizer.basic_tokenizer,
+                                                   lemmatization=False)
+                              for nl in nl_list]
+        else:
+            nl_copy_tokens = [nl_to_tokens(nl, tokenizer.basic_tokenizer,
+                                           lemmatization=False)
+                              for nl in nl_list]
+        cm_copy_tokens = cm_tokens
+    save_channel_features_to_file(data_dir, split, channel, nl_copy_tokens,
+                                  cm_copy_tokens, feature_separator=TOKEN_SEPARATOR)
     alignments = compute_alignments(data_dir, nl_tokens, cm_tokens, split, channel)
     with open(os.path.join(data_dir, '{}.{}.align'.format(split, channel)), 'wb') as f:
         pickle.dump(alignments, f)
+
+
+def save_channel_features_to_file(data_dir, split, channel, nl_features,
+                                  cm_features, feature_separator):
+    nl_feature_path = os.path.join(data_dir, '{}.nl.{}'.format(split, channel))
+    cm_feature_path = os.path.join(data_dir, '{}.cm.{}'.format(split, channel))
+    with open(nl_feature_path, 'w') as o_f:
+        for data_point in nl_features:
+            o_f.write('{}\n'.format(feature_separator.join(data_point)))
+    with open(cm_feature_path, 'w') as o_f:
+        for data_point in cm_features:
+            o_f.write('{}\n'.format(feature_separator.join(data_point)))
 
 
 def parallel_data_to_characters(nl_list, cm_list):
@@ -668,7 +690,10 @@ def tokens_to_ids(tokens, vocabulary):
     return token_ids
 
 
-def compute_copy_indices(sc_tokens, tg_tokens, tg_vocab, channel):
+def compute_copy_indices(sc_tokens, tg_tokens, sc_copy_tokens, tg_copy_tokens,
+                         tg_vocab, channel):
+    assert(len(sc_tokens) == len(sc_copy_tokens))
+    assert(len(tg_tokens) == len(tg_copy_tokens))
     csc_ids, ctg_ids = [], []
     init_vocab = CHAR_INIT_VOCAB if channel == 'char' else TOKEN_INIT_VOCAB
     for i, sc_token in enumerate(sc_tokens):
@@ -677,11 +702,12 @@ def compute_copy_indices(sc_tokens, tg_tokens, tg_vocab, channel):
         else:
             csc_ids.append(len(tg_vocab) + sc_tokens.index(sc_token))
     for j, tg_token in enumerate(tg_tokens):
+        tg_copy_token = tg_copy_tokens[j]
         if tg_token in tg_vocab:
             ctg_ids.append(tg_vocab[tg_token])
         else:
-            if tg_token in sc_tokens:
-                ctg_ids.append(len(tg_vocab) + sc_tokens.index(tg_token))
+            if tg_copy_token in sc_copy_tokens:
+                ctg_ids.append(len(tg_vocab) + sc_copy_tokens.index(tg_copy_token))
             else:
                 if channel == 'char':
                     ctg_ids.append(CUNK_ID)
