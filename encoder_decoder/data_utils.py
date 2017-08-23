@@ -469,23 +469,21 @@ def prepare_channel(data_dir, nl_list, cm_list, split, channel,
         if split == 'train' else initialize_vocabulary(cm_vocab_path)
     nl_ids = [tokens_to_ids(data_point, nl_vocab) for data_point in nl_tokens]
     cm_ids = [tokens_to_ids(data_point, cm_vocab) for data_point in cm_tokens]
-    save_channel_features_to_file(data_dir, split, channel, nl_ids, cm_ids,
-                                  feature_separator=' ')
+    save_channel_features_to_file(data_dir, split, 'ids.{}'.format(channel),
+                                  nl_ids, cm_ids, feature_separator=' ')
     # For copying
     if channel == 'char':
         nl_copy_tokens, cm_copy_tokens = nl_tokens, cm_tokens
     else:
         if channel == 'partial.token':
-            nl_copy_tokens = [nl_to_partial_tokens(nl, tokenizer.basic_tokenizer,
-                                                   lemmatization=False)
-                              for nl in nl_list]
+            nl_copy_tokens = [nl_to_partial_tokens(
+                nl, tokenizer.basic_tokenizer, lemmatization=False) for nl in nl_list]
         else:
-            nl_copy_tokens = [nl_to_tokens(nl, tokenizer.basic_tokenizer,
-                                           lemmatization=False)
-                              for nl in nl_list]
+            nl_copy_tokens = [nl_to_tokens(
+                nl, tokenizer.basic_tokenizer, lemmatization=False) for nl in nl_list]
         cm_copy_tokens = cm_tokens
-    save_channel_features_to_file(data_dir, split, channel, nl_copy_tokens,
-                                  cm_copy_tokens, feature_separator=TOKEN_SEPARATOR)
+    save_channel_features_to_file(data_dir, split, 'copy.{}'.format(channel),
+        nl_copy_tokens, cm_copy_tokens, feature_separator=TOKEN_SEPARATOR)
     alignments = compute_alignments(data_dir, nl_tokens, cm_tokens, split, channel)
     with open(os.path.join(data_dir, '{}.{}.align'.format(split, channel)), 'wb') as f:
         pickle.dump(alignments, f)
@@ -493,14 +491,21 @@ def prepare_channel(data_dir, nl_list, cm_list, split, channel,
 
 def save_channel_features_to_file(data_dir, split, channel, nl_features,
                                   cm_features, feature_separator):
+    convert_to_str = channel.startswith('ids')
     nl_feature_path = os.path.join(data_dir, '{}.nl.{}'.format(split, channel))
     cm_feature_path = os.path.join(data_dir, '{}.cm.{}'.format(split, channel))
     with open(nl_feature_path, 'w') as o_f:
         for data_point in nl_features:
-            o_f.write('{}\n'.format(feature_separator.join(data_point)))
+            if convert_to_str:
+                o_f.write('{}\n'.format(feature_separator.join([str(x) for x in data_point])))
+            else:
+                o_f.write('{}\n'.format(feature_separator.join(data_point)))
     with open(cm_feature_path, 'w') as o_f:
         for data_point in cm_features:
-            o_f.write('{}\n'.format(feature_separator.join(data_point)))
+            if convert_to_str:
+                o_f.write('{}\n'.format(feature_separator.join([str(x) for x in data_point])))
+            else:
+                o_f.write('{}\n'.format(feature_separator.join(data_point)))
 
 
 def parallel_data_to_characters(nl_list, cm_list):
