@@ -153,10 +153,10 @@ def query_to_copy_tokens(sentence, FLAGS):
         tokens = data_utils.nl_to_characters(sentence)
     elif FLAGS.channel == 'partial.token':
         tokens = data_utils.nl_to_partial_tokens(
-            sentence, tokenizer.basic_tokenizer, lemmatization=False)
+            sentence, tokenizer.basic_tokenizer, to_lower_case=False, lemmatization=False)
     else:
         tokens = data_utils.nl_to_tokens(
-            sentence, tokenizer.basic_tokenizer, lemmatization=False)
+            sentence, tokenizer.basic_tokenizer, to_lower_case=False, lemmatization=False)
     return tokens
 
 
