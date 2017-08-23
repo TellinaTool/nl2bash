@@ -74,28 +74,31 @@ def demo(sess, model, FLAGS):
 
 def translate_fun(data_point, sess, model, vocabs, FLAGS,
                   slot_filling_classifier=None):
+    tg_ids = [data_utils.ROOT_ID]
+    decoder_features = [[tg_ids]]
     if type(data_point) is str:
-        encoder_tokens, encoder_features = \
-            query_to_encoder_features(data_point, vocabs, FLAGS)
-        tg_ids = [data_utils.ROOT_ID]
-        decoder_features = [[tg_ids]]
-        if FLAGS.use_copy and FLAGS.copy_fun == 'copynet':
-            ctg_ids = [data_utils.ROOT_ID]
-            decoder_features.append([ctg_ids])
-        _, entities = tokenizer.ner_tokenizer(data_point)
+        source_str = data_point
+        encoder_features = query_to_encoder_features(data_point, vocabs, FLAGS)
     else:
-        if FLAGS.use_copy and FLAGS.copy_fun == 'copynet':
-            encoder_tokens = query_to_tokens(data_point[0].sc_txt, FLAGS)
-        else:
-            encoder_tokens = None
+        source_str = data_point[0].sc_txt
         encoder_features = [[data_point[0].sc_ids]]
-        decoder_features = [[data_point[0].tg_ids]]
-        _, entities = tokenizer.ner_tokenizer(data_point[0].sc_txt)
-        if FLAGS.use_copy and FLAGS.copy_fun == 'copynet':
-            encoder_features.append([data_point[0].csc_ids])
-            decoder_features.append([data_point[0].ctg_ids])
-    sc_fillers = entities[0]
- 
+
+    if FLAGS.use_copy and FLAGS.copy_fun == 'copynet':
+        # append dummy copynet features (used only at training time)
+        csc_ids = []
+        ctg_ids = [data_utils.ROOT_ID]
+        encoder_features.append([csc_ids])
+        decoder_features.append([ctg_ids])
+        # tokenize the source string with minimal changes on the token form
+        copy_tokens = query_to_copy_tokens(source_str, FLAGS)
+    else:
+        copy_tokens = None
+    if FLAGS.normalized:
+        _, entities = tokenizer.ner_tokenizer(source_str)
+        sc_fillers = [entities[0]]
+    else:
+        sc_fillers = None
+
     # Which bucket does it belong to?
     bucket_ids = [b for b in xrange(len(model.buckets))
                   if model.buckets[b][0] > len(encoder_features[0])]
@@ -110,8 +113,8 @@ def translate_fun(data_point, sess, model, vocabs, FLAGS,
                                forward_only=True)
     output_logits = model_outputs.output_logits
 
-    decoded_outputs = decode(encoder_tokens, model_outputs, FLAGS, vocabs, 
-        [sc_fillers], slot_filling_classifier)
+    decoded_outputs = decode(copy_tokens, model_outputs, FLAGS, vocabs,
+        sc_fillers, slot_filling_classifier)
 
     return decoded_outputs, output_logits
 
@@ -132,7 +135,6 @@ def query_to_encoder_features(sentence, vocabs, FLAGS):
         else:
             tokens = data_utils.nl_to_tokens(sentence, tokenizer.basic_tokenizer)
         init_vocab = data_utils.TOKEN_INIT_VOCAB
-    encoder_tokens = [tokens]
     sc_ids = data_utils.tokens_to_ids(tokens, vocabs.sc_vocab)
     encoder_features = [[sc_ids]]
     if FLAGS.use_copy and FLAGS.copy_fun == 'copynet':
@@ -143,10 +145,10 @@ def query_to_encoder_features(sentence, vocabs, FLAGS):
             else:
                 csc_ids.append(len(vocabs.tg_vocab) + i)
         encoder_features.append([csc_ids])
-    return encoder_tokens, encoder_features
+    return encoder_features
 
 
-def query_to_tokens(sentence, FLAGS):
+def query_to_copy_tokens(sentence, FLAGS):
     if FLAGS.channel == 'char':
         tokens = data_utils.nl_to_characters(sentence)
     elif FLAGS.channel == 'partial.token':
@@ -155,8 +157,7 @@ def query_to_tokens(sentence, FLAGS):
     else:
         tokens = data_utils.nl_to_tokens(
             sentence, tokenizer.basic_tokenizer, lemmatization=False)
-    encoder_tokens = [tokens]
-    return encoder_tokens
+    return tokens
 
 
 def decode(encoder_tokens, model_outputs, FLAGS, vocabs, sc_fillers=None,
@@ -241,7 +242,7 @@ def decode(encoder_tokens, model_outputs, FLAGS, vocabs, sc_fillers=None,
                     tg_slots[token_id] = (pred_token, pred_token_type)
                 output_tokens.append(pred_token)
 
-            if FLAGS.partial_token:
+            if FLAGS.channel == 'partial.token':
                 # process partial-token outputs
                 merged_output_tokens = []
                 buffer = ''
