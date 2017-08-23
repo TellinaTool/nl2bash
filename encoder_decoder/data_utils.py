@@ -541,7 +541,6 @@ def string_to_characters(s):
             chars.append(constants._SPACE)
         else:
             chars.append(c)
-        chars.append(constants._SPACE)
     return chars
 
 
