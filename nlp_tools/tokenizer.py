@@ -93,13 +93,13 @@ def space_tokenizer(sentence):
     return sentence.split(), None
 
 
-def basic_tokenizer(sentence, lower_case=True, lemmatization=True,
+def basic_tokenizer(sentence, to_lower_case=True, lemmatization=True,
                     remove_stop_words=True, correct_spell=True,
                     separate_quotations=False, verbose=False,):
     """
     Regex-based English tokenizer.
     :param sentence: input sentence.
-    :param lower_case: if set, remove capitalization at the beginning of the
+    :param to_lower_case: if set, remove capitalization at the beginning of the
         input sentence.
     :param lemmatization: if set, lemmatize the tokens.
     :param remove_stop_words: if set, remove stop words.
@@ -119,8 +119,8 @@ def basic_tokenizer(sentence, lower_case=True, lemmatization=True,
         if word in ['"', '\'']:
             continue
 
-        # remove unnecessary upper cases
-        if lower_case:
+        # normalize to lower cases
+        if to_lower_case:
             if len(word) > 1 and constants.is_english_word(word) \
                     and not constants.with_quotation(word):
                 word = word.lower()
@@ -162,10 +162,10 @@ def basic_tokenizer(sentence, lower_case=True, lemmatization=True,
     return normalized_words, None
 
 
-def ner_tokenizer(sentence, lower_case=True, lemmatization=True,
+def ner_tokenizer(sentence, to_lower_case=True, lemmatization=True,
                   remove_stop_words=True, correct_spell=True):
     words, _ = basic_tokenizer(
-        sentence, lower_case=lower_case, lemmatization=lemmatization,
+        sentence, to_lower_case=to_lower_case, lemmatization=lemmatization,
         remove_stop_words=remove_stop_words, correct_spell=correct_spell)
     return ner.annotate(words)
 

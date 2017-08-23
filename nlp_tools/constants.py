@@ -329,7 +329,7 @@ def is_english_word(word):
         return True
     if word in ['\'s', '\'t']:
         return True
-    return bool(re.match('^[a-z]+(-[a-z]+)*$', word, re.IGNORECASE))
+    return bool(re.match('^[a-zA-Z]{1}[a-z]*(-[a-z]+)*$', word, re.IGNORECASE))
 
 def is_stopword(w):
     return w in ENGLISH_STOPWORDS
