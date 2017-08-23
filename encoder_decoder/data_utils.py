@@ -476,11 +476,13 @@ def prepare_channel(data_dir, nl_list, cm_list, split, channel,
         nl_copy_tokens, cm_copy_tokens = nl_tokens, cm_tokens
     else:
         if channel == 'partial.token':
-            nl_copy_tokens = [nl_to_partial_tokens(
-                nl, tokenizer.basic_tokenizer, lemmatization=False) for nl in nl_list]
+            nl_copy_tokens = [nl_to_partial_tokens(nl, tokenizer.basic_tokenizer,
+                                to_lower_case=False, lemmatization=False)
+                              for nl in nl_list]
         else:
-            nl_copy_tokens = [nl_to_tokens(
-                nl, tokenizer.basic_tokenizer, lemmatization=False) for nl in nl_list]
+            nl_copy_tokens = [nl_to_tokens(nl, tokenizer.basic_tokenizer,
+                                to_lower_case=False, lemmatization=False)
+                              for nl in nl_list]
         cm_copy_tokens = cm_tokens
     save_channel_features_to_file(data_dir, split, 'copy.{}'.format(channel),
         nl_copy_tokens, cm_copy_tokens, feature_separator=TOKEN_SEPARATOR)
@@ -584,10 +586,10 @@ def cm_to_characters(cm, use_preprocessing=False):
     return cm_data_point
 
 
-def nl_to_partial_tokens(s, tokenizer, lemmatization=True):
+def nl_to_partial_tokens(s, tokenizer, to_lower_case=True, lemmatization=True):
     return string_to_partial_tokens(
-        nl_to_tokens(s, tokenizer, lemmatization=lemmatization), 
-                     use_arg_start_end=False)
+        nl_to_tokens(s, tokenizer, to_lower_case=to_lower_case,
+                     lemmatization=lemmatization), use_arg_start_end=False)
 
 
 def cm_to_partial_tokens(s, tokenizer):
@@ -662,11 +664,12 @@ def string_to_partial_tokens(s, use_arg_start_end=True):
     return partial_tokens
 
 
-def nl_to_tokens(s, tokenizer, lemmatization=True):
+def nl_to_tokens(s, tokenizer, to_lower_case=True, lemmatization=True):
     """
     Split a natural language string into a sequence of tokens.
     """
-    tokens, _ = tokenizer(s, lemmatization=lemmatization)
+    tokens, _ = tokenizer(
+        s, to_lower_case=to_lower_case, lemmatization=lemmatization)
     return tokens
 
 
