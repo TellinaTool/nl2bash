@@ -136,7 +136,7 @@ def basic_tokenizer(sentence, to_lower_case=True, lemmatization=True,
 
         # remove English stopwords
         if remove_stop_words:
-            if word in constants.ENGLISH_STOPWORDS:
+            if word.lower() in constants.ENGLISH_STOPWORDS:
                 continue
 
         # covert number words into numbers
