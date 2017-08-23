@@ -116,8 +116,8 @@ def basic_tokenizer(sentence, to_lower_case=True, lemmatization=True,
     for i in xrange(len(words)):
         word = words[i].strip()
 
-        if word in ['"', '\'']:
-            continue
+        # if word in ['"', '\'']:
+        #     continue
 
         # normalize to lower cases
         if to_lower_case:
