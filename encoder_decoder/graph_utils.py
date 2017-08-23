@@ -206,8 +206,6 @@ def get_decode_signature(FLAGS):
     if FLAGS.use_copy:
         model_subdir += '-copy'
         model_subdir += '-{}'.format(FLAGS.chi)
-    if FLAGS.channel == 'partial.token':
-        model_subdir += '-break'
     model_subdir += '-{}'.format(FLAGS.batch_size)
     if FLAGS.sc_token:
         model_subdir += '-{}'.format(FLAGS.sc_token_dim)
