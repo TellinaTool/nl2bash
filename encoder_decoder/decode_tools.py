@@ -274,7 +274,7 @@ def decode(encoder_tokens, model_outputs, FLAGS, vocabs, sc_fillers=None,
             else:
                 target = ' '.join(output_tokens)
             
-            # Step 2: check if the predicted command template is grammatical
+            # Step 2: checvik if the predicted command template is grammatical
             if FLAGS.grammatical_only and not FLAGS.explain:
                 if FLAGS.dataset.startswith('bash'):
                     target = re.sub('( ;\s+)|( ;$)', ' \\; ', target)
