@@ -160,7 +160,7 @@ def query_to_copy_tokens(sentence, FLAGS):
     return tokens
 
 
-def decode(encoder_tokens, model_outputs, FLAGS, vocabs, sc_fillers=None,
+def decode(copy_tokens, model_outputs, FLAGS, vocabs, sc_fillers=None,
            slot_filling_classifier=None):
     """
     Transform the neural network output into readable strings and apply output
@@ -200,8 +200,8 @@ def decode(encoder_tokens, model_outputs, FLAGS, vocabs, sc_fillers=None,
                 if FLAGS.use_copy and FLAGS.copy_fun == 'copynet':
                     source_id = output - FLAGS.tg_vocab_size
                     print(source_id)
-                    if source_id >= 0 and source_id < len(encoder_tokens[batch_id]):
-                        token = encoder_tokens[batch_id][source_id]
+                    if source_id >= 0 and source_id < len(copy_tokens[batch_id]):
+                        token = copy_tokens[batch_id][source_id]
                     else:
                         return data_utils._UNK
                 else:
