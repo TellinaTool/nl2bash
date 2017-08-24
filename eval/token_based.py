@@ -5,7 +5,7 @@ from __future__ import print_function
 import collections
 import numpy as np
 
-from bashlint import data_tools
+from bashlint import data_tools, nast
 
 
 whitelist = [
@@ -31,9 +31,8 @@ def get_content_tokens(ast):
     for token in data_tools.ast2tokens(
             ast, loose_constraints=True, arg_type_only=True, with_prefix=True,
             with_flag_argtype=True):
-        if not token.startswith('__ARG__'):
-            if token.startswith('__FLAG__'):
-                token = token[len('__FLAG__'):]
+        kind, token = token.split(nast.KIND_PREFIX)
+        if kind.lower() == 'argument':
             content_tokens[token] += 1
     return content_tokens
 
@@ -51,8 +50,10 @@ def CMS(ast1, ast2):
     norm2 = 0.0
     for t in token_dict2:
         norm2 += token_dict2[t] * token_dict2[t]
-
-    return num_overlap / np.sqrt(norm1) / np.sqrt(norm2)
+    if norm1 == 0 or norm2 == 0:
+        return 0
+    else:
+        return num_overlap / np.sqrt(norm1) / np.sqrt(norm2)
 
 
 def command_match_score(gts, ast):
