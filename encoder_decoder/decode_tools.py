@@ -199,6 +199,7 @@ def decode(encoder_tokens, model_outputs, FLAGS, vocabs, sc_fillers=None,
             else:
                 if FLAGS.use_copy and FLAGS.copy_fun == 'copynet':
                     source_id = output - FLAGS.tg_vocab_size
+                    print(source_id)
                     if source_id >= 0 and source_id < len(encoder_tokens[batch_id]):
                         token = encoder_tokens[batch_id][source_id]
                     else:
@@ -380,7 +381,7 @@ def decode_set(sess, model, dataset, top_k, FLAGS, verbose=True):
 
         sc_txt = data_group[0].sc_txt.strip()
         sc_tokens = [rev_sc_vocab[i] for i in data_group[0].sc_ids]
-        if FLAGS.channel == 'channel':
+        if FLAGS.channel == 'char':
             sc_temp = ''.join(sc_tokens)
             sc_temp = sc_temp.replace(constants._SPACE, ' ')
         else:

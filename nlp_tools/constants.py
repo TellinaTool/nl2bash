@@ -312,6 +312,16 @@ def with_quotation(s):
         return False
     return s[0] in ['"', '\''] and s[-1] in ['"', '\'']
 
+def starts_with_quotation(s):
+    if not s:
+        return False
+    return s[0] in ['"', '\'']
+
+def ends_with_quotation(s):
+    if not s:
+        return False
+    return s[-1] in ['"', '\'']
+
 def remove_quotation(s):
     if s and s[0] in ['"', '\'']:
         s = s[1:]
