@@ -199,7 +199,6 @@ def decode(copy_tokens, model_outputs, FLAGS, vocabs, sc_fillers=None,
             else:
                 if FLAGS.use_copy and FLAGS.copy_fun == 'copynet':
                     source_id = output - FLAGS.tg_vocab_size
-                    print(source_id)
                     if source_id >= 0 and source_id < len(copy_tokens[batch_id]):
                         token = copy_tokens[batch_id][source_id]
                     else:
@@ -224,8 +223,8 @@ def decode(copy_tokens, model_outputs, FLAGS, vocabs, sc_fillers=None,
             # If there is an EOS symbol in outputs, cut them at that point.
             if data_utils.EOS_ID in outputs:
                 outputs = outputs[:outputs.index(data_utils.EOS_ID)]
-            if data_utils.PAD_ID in outputs:
-                outputs = outputs[:outputs.index(data_utils.PAD_ID)]
+            # if data_utils.PAD_ID in outputs:
+            #     outputs = outputs[:outputs.index(data_utils.PAD_ID)]
             output_tokens = []
             tg_slots = {}
             for token_id in xrange(len(outputs)):
@@ -274,7 +273,7 @@ def decode(copy_tokens, model_outputs, FLAGS, vocabs, sc_fillers=None,
                         target += char
             else:
                 target = ' '.join(output_tokens)
-            
+            print(target)
             # Step 2: checvik if the predicted command template is grammatical
             if FLAGS.grammatical_only and not FLAGS.explain:
                 if FLAGS.dataset.startswith('bash'):
