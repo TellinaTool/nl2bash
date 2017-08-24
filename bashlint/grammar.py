@@ -2,20 +2,18 @@
 # -*- coding: UTF-8 -*-
 
 """
-Consume tokens in a bash command and tract the next possible states.
+Consume tokens in a bash command and update the set of possible next states for
+the parser.
 """
 
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import collections
-import json
 import os, sys
 if sys.version_info > (3, 0):
     from six.moves import xrange
 
-from bashlint import bash
 
 UTIL_S = 0
 COMPOUND_FLAG_S = 1
