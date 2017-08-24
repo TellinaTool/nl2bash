@@ -92,6 +92,7 @@ def translate_fun(data_point, sess, model, vocabs, FLAGS,
         decoder_features.append([ctg_ids])
         # tokenize the source string with minimal changes on the token form
         copy_tokens = [query_to_copy_tokens(source_str, FLAGS)]
+        print(copy_tokens)
     else:
         copy_tokens = None
     if FLAGS.normalized:
@@ -137,6 +138,7 @@ def query_to_encoder_features(sentence, vocabs, FLAGS):
             tokens = data_utils.nl_to_tokens(sentence, tokenizer.basic_tokenizer)
         init_vocab = data_utils.TOKEN_INIT_VOCAB
     sc_ids = data_utils.tokens_to_ids(tokens, vocabs.sc_vocab)
+    print(sc_ids)
     encoder_features = [[sc_ids]]
     if FLAGS.use_copy and FLAGS.copy_fun == 'copynet':
         csc_ids = []
