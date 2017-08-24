@@ -47,8 +47,7 @@ def eval_set(model_dir, decode_sig, dataset, top_k, FLAGS, verbose=True):
 
     tokenizer_selector = 'cm' if FLAGS.explain else 'nl'
     grouped_dataset = data_utils.group_parallel_data(
-        dataset, use_bucket=use_bucket, 
-        use_temp=(eval_bash and FLAGS.normalized),
+        dataset, use_bucket=use_bucket,
         tokenizer_selector=tokenizer_selector)
     vocabs = data_utils.load_vocabulary(FLAGS)
     rev_sc_vocab = vocabs.rev_sc_vocab
@@ -221,8 +220,7 @@ def manual_eval(model, dataset, FLAGS, output_dir, num_eval=None):
     use_bucket = False if model == "knn" else True
     tokenizer_selector = 'cm' if FLAGS.explain else 'nl'
     grouped_dataset = data_utils.group_parallel_data(
-        dataset, use_bucket=use_bucket, use_temp=eval_bash,
-        tokenizer_selector=tokenizer_selector)
+        dataset, use_bucket=use_bucket, tokenizer_selector=tokenizer_selector)
 
     if num_eval is None:
         num_eval = len(grouped_dataset)
@@ -427,8 +425,7 @@ def gen_eval_sheet(model_dir, decode_sig, dataset, FLAGS, output_path, top_k=3):
             else data_tools.paren_parser
         tokenizer_selector = "cm" if FLAGS.explain else "nl"
         grouped_dataset = data_utils.group_parallel_data(
-            dataset, use_temp=False, use_bucket=True, 
-            tokenizer_selector=tokenizer_selector)
+            dataset, use_bucket=True, tokenizer_selector=tokenizer_selector)
         prediction_list = load_predictions(model_dir, decode_sig, top_k)
         if len(grouped_dataset) != len(prediction_list):
             raise ValueError("ground truth and predictions length must be equal: {} vs. {}"
@@ -479,8 +476,7 @@ def gen_error_analysis_sheet(model_dir, decode_sig, dataset, FLAGS, top_k=3):
         else data_tools.paren_parser
     tokenizer_selector = "cm" if FLAGS.explain else "nl"
     grouped_dataset = data_utils.group_parallel_data(
-        dataset, use_temp=False, use_bucket=True,
-        tokenizer_selector=tokenizer_selector)
+        dataset, use_bucket=True, tokenizer_selector=tokenizer_selector)
 
     prediction_list = load_predictions(model_dir, decode_sig, top_k)
     if len(grouped_dataset) != len(prediction_list):
