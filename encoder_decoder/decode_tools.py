@@ -83,7 +83,7 @@ def translate_fun(data_point, sess, model, vocabs, FLAGS,
         source_str = data_point[0].sc_txt
         encoder_features = [[data_point[0].sc_ids]]
         if FLAGS.use_copy and FLAGS.copy_fun == 'copynet':
-            encoder_features.append(data_point[0].csc_ids)
+            encoder_features.append([data_point[0].csc_ids])
 
     if FLAGS.use_copy and FLAGS.copy_fun == 'copynet':
         # append dummy copynet target features (
@@ -91,7 +91,7 @@ def translate_fun(data_point, sess, model, vocabs, FLAGS,
         ctg_ids = [data_utils.ROOT_ID]
         decoder_features.append([ctg_ids])
         # tokenize the source string with minimal changes on the token form
-        copy_tokens = query_to_copy_tokens(source_str, FLAGS)
+        copy_tokens = [query_to_copy_tokens(source_str, FLAGS)]
     else:
         copy_tokens = None
     if FLAGS.normalized:
