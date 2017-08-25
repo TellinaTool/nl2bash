@@ -422,6 +422,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 else:
                     padded_inputs.append(input + paddings)
             for length_idx in xrange(output_length):
+                print(padded_inputs[batch_ids])
                 batched_dim = np.array([padded_inputs[batch_idx][length_idx]
                         for batch_idx in xrange(batch_size)], dtype=np.int32)
                 batch_inputs.append(batched_dim)
