@@ -142,7 +142,7 @@ def query_to_encoder_features(sentence, vocabs, FLAGS):
         csc_ids = []
         for i, t in enumerate(tokens):
             if not t in init_vocab and t in vocabs.tg_vocab:
-                csc_ids.append(vocabs.tg_vocab)
+                csc_ids.append(vocabs.tg_vocab[t])
             else:
                 csc_ids.append(len(vocabs.tg_vocab) + i)
         encoder_features.append([csc_ids])
