@@ -138,13 +138,12 @@ def query_to_encoder_features(sentence, vocabs, FLAGS):
             tokens = data_utils.nl_to_tokens(sentence, tokenizer.basic_tokenizer)
         init_vocab = data_utils.TOKEN_INIT_VOCAB
     sc_ids = data_utils.tokens_to_ids(tokens, vocabs.sc_vocab)
-    print(sc_ids)
     encoder_features = [[sc_ids]]
     if FLAGS.use_copy and FLAGS.copy_fun == 'copynet':
         csc_ids = []
         for i, t in enumerate(tokens):
             if not t in init_vocab and t in vocabs.tg_vocab:
-                csc_ids.append(vocabs.tg_vocab)
+                csc_ids.append(vocabs.tg_vocab[t])
             else:
                 csc_ids.append(len(vocabs.tg_vocab) + i)
         encoder_features.append([csc_ids])
