@@ -115,8 +115,9 @@ def translate_fun(data_point, sess, model, vocabs, FLAGS,
                                forward_only=True)
     output_logits = model_outputs.output_logits
 
-    decoded_outputs = decode(copy_tokens, model_outputs, FLAGS, vocabs,
-        sc_fillers, slot_filling_classifier)
+    decoded_outputs = decode(model_outputs, FLAGS, vocabs, sc_fillers=sc_fillers,
+                             slot_filling_classifier=slot_filling_classifier,
+                             copy_tokens=copy_tokens)
 
     return decoded_outputs, output_logits
 
@@ -162,8 +163,8 @@ def query_to_copy_tokens(sentence, FLAGS):
     return tokens
 
 
-def decode(copy_tokens, model_outputs, FLAGS, vocabs, sc_fillers=None,
-           slot_filling_classifier=None):
+def decode(model_outputs, FLAGS, vocabs, sc_fillers=None,
+           slot_filling_classifier=None, copy_tokens=None):
     """
     Transform the neural network output into readable strings and apply output
     filtering (if any).
