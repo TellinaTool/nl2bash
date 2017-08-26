@@ -1,70 +1,72 @@
 """
 Gazetteers for bash.
 """
-findutils = {
-    'find',
-    'locate',
-    'updatedb',
-    'xargs'
-}
+utility_stats = """1,find,5068,525
+2,xargs,821,82
+3,grep,710,70
+4,rm,505,40
+5,ls,301,34
+6,chmod,273,37
+7,echo,251,26
+8,sort,214,20
+9,wc,185,17
+10,chown,156,17
+11,cut,146,11
+12,mv,137,19
+13,cp,133,9
+14,head,123,14
+15,mkdir,118,16
+16,cat,103,7
+17,dirname,92,14
+18,tail,88,13
+19,split,83,11
+20,tar,76,11
+21,readlink,74,6
+22,ln,73,7
+23,basename,72,5
+24,read,70,8
+25,rsync,67,10
+26,tee,63,4
+27,tr,62,11
+28,set,61,6
+29,which,61,13
+30,ssh,57,5
+31,uniq,55,5
+32,mount,54,4
+33,file,51,8
+34,shopt,48,5
+35,pwd,47,3
+36,du,43,5
+37,rename,42,5
+38,mktemp,42,7
+39,cd,41,3
+40,od,38,5
+41,md5sum,38,1
+42,diff,37,2
+43,comm,37,3
+44,date,32,5
+45,rmdir,32,5
+46,hostname,32,1
+47,paste,30,1
+48,chgrp,30,4
+49,dig,29,1
+50,whoami,29,3
+51,zcat,28,4
+52,df,28,2
+53,rev,27,2
+54,gzip,27,3
+55,yes,27,1
+56,nl,25,5
+57,less,24,2
+58,ifconfig,24,4
+59,seq,20,7
+60,ping,19,2
+61,history,18,3
+62,ps,15,0
+63,column,15,3
+64,cal,15,0
+"""
 
-utilities = [
-    "find",
-    "xargs",
-    "grep",
-    "egrep",
-    "fgrep",
-    "ls",
-    "rm",
-    "cp",
-    "mv",
-    "wc",
-    "chmod",
-    "chown",
-    "chgrp",
-    "sort",
-    "head",
-    "tail",
-    "tar",
-    "du",
-    "file",
-    "cat",
-    "basename",
-    "cut",
-    "uniq",
-    "pwd",
-    "cpio",
-    "dirname",
-    "tee",
-    "rename",
-    "rmdir",
-    "mkdir",
-    "less",
-    "md5sum",
-    "compress"
-]
-
-utilities_20_to_15 = [
-    "du",
-    "file",
-    "cat",
-    "basename",
-    "cut",
-    "uniq",
-    "pwd",
-    "cpio",
-    "dirname",
-    "tee"
-]
-
-utilities_15_to_10 = [
-    "rename",
-    "rmdir",
-    "mkdir",
-    "less",
-    "md5sum",
-    "compress"
-]
 
 top_100_utilities = {
     'echo',
@@ -289,6 +291,13 @@ category_8_administration_and_privileged_commands = {
     'sudo',
     'mount',
     'ifconfig'
+}
+
+findutils = {
+    'find',
+    'locate',
+    'updatedb',
+    'xargs'
 }
 
 # --- Other Constants Lists --- #
