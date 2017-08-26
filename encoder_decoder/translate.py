@@ -176,11 +176,17 @@ def manual_eval(dataset, num_eval):
         decode_sig, dataset, FLAGS, FLAGS.model_root_dir, num_eval)
 
 
-def gen_error_analysis_sheet(dataset, model_dir=None, decode_sig=None):
+def gen_error_analysis_sheets(dataset, model_dir=None, decode_sig=None,
+                              group_by_utility=False):
     if model_dir is None:
         model_subdir, decode_sig = graph_utils.get_decode_signature(FLAGS)
         model_dir = os.path.join(FLAGS.model_root_dir, model_subdir)
-    eval_tools.gen_error_analysis_sheet(model_dir, decode_sig, dataset, FLAGS)
+    if group_by_utility:
+        eval_tools.gen_error_analysis_sheet_by_utility(
+            model_dir, decode_sig, dataset, FLAGS)
+    else:
+        eval_tools.gen_error_analysis_sheets(
+            model_dir, decode_sig, dataset, FLAGS)
 
 
 def demo(buckets=None):
@@ -271,7 +277,7 @@ def main(_):
         elif FLAGS.manual_eval:
             manual_eval(dataset, 100)
         elif FLAGS.gen_error_analysis_sheet:
-            gen_error_analysis_sheet(dataset)
+            gen_error_analysis_sheets(dataset, group_by_utility=True)
 
         elif FLAGS.decode:
             model = decode(dataset, buckets=train_set.buckets)
