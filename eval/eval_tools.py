@@ -512,7 +512,7 @@ def gen_error_analysis_csv(grouped_dataset, prediction_list, FLAGS,
                 gt_utilities = functools.reduce(lambda x,y:x|y,
                     [data_tools.get_utilities(gt) for gt in gt_trees])
                 gt_utility = sorted(
-                    list(gt_utilities), key=lambda x:utility_index[x])[-1]
+                    list(gt_utilities), key=lambda x:int(utility_index[x]))[-1]
             else:
                 gt_utility = None
             predictions = prediction_list[example_id]
