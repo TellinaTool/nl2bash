@@ -483,14 +483,25 @@ def gen_error_analysis_csv(grouped_dataset, prediction_list, FLAGS,
     :param group_by_utility: if set, group the error examples by the utilities
         used in the ground truth.
     """
+    def mark_example(error_list, example, gt_utility=None):
+        if gt_utility:
+            error_list[gt_utility].append(example)
+        else:
+            error_list.append(example)
+
     grammar_errors = collections.defaultdict(list) if group_by_utility else []
     argument_errors = collections.defaultdict(list) if group_by_utility else []
-
-    example_id = 0
     eval_bash = FLAGS.dataset.startswith("bash")
     cmd_parser = data_tools.bash_parser if eval_bash \
         else data_tools.paren_parser
+    if group_by_utility:
+        utility_index = {}
+        for line in bash.utility_stats.split('\n'):
+            ind, utility, _, _ = line.split(',')
+            utility_index[utility] = ind
+
     with DBConnection() as db:
+        example_id = 0
         for nl_temp, data_group in grouped_dataset:
             sc_txt = data_group[0].sc_txt.strip()
             tg_strs = [dp.tg_txt for dp in data_group]
@@ -500,6 +511,10 @@ def gen_error_analysis_csv(grouped_dataset, prediction_list, FLAGS,
             if group_by_utility:
                 gt_utilities = functools.reduce(lambda x,y:x|y,
                     [data_tools.get_utilities(gt) for gt in gt_trees])
+                gt_utility = sorted(
+                    list(gt_utilities), key=lambda x:utility_index[x])[-1]
+            else:
+                gt_utility = None
             predictions = prediction_list[example_id]
             example_id += 1
             example = []
@@ -546,23 +561,11 @@ def gen_error_analysis_csv(grouped_dataset, prediction_list, FLAGS,
                 example.append(output_str)
             if error_predictions_only:
                 if grammar_error:
-                    if group_by_utility:
-                        for utility in gt_utilities:
-                            grammar_errors[utility].append(example)
-                    else:
-                        grammar_errors.append(example)
+                    mark_example(grammar_errors, example, gt_utility)
                 elif argument_error:
-                    if group_by_utility:
-                        for utility in gt_utilities:
-                            argument_errors[utility].append(example)
-                    else:
-                        argument_errors.append(example)
+                    mark_example(argument_errors, example, gt_utility)
             else:
-                if group_by_utility:
-                    for utility in gt_utilities:
-                        grammar_errors[utility].append(example)
-                else:
-                    grammar_errors.append(example)
+                mark_example(grammar_errors, example, gt_utility)
     return grammar_errors, argument_errors
 
 
@@ -645,13 +648,13 @@ def gen_error_analysis_sheet_by_utility(model_dir, decode_sig, dataset, FLAGS,
             error_examples = grammar_errors[utility]
             if len(error_examples) <= 5:
                 for example in error_examples:
-                    for line in example:
-                        error_by_utility_file.write('{},{}\n'.format(utility, line))
+                    for l in example:
+                        error_by_utility_file.write('{},{}\n'.format(utility, l))
             else:
                 random.shuffle(error_examples)
                 for example in error_examples[:5]:
-                    for line in example:
-                        error_by_utility_file.write('{},{}\n'.format(utility, line))
+                    for l in example:
+                        error_by_utility_file.write('{},{}\n'.format(utility, l))
 
 
 def import_manual_annotations_from_files(input_dir):
