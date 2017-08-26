@@ -28,10 +28,11 @@ blacklist = [
 
 def get_content_tokens(ast):
     content_tokens = collections.defaultdict(int)
-    for token in data_tools.ast2tokens(
+    for compound_token in data_tools.ast2tokens(
             ast, loose_constraints=True, arg_type_only=True, with_prefix=True,
             with_flag_argtype=True):
-        kind, token = token.split(nast.KIND_PREFIX)
+        kind_token = compound_token.split(nast.KIND_PREFIX)
+        kind, token = kind_token if len(kind_token) == 2 else ('', kind_token)
         if kind.lower() == 'argument':
             content_tokens[token] += 1
     return content_tokens
