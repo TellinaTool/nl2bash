@@ -22,7 +22,6 @@ from tqdm import tqdm
 
 import tensorflow as tf
 
-from encoder_decoder import classifiers
 from encoder_decoder import data_utils
 from encoder_decoder import decode_tools
 from encoder_decoder import graph_utils
