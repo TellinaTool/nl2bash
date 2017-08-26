@@ -64,8 +64,7 @@ utility_stats = """1,find,5068,525
 61,history,18,3
 62,ps,15,0
 63,column,15,3
-64,cal,15,0
-"""
+64,cal,15,0"""
 
 
 top_100_utilities = {

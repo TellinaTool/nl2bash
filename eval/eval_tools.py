@@ -9,6 +9,7 @@ from __future__ import print_function
 import collections
 import copy
 import csv
+import functools
 import numpy as np
 import os, sys
 import random
@@ -468,7 +469,8 @@ def gen_eval_sheet(model_dir, decode_sig, dataset, FLAGS, output_path, top_k=3):
 
 
 def gen_error_analysis_csv(grouped_dataset, prediction_list, FLAGS,
-        cached_evaluation_results=None, group_by_utility=False):
+        cached_evaluation_results=None, group_by_utility=False,
+        error_predictions_only=True):
     """
     Convert dev/test set examples to csv format so as to make it easier for
     human annotators to enter their judgements.
@@ -496,7 +498,7 @@ def gen_error_analysis_csv(grouped_dataset, prediction_list, FLAGS,
             gt_trees = gt_trees + [cmd_parser(cmd)
                                    for cmd in db.get_correct_temps(nl_temp)]
             if group_by_utility:
-                gt_utilities = reduce(lambda x,y:x|y,
+                gt_utilities = functools.reduce(lambda x,y:x|y,
                     [data_tools.get_utilities(gt) for gt in gt_trees])
             predictions = prediction_list[example_id]
             example_id += 1
@@ -530,9 +532,11 @@ def gen_error_analysis_csv(grouped_dataset, prediction_list, FLAGS,
                         if i == 0:
                             grammar_error = True
 
-                example_sig = '{}<NL_PREDICTION>{}'.format(
-                    sc_txt.replace('"', '""'), pred_cmd.replace('"', '""'))
-                if example_sig in cached_evaluation_results:
+                example_sig = '{}<NL_PREDICTION>{}'.format(sc_txt, pred_cmd)
+                if cached_evaluation_results and \
+                        example_sig in cached_evaluation_results:
+                    # print('example_sig: {}'.format(example_sig))
+                    # print(cached_evaluation_results[example_sig])
                     output_str += cached_evaluation_results[example_sig]
                 else:
                     if str_match:
@@ -540,18 +544,25 @@ def gen_error_analysis_csv(grouped_dataset, prediction_list, FLAGS,
                     elif temp_match:
                         output_str += 'y,'
                 example.append(output_str)
-            if grammar_error:
+            if error_predictions_only:
+                if grammar_error:
+                    if group_by_utility:
+                        for utility in gt_utilities:
+                            grammar_errors[utility].append(example)
+                    else:
+                        grammar_errors.append(example)
+                elif argument_error:
+                    if group_by_utility:
+                        for utility in gt_utilities:
+                            argument_errors[utility].append(example)
+                    else:
+                        argument_errors.append(example)
+            else:
                 if group_by_utility:
                     for utility in gt_utilities:
                         grammar_errors[utility].append(example)
                 else:
                     grammar_errors.append(example)
-            elif argument_error:
-                if group_by_utility:
-                    for utility in gt_utilities:
-                        argument_errors[utility].append(example)
-                else:
-                    argument_errors.append(example)
     return grammar_errors, argument_errors
 
 
@@ -620,12 +631,13 @@ def gen_error_analysis_sheet_by_utility(model_dir, decode_sig, dataset, FLAGS,
     # Convert the predictions into csv format
     grammar_errors, argument_errors = gen_error_analysis_csv(
         grouped_dataset, prediction_list, FLAGS, cached_evaluation_results,
-        group_by_utility=True)
+        group_by_utility=True, error_predictions_only=False)
 
     error_by_utility_path = os.path.join(model_dir, 'error.analysis.by.utility.csv')
+    print("Saving grammar errors to {}".format(error_by_utility_path))
     with open(error_by_utility_path, 'w') as error_by_utility_file:
         # print csv file header
-        error_by_utility_file.wrote(
+        error_by_utility_file.write(
             'utility, example_id, description, groundtruth, prediction, '
             'correct template, correct command\n')
         for line in bash.utility_stats.split('\n'):
@@ -764,18 +776,22 @@ def load_cached_evaluation_results(model_dir, decode_sig):
     :return: dictionary storing the evaluation results.
     """
     evaluation_results = {}
-    with open(os.path.join(
-            model_dir,'grammar.evaluations.{}.0'.format(decode_sig))) as f:
-        reader = csv.DictReader(f)
-        current_nl = ''
-        for row in reader:
-            if row['description']:
-                current_nl = row['description']
-            pred_cmd = row['prediction']
-            structure_eval = row['correct template']
-            command_eval = row['correct command']
-        evaluation_results['{}<NL_PREDICTION>{}'.format(current_nl, pred_cmd)] = \
-            '{},{}'.format(structure_eval, command_eval)
+    for file_name in os.listdir(model_dir):
+        if not 'evaluations.{}'.format(decode_sig) in file_name:
+            continue
+        else:
+            with open(os.path.join(model_dir, file_name)) as f:
+                reader = csv.DictReader(f)
+                current_nl = ''
+                for row in reader:
+                    if row['description']:
+                        current_nl = row['description']
+                    pred_cmd = row['prediction']
+                    structure_eval = row['correct template']
+                    command_eval = row['correct command']
+                    evaluation_results['{}<NL_PREDICTION>{}'.format(current_nl, pred_cmd)] = \
+                        '{},{}'.format(structure_eval, command_eval)
+    print('{} evaluation results loaded'.format(len(evaluation_results)))
     return evaluation_results
 
 
