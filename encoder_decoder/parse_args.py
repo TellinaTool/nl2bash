@@ -160,7 +160,7 @@ def define_input_flags():
                                 'Set to True for evaluation of the slot-filling classifier.')
     tf.app.flags.DEFINE_boolean('eval_local_slot_filling', False,
                                 'Set to True for raw evaluation of the slot-filling classifier.')
-    tf.app.flags.DEFINE_boolean('gen_error_analysis_sheets', False,
+    tf.app.flags.DEFINE_boolean('gen_error_analysis_sheet', False,
                                 'Set to True to generate error analysis spreadsheet.')
 
     # channel network hyperparameters
