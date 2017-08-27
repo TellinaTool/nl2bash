@@ -543,6 +543,7 @@ def gen_error_analysis_csv(grouped_dataset, prediction_list, FLAGS,
                     if temp_match:
                         if i == 0:
                             argument_error = True
+                            grammar_error = True
                     else:
                         if i == 0:
                             grammar_error = True
@@ -798,6 +799,32 @@ def load_cached_evaluation_results(model_dir, decode_sig):
     return evaluation_results
 
 
+def accuracy_by_utility(eval_by_utility_path):
+    num_template_correct = collections.defaultdict(int)
+    num_command_correct = collections.defaultdict(int)
+    num_examples = collections.defaultdict(int)
+    with open(eval_by_utility_path) as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            utility = row['utility']
+            num_examples[utility] += 1
+            if row['correct template'] == 'y':
+                num_template_correct[utility] += 1
+            if row['correct command'] == 'y':
+                num_command_correct[utility] += 1
+    with open(os.path.join(os.path.dirname(eval_by_utility_path),
+                           'accuracy.by.utility.csv'), 'w') as o_f:
+        for line in bash.utility_stats.split('\n'):
+            _, utility, _, _ = line.split(',')
+            if line in num_examples:
+                num_exps = num_examples[utility]
+                template_acc = round(float(num_template_correct[utility]) / num_exps, 2)
+                command_acc = round(float(num_command_correct[utility]) / num_exps, 2)
+                o_f.write('{},{},{}\n'.format(line, template_acc, command_acc))
+
+
+# Unit Tests
+
 def test_ted():
     while True:
         cmd1 = input(">cmd1: ")
@@ -812,10 +839,6 @@ def test_ted():
         print()
 
 
-def import_manual_annotation():
+if __name__ == "__main__":
     input_dir = sys.argv[1]
     import_manual_annotations_from_files(input_dir)
-
-
-if __name__ == "__main__":
-    import_manual_annotation()
