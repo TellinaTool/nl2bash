@@ -680,6 +680,4 @@ class BashGrammar(object):
 
 if __name__ == '__main__':
     bg = BashGrammar()
-    bg.make_grammar(os.path.join(os.path.dirname(__file__), '..', 'grammar', 'grammar100.txt'))
-
-
+    bg.make_grammar(os.path.join(os.path.dirname(__file__), 'grammar', 'grammar100.txt'))
