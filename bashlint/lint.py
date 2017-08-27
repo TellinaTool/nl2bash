@@ -32,7 +32,7 @@ if sys.version_info > (3, 0):
 # bash grammar
 from bashlint.grammar import *
 bg = BashGrammar()
-bg.make_grammar(os.path.join(os.path.dirname(__file__), '..', 'grammar', 'grammar100.txt'))
+bg.make_grammar(os.path.join(os.path.dirname(__file__), 'grammar', 'grammar100.txt'))
 
 # bashlex stuff
 from bashlint import bast, errors, tokenizer, bparser
