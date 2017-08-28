@@ -501,7 +501,7 @@
 
         history -anrw:: [filename]
 
-        history -ps arg [arg...]
+        history -ps:: arg [arg...]
 
         pushd [-n] [+ N] [- N] [dir]
 
