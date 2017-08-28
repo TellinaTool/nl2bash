@@ -443,7 +443,9 @@
 
         cpio -p [-0adlmuvLV::] [-R string] [--null] [--reset-access-time] [--make-directories] [--link] [--quiet] [--preserve-modification-time] [--unconditional] [--verbose] [--dot] [--dereference] [--owner=string] [--no-preserve-owner] [--sparse] [--help] [--version] dir LEname...
 
-        cpio -o [-bcdfmnrtsuvBSV::] [-C bytes] [-E file] [-H format] [-M message] [-R string] [-I string] [-F string] [--file=string] [--make-directories] [--nonmatching] [--preserve-modification-time] [--numeric-uid-gid] [--rename] [-t | --list] [--swap-bytes] [--swap] [--dot] [--unconditional] [--verbose] [--block-size=blocks] [--swap-halfwords] [--io-size=bytes] [--pattern-file=file] [--format=format] [--owner=string] [--no-preserve-owner] [--message=message] [--force-local] [--no-absolute-filenames] [--absolute-filenames] [--sparse] [--only-verify-crc] [--to-stdout] [--quiet] [--rsh-command=command] [--help] [--version] [pattern...] LEname... [GEstring]
+        cpio -o [-bcdfmnrtsuvBSV::] [-C bytes] [-E file] [-H format] [-M message] [-R string] [-I string] [-F string] [--file=string] [--make-directories] [--nonmatching] [--preserve-modification-time] [--numeric-uid-gid] [--
+        
+        ] [-t | --list] [--swap-bytes] [--swap] [--dot] [--unconditional] [--verbose] [--block-size=blocks] [--swap-halfwords] [--io-size=bytes] [--pattern-file=file] [--format=format] [--owner=string] [--no-preserve-owner] [--message=message] [--force-local] [--no-absolute-filenames] [--absolute-filenames] [--sparse] [--only-verify-crc] [--to-stdout] [--quiet] [--rsh-command=command] [--help] [--version] [pattern...] LEname... [GEstring]
 
         file [-bcdDhiIkLnNprsvz::] [--extension] [--mime-encoding] [--mime-type] [-f file] [-m file] [-P string] [-M file] file
 
@@ -451,7 +453,7 @@
 
         file [--help]
 
-        rename [-svnVh::] expression replacement file...
+        rename [-svnoVh::] [ --symlink ] [ --verbose ] [--no-act ] [ --no-overwrite ] [ --version ] [--help] expression replacement file...
 
         compress [-fv::] [-b bits] [file...]
 
