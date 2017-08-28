@@ -14,7 +14,6 @@ import os, sys
 if sys.version_info > (3, 0):
     from six.moves import xrange
 
-
 UTIL_S = 0
 COMPOUND_FLAG_S = 1
 FLAG_S = 2
@@ -41,9 +40,8 @@ class BashGrammarState(object):
         return self.type == ARG_S
 
     def is_command(self):
-        return self.type == COMMAND_S \
-               or self.type == ARG_COMMAND_S \
-               or self.type == EXEC_COMMAND_S
+        return self.type == COMMAND_S or self.type == ARG_COMMAND_S \
+            or self.type == EXEC_COMMAND_S
 
     def is_compound_flag(self):
         return self.type == COMPOUND_FLAG_S
@@ -678,6 +676,5 @@ class BashGrammar(object):
         return flag
 
 
-if __name__ == '__main__':
-    bg = BashGrammar()
-    bg.make_grammar(os.path.join(os.path.dirname(__file__), 'grammar', 'grammar100.txt'))
+bg = BashGrammar()
+bg.make_grammar(os.path.join(os.path.dirname(__file__), 'grammar', 'grammar100.txt'))
