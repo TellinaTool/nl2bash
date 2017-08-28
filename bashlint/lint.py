@@ -31,8 +31,6 @@ if sys.version_info > (3, 0):
 
 # bash grammar
 from bashlint.grammar import *
-bg = BashGrammar()
-bg.make_grammar(os.path.join(os.path.dirname(__file__), 'grammar', 'grammar100.txt'))
 
 # bashlex stuff
 from bashlint import bast, errors, tokenizer, bparser
@@ -143,14 +141,17 @@ def detach_from_tree(node, parent):
     node.rsb = None
     node.lsb = None
 
-def increment_bashlex_tree_offset(tree, offset):
-    if tree.kind == 'word':
-        tree.pos = (tree.pos[0]+offset, tree.pos[1]+offset)
-    if tree.parts:
-        for child in tree.parts:
-            increment_bashlex_tree_offset(child, offset)
 
 def safe_bashlex_parse(cmd, start_pos=0, verbose=False):
+    """
+    Call bashlex with all exceptions properly catched.
+    """
+    def increment_bashlex_tree_offset(tree, offset):
+        if tree.kind == 'word':
+            tree.pos = (tree.pos[0]+offset, tree.pos[1]+offset)
+        if tree.parts:
+            for child in tree.parts:
+                increment_bashlex_tree_offset(child, offset)
     try:
         tree = bparser.parse(cmd)
         if start_pos > 0:
@@ -244,10 +245,6 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
                 return True
             else:
                 return False
-
-    def node_with_quotes(node):
-        return cmd[node.pos[0]] in ['"', '\''] \
-            or cmd[node.pos[1]-1] in ['"', '\'']
 
     def recover_node_quotes(node):
         return cmd[node.pos[0] : node.pos[1]]
@@ -742,7 +739,7 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
 
     return normalized_tree
 
-def serialize(node, loose_constraints=False, ignore_flag_order=False):
+def serialize_ast(node, loose_constraints=False, ignore_flag_order=False):
     if not node:
         return ''
 
@@ -848,3 +845,7 @@ def serialize(node, loose_constraints=False, ignore_flag_order=False):
         return str
 
     return to_command_fun(node)
+
+
+def get_utility_statistics(utility):
+    return len(bg.grammar[utility].compound_flag.flag_index)
