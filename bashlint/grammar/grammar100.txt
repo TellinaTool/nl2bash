@@ -250,7 +250,9 @@
 
         sleep [ --help ] [ --version ]
 
-        ps [option]
+        ps [-aCcefhjlmrSTuvwx::] [-M core] [-N system] [-O fmt] [-o fmt] [-p pid]
+
+        ps [-L]
 
         pstree [-a | --arguments] [-c | --compact] [-h | --highlight-all | -Hpid | --highlight-pid pid ] [-g | --show-pgids ] [-l | --long] [-n | --numeric-sort] [-p | --show-pids] [-s | --show-parents] [-u | --uid-changes] [-Z | --security-context] [-A | --ascii ] [ -G | --vt100 ] [ -U | --unicode] [pid]
 
