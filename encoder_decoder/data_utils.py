@@ -567,10 +567,10 @@ def cm_to_characters(cm, use_preprocessing=False):
             cm, data_tools.bash_tokenizer, with_prefix=True,
             with_flag_argtype=True)
         for i, t in enumerate(cm_tokens):
-            if not '<KIND_PREFIX>' in t:
+            if not nast.KIND_PREFIX in t:
                 cm_data_point.append(t)
             else:
-                kind, token = t.split('<KIND_PREFIX>', 1)
+                kind, token = t.split(nast.KIND_PREFIX, 1)
                 if kind.lower() == 'utility':
                     cm_data_point.append(token)
                 elif kind.lower() == 'flag':

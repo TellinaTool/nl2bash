@@ -453,8 +453,10 @@ def gen_eval_sheet(model_dir, decode_sig, dataset, FLAGS, output_path, top_k=3):
                     tree = cmd_parser(pred_cmd)
 
                     # evaluation ignoring flag orders
-                    temp_match = tree_dist.one_match(gt_trees, tree, ignore_arg_value=True)
-                    str_match = tree_dist.one_match(gt_trees, tree, ignore_arg_value=False)
+                    temp_match = tree_dist.one_match(
+                        gt_trees, tree, ignore_arg_value=True)
+                    str_match = tree_dist.one_match(
+                        gt_trees, tree, ignore_arg_value=False)
                     if i < len(tg_strs):
                         output_str += '{},'.format(tg_strs[i].strip())
                     else:
@@ -497,7 +499,7 @@ def gen_error_analysis_csv(grouped_dataset, prediction_list, FLAGS,
     if group_by_utility:
         utility_index = {}
         for line in bash.utility_stats.split('\n'):
-            ind, utility, _, _ = line.split(',')
+            ind, utility, _, _, _ = line.split(',')
             utility_index[utility] = ind
 
     with DBConnection() as db:
@@ -582,7 +584,8 @@ def gen_error_analysis_sheets(model_dir, decode_sig, dataset, FLAGS, top_k=3):
     # Load model predictions
     prediction_list = load_predictions(model_dir, decode_sig, top_k)
     if len(grouped_dataset) != len(prediction_list):
-        raise ValueError("ground truth and predictions length must be equal: {} vs. {}"
+        raise ValueError(
+            "ground truth and predictions length must be equal: {} vs. {}"
             .format(len(grouped_dataset), len(prediction_list)))
 
     # Convert the predictions to csv format
@@ -626,18 +629,21 @@ def gen_error_analysis_sheet_by_utility(model_dir, decode_sig, dataset, FLAGS,
     # Load model predictions
     prediction_list = load_predictions(model_dir, decode_sig, top_k)
     if len(grouped_dataset) != len(prediction_list):
-        raise ValueError("ground truth and predictions length must be equal: {} vs. {}"
+        raise ValueError(
+            "ground truth and predictions length must be equal: {} vs. {}"
             .format(len(grouped_dataset), len(prediction_list)))
 
     # Load cached evaluation results
-    cached_evaluation_results = load_cached_evaluation_results(model_dir, decode_sig)
+    cached_evaluation_results = \
+        load_cached_evaluation_results(model_dir, decode_sig)
 
     # Convert the predictions into csv format
     grammar_errors, argument_errors = gen_error_analysis_csv(
         grouped_dataset, prediction_list, FLAGS, cached_evaluation_results,
         group_by_utility=True, error_predictions_only=False)
 
-    error_by_utility_path = os.path.join(model_dir, 'error.analysis.by.utility.csv')
+    error_by_utility_path = \
+        os.path.join(model_dir, 'error.analysis.by.utility.csv')
     print("Saving grammar errors to {}".format(error_by_utility_path))
     with open(error_by_utility_path, 'w') as error_by_utility_file:
         # print csv file header
@@ -645,7 +651,7 @@ def gen_error_analysis_sheet_by_utility(model_dir, decode_sig, dataset, FLAGS,
             'utility, example_id, description, groundtruth, prediction, '
             'correct template, correct command\n')
         for line in bash.utility_stats.split('\n'):
-            _, utility, _, _ = line.split(',')
+            utility = line.split(',')[1]
             error_examples = grammar_errors[utility]
             if len(error_examples) <= 5:
                 for example in error_examples:
@@ -714,11 +720,11 @@ def import_manual_annotations_from_files(input_dir):
 
                 # the following code section calculates command properties
                 total_cnt += 1
-                if command_correct_vote != 0 and command_correct_vote != num_logs \
-                        and template_correct_vote != 0 and template_correct_vote != num_logs:
+                if command_correct_vote not in [0, num_logs] \
+                        and template_correct_vote not in [0, num_logs]:
                     uncertain_cnt += 1
-                if (command_correct_vote != 0 and command_correct_vote != num_logs) \
-                        or (template_correct_vote != 0 and template_correct_vote != num_logs):
+                if command_correct_vote not in [0, num_logs] \
+                        or template_correct_vote not in [0, num_logs]:
                     weak_uncertain_cnt += 1
                 task["top_solutions"][i]["command_correct"] = True \
                     if command_correct_vote >= vote_threshold else False
@@ -793,7 +799,8 @@ def load_cached_evaluation_results(model_dir, decode_sig):
                     pred_cmd = row['prediction']
                     structure_eval = row['correct template']
                     command_eval = row['correct command']
-                    evaluation_results['{}<NL_PREDICTION>{}'.format(current_nl, pred_cmd)] = \
+                    row_sig = '{}<NL_PREDICTION>{}'.format(current_nl, pred_cmd)
+                    evaluation_results[row_sig] = \
                         '{},{}'.format(structure_eval, command_eval)
     print('{} evaluation results loaded'.format(len(evaluation_results)))
     return evaluation_results
@@ -823,16 +830,18 @@ def gen_accuracy_by_utility_csv(eval_by_utility_path):
     print('Save accuracy by utility metrics to {}'.format(output_path))
     with open(output_path, 'w') as o_f: 
         # print csv file header
-        o_f.write('ID,utility,# train,# test,template accuracy,command accuracy,% annotation errors,% complex tasks,% annotation problems\n')
+        o_f.write('ID,utility,# flags,# train,# test,template accuracy,command accuracy,'
+                  '% annotation errors,% complex tasks,% annotation problems\n')
         for line in bash.utility_stats.split('\n'):
-            _, utility, _, _ = line.split(',')
+            utility = line.split(',')[1]
             if utility in num_examples:
                 num_exps = num_examples[utility]
                 template_acc = round(float(num_template_correct[utility]) / num_exps, 2)
                 command_acc = round(float(num_command_correct[utility]) / num_exps, 2)
                 annotation_error_rate = round(float(num_annotation_errors[utility]) / num_exps, 2)
                 complex_task_rate = round(float(num_complex_tasks[utility]) / num_exps, 2) 
-                o_f.write('{},{},{},{},{},{}\n'.format(line, template_acc, command_acc, annotation_error_rate, complex_task_rate, (annotation_error_rate+complex_task_rate)))
+                o_f.write('{},{},{},{},{},{}\n'.format(line, template_acc, command_acc,
+                    annotation_error_rate, complex_task_rate, (annotation_error_rate+complex_task_rate)))
 
 
 # Unit Tests

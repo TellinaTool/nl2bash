@@ -410,7 +410,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
         """
         def load_channel(inputs, output_length, reversed_output=True):
             """
-            Concert a batch of feature vectors into a batched feature vector.
+            Convert a batch of feature vectors into a batched feature vector.
             """
             padded_inputs = []
             batch_inputs = []
