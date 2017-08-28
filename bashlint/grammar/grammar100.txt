@@ -1,240 +1,240 @@
-"""
-The bash command synopsis specified here are slight modifications from those in
-the man pages (https://linux.die.net/man/), with the following syntactic sugars:
+        """
+        The bash command synopsis specified here are slight modifications from those in
+        the man pages (https://linux.die.net/man/), with the following syntactic sugars:
 
-    1. A flag name followed by "::" is interpreted as a sequence of single-letter
-       flags; flags without any suffix are interpreted as an atomic flag.
+            1. A flag name followed by "::" is interpreted as a sequence of single-letter
+               flags; flags without any suffix are interpreted as an atomic flag.
 
-       For example, "-fhLV::" -> "-f", "-h", "-L", "-V".
+               For example, "-fhLV::" -> "-f", "-h", "-L", "-V".
 
-    2. An argument name followed by "..." (no space in between) is interpreted 
-       as an argument list (i.e. one or more arguments are accepted). When a 
-       special list separator (in general a non-alphabetic character) is used, it 
-       is placed right before the "...". When no list separator is specified, the 
-       default is ' '.
+            2. An argument name followed by "..." (no space in between) is interpreted 
+               as an argument list (i.e. one or more arguments are accepted). When a 
+               special list separator (in general a non-alphabetic character) is used, it 
+               is placed right before the "...". When no list separator is specified, the 
+               default is ' '.
 
-       For example, "pos,..." -> pos list separated by ",".
+               For example, "pos,..." -> pos list separated by ",".
 
-    3. If an argument uses a specific regex pattern, the regex pattern is
-       placed inside "<>" after the argument name.
+            3. If an argument uses a specific regex pattern, the regex pattern is
+               placed inside "<>" after the argument name.
 
-       For example, "source<[[user@]host1:]file1>" -> the source is specified
-       using format "[user@host1:]file1", where the "[user@host1:]" proportion
-       is optional.
+               For example, "source<[[user@]host1:]file1>" -> the source is specified
+               using format "[user@host1:]file1", where the "[user@host1:]" proportion
+               is optional.
 
-    2 & 3 can be used in composition.
+            2 & 3 can be used in composition.
 
-    For example, "source<[[user@]host1:]file1>..." -> a list of source files
-    specified using the required format.
+            For example, "source<[[user@]host1:]file1>..." -> a list of source files
+            specified using the required format.
 
-    4. An embedded bash command is denoted using the name "command". Embedded
-       programs in other languages are denoted using other names such as "program",
-       "prog", "script" etc.
+            4. An embedded bash command is denoted using the name "command". Embedded
+               programs in other languages are denoted using other names such as "program",
+               "prog", "script" etc.
 
-       For example, the arguments to "which", "sudo" and "find -exec" are called
-       "command", while the argument to "scp -S" is called "program", since it is 
-       a DSL recognized by "scp".
-"""
+               For example, the arguments to "which", "sudo" and "find -exec" are called
+               "command", while the argument to "scp -S" is called "program", since it is 
+               a DSL recognized by "scp".
+        """
 
-type
-        File        (acc_file, rej_file, data-file, infile, outfile, scriptout, scriptin, errorfile, datefile, script-file, f, krl_file, inputfile, outputfile, input-file, input_file, output_file, ssh_config, checkpt, known_hosts_file, input_keyfile, output_keyfile, identity_file, configfile, tagsfile, logfile, log_file, keyfile, file, xfile, file1, file2, filename, progfile, command_file, zipfile, archive-file, rfile, F, source, destination, src, dest, target)
-        Directory   (directory, exdir, dir)
-        Path        (ctl_path, path, source_file, target_file)
-        Permission  (permmode, octal-mode)
-        DateTime    (date, day, month, year, time_stamp)
-        Command     (command, command_eos)
-        Program     (rule, program, prog, var=value, name=value, script)
-        Type        (t, type)
-        Regex       (prompt, domain, urlregex, protocol, data-string, agent-string, header-line, password, modes, backups, text, array, list, remote-user, socket-name, socket-path, title, basehref, argument, keyword, keyseq-shell-command, keyseq-readline-function, readline-command, keymap, keyseq, key, mac-alg-opt, engine_id, query, mac_address, server, hop, timestamp, tos, flowlabel, address, aftype, interface, lename, gearchive, gestring, message, url, data, menu-item, var, nodename, arg, gvimrc, vimrc, terminal, viminfo, device, prefix, charset, char, empty, str, programname, replace-str, delimiter, attr_list, eof-str, escape_char, link_name, term, regexp, page, flags, certificate_identity, ca_key, hostname, section, delim, field, user, signal, version_number, ca_public, serial_number, principal, generator, start_point, passphrase, comment, old_passphrase, new_passphrase, local_tun, mac_spec, login_name, hostport, pkcs11, port, bind_address, sep, glob, label, tag, browser, locale, warnings, context, reference, ctx, gid, pid, session, tty, uid, commandname, name, gname, uname, groupname, username, eofstr, fd, fs, replstr, string, extension, owner, group, first, last, role, suffix, suffixes, pattern, mask, regex, expression, replacement, cc, jobspec, ctl_cmd)
-        Format      (template, lfmt, gfmt, key_format, format, validity_interval)
-        Option      (regextype, http-method, prefer-family, option-name, optname, alg, global-queryopt, queryopt, class, hint, optlist, vfstype, radix, field_list, delimit-method, timespec, convert_spec, ssh_option, cipher, cipher_spec, pager, system, encoding, action, control, option, options, shell, mode, word, cmd, style, when)
-        Quantity    (nchars, sndbuf, packetsize, preload, interval, offset, seconds, width, chunks, filenum, columns, timeout, num_lines, rounds, memory, bits, space, k, n, num, number, replacements, max, maxargs, maxchars, maxlines, maxprocs, max-lines, max-args, max-chars, max-procs, incr, count, depth, lines, shift, nmerge, increment, rows, cols)
-        Number      (level, portnumber, start_line, pos, line, linenum, firstpos, lastpos, range)
-        Timespan    (deadline, ttl, time, secs)
-        Size        (quota, blocks, size, bytes, blocksize)
-        Bandwidth   (rate, limit, limit-rate)
+        type
+                File        (acc_file, rej_file, data-file, infile, outfile, scriptout, scriptin, errorfile, datefile, script-file, f, krl_file, inputfile, outputfile, input-file, input_file, output_file, ssh_config, checkpt, known_hosts_file, input_keyfile, output_keyfile, identity_file, configfile, tagsfile, logfile, log_file, keyfile, file, xfile, file1, file2, filename, progfile, command_file, zipfile, archive-file, rfile, F, source, destination, src, dest, target)
+                Directory   (directory, exdir, dir)
+                Path        (ctl_path, path, source_file, target_file)
+                Permission  (permmode, octal-mode)
+                DateTime    (date, day, month, year, time_stamp)
+                Command     (command, command_eos)
+                Program     (rule, program, prog, var=value, name=value, script)
+                Type        (t, type)
+                Regex       (prompt, domain, urlregex, protocol, data-string, agent-string, header-line, password, modes, backups, text, array, list, remote-user, socket-name, socket-path, title, basehref, argument, keyword, keyseq-shell-command, keyseq-readline-function, readline-command, keymap, keyseq, key, mac-alg-opt, engine_id, query, mac_address, server, hop, timestamp, tos, flowlabel, address, aftype, interface, lename, gearchive, gestring, message, url, data, menu-item, var, nodename, arg, gvimrc, vimrc, terminal, viminfo, device, prefix, charset, char, empty, str, programname, replace-str, delimiter, attr_list, eof-str, escape_char, link_name, term, regexp, page, flags, certificate_identity, ca_key, hostname, section, delim, field, user, signal, version_number, ca_public, serial_number, principal, generator, start_point, passphrase, comment, old_passphrase, new_passphrase, local_tun, mac_spec, login_name, hostport, pkcs11, port, bind_address, sep, glob, label, tag, browser, locale, warnings, context, reference, ctx, gid, pid, session, tty, uid, commandname, name, gname, uname, groupname, username, eofstr, fd, fs, replstr, string, extension, owner, group, first, last, role, suffix, suffixes, pattern, mask, regex, expression, replacement, cc, jobspec, ctl_cmd)
+                Format      (template, lfmt, gfmt, key_format, format, validity_interval)
+                Option      (regextype, http-method, prefer-family, option-name, optname, alg, global-queryopt, queryopt, class, hint, optlist, vfstype, radix, field_list, delimit-method, timespec, convert_spec, ssh_option, cipher, cipher_spec, pager, system, encoding, action, control, option, options, shell, mode, word, cmd, style, when)
+                Quantity    (nchars, sndbuf, packetsize, preload, interval, offset, seconds, width, chunks, filenum, columns, timeout, num_lines, rounds, memory, bits, space, k, n, num, number, replacements, max, maxargs, maxchars, maxlines, maxprocs, max-lines, max-args, max-chars, max-procs, incr, count, depth, lines, shift, nmerge, increment, rows, cols)
+                Number      (level, portnumber, start_line, pos, line, linenum, firstpos, lastpos, range)
+                Timespan    (deadline, ttl, time, secs)
+                Size        (quota, blocks, size, bytes, blocksize)
+                Bandwidth   (rate, limit, limit-rate)
 
-constants
-        AT @
-        SEMICOLON ;
-        DASH -
-        PLUS +
-        PLUSPLUS ++
-        PLUSSLASH +/
-        DOUBLEDASH --
-        SHARP #
-        TILDE ~
-        EXCLAMATION !
-        {} {}
-        QUESTION ?
+        constants
+                AT @
+                SEMICOLON ;
+                DASH -
+                PLUS +
+                PLUSPLUS ++
+                PLUSSLASH +/
+                DOUBLEDASH --
+                SHARP #
+                TILDE ~
+                EXCLAMATION !
+                {} {}
+                QUESTION ?
 
-PrimitiveCmd ::=
+        PrimitiveCmd ::=
 
-        find [-H | -L | -P] [-EXdsx::] [-f path] path... [ -true ] [ -false ] [ -not ] [ -Bmin n ] [ -Bnewer file ] [ -Btime time ] [ -acl ] [ -amin n ] [ -anewer file ] [-atime time] [ -cmin n ] [ -cnewer file ] [ -ctime time ] [ -d ] [ -daystart ] [ -delete ] [ -depth ] [ -empty ] [ -exec COMMAND$$;,+ ] [ -execdir COMMAND$$;,+ ] [-follow] [-fprint file] [-fprint0 file] [-fprintf file format] [ -fstype type ] [ -gid gname ] [ -group gname ] [-help | --help] [ -ignore_readdir_race ] [ -ilname pattern ] [ -ilname pattern ] [ -iname pattern ] [ -inum n ] [ -ipath pattern ] [ -iregex pattern ] [ -iwholename pattern ] [ -links n ] [ -lname pattern ] [ -ls ] [ -maxdepth n ] [ -mindepth n ] [ -mmin n ] [ -mnewer file ] [ -mount ] [ -mtime time ] [ -name pattern ] [ -newer file ] [ -neweraa file ] [ -neweraB file ] [ -newerac file ] [ -neweram file ] [ -newerBa file ] [ -newerBB file ] [ -newerBc file ] [ -newerBm file ] [ -newerca file ] [ -newercB file ] [ -newercc file ] [ -newercm file ] [ -newerma file ] [ -newermB file ] [ -newermc file ] [ -newermm file ] [ -newerat reference ] [ -newerBt reference ] [ -newerct reference ] [ -newermt reference ]  [ -nogroup ] [ -noignore_readdir_race ] [ -noleaf ] [ -nouser ] [ -ok COMMAND$$;] [ -okdir COMMAND$$; ] [ -path pattern ] [ -perm permmode ] [ -print ] [ -print0 ] [-printf format] [ -prune ] [ -regex pattern ] [ -regextype type ] [ -samefile name ] [ -size size ] [ -type t ] [ -xtype t ] [ -uid uname ] [ -user uname ] [-version | --version] [ -wholename pattern ] [ -xattr ] [ -xattrname name ] [-xdev] [ -and ] [ -or ] [ -not ]
+                find [-H | -L | -P] [-EXdsx::] [-f path] path... [ -true ] [ -false ] [ -not ] [ -Bmin n ] [ -Bnewer file ] [ -Btime time ] [ -acl ] [ -amin n ] [ -anewer file ] [-atime time] [ -cmin n ] [ -cnewer file ] [ -ctime time ] [ -d ] [ -daystart ] [ -delete ] [ -depth ] [ -empty ] [ -exec COMMAND$$;,+ ] [ -execdir COMMAND$$;,+ ] [-follow] [-fprint file] [-fprint0 file] [-fprintf file format] [ -fstype type ] [ -gid gname ] [ -group gname ] [-help | --help] [ -ignore_readdir_race ] [ -ilname pattern ] [ -ilname pattern ] [ -iname pattern ] [ -inum n ] [ -ipath pattern ] [ -iregex pattern ] [ -iwholename pattern ] [ -links n ] [ -lname pattern ] [ -ls ] [ -maxdepth n ] [ -mindepth n ] [ -mmin n ] [ -mnewer file ] [ -mount ] [ -mtime time ] [ -name pattern ] [ -newer file ] [ -neweraa file ] [ -neweraB file ] [ -newerac file ] [ -neweram file ] [ -newerBa file ] [ -newerBB file ] [ -newerBc file ] [ -newerBm file ] [ -newerca file ] [ -newercB file ] [ -newercc file ] [ -newercm file ] [ -newerma file ] [ -newermB file ] [ -newermc file ] [ -newermm file ] [ -newerat reference ] [ -newerBt reference ] [ -newerct reference ] [ -newermt reference ]  [ -nogroup ] [ -noignore_readdir_race ] [ -noleaf ] [ -nouser ] [ -ok COMMAND$$;] [ -okdir COMMAND$$; ] [ -path pattern ] [ -perm permmode ] [ -print ] [ -print0 ] [-printf format] [ -prune ] [ -regex pattern ] [ -regextype type ] [ -samefile name ] [ -size size ] [ -type t ] [ -xtype t ] [ -uid uname ] [ -user uname ] [-version | --version] [ -wholename pattern ] [ -xattr ] [ -xattrname name ] [-xdev] [ -and ] [ -or ] [ -not ]
 
-        find [-H | -L | -P] [-EXdsx::] -f path [path...] [ -true ] [ -false ] [ -not ] [ -Bmin n ] [ -Bnewer file ] [ -Btime time ] [ -acl ] [ -amin n ] [ -anewer file ] [-atime time] [ -cmin n ] [ -cnewer file ] [ -ctime time ] [ -d ] [ -daystart ] [ -delete ] [ -depth ] [ -empty ] [ -exec COMMAND$$;,+ ] [ -execdir COMMAND$$;,+ ] [-follow] [-fprint file] [-fprint0 file] [-fprintf file format] [ -fstype type ] [ -gid gname ] [ -group gname ] [-help | --help] [ -ignore_readdir_race ] [ -ilname pattern ] [ -ilname pattern ] [ -iname pattern ] [ -inum n ] [ -ipath pattern ] [ -iregex pattern ] [ -iwholename pattern ] [ -links n ] [ -lname pattern ] [ -ls ] [ -maxdepth n ] [ -mindepth n ] [ -mmin n ] [ -mnewer file ] [ -mount ] [ -mtime time ] [ -name pattern ] [ -newer file ] [ -neweraa file ] [ -neweraB file ] [ -newerac file ] [ -neweram file ] [ -newerBa file ] [ -newerBB file ] [ -newerBc file ] [ -newerBm file ] [ -newerca file ] [ -newercB file ] [ -newercc file ] [ -newercm file ] [ -newerma file ] [ -newermB file ] [ -newermc file ] [ -newermm file ] [ -newerat reference ] [ -newerBt reference ] [ -newerct reference ] [ -newermt reference ]  [ -nogroup ] [ -noignore_readdir_race ] [ -noleaf ] [ -nouser ] [ -ok COMMAND$$;] [ -okdir COMMAND$$; ] [ -path pattern ] [ -perm permmode ] [ -print ] [ -print0 ] [-printf format] [ -prune ] [ -regex pattern ] [ -regextype type ] [ -samefile name ] [ -size size ] [ -type t ] [ -xtype t ] [ -uid uname ] [ -user uname ] [-version | --version] [ -wholename pattern ] [ -xattr ] [ -xattrname name ] [-xdev] [ -and ] [ -or ] [ -not ]
+                find [-H | -L | -P] [-EXdsx::] -f path [path...] [ -true ] [ -false ] [ -not ] [ -Bmin n ] [ -Bnewer file ] [ -Btime time ] [ -acl ] [ -amin n ] [ -anewer file ] [-atime time] [ -cmin n ] [ -cnewer file ] [ -ctime time ] [ -d ] [ -daystart ] [ -delete ] [ -depth ] [ -empty ] [ -exec COMMAND$$;,+ ] [ -execdir COMMAND$$;,+ ] [-follow] [-fprint file] [-fprint0 file] [-fprintf file format] [ -fstype type ] [ -gid gname ] [ -group gname ] [-help | --help] [ -ignore_readdir_race ] [ -ilname pattern ] [ -ilname pattern ] [ -iname pattern ] [ -inum n ] [ -ipath pattern ] [ -iregex pattern ] [ -iwholename pattern ] [ -links n ] [ -lname pattern ] [ -ls ] [ -maxdepth n ] [ -mindepth n ] [ -mmin n ] [ -mnewer file ] [ -mount ] [ -mtime time ] [ -name pattern ] [ -newer file ] [ -neweraa file ] [ -neweraB file ] [ -newerac file ] [ -neweram file ] [ -newerBa file ] [ -newerBB file ] [ -newerBc file ] [ -newerBm file ] [ -newerca file ] [ -newercB file ] [ -newercc file ] [ -newercm file ] [ -newerma file ] [ -newermB file ] [ -newermc file ] [ -newermm file ] [ -newerat reference ] [ -newerBt reference ] [ -newerct reference ] [ -newermt reference ]  [ -nogroup ] [ -noignore_readdir_race ] [ -noleaf ] [ -nouser ] [ -ok COMMAND$$;] [ -okdir COMMAND$$; ] [ -path pattern ] [ -perm permmode ] [ -print ] [ -print0 ] [-printf format] [ -prune ] [ -regex pattern ] [ -regextype type ] [ -samefile name ] [ -size size ] [ -type t ] [ -xtype t ] [ -uid uname ] [ -user uname ] [-version | --version] [ -wholename pattern ] [ -xattr ] [ -xattrname name ] [-xdev] [ -and ] [ -or ] [ -not ]
 
-        pwd [-L] [--logical] [-P] [--physical] [--help] [--version]
+                pwd [-L] [--logical] [-P] [--physical] [--help] [--version]
 
-        cd [-L] [-P [-e]] [-@] [dir]
+                cd [-L] [-P [-e]] [-@] [dir]
 
-        ls [-a | --all] [-A | --almost-all] [--author] [-b | --escape] [--block-size=SIZE] [-B | --ignore-backups] [-c] [-C] [--color[=WHEN]] [-d | --directory] [-D | --dired] [-f] [-F | --classify] [--file-type] [--format=WORD] [--full-time] [-g] [--group-directories-first] [-G | --no-group] [-h | --human-readable] [--si] [-H | --dereference-command-line] [--dereference-command-line-symlink-to-dir] [--hide=pattern] [--indicator-style=WORD] [-i | --inode] [-I | --ignore=PATTERN] [-k | --kibibytes] [-l] [-L | --dereference] [-m] [-n | --numeric-uid-gid] [-N | --literal] [-o] [-p] [-q | --hide-control-chars] [--show-control-chars] [-Q | --quote-name] [--quoting-style=WORD] [-r | --reverse] [-R | --recursive] [-s | --size] [-S] [--sort=WORD] [--time=WORD] [--time-style=STYLE] [-t] [-T | --tabsize=COLS] [-u] [-U] [-v] [-w | --width=COLS] [-x] [-X] [-1] [--lcontext] [-Z | --context] [--scontext] [--help] [--version] [FILE...]
+                ls [-a | --all] [-A | --almost-all] [--author] [-b | --escape] [--block-size=SIZE] [-B | --ignore-backups] [-c] [-C] [--color[=WHEN]] [-d | --directory] [-D | --dired] [-f] [-F | --classify] [--file-type] [--format=WORD] [--full-time] [-g] [--group-directories-first] [-G | --no-group] [-h | --human-readable] [--si] [-H | --dereference-command-line] [--dereference-command-line-symlink-to-dir] [--hide=pattern] [--indicator-style=WORD] [-i | --inode] [-I | --ignore=PATTERN] [-k | --kibibytes] [-l] [-L | --dereference] [-m] [-n | --numeric-uid-gid] [-N | --literal] [-o] [-p] [-q | --hide-control-chars] [--show-control-chars] [-Q | --quote-name] [--quoting-style=WORD] [-r | --reverse] [-R | --recursive] [-s | --size] [-S] [--sort=WORD] [--time=WORD] [--time-style=STYLE] [-t] [-T | --tabsize=COLS] [-u] [-U] [-v] [-w | --width=COLS] [-x] [-X] [-1] [--lcontext] [-Z | --context] [--scontext] [--help] [--version] [FILE...]
 
-        mkdir [-m MODE] [--mode=MODE] [-p | --parents] [-v | --verbose] [-Z CTX] [--context=CTX] [--help] [--version] DIRECTORY...
+                mkdir [-m MODE] [--mode=MODE] [-p | --parents] [-v | --verbose] [-Z CTX] [--context=CTX] [--help] [--version] DIRECTORY...
 
-        rmdir [ --ignore-fail-on-non-empty ] [-p | --parents] [-v | --verbose] [--help] [--version] DIRECTORY...
+                rmdir [ --ignore-fail-on-non-empty ] [-p | --parents] [-v | --verbose] [--help] [--version] DIRECTORY...
 
-        echo [-neE::] [--help] [--version] [STRING...]
+                echo [-neE::] [--help] [--version] [STRING...]
 
-        cat [-A | --show-all] [-b | --number-nonblank ] [-e] [-E | --show-ends] [-n | --number] [-s | --squeeze-blank] [-t] [-T | --show-tabs] [-u] [-v | --show-nonprinting] [--help] [--version] [FILE...]
+                cat [-A | --show-all] [-b | --number-nonblank ] [-e] [-E | --show-ends] [-n | --number] [-s | --squeeze-blank] [-t] [-T | --show-tabs] [-u] [-v | --show-nonprinting] [--help] [--version] [FILE...]
 
-        gzip [ -acdfhklLnNrtvV19:: ] [--rsyncable] [-S suffix] [ name... ]
-       
-        gunzip [ -acfhklLnNrtvV:: ] [-S suffix] [ name... ]
-       
-        zcat [ -fhLV:: ] [ name... ]
+                gzip [ -acdfhklLnNrtvV19:: ] [--rsyncable] [-S suffix] [ name... ]
+               
+                gunzip [ -acfhklLnNrtvV:: ] [-S suffix] [ name... ]
+               
+                zcat [ -fhLV:: ] [ name... ]
 
-        tac [-b | --before] [-r | --regex] [-s STRING] [--separator=STRING] [--help] [--version] [file...]
+                tac [-b | --before] [-r | --regex] [-s STRING] [--separator=STRING] [--help] [--version] [file...]
 
-        cp [ -a | --archive ] [ --attributes-only ] [ --backup[=CONTROL] ] [ -b ] [ --copy-contents ] [ -d ] [ -f | --force ] [ -i | --interactive ] [ -H ] [ -l | --link ] [ -L | --dereference ] [ -n | --no-clobber ] [ -P | --no-dereference ] [ -p ] [ --preserve[=ATTR_LIST] ] [ --no-preserve=ATTR_LIST ] [ --parents ] [ -R | -r | --recursive ] [ --reflink[=WHEN] ] [ --remove-destination ] [ --sparse=WHEN ] [ --strip-trailing-slashes ] [ -s | --symbolic-link ] [ -S | --suffix[=SUFFIX] ] [ -u | --update ] [ -v | --verbose ] [ -x | --one-file-system ] [-Z CONTEXT] [--context=CONTEXT] [--help] [ --version ] [ -T | --no-target-directory ] SOURCE DEST
-        
-        cp [ -a | --archive ] [ --attributes-only ] [ --backup[=CONTROL] ] [ -b ] [ --copy-contents ] [ -d ] [ -f | --force ] [ -i | --interactive ] [ -H ] [ -l | --link ] [ -L | --dereference ] [ -n | --no-clobber ] [ -P | --no-dereference ] [ -p ] [ --preserve[=ATTR_LIST] ] [ --no-preserve=ATTR_LIST ] [ --parents ] [ -R | -r | --recursive ] [ --reflink[=WHEN] ] [ --remove-destination ] [ --sparse=WHEN ] [ --strip-trailing-slashes ] [ -s | --symbolic-link ] [ -S | --suffix[=SUFFIX] ] [ -u | --update ] [ -v | --verbose ] [ -x | --one-file-system ] [-Z CONTEXT] [--context=CONTEXT] [--help] [ --version ] SOURCE... DIRECTORY
-        
-        cp [ -a | --archive ] [ --attributes-only ] [ --backup[=CONTROL] ] [ -b ] [ --copy-contents ] [ -d ] [ -f | --force ] [ -i | --interactive ] [ -H ] [ -l | --link ] [ -L | --dereference ] [ -n | --no-clobber ] [ -P | --no-dereference ] [ -p ] [ --preserve[=ATTR_LIST] ] [ --no-preserve=ATTR_LIST ] [ --parents ] [ -R | -r | --recursive ] [ --reflink[=WHEN] ] [ --remove-destination ] [ --sparse=WHEN ] [ --strip-trailing-slashes ] [ -s | --symbolic-link ] [ -S | --suffix[=SUFFIX] ] [ -u | --update ] [ -v | --verbose ] [ -x | --one-file-system ] [-Z CONTEXT] [--context=CONTEXT] [--help] [ --version ] [-t DIRECTORY] [--target-directory=DIRECTORY] SOURCE...
+                cp [ -a | --archive ] [ --attributes-only ] [ --backup[=CONTROL] ] [ -b ] [ --copy-contents ] [ -d ] [ -f | --force ] [ -i | --interactive ] [ -H ] [ -l | --link ] [ -L | --dereference ] [ -n | --no-clobber ] [ -P | --no-dereference ] [ -p ] [ --preserve[=ATTR_LIST] ] [ --no-preserve=ATTR_LIST ] [ --parents ] [ -R | -r | --recursive ] [ --reflink[=WHEN] ] [ --remove-destination ] [ --sparse=WHEN ] [ --strip-trailing-slashes ] [ -s | --symbolic-link ] [ -S | --suffix[=SUFFIX] ] [ -u | --update ] [ -v | --verbose ] [ -x | --one-file-system ] [-Z CONTEXT] [--context=CONTEXT] [--help] [ --version ] [ -T | --no-target-directory ] SOURCE DEST
+                
+                cp [ -a | --archive ] [ --attributes-only ] [ --backup[=CONTROL] ] [ -b ] [ --copy-contents ] [ -d ] [ -f | --force ] [ -i | --interactive ] [ -H ] [ -l | --link ] [ -L | --dereference ] [ -n | --no-clobber ] [ -P | --no-dereference ] [ -p ] [ --preserve[=ATTR_LIST] ] [ --no-preserve=ATTR_LIST ] [ --parents ] [ -R | -r | --recursive ] [ --reflink[=WHEN] ] [ --remove-destination ] [ --sparse=WHEN ] [ --strip-trailing-slashes ] [ -s | --symbolic-link ] [ -S | --suffix[=SUFFIX] ] [ -u | --update ] [ -v | --verbose ] [ -x | --one-file-system ] [-Z CONTEXT] [--context=CONTEXT] [--help] [ --version ] SOURCE... DIRECTORY
+                
+                cp [ -a | --archive ] [ --attributes-only ] [ --backup[=CONTROL] ] [ -b ] [ --copy-contents ] [ -d ] [ -f | --force ] [ -i | --interactive ] [ -H ] [ -l | --link ] [ -L | --dereference ] [ -n | --no-clobber ] [ -P | --no-dereference ] [ -p ] [ --preserve[=ATTR_LIST] ] [ --no-preserve=ATTR_LIST ] [ --parents ] [ -R | -r | --recursive ] [ --reflink[=WHEN] ] [ --remove-destination ] [ --sparse=WHEN ] [ --strip-trailing-slashes ] [ -s | --symbolic-link ] [ -S | --suffix[=SUFFIX] ] [ -u | --update ] [ -v | --verbose ] [ -x | --one-file-system ] [-Z CONTEXT] [--context=CONTEXT] [--help] [ --version ] [-t DIRECTORY] [--target-directory=DIRECTORY] SOURCE...
 
-        mv [ --backup[=CONTROL] ] [ -b ] [ -f | --force ] [ -i | --interactive ] [ -n | --no-clobber ] [-T] SOURCE DEST
+                mv [ --backup[=CONTROL] ] [ -b ] [ -f | --force ] [ -i | --interactive ] [ -n | --no-clobber ] [-T] SOURCE DEST
 
-        mv [ --backup[=CONTROL] ] [ -b ] [ -f | --force ] [ -i | --interactive ] [ -n | --no-clobber ] [--strip-trailing-slashes] [-S SUFFIX] [--suffix=SUFFIX] [-u | --update] [-v | --verbose] [--help] [--version] SOURCE... DIRECTORY
+                mv [ --backup[=CONTROL] ] [ -b ] [ -f | --force ] [ -i | --interactive ] [ -n | --no-clobber ] [--strip-trailing-slashes] [-S SUFFIX] [--suffix=SUFFIX] [-u | --update] [-v | --verbose] [--help] [--version] SOURCE... DIRECTORY
 
-        mv [ --backup[=CONTROL] ] [ -b ] [ -f | --force ] [ -i | --interactive ] [ -n | --no-clobber ] [--strip-trailing-slashes] [-S SUFFIX] [--suffix=SUFFIX] [-u | --update] [-v | --verbose] [--help] [--version] [-t DIRECTORY] [--target-directory=DIRECTORY] SOURCE...
+                mv [ --backup[=CONTROL] ] [ -b ] [ -f | --force ] [ -i | --interactive ] [ -n | --no-clobber ] [--strip-trailing-slashes] [-S SUFFIX] [--suffix=SUFFIX] [-u | --update] [-v | --verbose] [--help] [--version] [-t DIRECTORY] [--target-directory=DIRECTORY] SOURCE...
 
-        rm [ --recursive ] [ -f | --force ] [ -i ] [ -I ] [ --interactive[=WHEN] ] [ --one-file-system ] [ --no-preserve-root ] [ --preserve-root ] [ -r | -R | --recursive ] [ -r | -R | --recursive ] [ -d | --dir ] [ -v | --verbose ] [ --help ] [ --version ] FILE...
- 
-        shred  [ -f | --force ] [ -n | --iterations[=N] ] [ --random-source[=FILE] ] [ -s | --size[=N] ] [ -u | --remove ] [ -v | --verbose ] [ -x | --exact ] [ -z | --zero ] [ --help ] [ --version ] FILE...
+                rm [ --recursive ] [ -f | --force ] [ -i ] [ -I ] [ --interactive[=WHEN] ] [ --one-file-system ] [ --no-preserve-root ] [ --preserve-root ] [ -r | -R | --recursive ] [ -r | -R | --recursive ] [ -d | --dir ] [ -v | --verbose ] [ --help ] [ --version ] FILE...
+         
+                shred  [ -f | --force ] [ -n | --iterations[=N] ] [ --random-source[=FILE] ] [ -s | --size[=N] ] [ -u | --remove ] [ -v | --verbose ] [ -x | --exact ] [ -z | --zero ] [ --help ] [ --version ] FILE...
 
-        * man  [-C  file]  [-d]  [-D] [--warnings[=warnings]] [-R encoding] [-L locale] [-m system...] [-M path] [-S list] [-e extension] [-i|-I] [--regex|--wildcard] [--names-only] [-a] [-u]  [--no-subpages]  [-P  pager]  [-r prompt]   [-7]   [-E encoding]   [--no-hyphenation]  [--no-justification]  [-p  string]  [-t]  [-T[device]] [-H[browser]] [-X[dpi]] [-Z] [section] page...
-       
-        * man -k options regexp...
-       
-        * man -K [-w|-W] [-S list] [-i|-I] [--regex] [section] term...
-       
-        * man -f options page...
-       
-        * man -l [-C file] [-d] [-D] [--warnings[=warnings]] [-R encoding] [-L locale] [-P pager] [-r prompt] [-7]  [-E encoding] [-p string] [-t] [-T[device]] [-H [browser]] [-X[dpi]] [-Z] file...
-       
-        * man -w|-W [-C file] [-d] [-D] page...
-        
-        * man -c [-C file] [-d] [-D] page...
-       
-        * man [-V]
+                * man  [-C  file]  [-d]  [-D] [--warnings[=warnings]] [-R encoding] [-L locale] [-m system...] [-M path] [-S list] [-e extension] [-i|-I] [--regex|--wildcard] [--names-only] [-a] [-u]  [--no-subpages]  [-P  pager]  [-r prompt]   [-7]   [-E encoding]   [--no-hyphenation]  [--no-justification]  [-p  string]  [-t]  [-T[device]] [-H[browser]] [-X[dpi]] [-Z] [section] page...
+               
+                * man -k options regexp...
+               
+                * man -K [-w|-W] [-S list] [-i|-I] [--regex] [section] term...
+               
+                * man -f options page...
+               
+                * man -l [-C file] [-d] [-D] [--warnings[=warnings]] [-R encoding] [-L locale] [-P pager] [-r prompt] [-7]  [-E encoding] [-p string] [-t] [-T[device]] [-H [browser]] [-X[dpi]] [-Z] file...
+               
+                * man -w|-W [-C file] [-d] [-D] page...
+                
+                * man -c [-C file] [-d] [-D] page...
+               
+                * man [-V]
 
-        head  [- K] [ -c K<[-]K>] [--bytes=K<[-]K>] [ -n K<[-]K>] [ --lines=K<[-]K> ] [ -q | --quiet | --silent ] [ -v | --verbose ] [ --help ] [ --version ] [FILE...]
+                head  [- K] [ -c K<[-]K>] [--bytes=K<[-]K>] [ -n K<[-]K>] [ --lines=K<[-]K> ] [ -q | --quiet | --silent ] [ -v | --verbose ] [ --help ] [ --version ] [FILE...]
 
-        tail  [- K] [ -c K<[+]K>] [--bytes=K] [ -f name] [--follow[=name]] [ -F ] [ -n K<[+]K>] [--lines=K] [ --max-unchanged-stats=N ] [ --pid=PID ] [ -q | --quiet | --silent ] [ --retry ] [ -s N ] [ --sleep-interval=N ] [ -v | --verbose ] [   --help ] [ --version ] [FILE...]
+                tail  [- K] [ -c K<[+]K>] [--bytes=K] [ -f name] [--follow[=name]] [ -F ] [ -n K<[+]K>] [--lines=K] [ --max-unchanged-stats=N ] [ --pid=PID ] [ -q | --quiet | --silent ] [ --retry ] [ -s N ] [ --sleep-interval=N ] [ -v | --verbose ] [   --help ] [ --version ] [FILE...]
 
-        less -?
+                less -?
 
-        less --help
+                less --help
 
-        less -V
+                less -V
 
-        less --version
+                less --version
 
-        less [ -aABcCdeEfFgGiIJKLmMnNqQrRsSuUVwWX:: ] [ +aABcCdeEfFgGiIJKLmMnNqQrRsSuUVwWX:: ] [-+] [--+] [-b space] [-h lines] [-j line] [-k keyfile] [-o logfile] [-O logfile] [-p pattern] [-P prompt] [-t tag] [-T tagsfile] [-x n,...] [--tabs=n,...] [-y lines] [--max-forw-scroll=n] [-[z] lines] [--window=n] [-TILDE] [--tilde] [-SHARP shift] [--shift shift] [-X] [--no-init] [--quotes=cc] [--no-keypad] [--follow-name] [+ cmd] [++ cmd] [--] [filename...]
+                less [ -aABcCdeEfFgGiIJKLmMnNqQrRsSuUVwWX:: ] [ +aABcCdeEfFgGiIJKLmMnNqQrRsSuUVwWX:: ] [-+] [--+] [-b space] [-h lines] [-j line] [-k keyfile] [-o logfile] [-O logfile] [-p pattern] [-P prompt] [-t tag] [-T tagsfile] [-x n,...] [--tabs=n,...] [-y lines] [--max-forw-scroll=n] [-[z] lines] [--window=n] [-TILDE] [--tilde] [-SHARP shift] [--shift shift] [-X] [--no-init] [--quotes=cc] [--no-keypad] [--follow-name] [+ cmd] [++ cmd] [--] [filename...]
 
-        zless [ name...  ]
+                zless [ name...  ]
 
-        more [ -dlfpcsu:: ] [-num] [+/ pattern] [+ linenum] [file...]
+                more [ -dlfpcsu:: ] [-num] [+/ pattern] [+ linenum] [file...]
 
-        grep [--help] [-V | --version] [-E | --extended-regexp] [-F | --fixed-strings] [-G | --basic-regexp] [-P | --perl-regexp] [-e pattern] [--regexp=pattern] [-f file] [--file=file] [-i | --ignore-case] [-v | --invert-match] [-w | --word-regexp] [-x | --line-regexp] [-y] [-c | --count] [--color[=when]] [--colour[=when]] [-L | --files-without-match] [-l | --files-with-matches] [-m NUM] [--max-count=NUM] [-o | --only-matching] [-q | --quiet | --silent] [-s | --no-messages] [-b | --byte-offset] [-H | --with-filename] [-h | --no-filename] [--label=LABEL] [-n | --line-number] [-T | --initial-tab] [-u | --unix-byte-offsets] [-Z | --null] [-A num] [--after-context=NUM] [-B num] [--before-context=NUM] [-C num] [--context=NUM] [-a | --text] [--binary-files=TYPE] [-d ACTION] [--directories=ACTION] [-D ACTION] [--devices=ACTION] [--exclude=GLOB] [--exclude-from=FILE] [--exclude-dir=DIR] [-I] [--include=GLOB] [-R | -r | --recursive] [--line-buffered] [--mmap] [-U | --binary] [-z | --null] [--label] pattern [file...]
+                grep [--help] [-V | --version] [-E | --extended-regexp] [-F | --fixed-strings] [-G | --basic-regexp] [-P | --perl-regexp] [-e pattern] [--regexp=pattern] [-f file] [--file=file] [-i | --ignore-case] [-v | --invert-match] [-w | --word-regexp] [-x | --line-regexp] [-y] [-c | --count] [--color[=when]] [--colour[=when]] [-L | --files-without-match] [-l | --files-with-matches] [-m NUM] [--max-count=NUM] [-o | --only-matching] [-q | --quiet | --silent] [-s | --no-messages] [-b | --byte-offset] [-H | --with-filename] [-h | --no-filename] [--label=LABEL] [-n | --line-number] [-T | --initial-tab] [-u | --unix-byte-offsets] [-Z | --null] [-A num] [--after-context=NUM] [-B num] [--before-context=NUM] [-C num] [--context=NUM] [-a | --text] [--binary-files=TYPE] [-d ACTION] [--directories=ACTION] [-D ACTION] [--devices=ACTION] [--exclude=GLOB] [--exclude-from=FILE] [--exclude-dir=DIR] [-I] [--include=GLOB] [-R | -r | --recursive] [--line-buffered] [--mmap] [-U | --binary] [-z | --null] [--label] pattern [file...]
 
-        egrep [--help] [-V | --version] [-E | --extended-regexp] [-F | --fixed-strings] [-G | --basic-regexp] [-P | --perl-regexp] [-e pattern] [--regexp=pattern] [-f file] [--file=file] [-i | --ignore-case] [-v | --invert-match] [-w | --word-regexp] [-x | --line-regexp] [-y] [-c | --count] [--color[=when]] [--colour[=when]] [-L | --files-without-match] [-l | --files-with-matches] [-m NUM] [--max-count=NUM] [-o | --only-matching] [-q | --quiet | --silent] [-s | --no-messages] [-b | --byte-offset] [-H | --with-filename] [-h | --no-filename] [--label=LABEL] [-n | --line-number] [-T | --initial-tab] [-u | --unix-byte-offsets] [-Z | --null] [-A num] [--after-context=NUM] [-B num] [--before-context=NUM] [-C num] [--context=NUM] [-a | --text] [--binary-files=TYPE] [-d ACTION] [--directories=ACTION] [-D ACTION] [--devices=ACTION] [--exclude=GLOB] [--exclude-from=FILE] [--exclude-dir=DIR] [-I] [--include=GLOB] [-R | -r | --recursive] [--line-buffered] [--mmap] [-U | --binary] [-z | --null] [--label] pattern [file...]
+                egrep [--help] [-V | --version] [-E | --extended-regexp] [-F | --fixed-strings] [-G | --basic-regexp] [-P | --perl-regexp] [-e pattern] [--regexp=pattern] [-f file] [--file=file] [-i | --ignore-case] [-v | --invert-match] [-w | --word-regexp] [-x | --line-regexp] [-y] [-c | --count] [--color[=when]] [--colour[=when]] [-L | --files-without-match] [-l | --files-with-matches] [-m NUM] [--max-count=NUM] [-o | --only-matching] [-q | --quiet | --silent] [-s | --no-messages] [-b | --byte-offset] [-H | --with-filename] [-h | --no-filename] [--label=LABEL] [-n | --line-number] [-T | --initial-tab] [-u | --unix-byte-offsets] [-Z | --null] [-A num] [--after-context=NUM] [-B num] [--before-context=NUM] [-C num] [--context=NUM] [-a | --text] [--binary-files=TYPE] [-d ACTION] [--directories=ACTION] [-D ACTION] [--devices=ACTION] [--exclude=GLOB] [--exclude-from=FILE] [--exclude-dir=DIR] [-I] [--include=GLOB] [-R | -r | --recursive] [--line-buffered] [--mmap] [-U | --binary] [-z | --null] [--label] pattern [file...]
 
-        fgrep [--help] [-V | --version] [-E | --extended-regexp] [-F | --fixed-strings] [-G | --basic-regexp] [-P | --perl-regexp] [-e pattern] [--regexp=pattern] [-f file] [--file=file] [-i | --ignore-case] [-v | --invert-match] [-w | --word-regexp] [-x | --line-regexp] [-y] [-c | --count] [--color[=when]] [--colour[=when]] [-L | --files-without-match] [-l | --files-with-matches] [-m NUM] [--max-count=NUM] [-o | --only-matching] [-q | --quiet | --silent] [-s | --no-messages] [-b | --byte-offset] [-H | --with-filename] [-h | --no-filename] [--label=LABEL] [-n | --line-number] [-T | --initial-tab] [-u | --unix-byte-offsets] [-Z | --null] [-A num] [--after-context=NUM] [-B num] [--before-context=NUM] [-C num] [--context=NUM] [-a | --text] [--binary-files=TYPE] [-d ACTION] [--directories=ACTION] [-D ACTION] [--devices=ACTION] [--exclude=GLOB] [--exclude-from=FILE] [--exclude-dir=DIR] [-I] [--include=GLOB] [-R | -r | --recursive] [--line-buffered] [--mmap] [-U | --binary] [-z | --null] [--label] pattern [file...]
+                fgrep [--help] [-V | --version] [-E | --extended-regexp] [-F | --fixed-strings] [-G | --basic-regexp] [-P | --perl-regexp] [-e pattern] [--regexp=pattern] [-f file] [--file=file] [-i | --ignore-case] [-v | --invert-match] [-w | --word-regexp] [-x | --line-regexp] [-y] [-c | --count] [--color[=when]] [--colour[=when]] [-L | --files-without-match] [-l | --files-with-matches] [-m NUM] [--max-count=NUM] [-o | --only-matching] [-q | --quiet | --silent] [-s | --no-messages] [-b | --byte-offset] [-H | --with-filename] [-h | --no-filename] [--label=LABEL] [-n | --line-number] [-T | --initial-tab] [-u | --unix-byte-offsets] [-Z | --null] [-A num] [--after-context=NUM] [-B num] [--before-context=NUM] [-C num] [--context=NUM] [-a | --text] [--binary-files=TYPE] [-d ACTION] [--directories=ACTION] [-D ACTION] [--devices=ACTION] [--exclude=GLOB] [--exclude-from=FILE] [--exclude-dir=DIR] [-I] [--include=GLOB] [-R | -r | --recursive] [--line-buffered] [--mmap] [-U | --binary] [-z | --null] [--label] pattern [file...]
 
-        which [-a | --all] [--read-alias | -i] [--skip-alias] [--read-functions] [--skip-functions] [--skip-dot] [--skip-tilde] [--show-dot] [--show-tilde] [--tty-only] [--version | -v | -V] [--help] programname...
+                which [-a | --all] [--read-alias | -i] [--skip-alias] [--read-functions] [--skip-functions] [--skip-dot] [--skip-tilde] [--show-dot] [--show-tilde] [--tty-only] [--version | -v | -V] [--help] programname...
 
-        chmod [-R [-H | -L | -P]] [ -c | --changes ] [ -f | --silent | --quiet ] [ -v | --verbose ] [ --no-preserve-root ] [ --preserve-root ] [ -R | --recursive ] [ --help ] [ --version ] PERMMODE,... FILE...
-        
-        chmod [-R [-H | -L | -P]] [ -c | --changes ] [ -f | --silent | --quiet ] [ -v | --verbose ] [ --no-preserve-root ] [ --preserve-root ] [ -R | --recursive ] [ --help ] [ --version ] OCTAL-MODE FILE...
-        
-        chmod [-R [-H | -L | -P]] [ -c | --changes ] [ -f | --silent | --quiet ] [ -v | --verbose ] [ --no-preserve-root ] [ --preserve-root ] [ -R | --recursive ] [ --help ] [ --version ] --reference=RFILE FILE...
+                chmod [-R [-H | -L | -P]] [ -c | --changes ] [ -f | --silent | --quiet ] [ -v | --verbose ] [ --no-preserve-root ] [ --preserve-root ] [ -R | --recursive ] [ --help ] [ --version ] PERMMODE,... FILE...
+                
+                chmod [-R [-H | -L | -P]] [ -c | --changes ] [ -f | --silent | --quiet ] [ -v | --verbose ] [ --no-preserve-root ] [ --preserve-root ] [ -R | --recursive ] [ --help ] [ --version ] OCTAL-MODE FILE...
+                
+                chmod [-R [-H | -L | -P]] [ -c | --changes ] [ -f | --silent | --quiet ] [ -v | --verbose ] [ --no-preserve-root ] [ --preserve-root ] [ -R | --recursive ] [ --help ] [ --version ] --reference=RFILE FILE...
 
-        chown [-R [-H | -L | -P]] [ -c | --changes ] [ -f | --silent | --quiet ] [ -v | --verbose ] [ --dereference ] [ -h | --no-dereference ] [ --no-preserve-root ] [ --preserve-root ] [ -R | --recursive ] owner<[OWNER][:[GROUP]]> FILE...
+                chown [-R [-H | -L | -P]] [ -c | --changes ] [ -f | --silent | --quiet ] [ -v | --verbose ] [ --dereference ] [ -h | --no-dereference ] [ --no-preserve-root ] [ --preserve-root ] [ -R | --recursive ] owner<[OWNER][:[GROUP]]> FILE...
 
-        chown [-R [-H | -L | -P]] [ -c | --changes ] [ -f | --silent | --quiet ] [ -v | --verbose ] [ --dereference ] [ -h | --no-dereference ] [ --no-preserve-root ] [ --preserve-root ] [ -R | --recursive ] --reference=RFILE FILE...
+                chown [-R [-H | -L | -P]] [ -c | --changes ] [ -f | --silent | --quiet ] [ -v | --verbose ] [ --dereference ] [ -h | --no-dereference ] [ --no-preserve-root ] [ --preserve-root ] [ -R | --recursive ] --reference=RFILE FILE...
 
-        chgrp [-R [-H | -L | -P]] [ -c | --changes ] [ -f | --silent | --quiet ] [ -v | --verbose ] [ --dereference ] [ -h | --no-dereference ] [ --no-preserve-root ] [ --preserve-root ] [ -R | --recursive ]  group file...
+                chgrp [-R [-H | -L | -P]] [ -c | --changes ] [ -f | --silent | --quiet ] [ -v | --verbose ] [ --dereference ] [ -h | --no-dereference ] [ --no-preserve-root ] [ --preserve-root ] [ -R | --recursive ]  group file...
 
-        chgrp [-R [-H | -L | -P]] [ -c | --changes ] [ -f | --silent | --quiet ] [ -v | --verbose ] [ --dereference ] [ -h | --no-dereference ] [ --no-preserve-root ] [ --preserve-root ] [ -R | --recursive ]  --reference=RFILE file...
+                chgrp [-R [-H | -L | -P]] [ -c | --changes ] [ -f | --silent | --quiet ] [ -v | --verbose ] [ --dereference ] [ -h | --no-dereference ] [ --no-preserve-root ] [ --preserve-root ] [ -R | --recursive ]  --reference=RFILE file...
 
-        clear
+                clear
 
-        * sudo [ -h | -K | -k | -V ]
+                * sudo [ -h | -K | -k | -V ]
 
-        * sudo -v [-AknS::] [ -g gname ] [ -p prompt ] [ -u uname ]
+                * sudo -v [-AknS::] [ -g gname ] [ -p prompt ] [ -u uname ]
 
-        * sudo -I -l [-AknS::] [ -g gname ] [ -p prompt ] [ -U uname ] [ -u uname ] COMMAND
+                * sudo -I -l [-AknS::] [ -g gname ] [ -p prompt ] [ -U uname ] [ -u uname ] COMMAND
 
-        * sudo [-AbEHnPS::] [-C fd] [-g groupname] [-p prompt] [-r role] [-t type] [-u username] [VAR=value] [-i COMMAND]
+                * sudo [-AbEHnPS::] [-C fd] [-g groupname] [-p prompt] [-r role] [-t type] [-u username] [VAR=value] [-i COMMAND]
 
-        * sudo [-AbEHnPS::] [-C fd] [-g groupname] [-p prompt] [-r role] [-t type] [-u username] [VAR=value] [-s COMMAND]
+                * sudo [-AbEHnPS::] [-C fd] [-g groupname] [-p prompt] [-r role] [-t type] [-u username] [VAR=value] [-s COMMAND]
 
-        su [-DASH | -l | -login] [ -c command] [ --command=COMMAND ] [--session-command=COMMAND] [-f | --fast] [ -s SHELL] [  --shell SHELL ] [ -m | -p | --preserve-environment ] [username]
+                su [-DASH | -l | -login] [ -c command] [ --command=COMMAND ] [--session-command=COMMAND] [-f | --fast] [ -s SHELL] [  --shell SHELL ] [ -m | -p | --preserve-environment ] [username]
 
-        wc  [ -c | --bytes ] [ -m | --chars ] [ -l | --lines ] [ -L | --max-line-length ] [ -w | --words ] [   --help ] [ --version ] [FILE...]
+                wc  [ -c | --bytes ] [ -m | --chars ] [ -l | --lines ] [ -L | --max-line-length ] [ -w | --words ] [   --help ] [ --version ] [FILE...]
 
-        wc  [ -c | --bytes ] [ -m | --chars ] [ -l | --lines ] [ -L | --max-line-length ] [ -w | --words ] [   --help ] [ --version ] --files0-from=F
+                wc  [ -c | --bytes ] [ -m | --chars ] [ -l | --lines ] [ -L | --max-line-length ] [ -w | --words ] [   --help ] [ --version ] --files0-from=F
 
-        sort  [ -b | --ignore-leading-blanks ] [ -d | --dictionary-order ] [ -f | --ignore-case ] [ -g | --general-numeric-sort ] [ -i | --ignore-nonprinting ] [ -M | --month-sort ] [ -h | --human-numeric-sort ] [ -n | --numeric-sort ] [ -R | --random-sort ] [ --random-source=FILE ] [ -r | --reverse ] [ --sort=WORD ] [ -V | --version-sort ] [--batch-size=nmerge] [ -c ] [--check[=mode]] [-C] [--compress-program=PROG] [-k POS,...] [--key=POS,...] [-m, --merge] [-o FILE] [--output=FILE] [-s | --stable] [-S SIZE] [--buffer-size=SIZE] [-t SEP] [--field-separator=SEP] [-T DIR] [--temporary-directory=DIR] [-u | --unique] [-z | --zero-terminated ] [--help] [--version] [FILE...]
+                sort  [ -b | --ignore-leading-blanks ] [ -d | --dictionary-order ] [ -f | --ignore-case ] [ -g | --general-numeric-sort ] [ -i | --ignore-nonprinting ] [ -M | --month-sort ] [ -h | --human-numeric-sort ] [ -n | --numeric-sort ] [ -R | --random-sort ] [ --random-source=FILE ] [ -r | --reverse ] [ --sort=WORD ] [ -V | --version-sort ] [--batch-size=nmerge] [ -c ] [--check[=mode]] [-C] [--compress-program=PROG] [-k POS,...] [--key=POS,...] [-m, --merge] [-o FILE] [--output=FILE] [-s | --stable] [-S SIZE] [--buffer-size=SIZE] [-t SEP] [--field-separator=SEP] [-T DIR] [--temporary-directory=DIR] [-u | --unique] [-z | --zero-terminated ] [--help] [--version] [FILE...]
 
-        sort  [ -b | --ignore-leading-blanks ] [ -d | --dictionary-order ] [ -f | --ignore-case ] [ -g | --general-numeric-sort ] [ -i | --ignore-nonprinting ] [ -M | --month-sort ] [ -h | --human-numeric-sort ] [ -n | --numeric-sort ] [ -R | --random-sort ] [ --random-source=FILE ] [ -r | --reverse ] [ --sort=WORD ] [ -V | --version-sort ] [--batch-size=nmerge] [ -c ] [--check[=mode]] [-C] [--compress-program=PROG] [-k POS,...] [--key=POS,...] [-m, --merge] [-o FILE] [--output=FILE] [-s | --stable] [-S SIZE] [--buffer-size=SIZE] [-t SEP] [--field-separator=SEP] [-T DIR] [--temporary-directory=DIR] [-u | --unique] [-z | --zero-terminated ] [--help] [--version] --files0-from=F
+                sort  [ -b | --ignore-leading-blanks ] [ -d | --dictionary-order ] [ -f | --ignore-case ] [ -g | --general-numeric-sort ] [ -i | --ignore-nonprinting ] [ -M | --month-sort ] [ -h | --human-numeric-sort ] [ -n | --numeric-sort ] [ -R | --random-sort ] [ --random-source=FILE ] [ -r | --reverse ] [ --sort=WORD ] [ -V | --version-sort ] [--batch-size=nmerge] [ -c ] [--check[=mode]] [-C] [--compress-program=PROG] [-k POS,...] [--key=POS,...] [-m, --merge] [-o FILE] [--output=FILE] [-s | --stable] [-S SIZE] [--buffer-size=SIZE] [-t SEP] [--field-separator=SEP] [-T DIR] [--temporary-directory=DIR] [-u | --unique] [-z | --zero-terminated ] [--help] [--version] --files0-from=F
 
-        * ssh [-1246AaCfgKkMNnqsTtVvXxYy::] [-b bind_address] [-c cipher_spec] [-D port<[bind_address:]port>] [-E log_file] [-e escape_char] [-F configfile] [-I pkcs11] [-i identity_file] [-L hostport<[bind_address:]port:host:hostport>] [-l login_name] [-m mac_spec,...] [-O ctl_cmd] [-o option] [-p port] [-Q option] [-R hostport<[bind_address:]port:host:hostport>] [-S ctl_path] [-W port<host:port>] [-w local_tun<local_tun[:remote_tun]>] hostname<[user@]hostname> [command]
+                * ssh [-1246AaCfgKkMNnqsTtVvXxYy::] [-b bind_address] [-c cipher_spec] [-D port<[bind_address:]port>] [-E log_file] [-e escape_char] [-F configfile] [-I pkcs11] [-i identity_file] [-L hostport<[bind_address:]port:host:hostport>] [-l login_name] [-m mac_spec,...] [-O ctl_cmd] [-o option] [-p port] [-Q option] [-R hostport<[bind_address:]port:host:hostport>] [-S ctl_path] [-W port<host:port>] [-w local_tun<local_tun[:remote_tun]>] hostname<[user@]hostname> [command]
 
-        * ssh-keygen [-q] [-b bits] [-t type] [-N new_passphrase] [-C comment] [-f output_keyfile]
-        
-        * ssh-keygen -p [-P old_passphrase] [-N new_passphrase] [-f keyfile]
-        
-        * ssh-keygen -i [-m key_format] [-f input_keyfile]
-        
-        * ssh-keygen -e [-m key_format] [-f input_keyfile]
-        
-        * ssh-keygen -y [-f input_keyfile]
-        
-        * ssh-keygen -c [-P passphrase] [-C comment] [-f keyfile]
-        
-        * ssh-keygen -l [-f input_keyfile]
-        
-        * ssh-keygen -B [-f input_keyfile]
-        
-        * ssh-keygen [-D pkcs11]
-        
-        * ssh-keygen [-F hostname] [-f known_hosts_file] [-l]
-        
-        * ssh-keygen -H [-f known_hosts_file]
-        
-        * ssh-keygen [-R hostname] [-f known_hosts_file]
-        
-        * ssh-keygen [-r hostname] [-f input_keyfile] [-g]
-        
-        * ssh-keygen [-G output_file] [-v] [-b bits] [-M memory] [-S start_point]
-        
-        * ssh-keygen [-T output_file] [-f input_file] [-v] [-a rounds] [-J num_lines] [-j start_line] [-K checkpt] [-W generator]
-        
-        * ssh-keygen [-s ca_key] [-I certificate_identity] [-h] [-n principal,...] [-O option] [-V validity_interval] [-z serial_number] file...
-        
-        * ssh-keygen -L [-f input_keyfile]
-        
-        * ssh-keygen -A
-        
-        * ssh-keygen -k [-f krl_file] [-u] [-s ca_public] [-z version_number] file...
-        
-        * ssh-keygen -Q [-f krl_file] file...
+                * ssh-keygen [-q] [-b bits] [-t type] [-N new_passphrase] [-C comment] [-f output_keyfile]
+                
+                * ssh-keygen -p [-P old_passphrase] [-N new_passphrase] [-f keyfile]
+                
+                * ssh-keygen -i [-m key_format] [-f input_keyfile]
+                
+                * ssh-keygen -e [-m key_format] [-f input_keyfile]
+                
+                * ssh-keygen -y [-f input_keyfile]
+                
+                * ssh-keygen -c [-P passphrase] [-C comment] [-f keyfile]
+                
+                * ssh-keygen -l [-f input_keyfile]
+                
+                * ssh-keygen -B [-f input_keyfile]
+                
+                * ssh-keygen [-D pkcs11]
+                
+                * ssh-keygen [-F hostname] [-f known_hosts_file] [-l]
+                
+                * ssh-keygen -H [-f known_hosts_file]
+                
+                * ssh-keygen [-R hostname] [-f known_hosts_file]
+                
+                * ssh-keygen [-r hostname] [-f input_keyfile] [-g]
+                
+                * ssh-keygen [-G output_file] [-v] [-b bits] [-M memory] [-S start_point]
+                
+                * ssh-keygen [-T output_file] [-f input_file] [-v] [-a rounds] [-J num_lines] [-j start_line] [-K checkpt] [-W generator]
+                
+                * ssh-keygen [-s ca_key] [-I certificate_identity] [-h] [-n principal,...] [-O option] [-V validity_interval] [-z serial_number] file...
+                
+                * ssh-keygen -L [-f input_keyfile]
+                
+                * ssh-keygen -A
+                
+                * ssh-keygen -k [-f krl_file] [-u] [-s ca_public] [-z version_number] file...
+                
+                * ssh-keygen -Q [-f krl_file] file...
 
-        scp [-12346BCpqrv::] [-c cipher] [-F ssh_config] [-i identity_file] [-l limit] [-o ssh_option] [-P port] [-S program] source<[[user@]host1:]file1>... dest<[[user@]host2:]file2>
+                scp [-12346BCpqrv::] [-c cipher] [-F ssh_config] [-i identity_file] [-l limit] [-o ssh_option] [-P port] [-S program] source<[[user@]host1:]file1>... dest<[[user@]host2:]file2>
 
-        rsync [ --address[=address] ] [ --append ] [ --append-verify ] [ --backup-dir[=DIR] ] [ --blocking-io ] [ --bwlimit[=RATE] ] [ --checksum-seed[=NUM] ] [ --chmod=[MODE] ] [ --compare-dest[=DIR] ] [ --compress-level[=NUM] ] [ --config=FILE ] [ --contimeout[=SECONDS] ] [ --copy-dest[=DIR] ] [ --copy-unsafe-links ] [ --daemon ] [ --debug[=FLAGS] ] [ --delay-updates ] [ --delete ] [ --delete-after ] [ --delete-before ] [ --delete-delay ] [ --delete-during | --del ] [ --delete-excluded ] [ --delete-missing-args ] [ --devices ] [ --exclude-from[=FILE] ] [ --exclude[=PATTERN] ] [ --existing | --ignore-non-existing ] [ --fake-super ] [ --files-from[=FILE] ] [ --filter[=RULE] ] [ --force ] [ --groupmap[=STRING] ] [ --iconv[=CONVERT_SPEC] ] [ --ignore-errors ] [ --ignore-existing ] [ --ignore-missing-args ] [ --include-from[=FILE] ] [ --include[=PATTERN] ] [ --info[=FLAGS] ] [ --inplace ] [ --link-dest[=DIR] ] [ --list-only ] [ --log-file-format[=FORMAT] ] [ --log-file[=FILE] ] [ --max-delete[=NUM] ] [ --max-size[=SIZE] ] [ --min-size[=SIZE] ] [ --modify-window[=NUM] ] [ --msgs2stderr ] [ --munge-links ] [ --no-OPTION ] [ --no-detach ] [ --no-implied-dirs ] [ --no-motd ] [ --numeric-ids ] [ --only-write-batch[=FILE] ] [ --out-format[=FORMAT] ] [ --outbuf[=MODE] ] [ --partial ] [ --partial-dir[=DIR] ] [ --password-file[=FILE] ] [ --port[=PORT] ] [ --preallocate ] [ --progress ] [ --protocol[=NUM] ] [ --read-batch[=FILE] ] [ --remove-source-files ] [ --rsh=COMMAND ] [ --rsync-path[=PROGRAM] ] [ --safe-links ] [ --size-only ] [ --skip-compress[=LIST] ] [ --sockopts[=OPTIONS] ] [ --specials ] [ --stats ] [ --suffix[=SUFFIX] ] [ --super ] [ --temp-dir[=DIR] ] [ --timeout[=TIMEOUT] ] [ --usermap[=STRING] ] [ --version ] [ --write-batch[=FILE] ] [ -0 | --from0 ] [ -4 | --ipv4 ] [ -6 | --ipv6 ] [ -8 | --8-bit-output ] [ -A | --acls ] [ -B | --block-size[=BLOCKSIZE] ] [ -C | --cvs-exclude ] [ -D ] [ -E | --executability ] [ -F ] [ -H | --hard-links ] [ -I | --ignore-times ] [ -J | --omit-link-times ] [ -K | --keep-dirlinks ] [ -L | --copy-links ] [ -M | --remote-option[=OPTION] ] [ -O | --omit-dir-times ] [ -P ] [ -R | --relative ] [ -S | --sparse ] [ -T [DIR] ] [ -W | --whole-file ] [ -X | --xattrs ] [ -a | --archive ] [ -b | --backup ] [ -c | --checksum ] [ -d | --dirs ] [ -e COMMAND] [ -f [RULE] ] [ -g | --group ] [ -h | --human-readable ] [ -i | --itemize-changes ] [ -k | --copy-dirlinks ] [ -l | --links ] [ -m | --prune-empty-dirs ] [ -n | --dry-run ] [ -o | --owner ] [ -p | --perms ] [ -q | --quiet ] [ -r | --recursive ] [ -s | --protect-args ] [ -t | --times ] [ -u | --update ] [ -v | --verbose ] [ -x | --one-file-system ] [ -y | --fuzzy ] [ -z | --compress ] [ -h | --help] SRC... [DEST]
+                rsync [ --address[=address] ] [ --append ] [ --append-verify ] [ --backup-dir[=DIR] ] [ --blocking-io ] [ --bwlimit[=RATE] ] [ --checksum-seed[=NUM] ] [ --chmod[=MODE] ] [ --compare-dest[=DIR] ] [ --compress-level[=NUM] ] [ --config=FILE ] [ --contimeout[=SECONDS] ] [ --copy-dest[=DIR] ] [ --copy-unsafe-links ] [ --daemon ] [ --debug[=FLAGS] ] [ --delay-updates ] [ --delete ] [ --delete-after ] [ --delete-before ] [ --delete-delay ] [ --delete-during | --del ] [ --delete-excluded ] [ --delete-missing-args ] [ --devices ] [ --exclude-from[=FILE] ] [ --exclude[=PATTERN] ] [ --existing | --ignore-non-existing ] [ --fake-super ] [ --files-from[=FILE] ] [ --filter[=RULE] ] [ --force ] [ --groupmap[=STRING] ] [ --iconv[=CONVERT_SPEC] ] [ --ignore-errors ] [ --ignore-existing ] [ --ignore-missing-args ] [ --include-from[=FILE] ] [ --include[=PATTERN] ] [ --info[=FLAGS] ] [ --inplace ] [ --link-dest[=DIR] ] [ --list-only ] [ --log-file-format[=FORMAT] ] [ --log-file[=FILE] ] [ --max-delete[=NUM] ] [ --max-size[=SIZE] ] [ --min-size[=SIZE] ] [ --modify-window[=NUM] ] [ --msgs2stderr ] [ --munge-links ] [ --no-OPTION ] [ --no-detach ] [ --no-implied-dirs ] [ --no-motd ] [ --numeric-ids ] [ --only-write-batch[=FILE] ] [ --out-format[=FORMAT] ] [ --outbuf[=MODE] ] [ --partial ] [ --partial-dir[=DIR] ] [ --password-file[=FILE] ] [ --port[=PORT] ] [ --preallocate ] [ --progress ] [ --protocol[=NUM] ] [ --read-batch[=FILE] ] [ --remove-source-files ] [ --rsh=COMMAND ] [ --rsync-path[=PROGRAM] ] [ --safe-links ] [ --size-only ] [ --skip-compress[=LIST] ] [ --sockopts[=OPTIONS] ] [ --specials ] [ --stats ] [ --suffix[=SUFFIX] ] [ --super ] [ --temp-dir[=DIR] ] [ --timeout[=TIMEOUT] ] [ --usermap[=STRING] ] [ --version ] [ --write-batch[=FILE] ] [ -0 | --from0 ] [ -4 | --ipv4 ] [ -6 | --ipv6 ] [ -8 | --8-bit-output ] [ -A | --acls ] [ -B | --block-size[=BLOCKSIZE] ] [ -C | --cvs-exclude ] [ -D ] [ -E | --executability ] [ -F ] [ -H | --hard-links ] [ -I | --ignore-times ] [ -J | --omit-link-times ] [ -K | --keep-dirlinks ] [ -L | --copy-links ] [ -M | --remote-option[=OPTION] ] [ -O | --omit-dir-times ] [ -P ] [ -R | --relative ] [ -S | --sparse ] [ -T [DIR] ] [ -W | --whole-file ] [ -X | --xattrs ] [ -a | --archive ] [ -b | --backup ] [ -c | --checksum ] [ -d | --dirs ] [ -e COMMAND] [ -f [RULE] ] [ -g | --group ] [ -h | --human-readable ] [ -i | --itemize-changes ] [ -k | --copy-dirlinks ] [ -l | --links ] [ -m | --prune-empty-dirs ] [ -n | --dry-run ] [ -o | --owner ] [ -p | --perms ] [ -q | --quiet ] [ -r | --recursive ] [ -s | --protect-args ] [ -t | --times ] [ -u | --update ] [ -v | --verbose ] [ -x | --one-file-system ] [ -y | --fuzzy ] [ -z | --compress ] [ -h | --help] SRC... [DEST]
 
         ln  [ --backup[=CONTROL] ] [ -b ] [ -d | -F | --directory ] [ -f | --force ] [ -i | --interactive ] [ -L | --logical ] [ -n | --no-dereference ] [ -P | --physical ] [ -r | --relative ] [ -s | --symbolic ] [ -S SUFFIX] [ --suffix=SUFFIX ] [ -v | --verbose ] [   --help ] [ --version ] [ -T | --no-target-directory ] TARGET LINK_NAME
 
