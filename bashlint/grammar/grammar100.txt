@@ -460,11 +460,17 @@ PrimitiveCmd ::=
 
         uncompress -c [file]
 
-        ifconfig [interface]
+        ifconfig [-f [typefmt<type:format>,...]] [-L] [-k] [-m] [-n] interface [create] [address...] [address [dest_address]] [parameters]
 
-        ifconfig interface [aftype] option...
+        ifconfig interface	destroy
 
-        ifconfig interface [aftype] address...
+        ifconfig -a [-L] [-d] [-m]	[-u] [-v] [address...]
+
+        ifconfig -l [-d] [-u] [address...]
+
+        ifconfig [-L] [-d]	[-k] [-m] [-u] [-v] [-C]
+
+        ifconfig [-g groupname]
 
         mount [-lhV::]
 
