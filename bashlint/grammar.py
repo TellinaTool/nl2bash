@@ -402,7 +402,6 @@ class BashGrammar(object):
 
         utility, synopsis = line.strip().split(' ', 1)
         synopsis += ' '
-        # print(utility, synopsis)
         if not utility in self.grammar:
             u_state = UtilityState(utility)
             self.grammar[utility] = u_state
