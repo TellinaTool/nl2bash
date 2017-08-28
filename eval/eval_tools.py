@@ -799,9 +799,11 @@ def load_cached_evaluation_results(model_dir, decode_sig):
     return evaluation_results
 
 
-def accuracy_by_utility(eval_by_utility_path):
+def gen_accuracy_by_utility_csv(eval_by_utility_path):
     num_template_correct = collections.defaultdict(int)
     num_command_correct = collections.defaultdict(int)
+    num_annotation_errors = collections.defaultdict(int)
+    num_complex_tasks = collections.defaultdict(int)
     num_examples = collections.defaultdict(int)
     with open(eval_by_utility_path) as f:
         reader = csv.DictReader(f)
@@ -812,15 +814,25 @@ def accuracy_by_utility(eval_by_utility_path):
                 num_template_correct[utility] += 1
             if row['correct command'] == 'y':
                 num_command_correct[utility] += 1
-    with open(os.path.join(os.path.dirname(eval_by_utility_path),
-                           'accuracy.by.utility.csv'), 'w') as o_f:
+            if row['correct template'] == 'poor description':
+                num_annotation_errors[utility] += 1
+            if row['correct template'] == 'complex task':
+                num_complex_tasks[utility] += 1
+    output_path = os.path.join(os.path.dirname(eval_by_utility_path),
+            'accuracy.by.utility.csv')
+    print('Save accuracy by utility metrics to {}'.format(output_path))
+    with open(output_path, 'w') as o_f: 
+        # print csv file header
+        o_f.write('ID,utility,# train,# test,template accuracy,command accuracy,% annotation errors,% complex tasks,% annotation problems\n')
         for line in bash.utility_stats.split('\n'):
             _, utility, _, _ = line.split(',')
-            if line in num_examples:
+            if utility in num_examples:
                 num_exps = num_examples[utility]
                 template_acc = round(float(num_template_correct[utility]) / num_exps, 2)
                 command_acc = round(float(num_command_correct[utility]) / num_exps, 2)
-                o_f.write('{},{},{}\n'.format(line, template_acc, command_acc))
+                annotation_error_rate = round(float(num_annotation_errors[utility]) / num_exps, 2)
+                complex_task_rate = round(float(num_complex_tasks[utility]) / num_exps, 2) 
+                o_f.write('{},{},{},{},{},{}\n'.format(line, template_acc, command_acc, annotation_error_rate, complex_task_rate, (annotation_error_rate+complex_task_rate)))
 
 
 # Unit Tests
@@ -840,5 +852,5 @@ def test_ted():
 
 
 if __name__ == "__main__":
-    input_dir = sys.argv[1]
-    import_manual_annotations_from_files(input_dir)
+    eval_file = sys.argv[1]
+    gen_accuracy_by_utility_csv(eval_file)
