@@ -1,13 +1,15 @@
-## Heuristics-Based Bash Parser
+## Bash Command Parser
 
-This submodule is a generic bash command parser, which is a version of the [bashlex](https://github.com/idank/bashlex) tool augmented with utility-flag, utility-argument and flag-argument relationships. 
+This submodule is a bash command parser which augments the [bashlex](https://github.com/idank/bashlex) tool with utility-flag, utility-argument and flag-argument edges. 
 
-_The parser cannot parse multi-command code blocks._
+_The parser cannot parse the following code structures._
+1. Multi-statement code blocks.
 
-### Test the parser in a simple interactive commandline interface:
+
+### Test the parser in a simple commandline interface:
 
 ```
-python data_tools.py
+python3 -m bashlint.data_tools
 ```
 
 ### Input: 

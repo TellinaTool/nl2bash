@@ -7,13 +7,12 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import inspect
 import sys
 
 if sys.version_info > (3, 0):
     from six.moves import xrange
 
-from bashlint import bash, nast, lint
+from bashlint import nast, lint
 from nlp_tools import constants
 
 flag_suffix = '<FLAG_SUFFIX>'
@@ -23,10 +22,34 @@ def correct_errors_and_normalize_surface(cm):
     return lint.correct_errors_and_normalize_surface(cm)
 
 
+def get_utility_statistics(utility):
+    return lint.get_utility_statistics(utility)
+
+
+def get_utilities(ast):
+    def get_utilities_fun(node):
+        utilities = set([])
+        if node.is_utility():
+            utilities.add(node.value)
+            for child in node.children:
+                utilities = utilities.union(get_utilities_fun(child))
+        elif not node.is_argument():
+            for child in node.children:
+                utilities = utilities.union(get_utilities_fun(child))
+        return utilities
+
+    if not ast:
+        return set([])
+    else:
+        return get_utilities_fun(ast)
+
+
 def bash_tokenizer(cmd, recover_quotation=True, loose_constraints=False,
         ignore_flag_order=False, arg_type_only=False, with_flag_head=False,
         with_flag_argtype=False, with_prefix=False):
-    """Tokenize a bash command."""
+    """
+    Tokenize a bash command.
+    """
     tree = lint.normalize_ast(cmd, recover_quotation)
     return ast2tokens(tree, loose_constraints, ignore_flag_order,
                       arg_type_only, with_flag_head=with_flag_head,
@@ -34,21 +57,10 @@ def bash_tokenizer(cmd, recover_quotation=True, loose_constraints=False,
 
 
 def bash_parser(cmd, recover_quotation=True, verbose=True):
-    """Parse bash command into AST."""
+    """
+    Parse bash command into AST.
+    """
     return lint.normalize_ast(cmd, recover_quotation, verbose=verbose)
-
-
-def pretty_print(node, depth=0):
-    """Pretty print the AST."""
-    try:
-        str = "    " * depth + node.kind.upper() + '(' + node.value + ')'
-        if node.is_argument():
-            str += '<' + node.arg_type + '>'
-        print(str)
-        for child in node.children:
-            pretty_print(child, depth+1)
-    except AttributeError:
-        print("    " * depth)
 
 
 def ast2tokens(node, loose_constraints=False, ignore_flag_order=False,
@@ -94,7 +106,7 @@ def ast2tokens(node, loose_constraints=False, ignore_flag_order=False,
             if lc and node.get_num_of_children() < 1:
                 tokens.append("|")
             elif lc and node.get_num_of_children() == 1:
-                # treat "single-pipe" as atomic command
+                # treat "singleton-pipe" as atomic command
                 tokens += to_tokens_fun(node.children[0])
             else:
                 for child in node.children[:-1]:
@@ -201,7 +213,7 @@ def ast2tokens(node, loose_constraints=False, ignore_flag_order=False,
             if ato and node.is_open_vocab():
                 if keep_common_args:
                     # keep frequently-occurred arguments in the vocabulary
-                    # TODO: define criteria for "common args"
+                    # TODO: define the criteria for "common args"
                     token = node.value
                 else:
                     if node.arg_type in constants._QUANTITIES:
@@ -227,18 +239,21 @@ def ast2tokens(node, loose_constraints=False, ignore_flag_order=False,
                 for child in node.children:
                     tokens += to_tokens_fun(child)
         return tokens
+
     return to_tokens_fun(node)
 
 
 def ast2command(node, loose_constraints=False, ignore_flag_order=False):
-    return lint.serialize(node, loose_constraints=loose_constraints,
-                          ignore_flag_order=ignore_flag_order)
+    return lint.serialize_ast(node, loose_constraints=loose_constraints,
+                              ignore_flag_order=ignore_flag_order)
 
 
 def ast2template(node, loose_constraints=False, ignore_flag_order=False,
                  arg_type_only=True, indexing_args=False):
-    # convert a bash AST to a template that contains only reserved words and
-    # argument types flags are alphabetically ordered
+    """
+    Convert a bash AST to a template that contains only reserved words and
+    argument types flags are alphabetically ordered.
+    """
     tokens = ast2tokens(node, loose_constraints, ignore_flag_order,
                         arg_type_only=arg_type_only, 
                         indexing_args=indexing_args)
@@ -249,10 +264,25 @@ def cmd2template(cmd, recover_quotation=True, arg_type_only=True,
                 loose_constraints=False):
     """
     Convert a bash command to a template that contains only reserved words
-        and argument types flags are alphabetically ordered.
+    and argument types flags are alphabetically ordered.
     """
     tree = lint.normalize_ast(cmd, recover_quotation)
     return ast2template(tree, loose_constraints, arg_type_only)
+
+
+def pretty_print(node, depth=0):
+    """
+    Pretty print the AST.
+    """
+    try:
+        str = "    " * depth + node.kind.upper() + '(' + node.value + ')'
+        if node.is_argument():
+            str += '<' + node.arg_type + '>'
+        print(str)
+        for child in node.children:
+            pretty_print(child, depth+1)
+    except AttributeError:
+        print("    " * depth)
 
 
 def ast2list(node, order='dfs', _list=None, ignore_flag_order=False,
@@ -284,29 +314,6 @@ def ast2list(node, order='dfs', _list=None, ignore_flag_order=False,
     return _list
 
 
-def list2ast(list, order='dfs'):
-    """Convert the linearized parse tree back to the AST data structure."""
-    return lint.normalize_seq(list, order)
-
-
-def get_utilities(ast):
-    def get_utilities_fun(node):
-        utilities = set([])
-        if node.is_utility():
-            utilities.add(node.value)
-            for child in node.children:
-                utilities = utilities.union(get_utilities_fun(child))
-        elif not node.is_argument():
-            for child in node.children:
-                utilities = utilities.union(get_utilities_fun(child))
-        return utilities
-    
-    if not ast:
-        return set([])
-    else:
-        return get_utilities_fun(ast)
-
-
 def fill_default_value(node):
     """Fill empty slot in the bash ast with default value."""
     if node.is_argument():
@@ -318,7 +325,7 @@ def fill_default_value(node):
                 if node.parent.is_utility() and node.parent.value == 'grep':
                     node.value = '\'.*\''
                 elif node.parent.is_option() and node.parent.value == '-name' \
-                    and node.value == 'Regex':
+                        and node.value == 'Regex':
                     node.value = '"*"'
             elif node.arg_type == 'Number' and node.utility.value in ['head', 'tail']:
                 node.value = '10'
@@ -330,7 +337,7 @@ def fill_default_value(node):
             fill_default_value(child)
 
 
-# --- Parsers for other syntactic structures --- #
+# --- Other syntax parsers --- #
 
 def paren_parser(line):
     """A simple parser for parenthesized sequence."""
