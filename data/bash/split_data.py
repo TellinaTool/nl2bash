@@ -8,7 +8,7 @@ sys.path.append("..")
 sys.path.append("../../")
 sys.path.append("../../bashlint")
 
-from nlp_tools.tokenizer import basic_tokenizer
+from nlp_tools.tokenizer import basic_tokenizer, ner_tokenizer
 
 html_rel2abs = re.compile('"/[^\s<>]*/*http')
 hypothes_header = re.compile('\<\!\-\- WB Insert \-\-\>.*\<\!\-\- End WB Insert \-\-\>', re.DOTALL)
@@ -19,11 +19,10 @@ EDITDIST_THRESH = 8
 
 def split_data(data_dir):
     def write_data(data_path, data):
-        if not os.path.exists(data_path):
-            with open(data_path, 'w') as o_f:
-                for line in data:
-                    o_f.write(line + '\n')
-                print('{} saved'.format(data_path))
+        with open(data_path, 'w') as o_f:
+            for line in data:
+                o_f.write(line + '\n')
+            print('{} saved'.format(data_path))
 
     nl_file_path = os.path.join(data_dir, 'nl.txt')
     cm_file_path = os.path.join(data_dir, 'cm.txt')
@@ -48,7 +47,7 @@ def split_data(data_dir):
     test_nl_list = []
     test_cm_list = []
 
-    num_folds = 10
+    num_folds = 12
     num_train = 0
     num_dev = 0
     num_test = 0
