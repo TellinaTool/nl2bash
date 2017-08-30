@@ -251,9 +251,7 @@
 
         sleep [ --help ] [ --version ]
 
-        ps [-aCcefhjlmrSTuvwx::] [-M core] [-N system] [-O fmt] [-o fmt] [-p pid]
-
-        ps [-L]
+        ps [-AacdeFfHhjLlmMNrSTuVvwxyZ123::] [-C cmd...] [-G grp...] [-M core] [-N system] [-O fmt] [-U user...] [-g grp...] [-o fmt] [-ppid...] [-s sess...] [-t tty...] [-u user...] [--deselect] [--Group grp..] [--User user...] [--format format] [--group grp...] [--pid pid...] [--ppid pid...] [--sid sess...] [--tty tty...] [--user user...] [--context] [--cols n] [--columns n] [--cumulative] [--forest] [--headers] [--no-headers] [--lines n] [--rows n] [--sort spec] [--help] [--info] [--version]
 
         pstree [-a | --arguments] [-c | --compact] [-h | --highlight-all | -Hpid | --highlight-pid pid ] [-g | --show-pgids ] [-l | --long] [-n | --numeric-sort] [-p | --show-pids] [-s | --show-parents] [-u | --uid-changes] [-Z | --security-context] [-A | --ascii ] [ -G | --vt100 ] [ -U | --unicode] [pid]
 
