@@ -57,7 +57,7 @@ utility_stats = """1,find,103,5068,525
 54,gzip,34,27,3
 55,rev,4,27,2
 56,nl,24,25,5
-57,ifconfig,0,24,4
+57,ifconfig,12,24,4
 58,less,98,24,2
 59,seq,8,20,7
 60,ping,28,19,2
@@ -201,6 +201,42 @@ top_100_utilities = {
     'apt-get',
     'brew',
     'yum'
+}
+
+
+# Compilers
+BLACK_LIST = {
+    'cpp',
+    'g++',
+    'java',
+    'perl',
+    'python',
+    'ruby',
+    'nano',
+    'emacs',
+    'vim',
+    'awk',
+    'sed',
+    'less',
+    'more',
+    'screen',
+    'brew',
+    'yum',
+    'apt-get'
+}
+
+
+# Flow controls
+GREY_LIST = {
+    'alias',
+    'unalias',
+    'set',
+    'unset',
+    'export',
+    'shift',
+    'exit',
+    'logout',
+    'yes'
 }
 
 # --- Linux Utility by Category --- #
