@@ -755,12 +755,17 @@ def create_vocabulary(vocab_path, dataset, min_word_frequency=1,
     Compute the vocabulary of a tokenized dataset and save to file.
     """
     vocab = collections.defaultdict(int)
+    num_copy = collections.defaultdict(int)
     if parallel_dataset:
         for i, data_point in enumerate(dataset):
             parallel_data_point = parallel_dataset[i]
             for token in data_point:
-                if not token in parallel_data_point:
-                    vocab[token] += 1
+                vocab[token] += 1
+                if token in parallel_data_point:
+                    num_copy[token] += 1
+        for v in vocab:
+            if vocab[v] == num_copy[v]:
+                vocab[v] = 0
     else:
         for data_point in dataset:
             for token in data_point:
