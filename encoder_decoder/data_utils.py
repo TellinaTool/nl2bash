@@ -477,12 +477,10 @@ def prepare_channel(data_dir, nl_list, cm_list, split, channel,
     else:
         if channel == 'partial.token':
             nl_copy_tokens = [nl_to_partial_tokens(nl, tokenizer.basic_tokenizer,
-                                to_lower_case=False, lemmatization=False)
-                              for nl in nl_list]
+                to_lower_case=False, lemmatization=False) for nl in nl_list]
         else:
             nl_copy_tokens = [nl_to_tokens(nl, tokenizer.basic_tokenizer,
-                                to_lower_case=False, lemmatization=False)
-                              for nl in nl_list]
+                to_lower_case=False, lemmatization=False) for nl in nl_list]
         cm_copy_tokens = cm_tokens
     save_channel_features_to_file(data_dir, split, 'copy.{}'.format(channel),
         nl_copy_tokens, cm_copy_tokens, feature_separator=TOKEN_SEPARATOR)
