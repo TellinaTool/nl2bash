@@ -465,7 +465,7 @@ def prepare_channel(data_dir, nl_list, cm_list, split, channel,
     cm_vocab_path = os.path.join(data_dir, 'cm.vocab.{}'.format(channel))
     nl_vocab = create_vocabulary(nl_vocab_path, nl_tokens) \
         if split == 'train' else initialize_vocabulary(nl_vocab_path)[0]
-    cm_vocab = create_vocabulary(cm_vocab_path, cm_tokens) \
+    cm_vocab = create_vocabulary(cm_vocab_path, cm_tokens, parallel_dataset=nl_tokens) \
         if split == 'train' else initialize_vocabulary(cm_vocab_path)
     nl_ids = [tokens_to_ids(data_point, nl_vocab) for data_point in nl_tokens]
     cm_ids = [tokens_to_ids(data_point, cm_vocab) for data_point in cm_tokens]
@@ -752,14 +752,21 @@ def compute_pair_alignment(nl_tokens, cm_tokens, out_file):
 
 
 def create_vocabulary(vocab_path, dataset, min_word_frequency=1,
-                      is_character_model=False):
+                      is_character_model=False, parallel_dataset=None):
     """
     Compute the vocabulary of a tokenized dataset and save to file.
     """
     vocab = collections.defaultdict(int)
-    for data_point in dataset:
-        for token in data_point:
-            vocab[token] += 1
+    if parallel_dataset:
+        for i, data_point in enumerate(dataset):
+            parallel_data_point = parallel_dataset[i]
+            for token in data_point:
+                if not token in parallel_data_point:
+                    vocab[token] += 1
+    else:
+        for data_point in dataset:
+            for token in data_point:
+                vocab[token] += 1
     sorted_vocab = [(x, y) for x, y in sorted(vocab.items(), key=lambda x:x[1],
                     reverse=True) if y >= min_word_frequency]
     
