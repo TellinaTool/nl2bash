@@ -20,9 +20,8 @@ if sys.version_info > (3, 0):
 from bashlint import bash, data_tools, nast
 from encoder_decoder import data_utils
 from eval import token_based, tree_dist, zss
-from eval.eval_db import DBConnection
 from eval.dfa_equal import regexDFAEquals
-from nlp_tools import constants
+from nlp_tools import constants, tokenizer
 
 
 error_types = {
@@ -59,98 +58,105 @@ def eval_set(model_dir, decode_sig, dataset, top_k, FLAGS, verbose=True):
         raise ValueError("ground truth and predictions length must be equal: "
             "{} vs. {}".format(len(grouped_dataset), len(prediction_list)))
     
-    with DBConnection() as db:
-        num_eval = 0
-        top_k_temp_correct = np.zeros([len(grouped_dataset), top_k])
-        top_k_str_correct = np.zeros([len(grouped_dataset), top_k])
+    num_eval = 0
+    top_k_temp_correct = np.zeros([len(grouped_dataset), top_k])
+    top_k_str_correct = np.zeros([len(grouped_dataset), top_k])
+    if eval_bash:
+        top_k_cms = np.zeros([len(grouped_dataset), top_k])
+
+    # Load manual judgements
+    if eval_bash:
+        template_translations, command_translations = \
+            load_judgments(model_dir, decode_sig)
+
+    for data_id in xrange(len(grouped_dataset)):
+        _, data_group = grouped_dataset[data_id]
+        sc_str = data_group[0].sc_txt.strip()
+        sc_temp = normalize_nl(sc_str)
+        sc_tokens = [rev_sc_vocab[i] for i in data_group[0].sc_ids]
+        if FLAGS.channel == 'char':
+            sc_features = ''.join(sc_tokens)
+            sc_features = sc_features.replace(constants._SPACE, ' ')
+        else:
+            sc_features = ' '.join(sc_tokens)
         if eval_bash:
-            top_k_cms = np.zeros([len(grouped_dataset), top_k])
+            command_gts = set([dp.tg_txt.strip() for dp in data_group] + \
+                          command_translations[sc_temp])
+            command_gt_asts = [data_tools.bash_parser(gt) for gt in command_gts]
+            template_gt_asts = [data_tools.bash_parser(gt)
+                for gt in set(command_gts + template_translations[sc_temp])]
+        else:
+            command_gts = [dp.tg_txt.strip() for dp in data_group]
+        num_gts = len(command_gts)
 
-        for data_id in xrange(len(grouped_dataset)):
-            _, data_group = grouped_dataset[data_id]
-            sc_str = data_group[0].sc_txt.strip()
-            sc_tokens = [rev_sc_vocab[i] for i in data_group[0].sc_ids]
-            if FLAGS.channel == 'char':
-                sc_temp = ''.join(sc_tokens)
-                sc_temp = sc_temp.replace(constants._SPACE, ' ')
-            else:
-                sc_temp = ' '.join(sc_tokens)
-            tg_strs = [dp.tg_txt.strip() for dp in data_group]
-            num_gts = len(tg_strs)
+
+        if verbose:
+            print("Example {}".format(data_id))
+            print("Original Source: {}".format(sc_str))
+            print("Source: {}".format(sc_features))
+            for j in xrange(len(command_gts)):
+                print("GT Target {}: ".format(j+1) + command_gts[j].strip())
+        num_eval += (1 if eval_bash else num_gts)
+
+        predictions = prediction_list[data_id]
+        for i in xrange(len(predictions)):
+            pred_cmd = predictions[i]
+            tree = cmd_parser(pred_cmd)
+            unprocessed_pred_cmd = regexDFAEquals.unprocess_regex(pred_cmd)
+            # evaluation ignoring flag orders
             if eval_bash:
-                gt_trees = [cmd_parser(cm_str) for cm_str in tg_strs]
-                gts = gt_trees + [cmd_parser(cmd) 
-                                  for cmd in db.get_correct_temps(sc_str)]
+                temp_match = tree_dist.one_match(template_gt_asts, tree, ignore_arg_value=True)
+                str_match = tree_dist.one_match(command_gt_asts, tree, ignore_arg_value=False)
             else:
-                gts = tg_strs + db.get_correct_temps(sc_str)
-
-            if verbose:
-                print("Example {} ({})".format(data_id, len(tg_strs)))
-                print("Original Source: {}".format(sc_str))
-                print("Source: {}".format(sc_temp))
-                for j in xrange(len(tg_strs)):
-                    print("GT Target {}: ".format(j+1) + tg_strs[j].strip())
-            num_eval += (1 if eval_bash else num_gts)
-
-            predictions = prediction_list[data_id]
-            for i in xrange(len(predictions)):
-                pred_cmd = predictions[i]
-                tree = cmd_parser(pred_cmd)
-                unprocessed_pred_cmd = regexDFAEquals.unprocess_regex(pred_cmd)
-                # evaluation ignoring flag orders
-                if eval_bash:
-                    temp_match = tree_dist.one_match(gts, tree, ignore_arg_value=True)
-                    str_match = tree_dist.one_match(gts, tree, ignore_arg_value=False)
-                else:
-                    if eval_regex:
-                        str_match = False
-                        for cmd_str in gts:
-                            unprocessed_cmd_str = regexDFAEquals.unprocess_regex(cmd_str)
-                            if regexDFAEquals.regex_equiv_from_raw(cmd_str, pred_cmd):
-                                str_match = True
-                                # Debugging
-                                if verbose:
-                                    if cmd_str != pred_cmd:
-                                        print("----------------------------------")
-                                        print("1) {} ({})".format(cmd_str, unprocessed_cmd_str))
-                                        print("2) {} ({})".format(pred_cmd, unprocessed_pred_cmd))
-                                        print("----------------------------------")
-                                    else:
-                                        print("----------------------------------")
-                                        print("i) {} ({})".format(cmd_str, unprocessed_cmd_str))
-                                        print("ii) {} ({})".format(pred_cmd, unprocessed_pred_cmd))
-                                        print("----------------------------------")
-                                break
-                            else:
-                                if verbose:
+                if eval_regex:
+                    str_match = False
+                    for cmd_str in command_gts:
+                        unprocessed_cmd_str = regexDFAEquals.unprocess_regex(cmd_str)
+                        if regexDFAEquals.regex_equiv_from_raw(cmd_str, pred_cmd):
+                            str_match = True
+                            # Debugging
+                            if verbose:
+                                if cmd_str != pred_cmd:
                                     print("----------------------------------")
-                                    print("A) {} ({})".format(cmd_str, unprocessed_cmd_str))
-                                    print("B) {} ({})".format(pred_cmd, unprocessed_pred_cmd))
+                                    print("1) {} ({})".format(cmd_str, unprocessed_cmd_str))
+                                    print("2) {} ({})".format(pred_cmd, unprocessed_pred_cmd))
                                     print("----------------------------------")
-                    else:
-                        str_match = pred_cmd in gts
-                    temp_match = str_match
-
-                cms = token_based.command_match_score(gts, tree) \
-                    if eval_bash else -1
-
-                if temp_match:
-                    top_k_temp_correct[data_id, i] = 1 if eval_bash else num_gts
-                if str_match:
-                    top_k_str_correct[data_id, i] = 1 if eval_bash else num_gts
-                if eval_bash:
-                    top_k_cms[data_id, i] = cms
-                    if verbose:
-                        print("Prediction {}: {} ({})".format(
-                            i+1, pred_cmd, cms))
+                                else:
+                                    print("----------------------------------")
+                                    print("i) {} ({})".format(cmd_str, unprocessed_cmd_str))
+                                    print("ii) {} ({})".format(pred_cmd, unprocessed_pred_cmd))
+                                    print("----------------------------------")
+                            break
+                        else:
+                            if verbose:
+                                print("----------------------------------")
+                                print("A) {} ({})".format(cmd_str, unprocessed_cmd_str))
+                                print("B) {} ({})".format(pred_cmd, unprocessed_pred_cmd))
+                                print("----------------------------------")
                 else:
-                    if verbose:
-                        print("Prediction {}: {}".format(i+1, pred_cmd))
+                    str_match = pred_cmd in command_gts
+                temp_match = str_match
 
-            if verbose:
-                print()
+            cms = token_based.command_match_score(template_gt_asts, tree) \
+                if eval_bash else -1
 
-            data_id += 1
+            if temp_match:
+                top_k_temp_correct[data_id, i] = 1 if eval_bash else num_gts
+            if str_match:
+                top_k_str_correct[data_id, i] = 1 if eval_bash else num_gts
+            if eval_bash:
+                top_k_cms[data_id, i] = cms
+                if verbose:
+                    print("Prediction {}: {} ({})".format(
+                        i+1, pred_cmd, cms))
+            else:
+                if verbose:
+                    print("Prediction {}: {}".format(i+1, pred_cmd))
+
+        if verbose:
+            print()
+
+        data_id += 1
     M = {}
     M["top1_temp_ms"] = np.sum(top_k_temp_correct[:, 0]) / num_eval
     M["top3_temp_ms"] = -1
@@ -228,37 +234,34 @@ def gen_eval_csv(model_dir, decode_sig, dataset, FLAGS, output_path, top_k=3):
                 "{} vs. {}".format(len(grouped_dataset), len(prediction_list)))
 
         example_id = 0
-        with DBConnection() as db:
-            for nl_temp, data_group in grouped_dataset:
-                tg_strs = [dp.tg_txt for dp in data_group]
-                gt_trees = [cmd_parser(cm_str) for cm_str in tg_strs]
-                gt_trees = gt_trees + \
-                    [cmd_parser(cmd) for cmd in db.get_correct_temps(nl_temp)]
-                predictions = prediction_list[example_id]
-                example_id += 1
-                for i in xrange(min(3, len(predictions))):
-                    if i == 0:
-                        output_str = '{},{},'.format(
-                            example_id, data_group[0].sc_txt.strip())
-                    else:
-                        output_str = ',,'
-                    pred_cmd, score = predictions[i]
-                    tree = cmd_parser(pred_cmd)
-                    # evaluation ignoring flag orders
-                    temp_match = tree_dist.one_match(
-                        gt_trees, tree, ignore_arg_value=True)
-                    str_match = tree_dist.one_match(
-                        gt_trees, tree, ignore_arg_value=False)
-                    if i < len(tg_strs):
-                        output_str += '{},'.format(tg_strs[i].strip())
-                    else:
-                        output_str += ','
-                    output_str += '{},'.format(pred_cmd)
-                    if temp_match:
-                        output_str += 'y,'
-                    if str_match:
-                        output_str += 'y'
-                    o_f.write(output_str + '\n')
+        for nl_temp, data_group in grouped_dataset:
+            tg_strs = [dp.tg_txt for dp in data_group]
+            gt_trees = [cmd_parser(cm_str) for cm_str in tg_strs]
+            predictions = prediction_list[example_id]
+            example_id += 1
+            for i in xrange(min(3, len(predictions))):
+                if i == 0:
+                    output_str = '{},{},'.format(
+                        example_id, data_group[0].sc_txt.strip())
+                else:
+                    output_str = ',,'
+                pred_cmd, score = predictions[i]
+                tree = cmd_parser(pred_cmd)
+                # evaluation ignoring flag orders
+                temp_match = tree_dist.one_match(
+                    gt_trees, tree, ignore_arg_value=True)
+                str_match = tree_dist.one_match(
+                    gt_trees, tree, ignore_arg_value=False)
+                if i < len(tg_strs):
+                    output_str += '{},'.format(tg_strs[i].strip())
+                else:
+                    output_str += ','
+                output_str += '{},'.format(pred_cmd)
+                if temp_match:
+                    output_str += 'y,'
+                if str_match:
+                    output_str += 'y'
+                o_f.write(output_str + '\n')
 
 
 def gen_error_analysis_csv(grouped_dataset, prediction_list, FLAGS,
@@ -293,73 +296,71 @@ def gen_error_analysis_csv(grouped_dataset, prediction_list, FLAGS,
             ind, utility, _, _, _ = line.split(',')
             utility_index[utility] = ind
 
-    with DBConnection() as db:
-        example_id = 0
-        for nl_temp, data_group in grouped_dataset:
-            sc_txt = data_group[0].sc_txt.strip()
-            tg_strs = [dp.tg_txt for dp in data_group]
-            gt_trees = [cmd_parser(cm_str) for cm_str in tg_strs]
-            gt_trees = gt_trees + [cmd_parser(cmd)
-                                   for cmd in db.get_correct_temps(nl_temp)]
-            if group_by_utility:
-                gt_utilities = functools.reduce(lambda x,y:x|y,
-                    [data_tools.get_utilities(gt) for gt in gt_trees])
-                gt_utility = sorted(
-                    list(gt_utilities), key=lambda x:int(utility_index[x]))[-1]
+    example_id = 0
+    for nl_temp, data_group in grouped_dataset:
+        sc_txt = data_group[0].sc_txt.strip()
+        tg_strs = [dp.tg_txt for dp in data_group]
+        gt_trees = [cmd_parser(cm_str) for cm_str in tg_strs]
+        if group_by_utility:
+            gt_utilities = functools.reduce(lambda x,y:x|y,
+                [data_tools.get_utilities(gt) for gt in gt_trees])
+            gt_utility = sorted(
+                list(gt_utilities), key=lambda x:int(utility_index[x]))[-1]
+        else:
+            gt_utility = None
+        predictions = prediction_list[example_id]
+        example_id += 1
+        example = []
+        grammar_error, argument_error = False, False
+        for i in xrange(min(3, len(predictions))):
+            if i == 0:
+                output_str = '{},"{}",'.format(
+                    example_id, sc_txt.replace('"', '""'))
             else:
-                gt_utility = None
-            predictions = prediction_list[example_id]
-            example_id += 1
-            example = []
-            grammar_error, argument_error = False, False
-            for i in xrange(min(3, len(predictions))):
-                if i == 0:
-                    output_str = '{},"{}",'.format(
-                        example_id, sc_txt.replace('"', '""'))
-                else:
-                    output_str = ',,'
-                pred_cmd = predictions[i]
-                tree = cmd_parser(pred_cmd)
+                output_str = ',,'
+            pred_cmd = predictions[i]
+            tree = cmd_parser(pred_cmd)
 
-                # evaluation ignoring flag orders
-                temp_match = tree_dist.one_match(
-                    gt_trees, tree, ignore_arg_value=True)
-                str_match = tree_dist.one_match(
-                    gt_trees, tree, ignore_arg_value=False)
-                if i < len(tg_strs):
-                    output_str += '"{}",'.format(
-                        tg_strs[i].strip().replace('"', '""'))
-                else:
-                    output_str += ','
-                output_str += '"{}",'.format(pred_cmd.replace('"', '""'))
-                if not str_match:
-                    if temp_match:
-                        if i == 0:
-                            argument_error = True
-                            grammar_error = True
-                    else:
-                        if i == 0:
-                            grammar_error = True
-
-                example_sig = '{}<NL_PREDICTION>{}'.format(sc_txt, pred_cmd)
-                if cached_evaluation_results and \
-                        example_sig in cached_evaluation_results:
-                    # print('example_sig: {}'.format(example_sig))
-                    # print(cached_evaluation_results[example_sig])
-                    output_str += cached_evaluation_results[example_sig]
-                else:
-                    if str_match:
-                        output_str += 'y,y'
-                    elif temp_match:
-                        output_str += 'y,'
-                example.append(output_str)
-            if error_predictions_only:
-                if grammar_error:
-                    mark_example(grammar_errors, example, gt_utility)
-                elif argument_error:
-                    mark_example(argument_errors, example, gt_utility)
+            # evaluation ignoring flag orders
+            temp_match = tree_dist.one_match(
+                gt_trees, tree, ignore_arg_value=True)
+            str_match = tree_dist.one_match(
+                gt_trees, tree, ignore_arg_value=False)
+            if i < len(tg_strs):
+                output_str += '"{}",'.format(
+                    tg_strs[i].strip().replace('"', '""'))
             else:
+                output_str += ','
+            output_str += '"{}",'.format(pred_cmd.replace('"', '""'))
+            if not str_match:
+                if temp_match:
+                    if i == 0:
+                        argument_error = True
+                        grammar_error = True
+                else:
+                    if i == 0:
+                        grammar_error = True
+
+            example_sig = '{}<NL_PREDICTION>{}'.format(sc_txt, pred_cmd)
+            if cached_evaluation_results and \
+                    example_sig in cached_evaluation_results:
+                # print('example_sig: {}'.format(example_sig))
+                # print(cached_evaluation_results[example_sig])
+                output_str += cached_evaluation_results[example_sig]
+            else:
+                if str_match:
+                    output_str += 'y,y'
+                elif temp_match:
+                    output_str += 'y,'
+            example.append(output_str)
+        if error_predictions_only:
+            if grammar_error:
                 mark_example(grammar_errors, example, gt_utility)
+            elif argument_error:
+                mark_example(argument_errors, example, gt_utility)
+        else:
+            mark_example(grammar_errors, example, gt_utility)
+
     return grammar_errors, argument_errors
 
 
@@ -474,9 +475,9 @@ def load_predictions(model_dir, decode_sig, top_k):
     return prediction_list
 
 
-def load_cached_evaluation_results(model_dir, decode_sig):
+def load_cached_evaluation_results(model_dir):
     """
-    Load cached evaluation results (top_k per example) from disk.
+    Load cached evaluation results from disk.
 
     :param model_dir: Directory where the evaluation result file is stored.
     :param decode_sig: The decoding signature of the model being evaluated.
@@ -484,9 +485,7 @@ def load_cached_evaluation_results(model_dir, decode_sig):
     """
     evaluation_results = {}
     for file_name in os.listdir(model_dir):
-        if not 'evaluations.{}'.format(decode_sig) in file_name:
-            continue
-        else:
+        if 'evaluations' in file_name:
             with open(os.path.join(model_dir, file_name)) as f:
                 reader = csv.DictReader(f)
                 current_nl = ''
@@ -501,6 +500,37 @@ def load_cached_evaluation_results(model_dir, decode_sig):
                         '{},{}'.format(structure_eval, command_eval)
     print('{} evaluation results loaded'.format(len(evaluation_results)))
     return evaluation_results
+
+
+def load_judgments(model_dir):
+    """
+    Load cached evaluation results from disk.
+
+    :return: nl -> template translation map, nl -> command translation map
+    """
+    command_translations = collections.defaultdict(list)
+    template_translations = collections.defaultdict(list)
+    for file_name in os.listdir(model_dir):
+        if 'evaluations' in file_name:
+            with open(os.path.join(model_dir, file_name)) as f:
+                reader = csv.DictReader(f)
+                current_nl = ''
+                for row in reader:
+                    if row['description']:
+                        current_nl = row['description']
+                    pred_cmd = row['prediction']
+                    structure_eval = row['correct template']
+                    command_eval = row['correct command']
+                    if structure_eval == 'y':
+                        template_translations[normalize_nl(current_nl)].append(pred_cmd)
+                    if command_eval == 'y':
+                        command_translations[normalize_nl(current_nl)].append(pred_cmd)
+    return template_translations, command_translations
+
+
+def normalize_nl(nl):
+    tokens = tokenizer.basic_tokenizer(nl)
+    return ' '.join(tokens)
 
 
 def gen_accuracy_by_utility_csv(eval_by_utility_path):
