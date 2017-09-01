@@ -53,21 +53,22 @@ def eval_set(model_dir, decode_sig, dataset, top_k, FLAGS, verbose=True):
     vocabs = data_utils.load_vocabulary(FLAGS)
     rev_sc_vocab = vocabs.rev_sc_vocab
 
+    # Load predictions
     prediction_list = load_predictions(model_dir, decode_sig, top_k)
     if len(grouped_dataset) != len(prediction_list):
         raise ValueError("ground truth and predictions length must be equal: "
             "{} vs. {}".format(len(grouped_dataset), len(prediction_list)))
     
+    # Load manual judgements
+    if eval_bash:
+        template_translations, command_translations = \
+            load_judgments(FLAGS.data_dir)
+   
     num_eval = 0
     top_k_temp_correct = np.zeros([len(grouped_dataset), top_k])
     top_k_str_correct = np.zeros([len(grouped_dataset), top_k])
     if eval_bash:
         top_k_cms = np.zeros([len(grouped_dataset), top_k])
-
-    # Load manual judgements
-    if eval_bash:
-        template_translations, command_translations = \
-            load_judgments(model_dir, decode_sig)
 
     for data_id in xrange(len(grouped_dataset)):
         _, data_group = grouped_dataset[data_id]
@@ -84,7 +85,7 @@ def eval_set(model_dir, decode_sig, dataset, top_k, FLAGS, verbose=True):
                           command_translations[sc_temp])
             command_gt_asts = [data_tools.bash_parser(gt) for gt in command_gts]
             template_gt_asts = [data_tools.bash_parser(gt)
-                for gt in set(command_gts + template_translations[sc_temp])]
+                for gt in (command_gts | set(template_translations[sc_temp]))]
         else:
             command_gts = [dp.tg_txt.strip() for dp in data_group]
         num_gts = len(command_gts)
@@ -94,8 +95,8 @@ def eval_set(model_dir, decode_sig, dataset, top_k, FLAGS, verbose=True):
             print("Example {}".format(data_id))
             print("Original Source: {}".format(sc_str))
             print("Source: {}".format(sc_features))
-            for j in xrange(len(command_gts)):
-                print("GT Target {}: ".format(j+1) + command_gts[j].strip())
+            for j, command_gt in enumerate(command_gts):
+                print("GT Target {}: ".format(j+1) + command_gt.strip())
         num_eval += (1 if eval_bash else num_gts)
 
         predictions = prediction_list[data_id]
@@ -502,7 +503,7 @@ def load_cached_evaluation_results(model_dir):
     return evaluation_results
 
 
-def load_judgments(model_dir):
+def load_judgments(data_dir):
     """
     Load cached evaluation results from disk.
 
@@ -510,9 +511,13 @@ def load_judgments(model_dir):
     """
     command_translations = collections.defaultdict(list)
     template_translations = collections.defaultdict(list)
-    for file_name in os.listdir(model_dir):
+    data_dir = os.path.join(data_dir, 'manual_judgments')
+    for file_name in os.listdir(data_dir):
         if 'evaluations' in file_name:
-            with open(os.path.join(model_dir, file_name)) as f:
+            manual_judgment_path = os.path.join(data_dir, file_name)
+            with open(manual_judgment_path) as f:
+                print('reading cached evaluations from {}'.format(
+                    manual_judgment_path))
                 reader = csv.DictReader(f)
                 current_nl = ''
                 for row in reader:
@@ -531,7 +536,7 @@ def load_judgments(model_dir):
 
 
 def normalize_nl(nl):
-    tokens = tokenizer.basic_tokenizer(nl)
+    tokens, _ = tokenizer.basic_tokenizer(nl)
     return ' '.join(tokens)
 
 
