@@ -465,7 +465,7 @@ def prepare_channel(data_dir, nl_list, cm_list, split, channel,
     cm_vocab_path = os.path.join(data_dir, 'cm.vocab.{}'.format(channel))
     nl_vocab = create_vocabulary(nl_vocab_path, nl_tokens) \
         if split == 'train' else initialize_vocabulary(nl_vocab_path)[0]
-    cm_vocab = create_vocabulary(cm_vocab_path, cm_tokens, parallel_dataset=nl_tokens) \
+    cm_vocab = create_vocabulary(cm_vocab_path, cm_tokens) \
         if split == 'train' else initialize_vocabulary(cm_vocab_path)
     nl_ids = [tokens_to_ids(data_point, nl_vocab) for data_point in nl_tokens]
     cm_ids = [tokens_to_ids(data_point, cm_vocab) for data_point in cm_tokens]
