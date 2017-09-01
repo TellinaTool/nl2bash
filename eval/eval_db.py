@@ -415,7 +415,39 @@ def import_from_table():
         db2.add_temp_judgement((nl.strip(), temp.strip(), 1))
 
 
+def export_to_csv(output_dir):
+    evaluations = collections.defaultdict()
+    with DBConnection() as db:
+        for nl, cmd in db.cursor.execute(
+                "SELECT NL.nl, Cmd.cmd FROM CmdJudge "
+                "JOIN NL ON CmdJudge.nl_id = NL.id "
+                "JOIN Cmd ON CmdJudge.cmd_id = Cmd.id "
+                "WHERE CmdJudge.judgement = 1"):
+            example_sig = '{}<NL_Prediction>{}'.format(nl, cmd)
+            evaluations[example_sig] = 'y,y'
+            if len(evaluations) % 1000 == 0:
+                print('{} examples read'.format(len(evaluations)))
+        for nl, cmd in db.cursor.execute(
+                "SELECT NL.nl, Temp.temp FROM TempJudge "
+                "JOIN NL ON TempJudge.nl_id = NL.id "
+                "JOIN Temp ON TempJudge.temp_id = Temp.id "
+                "WHERE TempJudge.judgement = 1"):
+            example_sig = '{}<NL_Prediction>{}'.format(nl, cmd)
+            if not example_sig in evaluations:
+                evaluations[example_sig] = 'y,'
+                if len(evaluations) % 1000 == 0:
+                    print('{} examples read'.format(len(evaluations)))
+
+    output_path = os.path.join(output_dir, 'evaluations.from.db')
+    with open(output_path, 'w') as o_f:
+        o_f.write('description,prediction,correct template,correct command\n')
+        for example_sig in sorted(evaluations.keys()):
+            judgment = evaluations[example_sig]
+            nl, cmd = example_sig.split('<NL_Prediction>')
+            o_f.write('"{}","{}",{}'.format(nl.replace('"', '""'),
+                cmd.replace('"', '""'), judgment))
+
+
 if __name__ == "__main__":
-    db = DBConnection()
-    db.create_schema()
-    import_from_table()
+    data_dir = sys.argv[1]
+    export_to_csv(data_dir)
