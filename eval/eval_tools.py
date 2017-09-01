@@ -56,8 +56,8 @@ def eval_set(model_dir, decode_sig, dataset, top_k, FLAGS, verbose=True):
 
     prediction_list = load_predictions(model_dir, decode_sig, top_k)
     if len(grouped_dataset) != len(prediction_list):
-        raise ValueError("ground truth and predictions length must be equal: {} vs. {}"
-            .format(len(grouped_dataset), len(prediction_list)))
+        raise ValueError("ground truth and predictions length must be equal: "
+            "{} vs. {}".format(len(grouped_dataset), len(prediction_list)))
     
     with DBConnection() as db:
         num_eval = 0
@@ -207,213 +207,7 @@ def eval_set(model_dir, decode_sig, dataset, top_k, FLAGS, verbose=True):
     return M
 
 
-def manual_eval(model, dataset, FLAGS, output_dir, num_eval=None):
-    num_top1_correct_temp = 0.0
-    num_top3_correct_temp = 0.0
-    num_top5_correct_temp = 0.0
-    num_top10_correct_temp = 0.0
-    num_top1_correct = 0.0
-    num_top3_correct = 0.0
-    num_top5_correct = 0.0
-    num_top10_correct = 0.0
-    num_evaled = 0
-
-    eval_bash = FLAGS.dataset.startswith("bash")
-    use_bucket = False if model == "knn" else True
-    tokenizer_selector = 'cm' if FLAGS.explain else 'nl'
-    grouped_dataset = data_utils.group_parallel_data(
-        dataset, use_bucket=use_bucket, tokenizer_selector=tokenizer_selector)
-
-    if num_eval is None:
-        num_eval = len(grouped_dataset)
-
-    cmd_parser = data_tools.bash_parser if FLAGS.dataset.startswith("bash") \
-        else data_tools.paren_parser
-
-    o_f = open(os.path.join(output_dir, "manual.eval.results"), 'w')
-
-    rejudge = False
-
-    with DBConnection() as db:
-        db.create_schema()
-        while num_evaled < len(grouped_dataset):
-            nl_strs, tg_strs, nls, search_historys = grouped_dataset[num_evaled]
-            nl_str = nl_strs[0].decode('utf-8')
-
-            if num_evaled == num_eval:
-                break
-
-            gt_trees = [cmd_parser(cmd) for cmd in tg_strs]
-
-            predictions = db.get_top_k_predictions(model, nl_str, k=10)
-
-            top1_correct_temp, top3_correct_temp, top5_correct_temp, \
-                top10_correct_temp = False, False, False, False
-            top1_correct, top3_correct, top5_correct, top10_correct = \
-                False, False, False, False
-
-            # evaluation ignoring ordering of flags
-            print("Example %d (%d)" % (num_evaled+1, len(tg_strs)))
-            o_f.write("Example %d (%d)" % (num_evaled+1, len(tg_strs)) + "\n")
-            print("English: " + nl_str.strip())
-            o_f.write("English: " + nl_str.encode('utf-8'))
-            for j in xrange(len(tg_strs)):
-                print("GT Command %d: " % (j+1) + tg_strs[j].strip())
-                o_f.write("GT Command %d: " % (j+1) + tg_strs[j].strip() + "\n")
-
-            pred_id = 0
-            while pred_id < min(3, len(predictions)):
-                pred_cmd, score = predictions[pred_id]
-                tree = cmd_parser(pred_cmd)
-                print("Prediction {}: {} ({})".format(pred_id+1, pred_cmd, score))
-                o_f.write("Prediction {}: {} ({})\n".format(pred_id+1, pred_cmd, score))
-                print()
-                pred_temp = data_tools.ast2template(tree, loose_constraints=True)
-                str_judge = db.get_str_judgement((nl_str, pred_cmd))
-                temp_judge = db.get_temp_judgement((nl_str, pred_temp))
-                if temp_judge is not None and not rejudge:
-                    judgement_str = "y" if temp_judge == 1 \
-                        else "n ({})".format(error_types[temp_judge])
-                    print("Is the command template correct [y/n]? %s" % judgement_str)
-                else:
-                    temp_judge = tree_dist.one_match(gt_trees, tree, rewrite=False,
-                                                     ignore_arg_value=True)
-                    if not temp_judge:
-                        inp = raw_input("Is the command template correct [y/n]? ")
-                        if inp == "REVERSE":
-                            rejudge = True
-                        else:
-                            if inp == "y":
-                                temp_judge = True
-                                db.add_temp_judgement((nl_str, pred_temp, 1))
-                            else:
-                                temp_judge = False
-                                error_type = raw_input(
-                                    "Error type: \n"
-                                    "(2) extra utility \n"
-                                    "(3) missing utility \n"
-                                    "(4) confused utility \n"
-                                    "(5) extra flag \n"
-                                    "(6) missing flag \n"
-                                    "(7) confused flag \n"
-                                    "(8) logic error\n"
-                                    "(9) count error\n"
-                                )
-                                db.add_temp_judgement((nl_str, pred_temp, int(error_type)))
-                            rejudge = False
-                    else:
-                        print("Is the command template correct [y/n]? y")
-                if temp_judge == 1:
-                    if pred_id < 1:
-                        top1_correct_temp = True
-                        top3_correct_temp = True
-                        top5_correct_temp = True
-                        top10_correct_temp = True
-                    elif pred_id < 3:
-                        top3_correct_temp = True
-                        top5_correct_temp = True
-                        top10_correct_temp = True
-                    elif pred_id < 5:
-                        top5_correct_temp = True
-                        top10_correct_temp = True
-                    elif pred_id < 10:
-                        top10_correct_temp = True
-                    o_f.write("C")
-                    if str_judge is not None and not rejudge:
-                        judgement_str = "y" if str_judge == 1 \
-                            else "n ({})".format(error_types[str_judge])
-                        print("Is the complete command correct [y/n]? %s" % judgement_str)
-                    else:
-                        str_judge = tree_dist.one_match(
-                            gt_trees, tree, rewrite=False, ignore_arg_value=False)
-                        if not str_judge:
-                            inp = raw_input("Is the complete command correct [y/n]? ")
-                            if inp == "REVERSE":
-                                rejudge = True
-                                continue
-                            elif inp == "y":
-                                str_judge = True
-                                o_f.write("C")
-                                db.add_str_judgement((nl_str, pred_cmd, 1))
-                            else:
-                                str_judge = False
-                                o_f.write("W")
-                                db.add_str_judgement((nl_str, pred_cmd, 0))
-                        else:
-                            print("Is the complete command correct [y/n]? y")
-                    if str_judge == 1:
-                        if pred_id < 1:
-                            top1_correct = True
-                            top3_correct = True
-                            top5_correct = True
-                            top10_correct = True
-                        elif pred_id < 3:
-                            top3_correct = True
-                            top5_correct = True
-                            top10_correct = True
-                        elif pred_id < 5:
-                            top5_correct = True
-                            top10_correct = True
-                        elif pred_id < 10:
-                            top10_correct = True
-                        o_f.write("C")
-                    else:
-                        o_f.write("W")
-                else:
-                    o_f.write("WW")
-
-                o_f.write("\n")
-                o_f.write("\n")
-
-                pred_id += 1
-
-            if rejudge:
-                num_evaled -= 1
-            else:
-                num_evaled += 1
-                if top1_correct_temp:
-                    num_top1_correct_temp += 1
-                if top3_correct_temp:
-                    num_top3_correct_temp += 1
-                if top5_correct_temp:
-                    num_top5_correct_temp += 1
-                if top10_correct_temp:
-                    num_top10_correct_temp += 1
-                if top1_correct:
-                    num_top1_correct += 1
-                if top3_correct:
-                    num_top3_correct += 1
-                if top5_correct:
-                    num_top5_correct += 1
-                if top10_correct:
-                    num_top10_correct += 1
-            
-            rejudge = False
-            
-            print()
-
-    print("%d examples evaluated" % num_eval)
-    print("Top 1 Template Match Score = %.2f" % (num_top1_correct_temp/num_eval))
-    print("Top 1 String Match Score = %.2f" % (num_top1_correct/num_eval))
-    if len(predictions) > 3:
-        print("Top 5 Template Match Score = %.2f" % (num_top5_correct_temp/num_eval))
-        print("Top 5 String Match Score = %.2f" % (num_top5_correct/num_eval))
-        print("Top 10 Template Match Score = %.2f" % (num_top10_correct_temp/num_eval))
-        print("Top 10 String Match Score = %.2f" % (num_top10_correct/num_eval))
-    print()
-
-    o_f.write("%d examples evaluated" % num_eval + "\n")
-    o_f.write("Top 1 Template MatchScore = %.2f" % (num_top1_correct_temp/num_eval) + "\n")
-    o_f.write("Top 1 String Match Score = %.2f" % (num_top1_correct/num_eval) + "\n")
-    if len(predictions) > 1:
-        o_f.write("Top 5 Template Match Score = %.2f" % (num_top5_correct_temp/num_eval) + "\n")
-        o_f.write("Top 5 String Match Score = %.2f" % (num_top5_correct/num_eval) + "\n")
-        o_f.write("Top 10 Template Match Score = %.2f" % (num_top10_correct_temp/num_eval) + "\n")
-        o_f.write("Top 10 String Match Score = %.2f" % (num_top10_correct/num_eval) + "\n")
-    o_f.write("\n")
-
-
-def gen_eval_sheet(model_dir, decode_sig, dataset, FLAGS, output_path, top_k=3):
+def gen_eval_csv(model_dir, decode_sig, dataset, FLAGS, output_path, top_k=3):
     """
     Generate evaluation spreadsheet.
     """
@@ -430,19 +224,18 @@ def gen_eval_sheet(model_dir, decode_sig, dataset, FLAGS, output_path, top_k=3):
             dataset, use_bucket=True, tokenizer_selector=tokenizer_selector)
         prediction_list = load_predictions(model_dir, decode_sig, top_k)
         if len(grouped_dataset) != len(prediction_list):
-            raise ValueError("ground truth and predictions length must be equal: {} vs. {}"
-                .format(len(grouped_dataset), len(prediction_list)))
+            raise ValueError("ground truth and predictions length must be equal: "
+                "{} vs. {}".format(len(grouped_dataset), len(prediction_list)))
 
         example_id = 0
         with DBConnection() as db:
             for nl_temp, data_group in grouped_dataset:
                 tg_strs = [dp.tg_txt for dp in data_group]
                 gt_trees = [cmd_parser(cm_str) for cm_str in tg_strs]
-                gt_trees = gt_trees + [cmd_parser(cmd)
-                                       for cmd in db.get_correct_temps(nl_temp)]
+                gt_trees = gt_trees + \
+                    [cmd_parser(cmd) for cmd in db.get_correct_temps(nl_temp)]
                 predictions = prediction_list[example_id]
                 example_id += 1
-
                 for i in xrange(min(3, len(predictions))):
                     if i == 0:
                         output_str = '{},{},'.format(
@@ -451,7 +244,6 @@ def gen_eval_sheet(model_dir, decode_sig, dataset, FLAGS, output_path, top_k=3):
                         output_str = ',,'
                     pred_cmd, score = predictions[i]
                     tree = cmd_parser(pred_cmd)
-
                     # evaluation ignoring flag orders
                     temp_match = tree_dist.one_match(
                         gt_trees, tree, ignore_arg_value=True)
@@ -466,7 +258,6 @@ def gen_eval_sheet(model_dir, decode_sig, dataset, FLAGS, output_path, top_k=3):
                         output_str += 'y,'
                     if str_match:
                         output_str += 'y'
-
                     o_f.write(output_str + '\n')
 
 
@@ -572,9 +363,9 @@ def gen_error_analysis_csv(grouped_dataset, prediction_list, FLAGS,
     return grammar_errors, argument_errors
 
 
-def gen_error_analysis_sheets(model_dir, decode_sig, dataset, FLAGS, top_k=3):
+def gen_error_analysis_csv(model_dir, decode_sig, dataset, FLAGS, top_k=3):
     """
-    Generate error analysis evaluation sheet.
+    Generate error analysis evaluation spreadsheet.
     """
     # Group dataset
     tokenizer_selector = "cm" if FLAGS.explain else "nl"
@@ -616,7 +407,7 @@ def gen_error_analysis_sheets(model_dir, decode_sig, dataset, FLAGS, top_k=3):
                     grammar_error_file.write('{}\n'.format(line))
 
 
-def gen_error_analysis_sheet_by_utility(model_dir, decode_sig, dataset, FLAGS,
+def gen_error_analysis_csv_by_utility(model_dir, decode_sig, dataset, FLAGS,
                                         top_k=10):
     """
     Generate error analysis evaluation sheet grouped by utility.
@@ -662,100 +453,6 @@ def gen_error_analysis_sheet_by_utility(model_dir, decode_sig, dataset, FLAGS,
                 for example in error_examples[:5]:
                     for l in example:
                         error_by_utility_file.write('{},{}\n'.format(utility, l))
-
-
-def import_manual_annotations_from_files(input_dir):
-    """
-    Import manual annotations to the database to extend the set of ground truths.
-
-    :param input_dir: Directory where the manual annotation CSV files are stored.
-        - If there is only one file in the input directory, read the annotations
-            as they are.
-        - If there are multiple files in the input directory, read the annotations
-            as the majority voting of them.
-    """
-    def parse_csv(file_name):
-        """parse a file into a log for evaluation"""
-        task_log = {}
-        with open(os.path.join(input_dir, file_name)) as csvfile:
-            reader = csv.DictReader(csvfile)
-            current_task = {}
-            for row in reader:
-                if row["id"] != "":
-                    assert(row["description"] != "" )
-                    if current_task:
-                        task_log[current_task["id"]] = current_task
-                    current_task = {}
-                    current_task["id"] = int(row["id"])
-                    current_task["description"] = row["description"]
-                    current_task["top_solutions"] = []
-                solution = {}
-                solution["command"] = row["command"]
-                solution["template_correct"] = False \
-                    if row["correct template"] == "x" else True
-                solution["command_correct"] = False \
-                    if row["correct command"] == "x" else True
-                current_task["top_solutions"].append(solution)
-        return task_log
-
-    def merge_log(task_logs):
-        """merge multiple logs by majority voting"""
-        num_logs = len(task_logs)
-        vote_threshold = num_logs / 2 + 1
-        merged_log = copy.deepcopy(task_logs[0])
-        uncertain_cnt = 0
-        weak_uncertain_cnt = 0
-        total_cnt = 0
-        for task_id in merged_log:
-            task = merged_log[task_id]
-            for i in range(len(task["top_solutions"])):
-                command_correct_vote = 0
-                template_correct_vote = 0
-                for log in task_logs:
-                    solution = log[task_id]["top_solutions"][i]
-                    if solution["command_correct"]:
-                        command_correct_vote += 1
-                    if solution["template_correct"]:
-                        template_correct_vote += 1
-
-                # the following code section calculates command properties
-                total_cnt += 1
-                if command_correct_vote not in [0, num_logs] \
-                        and template_correct_vote not in [0, num_logs]:
-                    uncertain_cnt += 1
-                if command_correct_vote not in [0, num_logs] \
-                        or template_correct_vote not in [0, num_logs]:
-                    weak_uncertain_cnt += 1
-                task["top_solutions"][i]["command_correct"] = True \
-                    if command_correct_vote >= vote_threshold else False
-                task["top_solutions"][i]["template_correct"] = True \
-                    if template_correct_vote >= vote_threshold else False
-        print("Total: ", total_cnt, "Uncertain ones: ", uncertain_cnt,
-              "Weak uncertain ones: ", weak_uncertain_cnt)
-        return merged_log
-
-    task_logs = []
-    for f_name in os.listdir(input_dir):
-        if f_name.endswith('.csv'):
-            task_log = parse_csv(f_name)
-            task_logs.append(task_log)
-    if len(task_logs) > 1:
-        annotation_log = merge_log(task_logs)
-    else:
-        annotation_log = task_logs[0]
-
-    with DBConnection() as db:
-        for task_id in annotation_log:
-            task = annotation_log[task_id]
-            for i in range(len(task["top_solutions"])):
-                solution = task["top_solutions"][i]
-                if solution["command_correct"]:
-                    db.add_str_judgement(
-                        (task["description"], solution["command"], 1))
-                if solution["template_correct"]:
-                    print((task["description"], solution["command"], 1))
-                    db.add_temp_judgement(
-                        (task["description"], solution["command"], 1))
 
 
 def load_predictions(model_dir, decode_sig, top_k):
@@ -807,6 +504,10 @@ def load_cached_evaluation_results(model_dir, decode_sig):
 
 
 def gen_accuracy_by_utility_csv(eval_by_utility_path):
+    """
+    Generate accuracy by utility spreadsheet table based on the evaluation by
+    utility spreadsheet.
+    """
     num_template_correct = collections.defaultdict(int)
     num_command_correct = collections.defaultdict(int)
     num_annotation_errors = collections.defaultdict(int)
@@ -830,19 +531,24 @@ def gen_accuracy_by_utility_csv(eval_by_utility_path):
     print('Save accuracy by utility metrics to {}'.format(output_path))
     with open(output_path, 'w') as o_f: 
         # print csv file header
-        o_f.write('ID,utility,# flags,# train,# test,template accuracy,command accuracy,'
-                  '% annotation errors,% complex tasks,% annotation problems\n')
+        o_f.write('ID,utility,# flags,# train,# test,template accuracy,'
+                  'command accuracy,% annotation errors,% complex tasks,'
+                  '% annotation problems\n')
         for line in bash.utility_stats.split('\n'):
             utility = line.split(',')[1]
             if utility in num_examples:
                 num_exps = num_examples[utility]
-                template_acc = round(float(num_template_correct[utility]) / num_exps, 2)
-                command_acc = round(float(num_command_correct[utility]) / num_exps, 2)
-                annotation_error_rate = round(float(num_annotation_errors[utility]) / num_exps, 2)
-                complex_task_rate = round(float(num_complex_tasks[utility]) / num_exps, 2) 
-                o_f.write('{},{},{},{},{},{}\n'.format(line, template_acc, command_acc,
-                    annotation_error_rate, complex_task_rate, (annotation_error_rate+complex_task_rate)))
-
+                template_acc = round(
+                    float(num_template_correct[utility]) / num_exps, 2)
+                command_acc = round(
+                    float(num_command_correct[utility]) / num_exps, 2)
+                annotation_error_rate = round(
+                    float(num_annotation_errors[utility]) / num_exps, 2)
+                complex_task_rate = round(
+                    float(num_complex_tasks[utility]) / num_exps, 2)
+                o_f.write('{},{},{},{},{},{}\n'.format(line, template_acc,
+                    command_acc, annotation_error_rate, complex_task_rate,
+                    (annotation_error_rate+complex_task_rate)))
 
 # Unit Tests
 
