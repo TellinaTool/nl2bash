@@ -444,7 +444,7 @@ def export_to_csv(output_dir):
         for example_sig in sorted(evaluations.keys()):
             judgment = evaluations[example_sig]
             nl, cmd = example_sig.split('<NL_Prediction>')
-            o_f.write('"{}","{}",{}'.format(nl.replace('"', '""'),
+            o_f.write('"{}","{}",{}\n'.format(nl.replace('"', '""'),
                 cmd.replace('"', '""'), judgment))
 
 
