@@ -525,6 +525,8 @@ def load_judgments(model_dir):
                         template_translations[normalize_nl(current_nl)].append(pred_cmd)
                     if command_eval == 'y':
                         command_translations[normalize_nl(current_nl)].append(pred_cmd)
+    print('{} template translations loaded'.format(len(template_translations)))
+    print('{} command translations loaded'.format(len(command_translations)))
     return template_translations, command_translations
 
 
