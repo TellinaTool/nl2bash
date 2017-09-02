@@ -6,7 +6,7 @@ import collections
 import os, sys
 sys.path.append('/home/xilin/Projects/tellina/learning_module/')
 
-from bashlint import bash
+from bashlint import bash, data_tools
 
 data_splits = ['train', 'dev', 'test']
 
@@ -34,11 +34,9 @@ def compute_top_utilities(path, k):
     return top_utilities
 
 
-if __name__ == '__main__':
-    data_dir = sys.argv[1]
+def get_pairs_of_top_utilities(data_dir, num_utilities):
     cm_path = os.path.join(data_dir, 'cm.txt')
-    top_utilities = compute_top_utilities(cm_path, NUM_UTILITIES)
-
+    top_utilities = compute_top_utilities(cm_path, num_utilities)
     for split in data_splits:
         nl_file_path = os.path.join(data_dir, split + '.nl')
         cm_file_path = os.path.join(data_dir, split + '.cm')
@@ -54,4 +52,24 @@ if __name__ == '__main__':
                     ast = data_tools.bash_parser(cm)
                     if ast and data_tools.select(ast, top_utilities):
                         nl_outfile.write('{}\n'.format(nl))
-                        cm_outfile.write('{}\n'.format(cm)) 
+                        cm_outfile.write('{}\n'.format(cm))
+
+
+def get_non_specific_descriptions(data_dir):
+    with open(os.path.join(data_dir, 'nl.txt')) as f:
+        nl_list = [nl.strip() for nl in f.readlines()]
+    with open(os.path.join(data_dir, 'cm.txt')) as f:
+        cm_list = [cm.strip() for cm in f.readlines()]
+    assert(len(nl_list) == len(cm_list))
+
+    with open('annotation_check_sheet.non.specific', 'w') as o_f:
+        o_f.write('Utility,Command,Description\n')
+        for nl, cm in zip(nl_list, cm_list):
+            if ' specific ' in nl or ' a file ' in nl or ' some ' in nl:
+                o_f.write(',{},{}\n'.format(cm, nl))
+                o_f.write(',,<Type a new description here>\n')
+
+
+if __name__ == '__main__':
+    data_dir = sys.argv[1]
+    get_pairs_of_top_utilities(data_dir, NUM_UTILITIES)
