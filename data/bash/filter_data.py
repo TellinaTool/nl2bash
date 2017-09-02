@@ -6,9 +6,11 @@ import collections
 import os, sys
 sys.path.append('/home/xilin/Projects/tellina/learning_module/')
 
-from bashlint import data_tools
+from bashlint import bash
 
 data_splits = ['train', 'dev', 'test']
+
+NUM_UTILITIES = 72
 
 
 def compute_top_utilities(path, k):
@@ -23,7 +25,7 @@ def compute_top_utilities(path, k):
                 utilities[u] += 1
     top_utilities = []
     for u, freq in sorted(utilities.items(), key=lambda x:x[1], reverse=True):
-        if u in ['sed', 'awk']:
+        if u in bash.BLACK_LIST or u in bash.GREY_LIST:
             continue
         top_utilities.append(u)
         if len(top_utilities) == k:
@@ -35,7 +37,7 @@ def compute_top_utilities(path, k):
 if __name__ == '__main__':
     data_dir = sys.argv[1]
     cm_path = os.path.join(data_dir, 'cm.txt')
-    top_utilities = compute_top_utilities(cm_path, 64)
+    top_utilities = compute_top_utilities(cm_path, NUM_UTILITIES)
 
     for split in data_splits:
         nl_file_path = os.path.join(data_dir, split + '.nl')
