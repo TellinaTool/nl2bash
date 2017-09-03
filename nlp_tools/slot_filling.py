@@ -17,11 +17,55 @@ from numpy.linalg import norm
 from . import constants, tokenizer
 from bashlint import data_tools
 
-# --- Slot filling functions --- #
+# --- Local slot filling classifiers --- #
+
+class KNearestNeighborModel():
+    def __init__(self, k, train_X, train_Y):
+        """
+        :member k: number of neighboring examples to use
+        :member train_X: [size, dim] training feature matrix
+        :member train_Y: [size, label_dim] training label matrix
+        """
+        self.k = k
+        self.train_X = train_X
+        self.train_Y = train_Y
+
+    def predict(self, X):
+        """
+        :param X: [size, dim]
+        """
+        # [size, size]
+        sim_scores = np.matmul(X, self.train_X.T)
+        # [size, self.k]
+        nn = np.argpartition(sim_scores, -self.k, axis=1)[:, -self.k:]
+        # [size, self.k]
+        nn_weights = np.partition(sim_scores, -self.k, axis=1)[:, -self.k:]
+
+        nn_prediction = np.sum(
+            np.expand_dims(nn_weights, 2) * self.train_Y[nn], axis=1)[:, 0]
+        return nn_prediction
+
+    def eval(self, X, Y, verbose=True):
+        nn_prediction = self.predict(X)
+        # compute accuracy
+        threshold = 0.5
+        num_total = 0.0
+        num_correct = 0.0
+        for i in xrange(len(nn_prediction)):
+            if Y[i][0] == 1 and nn_prediction[i][0] >= threshold:
+                num_correct += 1
+            if Y[i][0] == 0 and nn_prediction[i][0] < threshold:
+                num_correct += 1
+            if verbose:
+                print(nn_prediction[i][0], Y[i][0])
+            num_total += 1
+        print("Accuracy: ", num_correct / num_total)
+
+
+# --- Global slot filling functions --- #
 
 def stable_slot_filling(template_tokens, sc_fillers, tg_slots, pointer_targets,
-                        encoder_outputs, decoder_outputs,
-                        slot_filling_classifier, verbose=False):
+        encoder_outputs, decoder_outputs, slot_filling_classifier, verbose=False):
     """
     Fills the argument slots using learnt local alignment scores and a greedy 
     global alignment algorithm (stable marriage).
@@ -224,7 +268,7 @@ def stable_marriage_alignment(M):
     return [(y, x) for (x, (y, score)) in sorted(matched_cols.items(),
             key=lambda x:x[1][1], reverse=True)], remained_rows
 
-# --- Heuristically induce slot-filling alignments from oracle translation pairs.
+# --- Slot-filling alignment induction from ground-truth translation pairs.
 
 def slot_filler_alignment_induction(nl, cm, verbose=True):
     """Give an oracle translation pair of (nl, cm), align the slot fillers
@@ -233,7 +277,6 @@ def slot_filler_alignment_induction(nl, cm, verbose=True):
 
     # Step 1: extract the token ids of the constants in the English sentence
     # and the slots in the command
-
     tokens, entities = tokenizer.ner_tokenizer(nl)
     nl_fillers, _, _ = entities
     cm_tokens = data_tools.bash_tokenizer(cm)
@@ -249,7 +292,6 @@ def slot_filler_alignment_induction(nl, cm, verbose=True):
             cm_slots[i] = (cm_tokens[i], cm_token_type)
     
     # Step 2: construct one-to-one mappings for the token ids from both sides
-
     M = collections.defaultdict(dict)               # alignment score matrix
     for i in nl_fillers:
         surface, filler_type = nl_fillers[i]
@@ -285,7 +327,6 @@ def slot_filler_value_match(slot_value, filler_value, slot_type):
        :param slot_value: slot value as shown in the bash command
        :param filler_value: slot filler value extracted from the natural language
        :param slot_type: category of the slot in the command
-
     """
     if slot_type in constants._PATTERNS or \
             (filler_value and is_parameter(filler_value)):
@@ -329,7 +370,8 @@ def slot_filler_value_match(slot_value, filler_value, slot_type):
         return 0
 
 def slot_filler_type_match(slot_type, filler_type):
-    """Check if the category of a slot in the command matches that of the slot
+    """'
+    Check if the category of a slot in the command matches that of the slot
     filler extracted from the natural language. Used for generating alignments
     from the training data.
 
@@ -375,10 +417,6 @@ def slot_filler_type_match(slot_type, filler_type):
     return '{}:::{}'.format(filler_type, slot_type) in category_matches
 
 def strip(pattern):
-    # special_start_1c_re = re.compile(r'^[\"\'\*\\\/\.-]]')
-    # special_start_2c_re = re.compile(r'^\{\}')
-    # special_end_1c_re = re.compile(r'[\"\'\\\/\$\*\.-]$')
-    # special_end_2c_re = re.compile(r'(\\n|\{\})$')
     while len(pattern) > 1 and \
             pattern[0] in ['"', '\'', '*', '\\', '/', '.', '-', '{', '}']:
         pattern = pattern[1:]
@@ -386,7 +424,6 @@ def strip(pattern):
             pattern[-1] in ['"', '\'', '\\', '/', '$', '*', '.', '-',
                             '{', '}']:
         pattern = pattern[:-1]
-    special_start_re = re.compile(r'^\{\}')
     special_end_re = re.compile(r'(\\n|\{\})$')
     while len(pattern) > 2 and re.search(special_end_re, pattern):
         pattern = pattern[:-2]
@@ -415,7 +452,6 @@ def get_fill_in_value(cm_slot, nl_filler):
     adding signs to quantities, etc.).
     :param cm_slot: (slot_value, slot_type)
     :param nl_filler: (filler_value, filler_type)
-
     """
     slot_value, slot_type = cm_slot
     surface, filler_type = nl_filler
@@ -467,8 +503,7 @@ def extract_value(filler_type, slot_type, surface):
         value = value
     
     # add quotations for pattern slots
-    if filler_type in constants._PATTERNS and \
-            not constants.with_quotation(value):
+    if filler_type in constants._PATTERNS and not constants.with_quotation(value):
         value = constants.add_quotations(value)
     
     return value
@@ -480,11 +515,11 @@ def extract_number(value):
         return match.group(0)
     else:
         return 'unrecognized_numerical_expression'
-        # raise AttributeError('Cannot find number representation in pattern {}'
-        #                      .format(value))
+        # raise AttributeError('Cannot find number representation in
+        # pattern {}'.format(value))
 
 def extract_filename(value, slot_type='File'):
-    """Extract file names."""
+    """Extract file names"""
     quoted_span_re = re.compile(constants._QUOTED_RE)
     special_symbol_re = re.compile(constants._SPECIAL_SYMBOL_RE)
     file_extension_re = re.compile('{}|{}'.format(constants._FILE_EXTENSION_RE,
@@ -522,7 +557,7 @@ def extract_filename(value, slot_type='File'):
     # raise AttributeError('Unrecognized file name {}'.format(value))
 
 def extract_permission(value):
-    """Extract permission patterns."""
+    """Extract permission patterns"""
     numerical_permission_re = re.compile(constants._NUMERICAL_PERMISSION_RE)
     pattern_permission_re = re.compile(constants._PATTERN_PERMISSION_RE)
     if re.match(numerical_permission_re, value) or \
@@ -533,7 +568,7 @@ def extract_permission(value):
         return value
 
 def extract_datetime(value):
-    """Extract date/time patterns."""
+    """Extract date/time patterns"""
     standard_time = re.compile(constants.quotation_safe(
         r'\d+:\d+:\d+\.?\d*'))
     standard_datetime_dash_re = re.compile(constants.quotation_safe(
@@ -591,7 +626,7 @@ def extract_datetime(value):
         raise AttributeError("Cannot parse date/time: {}".format(value))
 
 def extract_timespan(value):
-    """Extract timespans."""
+    """Extract timespans"""
     digit_re = re.compile(constants._DIGIT_RE)
     duration_unit_re = re.compile(constants._DURATION_UNIT)
     m = re.search(digit_re, value)
@@ -638,7 +673,7 @@ def extract_timespan(value):
     raise AttributeError("Cannot parse timespan: {}".format(value))
 
 def extract_size(value):
-    """Extract sizes."""
+    """Extract sizes"""
     digit_re = re.compile(constants._DIGIT_RE)
     size_unit_re = re.compile(constants._SIZE_UNIT)
     m = re.search(digit_re, value)

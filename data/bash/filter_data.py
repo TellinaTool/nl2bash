@@ -12,7 +12,6 @@ data_splits = ['train', 'dev', 'test']
 
 NUM_UTILITIES = 72
 
-
 def compute_top_utilities(path, k):
     print('computing top most frequent utilities...') 
     utilities = collections.defaultdict(int)
