@@ -9,7 +9,6 @@ ARGS=${@:1}
 
 python3 -m encoder_decoder.translate \
     --encoder_topology birnn \
-    --batch_size 128 \
     --num_epochs 100 \
     --num_samples 256 \
     --variational_recurrent_dropout \
