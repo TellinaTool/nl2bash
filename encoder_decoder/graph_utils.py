@@ -15,8 +15,8 @@ from encoder_decoder import data_utils
 
 def define_model(FLAGS, session, model_constructor, buckets, forward_only):
     source, target = ('nl', 'cm') if not FLAGS.explain else ('cm', 'nl')
-
     params = collections.defaultdict()
+
     params["source_vocab_size"] = FLAGS.sc_vocab_size
     params["target_vocab_size"] = FLAGS.tg_vocab_size
     params["max_source_length"] = FLAGS.max_sc_length

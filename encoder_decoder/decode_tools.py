@@ -15,30 +15,19 @@ import datetime, time
 import numpy as np
 import shutil
 
-from encoder_decoder import classifiers, data_utils
-from eval import tree_dist
 from bashlint import data_tools
+from encoder_decoder import data_utils
+from eval import tree_dist
 from nlp_tools import constants, slot_filling, tokenizer
 
-
-APOLOGY_MSG = \
-    "Sorry, I don't know how to translate this command at the moment."
+APOLOGY_MSG = "Sorry, I don't know how to translate this command."
 
 
 def demo(sess, model, FLAGS):
     """
     Simple command line decoding interface.
     """
-    slot_filling_classifier = None
-    if FLAGS.fill_argument_slots:
-        # create slot filling classifier
-        mapping_param_dir = os.path.join(
-            FLAGS.model_dir, 'train.mappings.X.Y.npz')
-        train_X, train_Y = \
-            data_utils.load_slot_filling_data(mapping_param_dir)
-        slot_filling_classifier = classifiers.KNearestNeighborModel(
-            FLAGS.num_nn_slot_filling, train_X, train_Y)
-        print('Slot filling classifier parameters loaded.')
+    slot_filling_classifier = get_slot_filling_classifer(FLAGS)
 
     # Decode from standard input.
     sys.stdout.write('> ')
@@ -119,47 +108,6 @@ def translate_fun(data_point, sess, model, vocabs, FLAGS,
                              copy_tokens=copy_tokens)
 
     return decoded_outputs, output_logits
-
-
-def query_to_encoder_features(sentence, vocabs, FLAGS):
-    """
-    Convert a natural language query into feature vectors used by the encoder.
-    """
-    if FLAGS.channel == 'char':
-        tokens = data_utils.nl_to_characters(sentence)
-        init_vocab = data_utils.CHAR_INIT_VOCAB
-    elif FLAGS.channel == 'partial.token':
-        tokens = data_utils.nl_to_partial_tokens(sentence, tokenizer.basic_tokenizer)
-        init_vocab = data_utils.TOKEN_INIT_VOCAB
-    else:
-        if FLAGS.normalized:
-            tokens = data_utils.nl_to_tokens(sentence, tokenizer.ner_tokenizer)
-        else:
-            tokens = data_utils.nl_to_tokens(sentence, tokenizer.basic_tokenizer)
-        init_vocab = data_utils.TOKEN_INIT_VOCAB
-    sc_ids = data_utils.tokens_to_ids(tokens, vocabs.sc_vocab)
-    encoder_features = [[sc_ids]]
-    if FLAGS.use_copy and FLAGS.copy_fun == 'copynet':
-        csc_ids = []
-        for i, t in enumerate(tokens):
-            if not t in init_vocab and t in vocabs.tg_vocab:
-                csc_ids.append(vocabs.tg_vocab[t])
-            else:
-                csc_ids.append(len(vocabs.tg_vocab) + i)
-        encoder_features.append([csc_ids])
-    return encoder_features
-
-
-def query_to_copy_tokens(sentence, FLAGS):
-    if FLAGS.channel == 'char':
-        tokens = data_utils.nl_to_characters(sentence)
-    elif FLAGS.channel == 'partial.token':
-        tokens = data_utils.nl_to_partial_tokens(
-            sentence, tokenizer.basic_tokenizer, to_lower_case=False, lemmatization=False)
-    else:
-        tokens = data_utils.nl_to_tokens(
-            sentence, tokenizer.basic_tokenizer, to_lower_case=False, lemmatization=False)
-    return tokens
 
 
 def decode(model_outputs, FLAGS, vocabs, sc_fillers=None,
@@ -356,16 +304,7 @@ def decode_set(sess, model, dataset, top_k, FLAGS, verbose=True):
     vocabs = data_utils.load_vocabulary(FLAGS)
     rev_sc_vocab = vocabs.rev_sc_vocab
 
-    if FLAGS.fill_argument_slots:
-        # create slot filling classifier
-        mapping_param_dir = os.path.join(
-            FLAGS.model_dir, 'train.mappings.X.Y.npz')
-        train_X, train_Y = data_utils.load_slot_filling_data(mapping_param_dir)
-        slot_filling_classifier = classifiers.KNearestNeighborModel(
-            FLAGS.num_nn_slot_filling, train_X, train_Y)
-        print('Slot filling classifier parameters loaded.')
-    else:
-        slot_filling_classifier = None
+    slot_filling_classifier = get_slot_filling_classifer(FLAGS)
 
     ts = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d-%H%M%S')
     pred_file_path = os.path.join(model.model_dir, 'predictions.{}.{}'.format(
@@ -461,6 +400,64 @@ def decode_set(sess, model, dataset, top_k, FLAGS, verbose=True):
     shutil.copyfile(eval_file_path, os.path.join(FLAGS.model_dir,
         'predictions.{}.latest.csv'.format(model.decode_sig)))
 
+
+def get_slot_filling_classifer(FLAGS):
+    if FLAGS.fill_argument_slots:
+        # create slot filling classifier
+        mapping_param_dir = os.path.join(
+            FLAGS.model_dir, 'train.mappings.X.Y.npz')
+        train_X, train_Y = \
+            data_utils.load_slot_filling_data(mapping_param_dir)
+        slot_filling_classifier = slot_filling.KNearestNeighborModel(
+            FLAGS.num_nn_slot_filling, train_X, train_Y)
+        print('Slot filling classifier parameters loaded.')
+        return slot_filling_classifier
+    else:
+        return None
+
+# --- Compute query features
+
+def query_to_encoder_features(sentence, vocabs, FLAGS):
+    """
+    Convert a natural language query into feature vectors used by the encoder.
+    """
+    if FLAGS.channel == 'char':
+        tokens = data_utils.nl_to_characters(sentence)
+        init_vocab = data_utils.CHAR_INIT_VOCAB
+    elif FLAGS.channel == 'partial.token':
+        tokens = data_utils.nl_to_partial_tokens(sentence, tokenizer.basic_tokenizer)
+        init_vocab = data_utils.TOKEN_INIT_VOCAB
+    else:
+        if FLAGS.normalized:
+            tokens = data_utils.nl_to_tokens(sentence, tokenizer.ner_tokenizer)
+        else:
+            tokens = data_utils.nl_to_tokens(sentence, tokenizer.basic_tokenizer)
+        init_vocab = data_utils.TOKEN_INIT_VOCAB
+    sc_ids = data_utils.tokens_to_ids(tokens, vocabs.sc_vocab)
+    encoder_features = [[sc_ids]]
+    if FLAGS.use_copy and FLAGS.copy_fun == 'copynet':
+        csc_ids = []
+        for i, t in enumerate(tokens):
+            if not t in init_vocab and t in vocabs.tg_vocab:
+                csc_ids.append(vocabs.tg_vocab[t])
+            else:
+                csc_ids.append(len(vocabs.tg_vocab) + i)
+        encoder_features.append([csc_ids])
+    return encoder_features
+
+
+def query_to_copy_tokens(sentence, FLAGS):
+    if FLAGS.channel == 'char':
+        tokens = data_utils.nl_to_characters(sentence)
+    elif FLAGS.channel == 'partial.token':
+        tokens = data_utils.nl_to_partial_tokens(
+            sentence, tokenizer.basic_tokenizer, to_lower_case=False, lemmatization=False)
+    else:
+        tokens = data_utils.nl_to_tokens(
+            sentence, tokenizer.basic_tokenizer, to_lower_case=False, lemmatization=False)
+    return tokens
+
+# --- Visualization --- #
 
 def visualize_attn_alignments(M, source, target, rev_sc_vocab,
                               rev_tg_vocab, output_path):
