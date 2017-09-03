@@ -1,70 +1,78 @@
 """
 Gazetteers for bash.
 """
-utility_stats = """1,find,103,5068,525
-2,xargs,32,821,82
-3,grep,82,710,70
-4,rm,17,505,40
-5,ls,84,301,34
-6,chmod,14,273,37
-7,echo,5,251,26
-8,sort,50,214,20
-9,wc,13,185,17
-10,chown,15,156,17
-11,cut,15,146,11
-12,mv,20,137,19
-13,cp,49,133,9
-14,head,12,123,14
-15,mkdir,10,118,16
-16,cat,19,103,7
-17,dirname,4,92,14
-18,tail,20,88,13
-19,split,21,83,11
-20,tar,50,76,11
-21,readlink,18,74,6
-22,ln,29,73,7
-23,basename,8,72,5
-24,read,11,70,8
-25,rsync,172,67,10
-26,tee,6,63,4
-27,tr,11,62,11
-28,set,19,61,6
-29,which,13,61,13
-30,ssh,43,57,5
-31,uniq,20,55,5
-32,mount,14,54,4
-33,file,25,51,8
-34,shopt,5,48,5
-35,pwd,6,47,3
-36,du,43,43,5
-37,mktemp,12,42,7
-38,rename,5,42,5
-39,cd,3,41,3
-40,md5sum,14,38,1
-41,od,33,38,5
-42,comm,9,37,3
-43,diff,71,37,2
-44,rmdir,7,32,5
-45,date,18,32,5
-46,hostname,26,32,1
-47,chgrp,15,30,4
-48,paste,6,30,1
-49,dig,13,29,1
-50,whoami,2,29,3
-51,df,27,28,2
-52,zcat,10,28,4
-53,yes,2,27,1
-54,gzip,34,27,3
-55,rev,4,27,2
-56,nl,24,25,5
-57,ifconfig,0,24,4
-58,less,98,24,2
-59,seq,8,20,7
-60,ping,28,19,2
-61,history,7,18,3
-62,cal,7,15,0
-63,ps,22,15,0
-64,column,6,15,3"""
+utility_stats = """1,find,103,5457,566
+2,xargs,32,981,90
+3,grep,82,871,90
+4,rm,17,519,40
+5,ls,84,351,40
+6,echo,5,325,30
+7,sort,50,317,30
+8,chmod,14,274,38
+9,wc,13,221,19
+10,cut,15,197,16
+11,head,12,163,18
+12,chown,15,156,17
+13,cat,19,154,13
+14,mv,20,143,21
+15,cp,49,140,10
+16,mkdir,10,132,17
+17,tail,20,119,18
+18,dirname,4,99,15
+19,tr,11,92,17
+20,uniq,20,91,8
+21,split,21,89,12
+22,tar,50,82,12
+23,readlink,18,80,6
+24,tee,6,76,7
+25,basename,8,74,5
+26,ln,29,74,7
+27,read,11,70,8
+28,rsync,172,68,10
+29,which,13,67,14
+30,mount,14,65,5
+31,ssh,43,58,5
+32,file,25,57,8
+33,pwd,6,54,4
+34,du,43,53,8
+35,md5sum,14,52,4
+36,ifconfig,12,50,5
+37,shopt,5,48,5
+38,od,33,46,6
+39,cd,3,46,4
+40,comm,9,45,4
+41,diff,71,44,3
+42,hostname,26,44,4
+43,df,27,43,4
+44,rename,12,42,5
+45,mktemp,12,42,7
+46,date,18,40,5
+47,nl,24,40,5
+48,column,6,39,7
+49,dig,13,39,1
+50,paste,6,38,2
+51,history,8,37,6
+52,rev,4,36,2
+53,zcat,10,36,8
+54,touch,15,35,1
+55,cal,7,34,1
+56,chgrp,15,34,4
+57,whoami,2,33,4
+58,ping,28,33,7
+59,gzip,34,32,4
+60,rmdir,7,32,5
+61,seq,8,31,10
+62,tree,37,29,2
+63,tac,8,28,6
+64,bzip2,34,28,2
+65,fold,10,28,3
+66,join,15,28,4
+67,cpio,54,27,4
+68,who,32,26,6
+69,pstree,30,25,3
+70,uname,20,24,4
+71,env,8,24,6
+72,kill,9,21,1"""
 
 
 top_100_utilities = {
@@ -201,6 +209,42 @@ top_100_utilities = {
     'apt-get',
     'brew',
     'yum'
+}
+
+
+# Compilers
+BLACK_LIST = {
+    'cpp',
+    'g++',
+    'java',
+    'perl',
+    'python',
+    'ruby',
+    'nano',
+    'emacs',
+    'vim',
+    'awk',
+    'sed',
+    'less',
+    'more',
+    'screen',
+    'brew',
+    'yum',
+    'apt-get'
+}
+
+
+# Flow controls
+GREY_LIST = {
+    'alias',
+    'unalias',
+    'set',
+    'unset',
+    'export',
+    'shift',
+    'exit',
+    'logout',
+    'yes'
 }
 
 # --- Linux Utility by Category --- #
