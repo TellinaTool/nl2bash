@@ -477,12 +477,10 @@ def prepare_channel(data_dir, nl_list, cm_list, split, channel,
     else:
         if channel == 'partial.token':
             nl_copy_tokens = [nl_to_partial_tokens(nl, tokenizer.basic_tokenizer,
-                                to_lower_case=False, lemmatization=False)
-                              for nl in nl_list]
+                to_lower_case=False, lemmatization=False) for nl in nl_list]
         else:
             nl_copy_tokens = [nl_to_tokens(nl, tokenizer.basic_tokenizer,
-                                to_lower_case=False, lemmatization=False)
-                              for nl in nl_list]
+                to_lower_case=False, lemmatization=False) for nl in nl_list]
         cm_copy_tokens = cm_tokens
     save_channel_features_to_file(data_dir, split, 'copy.{}'.format(channel),
         nl_copy_tokens, cm_copy_tokens, feature_separator=TOKEN_SEPARATOR)
@@ -752,14 +750,26 @@ def compute_pair_alignment(nl_tokens, cm_tokens, out_file):
 
 
 def create_vocabulary(vocab_path, dataset, min_word_frequency=1,
-                      is_character_model=False):
+                      is_character_model=False, parallel_dataset=None):
     """
     Compute the vocabulary of a tokenized dataset and save to file.
     """
     vocab = collections.defaultdict(int)
-    for data_point in dataset:
-        for token in data_point:
-            vocab[token] += 1
+    num_copy = collections.defaultdict(int)
+    if parallel_dataset:
+        for i, data_point in enumerate(dataset):
+            parallel_data_point = parallel_dataset[i]
+            for token in data_point:
+                vocab[token] += 1
+                if token in parallel_data_point:
+                    num_copy[token] += 1
+        for v in vocab:
+            if vocab[v] == num_copy[v]:
+                vocab[v] = 0
+    else:
+        for data_point in dataset:
+            for token in data_point:
+                vocab[token] += 1
     sorted_vocab = [(x, y) for x, y in sorted(vocab.items(), key=lambda x:x[1],
                     reverse=True) if y >= min_word_frequency]
     
