@@ -38,8 +38,6 @@ def define_input_flags():
 
     tf.app.flags.DEFINE_boolean('compare_models', False,
                                 'Set to True to compare model performance.')
-    tf.app.flags.DEFINE_boolean('data_stats', False,
-                                'Set to True to print dataset statistics.')
     tf.app.flags.DEFINE_boolean('manual_eval', False,
                                 'Set to True for manual evaluation.')
     tf.app.flags.DEFINE_boolean('eval', False,
