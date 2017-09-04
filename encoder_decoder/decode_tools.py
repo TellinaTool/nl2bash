@@ -37,16 +37,16 @@ def demo(sess, model, FLAGS):
     vocabs = data_utils.load_vocabulary(FLAGS)
 
     while sentence:
-        batch_outputs, output_logits = translate_fun(sentence, sess, model,
+        batch_outputs, sequence_logits = translate_fun(sentence, sess, model,
             vocabs, FLAGS, slot_filling_classifier=slot_filling_classifier)
         if FLAGS.token_decoding_algorithm == 'greedy':
             tree, pred_cmd, outputs = batch_outputs[0]
-            score = output_logits[0]
+            score = sequence_logits[0]
             print('{} ({})'.format(pred_cmd, score))
         elif FLAGS.token_decoding_algorithm == 'beam_search':
             if batch_outputs:
                 top_k_predictions = batch_outputs[0]
-                top_k_scores = output_logits[0]
+                top_k_scores = sequence_logits[0]
                 for j in xrange(min(FLAGS.beam_size, 10, len(batch_outputs[0]))):
                     if len(top_k_predictions) <= j:
                         break
@@ -101,13 +101,13 @@ def translate_fun(data_point, sess, model, vocabs, FLAGS,
     # Compute neural network decoding output
     model_outputs = model.step(sess, formatted_example, bucket_id,
                                forward_only=True)
-    output_logits = model_outputs.output_logits
+    sequence_logits = model_outputs.sequence_logits
 
     decoded_outputs = decode(model_outputs, FLAGS, vocabs, sc_fillers=sc_fillers,
                              slot_filling_classifier=slot_filling_classifier,
                              copy_tokens=copy_tokens)
 
-    return decoded_outputs, output_logits
+    return decoded_outputs, sequence_logits
 
 
 def decode(model_outputs, FLAGS, vocabs, sc_fillers=None,
@@ -334,7 +334,7 @@ def decode_set(sess, model, dataset, top_k, FLAGS, verbose=True):
             for j in xrange(len(data_group)):
                 print('GT Target {}: {}'.format(j+1, data_group[j].tg_txt))
 
-        batch_outputs, output_logits = translate_fun(data_group, sess, model,
+        batch_outputs, sequence_logits = translate_fun(data_group, sess, model,
             vocabs, FLAGS, slot_filling_classifier=slot_filling_classifier)
         if FLAGS.tg_char:
             batch_outputs, batch_char_outputs = batch_outputs
@@ -346,7 +346,7 @@ def decode_set(sess, model, dataset, top_k, FLAGS, verbose=True):
                 if nl2bash:
                     pred_cmd = data_tools.ast2command(
                         tree, loose_constraints=True)
-                score = output_logits[0]
+                score = sequence_logits[0]
                 if verbose:
                     print('Prediction: {} ({})'.format(pred_cmd, score))
                 pred_file.write('{}\n'.format(pred_cmd))
@@ -354,7 +354,7 @@ def decode_set(sess, model, dataset, top_k, FLAGS, verbose=True):
                 top_k_predictions = batch_outputs[0]
                 if FLAGS.tg_char:
                     top_k_char_predictions = batch_char_outputs[0]
-                top_k_scores = output_logits[0]
+                top_k_scores = sequence_logits[0]
                 num_preds = min(FLAGS.beam_size, top_k, len(top_k_predictions))
                 for j in xrange(num_preds):
                     if j > 0:
