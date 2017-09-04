@@ -248,7 +248,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
         # --- Compute Losses --- #
 
         # A. Sequence Loss
-        if self.training_algorithm == "cross-entropy":
+        if self.training_algorithm == "standard":
             encoder_decoder_token_loss = self.sequence_loss(
                 output_logits, targets, target_weights, graph_utils.sparse_cross_entropy)
         elif self.training_algorithm == 'beam_search_opt':
