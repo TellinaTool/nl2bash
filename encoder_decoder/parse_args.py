@@ -113,7 +113,7 @@ def define_input_flags():
     tf.app.flags.DEFINE_float('gamma_x', .1, 'Scale of input state normalization.')
     tf.app.flags.DEFINE_float('beta_x', .1, 'Offset of input state normalization.')
 
-    tf.app.flags.DEFINE_string('training_algorithm', 'standard', 'training algorithm to use.')
+    tf.app.flags.DEFINE_string('training_algorithm', 'cross-entropy', 'training algorithm to use.')
     tf.app.flags.DEFINE_string('pretrained_model_subdir', '', 'signature of pretrained model.')
 
     tf.app.flags.DEFINE_string('encoder_topology', 'rnn', 'structure of the encoder.')

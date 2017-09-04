@@ -272,10 +272,8 @@ def wrap_inputs(beam_decoder, inputs):
     return [beam_decoder.wrap_input(input) for input in inputs]
 
 
-def sparse_cross_entropy(P, targets):
-    epsilon = tf.constant(1e-12)
-    return -tf.reduce_sum(
-        tf.log(P + epsilon) * tf.one_hot(targets, P.get_shape()[1]), 1)
+def sparse_cross_entropy(logits, targets):
+    return -tf.reduce_sum(logits * tf.one_hot(targets, logits.get_shape()[1]), 1)
 
 
 def nest_map(func, nested):

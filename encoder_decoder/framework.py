@@ -115,12 +115,12 @@ class EncoderDecoderModel(graph_utils.NNModel):
         # Compute training outputs and losses in the forward direction.
         if self.buckets:
             self.output_symbols = []
-            self.output_logits = []
+            self.sequence_logits = []
             self.losses = []
             self.attn_alignments = []
             if self.tg_char:
                 self.char_output_symbols = []
-                self.char_output_logits = []
+                self.char_sequence_logits = []
             if self.use_copy:
                 self.pointers = []
             for bucket_id, bucket in enumerate(self.buckets):
@@ -138,19 +138,19 @@ class EncoderDecoderModel(graph_utils.NNModel):
                             encoder_copy_inputs=self.encoder_copy_inputs[:bucket[0]]
                         )
                     self.output_symbols.append(encode_decode_outputs['output_symbols'])
-                    self.output_logits.append(encode_decode_outputs['output_logits'])
+                    self.sequence_logits.append(encode_decode_outputs['sequence_logits'])
                     self.losses.append(encode_decode_outputs['losses'])
                     self.attn_alignments.append(encode_decode_outputs['attn_alignments'])
                     if self.forward_only and self.tg_char:
                          bucket_char_output_symbols = encode_decode_outputs['char_output_symbols']
-                         bucket_char_output_logits =  encode_decode_outputs['char_output_logits']
+                         bucket_char_sequence_logits =  encode_decode_outputs['char_sequence_logits']
                          self.char_output_symbols.append(
                              tf.reshape(bucket_char_output_symbols,
                                         [self.max_target_length,
                                          self.batch_size, self.beam_size,
                                          self.max_target_token_size + 1]))
-                         self.char_output_logits.append(
-                             tf.reshape(bucket_char_output_logits,
+                         self.char_sequence_logits.append(
+                             tf.reshape(bucket_char_sequence_logits,
                                         [self.max_target_length,
                                         self.batch_size, self.beam_size]))
                     if self.use_copy:
@@ -165,17 +165,17 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 encoder_copy_inputs=self.encoder_copy_inputs
             )
             self.output_symbols = encode_decode_outputs['output_symbols']
-            self.output_logits = encode_decode_outputs['output_logits']
+            self.sequence_logits = encode_decode_outputs['sequence_logits']
             self.losses = encode_decode_outputs['losses']
             self.attn_alignments = encode_decode_outputs['attn_alignments']
             if self.tg_char:
                 char_output_symbols = encode_decode_outputs['char_output_symbols']
-                char_output_logits = encode_decode_outputs['char_output_logits']
+                char_sequence_logits = encode_decode_outputs['char_sequence_logits']
                 self.char_output_symbols = tf.reshape(char_output_symbols,
                                    [self.batch_size, self.beam_size,
                                     self.max_target_length,
                                     self.max_target_token_size])
-                self.char_output_logits = tf.reshape(char_output_logits,
+                self.char_sequence_logits = tf.reshape(char_sequence_logits,
                                    [self.batch_size, self.beam_size,
                                     self.max_target_length])
             if self.use_copy:
@@ -216,9 +216,10 @@ class EncoderDecoderModel(graph_utils.NNModel):
     def encode_decode(self, encoder_channel_inputs, encoder_attn_masks,
                       decoder_inputs, targets, target_weights,
                       encoder_copy_inputs=None):
-        bs_decoding = self.forward_only and \
-                      self.token_decoding_algorithm == 'beam_search'
+        bs_decoding = self.token_decoding_algorithm == 'beam_search' \
+            and self.forward_only
 
+        # --- Encode Step --- #
         if bs_decoding:
             targets = graph_utils.wrap_inputs(
                 self.decoder.beam_decoder, targets)
@@ -226,18 +227,17 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 self.decoder.beam_decoder, encoder_copy_inputs)
         encoder_outputs, encoder_states = \
             self.encoder.define_graph(encoder_channel_inputs)
+
+        # --- Decode Step --- #
         if self.tg_token_use_attention:
             top_states = [tf.reshape(m, [-1, 1, self.encoder.output_dim])
                           for m in encoder_outputs]
             attention_states = tf.concat(axis=1, values=top_states)
         else:
             attention_states = None
+        num_heads = 2 if (self.tg_token_use_attention and self.copynet) else 1
 
-        num_heads = 2 if (self.tg_token_use_attention and 
-                          self.copynet) else 1
-
-        # --- Run encode-decode steps --- #
-        output_symbols, output_logits, outputs, states, attn_alignments, \
+        output_symbols, sequence_logits, output_logits, states, attn_alignments, \
             pointers = self.decoder.define_graph(
                         encoder_states[-1], decoder_inputs,
                         encoder_attn_masks=encoder_attn_masks,
@@ -248,16 +248,11 @@ class EncoderDecoderModel(graph_utils.NNModel):
         # --- Compute Losses --- #
 
         # A. Sequence Loss
-        if self.forward_only or self.training_algorithm == "standard":
-            if self.copynet:
-                step_loss_fun = graph_utils.sparse_cross_entropy
-            else:
-                step_loss_fun = graph_utils.softmax_loss(
-                    self.decoder.output_project,
-                    self.num_samples,
-                    self.target_vocab_size)
+        if self.training_algorithm == "cross-entropy":
             encoder_decoder_token_loss = self.sequence_loss(
-                outputs, targets, target_weights, step_loss_fun)
+                output_logits, targets, target_weights, graph_utils.sparse_cross_entropy)
+        elif self.training_algorithm == 'beam_search_opt':
+            pass
         else:
             raise AttributeError("Unrecognized training algorithm.")
 
@@ -269,14 +264,17 @@ class EncoderDecoderModel(graph_utils.NNModel):
         if self.tg_char:
             # re-arrange character inputs
             char_decoder_inputs = [
-                tf.squeeze(x, 1) for x in tf.split(axis=1, num_or_size_splits=self.max_target_token_size + 2,
-                                                   value=tf.concat(axis=0, values=self.char_decoder_inputs))]
+                tf.squeeze(x, 1) for x in tf.split(
+                    axis=1, num_or_size_splits=self.max_target_token_size + 2,
+                    value=tf.concat(axis=0, values=self.char_decoder_inputs))]
             char_targets = [
-                tf.squeeze(x, 1) for x in tf.split(axis=1, num_or_size_splits=self.max_target_token_size + 1,
-                                                   value=tf.concat(axis=0, values=self.char_targets))]
+                tf.squeeze(x, 1) for x in tf.split(
+                    axis=1, num_or_size_splits=self.max_target_token_size + 1,
+                    value=tf.concat(axis=0, values=self.char_targets))]
             char_target_weights = [
-                tf.squeeze(x, 1) for x in tf.split(axis=1, num_or_size_splits=self.max_target_token_size + 1,
-                                                   value=tf.concat(axis=0, values=self.char_target_weights))]
+                tf.squeeze(x, 1) for x in tf.split(
+                    axis=1, num_or_size_splits=self.max_target_token_size + 1,
+                    value=tf.concat(axis=0, values=self.char_target_weights))]
             if bs_decoding:
                 char_decoder_inputs = graph_utils.wrap_inputs(
                     self.decoder.beam_decoder, char_decoder_inputs)
@@ -286,12 +284,13 @@ class EncoderDecoderModel(graph_utils.NNModel):
                     self.decoder.beam_decoder, char_target_weights)
             # get initial state from decoder output
             char_decoder_init_state = \
-                tf.concat(axis=0, values=[tf.reshape(d_o, [-1, self.decoder.dim]) for d_o in outputs])
-            char_output_symbols, char_output_logits, char_outputs, _, _ = \
+                tf.concat(axis=0, values=[tf.reshape(d_o, [-1, self.decoder.dim])
+                                          for d_o in states])
+            char_output_symbols, char_sequence_logits, char_output_logits, _, _ = \
                 self.char_decoder.define_graph(
                     char_decoder_init_state, char_decoder_inputs)
             encoder_decoder_char_loss = self.sequence_loss(
-                char_outputs, char_targets, char_target_weights,
+                char_output_logits, char_targets, char_target_weights,
                 graph_utils.softmax_loss(
                     self.char_decoder.output_project,
                     self.tg_char_vocab_size / 2,
@@ -324,12 +323,12 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
         O = {}
         O['output_symbols'] = output_symbols
-        O['output_logits'] = output_logits
+        O['sequence_logits'] = sequence_logits
         O['losses'] = losses
         O['attn_alignments'] = attn_alignments
         if self.tg_char:
             O['char_output_symbols'] = char_output_symbols
-            O['char_output_logits'] = char_output_logits
+            O['char_sequence_logits'] = char_sequence_logits
         if self.use_copy:
             O['pointers'] = pointers
         return O
@@ -594,12 +593,12 @@ class EncoderDecoderModel(graph_utils.NNModel):
             if bucket_id == -1:
                 output_feed = {
                     'output_symbols': self.output_symbols,      # Loss for this batch.
-                    'output_logits': self.output_logits,        # Batch output sequence
+                    'sequence_logits': self.sequence_logits,        # Batch output sequence
                     'losses': self.losses}                      # Batch output scores
             else:
                 output_feed = {
                     'output_symbols': self.output_symbols[bucket_id], # Loss for this batch.
-                    'output_logits': self.output_logits[bucket_id],   # Batch output sequence
+                    'sequence_logits': self.sequence_logits[bucket_id],   # Batch output sequence
                     'losses': self.losses[bucket_id]}           # Batch output logits
 
         if self.tg_token_use_attention:
@@ -627,9 +626,9 @@ class EncoderDecoderModel(graph_utils.NNModel):
             O.gradient_norms = outputs['gradient_norms']
             O.losses = outputs['losses']
         else:
-            # No gradient loss, output_symbols, output_logits
+            # No gradient loss, output_symbols, sequence_logits
             O.output_symbols = outputs['output_symbols']
-            O.output_logits = outputs['output_logits']
+            O.sequence_logits = outputs['sequence_logits']
             O.losses = outputs['losses']
         # [attention_masks]
         if self.tg_token_use_attention:
@@ -666,7 +665,7 @@ class Output(object):
         self.gradient_norms = None
         self.losses = None
         self.output_symbols = None
-        self.output_logits = None
+        self.sequence_logits = None
         self.attn_alignments = None
         self.encoder_hidden_states = None
         self.decoder_hidden_states = None
