@@ -161,7 +161,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         self.parent_refs_offsets = None
 
         full_size = self.batch_size * self.beam_size
-        self.seq_len = tf.constant(1e-12, shape=[full_size, 1], dtype=tf.float32)
+        self.seq_len = tf.constant(1e-12, shape=[full_size], dtype=tf.float32)
 
     def __call__(self, cell_inputs, state, scope=None):
         (
@@ -233,7 +233,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
             tf.multiply(past_beam_logprobs, tf.pow(self.seq_len, self.alpha))
         logprobs_unormalized = \
             tf.expand_dims(past_logprobs_unormalized, 1) + logprobs
-        seq_len = self.seq_len + (1 - stop_mask)
+        seq_len = tf.expand_dims(self.seq_len, 1) + (1 - stop_mask)
         logprobs_batched = tf.div(logprobs_unormalized, tf.pow(seq_len, self.alpha))
 
         beam_logprobs, indices = tf.nn.top_k(
@@ -249,7 +249,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
 
         beam_symbols = tf.concat(axis=1, values=[tf.gather(past_beam_symbols, parent_refs),
                                                  tf.reshape(symbols, [-1, 1])])
-        self.seq_len = tf.gather(seq_len, parent_refs)
+        self.seq_len = tf.squeeze(tf.gather(seq_len, parent_refs), squeeze_dims=[1])
 
         if self.use_copy and self.copy_fun == 'copynet':
             ranked_read_copy_source = tf.gather(read_copy_source, parent_refs)
