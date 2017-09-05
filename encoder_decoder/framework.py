@@ -250,7 +250,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
         # A. Sequence Loss
         if self.training_algorithm == "standard":
             encoder_decoder_token_loss = self.sequence_loss(
-                output_logits, targets, target_weights, graph_utils.sparse_cross_entropy)
+                output_logits, targets, target_weights,
+                graph_utils.sparse_cross_entropy)
         elif self.training_algorithm == 'beam_search_opt':
             pass
         else:
@@ -355,15 +356,11 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
 
     def attention_regularization(self, attn_alignments):
-        """Entropy regularization term.
+        """
+        Entropy regularization term.
 
         :param attn_alignments: [batch_size, decoder_size, encoder_size]
         """
-        # P_unnorm = tf.reduce_sum(attn_alignments, 1)
-        # Z = tf.reduce_sum(P_unnorm, 1, keep_dims=True)
-        # P = P_unnorm / Z
-        # return tf.reduce_mean(tf.reduce_sum(P * tf.log(P), 1))
-
         P = tf.reduce_sum(attn_alignments, 1)
         P_exp = tf.exp(P)
         Z = tf.reduce_sum(P_exp, 1, keep_dims=True)
