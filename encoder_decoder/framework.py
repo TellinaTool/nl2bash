@@ -249,15 +249,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
         # A. Sequence Loss
         if self.forward_only or self.training_algorithm == "standard":
-            if self.copynet:
-                step_loss_fun = graph_utils.sparse_cross_entropy
-            else:
-                step_loss_fun = graph_utils.softmax_loss(
-                    self.decoder.output_project,
-                    self.num_samples,
-                    self.target_vocab_size)
             encoder_decoder_token_loss = self.sequence_loss(
-                outputs, targets, target_weights, step_loss_fun)
+                outputs, targets, target_weights, graph_utils.sparse_cross_entropy)
         else:
             raise AttributeError("Unrecognized training algorithm.")
 
