@@ -226,8 +226,10 @@ class RNNDecoder(decoder.Decoder):
             else:
                 # Greedy output
                 step_output_symbol_and_logit(output)
-                output_symbols = tf.concat(axis=1, values=past_output_symbols)
-                sequence_logits = tf.reduce_sum(past_output_logits)
+                output_symbols = tf.concat(
+                    [tf.expand_dims(x, 1) for x in past_output_symbols], axis=1)
+                sequence_logits = tf.add_n([tf.reduce_max(x, axis=1) 
+                                            for x in past_output_logits])
                 return output_symbols, sequence_logits, past_output_logits, \
                        states, attn_alignments, pointers
 
