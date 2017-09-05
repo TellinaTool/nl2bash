@@ -32,7 +32,7 @@ def get_content_tokens(ast):
             ast, loose_constraints=True, arg_type_only=True, with_prefix=True,
             with_flag_argtype=True):
         kind_token = compound_token.split(nast.KIND_PREFIX)
-        kind, token = kind_token if len(kind_token) == 2 else ('', kind_token)
+        kind, token = kind_token if len(kind_token) == 2 else ('', kind_token[0])
         if kind.lower() != 'argument':
             content_tokens[token] += 1
     return content_tokens

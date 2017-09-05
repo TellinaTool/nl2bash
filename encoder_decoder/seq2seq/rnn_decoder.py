@@ -135,7 +135,7 @@ class RNNDecoder(decoder.Decoder):
                             output_symbol, _ = step_output_symbol_and_logit(output)
                             input = tf.cast(output_symbol, dtype=tf.int32)
                         input = tf.where(input >= self.target_vocab_size,
-                                         data_utils.UNK_ID, input)
+                                         tf.ones_like(input)*data_utils.UNK_ID, input)
 
                 input_embedding = tf.nn.embedding_lookup(input_embeddings, input)
 
