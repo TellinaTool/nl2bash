@@ -124,8 +124,6 @@ class RNNDecoder(decoder.Decoder):
                     if self.forward_only and not self.force_reading_input:
                         if self.decoding_algorithm == "beam_search":
                             (
-                                past_cand_symbols,  # [batch_size, max_len]
-                                past_cand_logprobs, # [batch_size]
                                 past_beam_symbols,  # [batch_size*self.beam_size, max_len], right-aligned!!!
                                 past_beam_logprobs, # [batch_size*self.beam_size]
                                 past_cell_states,   # [batch_size*self.beam_size, max_len, dim]
@@ -168,8 +166,6 @@ class RNNDecoder(decoder.Decoder):
             if bs_decoding:
                 # Beam-search output
                 (
-                    past_cand_symbols,  # [batch_size, max_len]
-                    past_cand_logprobs, # [batch_size]
                     past_beam_symbols,  # [batch_size*self.beam_size, max_len], right-aligned!!!
                     past_beam_logprobs, # [batch_size*self.beam_size]
                     past_cell_states,

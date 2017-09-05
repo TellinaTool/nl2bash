@@ -283,23 +283,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
                 tf.concat(axis=1, values=[past_cell_states, tf.expand_dims(cell_state, 1)]),
                 parent_refs)
 
-        # Handling for getting a done token
-        logprobs_batched_3D = tf.reshape(
-            logprobs_batched, [-1, self.beam_size, self.num_classes])
-        logprobs_done = logprobs_batched_3D[:, :, self.stop_token]
-        done_parent_refs = tf.to_int32(tf.argmax(logprobs_done, 1))
-        done_parent_refs_offsets = tf.range(batch_size) * self.beam_size
-        done_symbols = tf.gather(past_beam_symbols[:, -1:],
-                                 done_parent_refs + done_parent_refs_offsets)
-
-        logprobs_done_max = tf.reduce_max(logprobs_done, 1)
-        cand_symbols = tf.where(logprobs_done_max > past_cand_logprobs,
-                                done_symbols, past_cand_symbols)
-        cand_logprobs = tf.maximum(logprobs_done_max, past_cand_logprobs)
-
         compound_cell_state = (
-            cand_symbols,
-            cand_logprobs,
             beam_symbols,
             beam_logprobs,
             ranked_cell_states
