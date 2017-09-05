@@ -163,7 +163,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         full_size = self.batch_size * self.beam_size
         self.seq_len = tf.constant(1e-10, shape=[full_size], dtype=tf.float32)
 
-    def __call__(self, inputs, state, scope=None):
+    def __call__(self, cell_inputs, state, scope=None):
         (
             past_cand_symbols,      # [batch_size, :]
             past_cand_logprobs,     # [batch_size]
@@ -173,22 +173,13 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
                                     #        [batch_size*self.beam_size, :, dim])
                                     # GRU: [batch_size*self.beam_size, :, dim]
         ) = state
+
         batch_size = past_cand_symbols.get_shape()[0].value
         full_size = batch_size * self.beam_size
+
         if self.parent_refs_offsets is None:
             self.parent_refs_offsets = \
                 (tf.range(full_size) // self.beam_size) * self.beam_size
-
-        input_symbols = past_beam_symbols[:, -1]
-        # [batch_size * beam_size]
-        # - 0
-        # _STOP 1
-        # - 0
-        # - 0
-        stop_mask = tf.cast(
-            tf.equal(input_symbols, self.stop_token), tf.float32)
-
-        cell_inputs = inputs
 
         past_cell_state = self.get_last_cell_state(past_cell_states)
         if self.use_copy and self.copy_fun == 'copynet':
@@ -211,64 +202,51 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
             else:
                 logprobs = tf.matmul(cell_output, W) + b
 
-        # Note: masking out entries to -inf plays poorly with top_k, so just
-        # subtract out a large number.
-        # TODO: consider using slice+fill+concat instead of adding a mask
-        # TODO: consider making the large negative constant dtype-dependent
-        # [self.batch_size*self.beam_size, self.num_classes]
-        # [- - _STOP - - - ]
-        # [-100 -100 0 -100 -100 -100]
-        # [-100 -100 0 -100 -100 -100]
-        # [-100 -100 0 -100 -100 -100]
-        # [-100 -100 0 -100 -100 -100]
-        num_classes = logprobs.get_shape()[1].value
-        done_mask = tf.reshape(
-            tf.cast(tf.not_equal(tf.range(num_classes), self.stop_token),
-                    tf.float32) * -1e18,
-            [1, num_classes]
-        )
-        done_mask = tf.tile(done_mask, [full_size, 1])
+        # stop_mask: indicates beam sequences end with a stop token
+        # [batch_size * beam_size]
+        # x     0
+        # _STOP 1
+        # x     0
+        # x     0
+        input_symbols = past_beam_symbols[:, -1]
+        stop_mask = tf.expand_dims(tf.cast(
+            tf.equal(input_symbols, self.stop_token), tf.float32), 1)
 
-        # set the probabilities of all other symbols following the stop symbol
-        # to a very small number
-        stop_mask_2d = tf.expand_dims(stop_mask, 1)
-        # [- - _STOP - - - ]
-        # [0 0 0 0 0 0]
-        # [-100 -100 0 -100 -100 -100]
-        # [0 0 0 0 0 0]
-        # [0 0 0 0 0 0]
-        done_only_mask = tf.multiply(stop_mask_2d, done_mask)
-        # [- - _STOP - - - ]
-        # [1 1 1 1 1 1]
-        # [1 1 0 1 1 1]
-        # [1 1 1 1 1 1]
-        # [1 1 1 1 1 1]
-        zero_done_mask = tf.ones([full_size, num_classes]) - \
-            tf.multiply(stop_mask_2d, tf.cast(tf.equal(done_mask, 0), tf.float32))
-        logprobs = tf.add(logprobs, done_only_mask)
-        logprobs = tf.multiply(logprobs, zero_done_mask)
+        # done_mask: indicates stop token in the output vocabulary
+        # [1, self.num_classes]
+        # [- - _STOP - - -]
+        # [0 0 1 0 0 0]
+        done_mask = tf.cast(tf.reshape(tf.equal(tf.range(self.num_classes),
+                                                self.stop_token),
+                                       [1, self.num_classes]),
+                            tf.float32)
+        # set the next token distribution of beam sequences end with a stop
+        # token to:
+        # [- - _STOP - - -]
+        # [-inf -inf 0 -inf -inf -inf]
+        logprobs = tf.add(logprobs, tf.multiply(
+            stop_mask, -1e18 * (tf.ones_like(done_mask) - done_mask)))
+        logprobs = tf.multiply(logprobs, (1 - tf.multiply(stop_mask, done_mask)))
 
         # length normalization
         past_beam_acc_logprobs = \
             tf.multiply(past_beam_logprobs, tf.pow(self.seq_len, self.alpha))
         logprobs_batched = tf.expand_dims(past_beam_acc_logprobs, 1) + logprobs
-        float_done_mask = tf.cast(tf.not_equal(done_mask, 0), tf.float32)
-        seq_len = tf.expand_dims(self.seq_len, 1) + \
-            tf.multiply(tf.ones([full_size, 1]) - stop_mask_2d, float_done_mask)
+        seq_len = tf.expand_dims(self.seq_len, 1) + (1 - stop_mask)
         logprobs_batched = tf.div(logprobs_batched, tf.pow(seq_len, self.alpha))
         logprobs_batched = \
-            tf.reshape(logprobs_batched, [-1, self.beam_size * num_classes])
+            tf.reshape(logprobs_batched, [-1, self.beam_size * self.num_classes])
 
         beam_logprobs, indices = tf.nn.top_k(
             #TODO: make sure it's reasonable to remove nondone mask
-            tf.reshape(logprobs_batched, [-1, self.beam_size * num_classes]),
+            tf.reshape(logprobs_batched, [-1, self.beam_size * self.num_classes]),
             self.beam_size
         )
         beam_logprobs = tf.reshape(beam_logprobs, [-1])
 
         # For continuing to the next symbols
-        symbols = indices % num_classes # [batch_size, self.beam_size]
-        parent_refs = tf.reshape(indices // num_classes, [-1]) # [batch_size*self.beam_size]
+        symbols = indices % self.num_classes # [batch_size, self.beam_size]
+        parent_refs = tf.reshape(indices // self.num_classes, [-1]) # [batch_size*self.beam_size]
         parent_refs = parent_refs + self.parent_refs_offsets
 
         beam_symbols = tf.concat(axis=1, values=[tf.gather(past_beam_symbols, parent_refs),
@@ -311,7 +289,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
 
         # Handling for getting a done token
         logprobs_batched_3D = tf.reshape(
-            logprobs_batched, [-1, self.beam_size, num_classes])
+            logprobs_batched, [-1, self.beam_size, self.num_classes])
         logprobs_done = logprobs_batched_3D[:, :, self.stop_token]
         done_parent_refs = tf.to_int32(tf.argmax(logprobs_done, 1))
         done_parent_refs_offsets = tf.range(batch_size) * self.beam_size
