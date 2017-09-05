@@ -12,13 +12,11 @@ from encoder_decoder import decoder, data_utils, graph_utils, rnn
 
 
 class RNNDecoder(decoder.Decoder):
-    def __init__(self, hyperparameters, scope, dim, embedding_dim,
-                 use_attention, attention_function, input_keep, output_keep,
-                 decoding_algorithm):
+    def __init__(self, hyperparameters, scope, dim, embedding_dim, use_attention,
+                 attention_function, input_keep, output_keep, decoding_algorithm):
         """
         :member hyperparameters:
         :member scope:
-        :member vocab_size:
         :member dim:
         :member embedding_dim:
         :member use_attention:
@@ -26,8 +24,6 @@ class RNNDecoder(decoder.Decoder):
         :member input_keep:
         :member output_keep:
         :member decoding_algorithm:
-        :member forward_only:
-        :member use_token_features:
         """
         super(RNNDecoder, self).__init__(hyperparameters, scope, dim,
             embedding_dim, use_attention, attention_function, input_keep,
@@ -41,43 +37,37 @@ class RNNDecoder(decoder.Decoder):
                      attention_states=None, num_heads=1,
                      encoder_copy_inputs=None):
         """
-        :return output_symbols: batch of discrete output sequences
-        :return output_logits: batch of output sequence scores
-        :return outputs: batch output states for all steps
-        :return states: batch hidden states for all steps
-        :return attn_alignments: batch attention masks
-                                 (if attention mechanism is used)
+        :return output_symbols: (batched) discrete output sequences
+        :return output_logits: (batched) output sequence scores
+        :return outputs: (batched) output states for all steps
+        :return states: (batched) hidden states for all steps
+        :return attn_alignments: (batched) attention masks (if attention is used)
         """
-        if input_embeddings is None:
-            input_embeddings = self.embeddings()
-
-        if self.use_attention and \
-                not attention_states.get_shape()[1:2].is_fully_defined():
-            raise ValueError("Shape [1] and [2] of attention_states must be "
-                             "known %s" % attention_states.get_shape())
-
+        if self.use_attention:
+            assert(attention_states.get_shape()[1:2].is_fully_defined())
         bs_decoding = self.forward_only and \
                       self.decoding_algorithm == "beam_search"
+
+        if input_embeddings is None:
+            input_embeddings = self.embeddings()
 
         if self.force_reading_input:
             print("Warning: reading ground truth decoder inputs at decoding time.")
 
         with tf.variable_scope(self.scope + "_decoder_rnn") as scope:
             decoder_cell = self.decoder_cell()
-            outputs = []
             states = []
             alignments_list = []
             pointers = None
 
-            # applying cell wrappers: ["attention", "beam"]
+            # Cell Wrappers -- 'Attention', 'CopyNet', 'BeamSearch'
             if bs_decoding:
                 beam_decoder = self.beam_decoder
-                state = beam_decoder.wrap_state(
-                    encoder_state, self.output_project)
+                state = beam_decoder.wrap_state(encoder_state, self.output_project)
             else:
                 state = encoder_state
                 past_output_symbols = []
-                past_output_logits = tf.cast(decoder_inputs[0] * 0, tf.float32)
+                past_output_logits = []
 
             if self.use_attention:
                 if bs_decoding:
@@ -113,6 +103,18 @@ class RNNDecoder(decoder.Decoder):
                 decoder_cell = beam_decoder.wrap_cell(
                     decoder_cell, self.output_project)
 
+            def step_output_symbol_and_logit(output):
+                if self.copynet:
+                    epsilon = tf.constant(1e-12)
+                    output_logits = tf.log(output + epsilon)
+                else:
+                    W, b = self.output_project
+                    output_logits = tf.nn.log_softmax(tf.matmul(output, W) + b)
+                output_symbol = tf.argmax(output_logits, 1)
+                past_output_symbols.append(output_symbol)
+                past_output_logits.append(output_logits)
+                return output_symbol, output_logits
+
             for i, input in enumerate(decoder_inputs):
                 if bs_decoding:
                     input = beam_decoder.wrap_input(input)
@@ -122,40 +124,20 @@ class RNNDecoder(decoder.Decoder):
                     if self.forward_only and not self.force_reading_input:
                         if self.decoding_algorithm == "beam_search":
                             (
-                                past_cand_symbols,  # [batch_size, max_len]
-                                past_cand_logprobs, # [batch_size]
                                 past_beam_symbols,  # [batch_size*self.beam_size, max_len], right-aligned!!!
                                 past_beam_logprobs, # [batch_size*self.beam_size]
                                 past_cell_states,   # [batch_size*self.beam_size, max_len, dim]
                             ) = state
                             input = past_beam_symbols[:, -1]
                         elif self.decoding_algorithm == "greedy":
-                            if self.use_copy and self.copy_fun == 'copynet':
-                                epsilon = tf.constant(1e-12)
-                                projected_output = tf.log(output + epsilon)
-                            else:
-                                W, b = self.output_project
-                                projected_output = \
-                                    tf.nn.log_softmax(tf.matmul(output, W) + b)
-                            output_symbol = tf.argmax(projected_output, 1)
-                            past_output_symbols.append(tf.expand_dims(output_symbol, 1))
-                            past_output_logits = \
-                                tf.add(past_output_logits, tf.reduce_max(projected_output, 1))
+                            output_symbol, _ = step_output_symbol_and_logit(output)
                             input = tf.cast(output_symbol, dtype=tf.int32)
                         input = tf.where(input >= self.target_vocab_size,
-                            tf.ones(tf.shape(input), dtype=tf.int32) * data_utils.UNK_ID, input)
+                                         tf.ones_like(input)*data_utils.UNK_ID, input)
 
                 input_embedding = tf.nn.embedding_lookup(input_embeddings, input)
 
                 if self.copynet:
-                    # if i == 0:
-                    #     attn_dim = attention_states.get_shape()[2]
-                    #     selective_reads = tf.zeros([self.batch_size, attn_dim])
-                    #     if bs_decoding:
-                    #         selective_reads = beam_decoder.wrap_input(selective_reads)
-                    # else:
-                    #     selective_reads = attns[-1] * read_copy_source
-                    # input_embedding = tf.concat(axis=1, values=[input_embedding, selective_reads])
                     output, state, alignments, attns, read_copy_source = \
                         decoder_cell(input_embedding, state)
                     alignments_list.append(alignments)
@@ -166,14 +148,11 @@ class RNNDecoder(decoder.Decoder):
                 else:
                     output, state = decoder_cell(input_embedding, state)
                
-                # record output state to compute the loss.
-                if bs_decoding:
+                # save output states
+                if not bs_decoding:
                     # when doing beam search decoding, the output state of each
                     # step cannot simply be gathered step-wise outside the decoder
                     # (speical case: beam_size = 1)
-                    pass
-                else:
-                    outputs.append(output)
                     states.append(state)
 
             if self.use_attention:
@@ -187,26 +166,27 @@ class RNNDecoder(decoder.Decoder):
             if bs_decoding:
                 # Beam-search output
                 (
-                    past_cand_symbols,  # [batch_size, max_len]
-                    past_cand_logprobs, # [batch_size]
                     past_beam_symbols,  # [batch_size*self.beam_size, max_len], right-aligned!!!
                     past_beam_logprobs, # [batch_size*self.beam_size]
                     past_cell_states,
                 ) = state
                 # [self.batch_size, self.beam_size, max_len]
-                top_k_outputs = tf.reshape(past_beam_symbols[:, 1:],
-                                           [self.batch_size, self.beam_size, -1])
-                top_k_outputs = tf.split(axis=0, num_or_size_splits=self.batch_size, value=top_k_outputs)
-                top_k_outputs = [tf.split(axis=0, num_or_size_splits=self.beam_size,
-                                          value=tf.squeeze(top_k_output, axis=[0]))
-                                 for top_k_output in top_k_outputs]
-                top_k_outputs = [[tf.squeeze(output, axis=[0]) for output in top_k_output]
-                                 for top_k_output in top_k_outputs]
+                top_k_osbs = tf.reshape(past_beam_symbols[:, 1:],
+                                        [self.batch_size, self.beam_size, -1])
+                top_k_osbs = tf.split(axis=0, num_or_size_splits=self.batch_size,
+                                      value=top_k_osbs)
+                top_k_osbs = [tf.split(axis=0, num_or_size_splits=self.beam_size,
+                                       value=tf.squeeze(top_k_output, axis=[0]))
+                              for top_k_output in top_k_osbs]
+                top_k_osbs = [[tf.squeeze(output, axis=[0]) for output in top_k_output]
+                              for top_k_output in top_k_osbs]
                 # [self.batch_size, self.beam_size]
-                top_k_logits = tf.reshape(past_beam_logprobs, [self.batch_size, self.beam_size])
-                top_k_logits = tf.split(axis=0, num_or_size_splits=self.batch_size, value=top_k_logits)
-                top_k_logits = [tf.squeeze(top_k_logit, axis=[0])
-                                for top_k_logit in top_k_logits]
+                top_k_seq_logits = tf.reshape(past_beam_logprobs,
+                                              [self.batch_size, self.beam_size])
+                top_k_seq_logits = tf.split(axis=0, num_or_size_splits=self.batch_size,
+                                            value=top_k_seq_logits)
+                top_k_seq_logits = [tf.squeeze(top_k_logit, axis=[0])
+                                    for top_k_logit in top_k_seq_logits]
                 if self.use_attention:
                     attn_alignments = tf.reshape(attn_alignments,
                             [self.batch_size, self.beam_size, len(decoder_inputs),
@@ -219,15 +199,19 @@ class RNNDecoder(decoder.Decoder):
                         c_states, h_states = past_cell_states
                         states = list(zip(
                             [tf.squeeze(x, axis=[1])
-                                for x in tf.split(axis=1, num_or_size_splits=c_states.get_shape()[1], value=c_states)],
+                                for x in tf.split(c_states, c_states.get_shape()[1],
+                                                  axis=1)],
                             [tf.squeeze(x, axis=[1])
-                                for x in tf.split(axis=1, num_or_size_splits=h_states.get_shape()[1], value=h_states)]))
+                                for x in tf.split(h_states, h_states.get_shape()[1],
+                                                  axis=1)]))
                     else:
                         layered_states = [list(zip(
                                 [tf.squeeze(x, axis=[1]) 
-                                    for x in tf.split(axis=1, num_or_size_splits=c_states.get_shape()[1], value=c_states)[1:]],
+                                    for x in tf.split(c_states, c_states.get_shape()[1],
+                                                      axis=1)[1:]],
                                 [tf.squeeze(x, axis=[1])
-                                    for x in tf.split(axis=1, num_or_size_splits=h_states.get_shape()[1], value=h_states)[1:]]))
+                                    for x in tf.split(h_states, h_states.get_shape()[1],
+                                                      axis=1)[1:]]))
                             for c_states, h_states in past_cell_states]
                         states = list(zip(layered_states))
                 elif self.rnn_cell in ['gru', 'ran']:
@@ -237,32 +221,17 @@ class RNNDecoder(decoder.Decoder):
                 else:
                     raise AttributeError(
                         "Unrecognized rnn cell type: {}".format(self.rnn_cell))
-
-                # TODO: correct beam search output logits computation
-                # so far dummy zero vectors are used
-                if self.use_copy and self.copy_fun == 'copynet':
-                    outputs = [tf.zeros([self.batch_size * self.beam_size, self.vocab_size])
-                           for _ in states]
-                else:
-                    outputs = [tf.zeros([self.batch_size * self.beam_size, self.dim])
-                           for _ in states]
-                return top_k_outputs, top_k_logits, outputs, states, attn_alignments, pointers
+                return top_k_osbs, top_k_seq_logits, states, \
+                       states, attn_alignments, pointers
             else:
                 # Greedy output
-                if self.copynet:
-                    epsilon = tf.constant(1e-12)
-                    projected_output = tf.log(output + epsilon)
-                else:
-                    W, b = self.output_project
-                    projected_output = tf.nn.log_softmax(tf.matmul(output, W) + b)
-                output_symbol = tf.argmax(projected_output, 1)
-                past_output_symbols.append(tf.expand_dims(output_symbol, 1))
-                output_symbols = tf.concat(axis=1, values=past_output_symbols) \
-                    if self.forward_only else tf.cast(input, tf.float32)
-                past_output_logits = tf.add(
-                    past_output_logits, tf.reduce_max(projected_output, 1))
-                return output_symbols, past_output_logits, outputs, states, \
-                    attn_alignments, pointers
+                step_output_symbol_and_logit(output)
+                output_symbols = tf.concat(
+                    [tf.expand_dims(x, 1) for x in past_output_symbols], axis=1)
+                sequence_logits = tf.add_n([tf.reduce_max(x, axis=1) 
+                                            for x in past_output_logits])
+                return output_symbols, sequence_logits, past_output_logits, \
+                       states, attn_alignments, pointers
 
 
     def decoder_cell(self):

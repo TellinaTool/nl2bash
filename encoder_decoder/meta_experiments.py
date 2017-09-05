@@ -67,7 +67,7 @@ def grid_search(train_fun, decode_fun, eval_fun, train_set, dev_set, FLAGS):
     if FLAGS.dataset.startswith('bash'):
         metrics = ['top1_temp_ms', 'top1_cms', 'top3_temp_ms', 'top3_cms', 
                    'top1_str_ms', 'top3_str_ms']
-        metrics_weights = [0.3, 0.3, 0.075, 0.075, 0.125, 0.125]
+        metrics_weights = [0.1875, 0.1875, 0.0625, 0.0625, 0.25, 0.25]
     else:
         metrics = ['top1_temp_ms']
         metrics_weights = [1]
