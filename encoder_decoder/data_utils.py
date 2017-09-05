@@ -238,7 +238,7 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
         print('Group data points into buckets...')
         if split == 'train':
             # Compute bucket sizes, excluding outliers
-            length_cutoff = 0.01
+            length_cutoff = 0.01 if not FLAGS.channel == 'char' else 0.1
             # A. Determine maximum source length
             sorted_dataset = sorted(dataset, key=lambda x:len(x.sc_ids), reverse=True)
             max_sc_length = len(sorted_dataset[int(len(sorted_dataset) * length_cutoff)].sc_ids)
