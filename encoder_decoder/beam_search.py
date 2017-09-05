@@ -202,7 +202,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
             else:
                 logprobs = tf.matmul(cell_output, W) + b
 
-        # stop_mask: indicates beam sequences end with a stop token
+        # stop_mask: indicates partial sequences ending with a stop token
         # [batch_size * beam_size]
         # x     0
         # _STOP 1
@@ -220,8 +220,8 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
                                                 self.stop_token),
                                        [1, self.num_classes]),
                             tf.float32)
-        # set the next token distribution of beam sequences end with a stop
-        # token to:
+        # set the next token distribution of partial sequences ending with
+        # a stop token to:
         # [- - _STOP - - -]
         # [-inf -inf 0 -inf -inf -inf]
         logprobs = tf.add(logprobs, tf.multiply(
@@ -229,16 +229,14 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         logprobs = tf.multiply(logprobs, (1 - tf.multiply(stop_mask, done_mask)))
 
         # length normalization
-        past_beam_acc_logprobs = \
+        past_logprobs_unormalized = \
             tf.multiply(past_beam_logprobs, tf.pow(self.seq_len, self.alpha))
-        logprobs_batched = tf.expand_dims(past_beam_acc_logprobs, 1) + logprobs
+        logprobs_unormalized = \
+            tf.expand_dims(past_logprobs_unormalized, 1) + logprobs
         seq_len = tf.expand_dims(self.seq_len, 1) + (1 - stop_mask)
-        logprobs_batched = tf.div(logprobs_batched, tf.pow(seq_len, self.alpha))
-        logprobs_batched = \
-            tf.reshape(logprobs_batched, [-1, self.beam_size * self.num_classes])
+        logprobs_batched = tf.div(logprobs_unormalized, tf.pow(seq_len, self.alpha))
 
         beam_logprobs, indices = tf.nn.top_k(
-            #TODO: make sure it's reasonable to remove nondone mask
             tf.reshape(logprobs_batched, [-1, self.beam_size * self.num_classes]),
             self.beam_size
         )
