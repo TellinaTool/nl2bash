@@ -45,25 +45,22 @@ class RNNDecoder(decoder.Decoder):
         """
         if self.use_attention:
             assert(attention_states.get_shape()[1:2].is_fully_defined())
-        bs_decoding = self.forward_only and \
-                      self.decoding_algorithm == "beam_search"
+        bs_decoding = (self.decoding_algorithm == "beam_search")
 
         if input_embeddings is None:
             input_embeddings = self.embeddings()
 
-        if self.force_reading_input:
-            print("Warning: reading ground truth decoder inputs at decoding time.")
-
         with tf.variable_scope(self.scope + "_decoder_rnn") as scope:
             decoder_cell = self.decoder_cell()
             states = []
-            alignments_list = []
-            pointers = None
 
-            # Cell Wrappers -- 'Attention', 'CopyNet', 'BeamSearch'
+            # --- Cell Wrappers: 'Attention', 'CopyNet', 'BeamSearch'
             if bs_decoding:
                 beam_decoder = self.beam_decoder
-                state = beam_decoder.wrap_state(encoder_state, self.output_project)
+                if self.forward_only:
+                    state = beam_decoder.wrap_state(encoder_state, self.output_project)
+                else:
+                    beam_state = beam_decoder.wrap_state(encoder_state, self.output_project)
             else:
                 state = encoder_state
                 past_output_symbols = []
@@ -71,38 +68,78 @@ class RNNDecoder(decoder.Decoder):
 
             if self.use_attention:
                 if bs_decoding:
-                    encoder_attn_masks = graph_utils.wrap_inputs(
-                        beam_decoder, encoder_attn_masks)
-                    attention_states = beam_decoder.wrap_input(attention_states)
-                encoder_attn_masks = [tf.expand_dims(encoder_attn_mask, 1)
-                    for encoder_attn_mask in encoder_attn_masks]
-                encoder_attn_masks = tf.concat(axis=1, values=encoder_attn_masks)
+                    if self.forward_only:
+                        encoder_attn_masks = graph_utils.wrap_inputs(
+                            beam_decoder, encoder_attn_masks)
+                        attention_states = beam_decoder.wrap_input(attention_states)
+                    else:
+                        beam_encoder_attn_masks = \
+                            graph_utils.wrap_inputs(beam_decoder, encoder_attn_masks)
+                        beam_attention_states = beam_decoder.wrap_input(attention_states)
                 decoder_cell = decoder.AttentionCellWrapper(
                     decoder_cell,
                     attention_states,
                     encoder_attn_masks,
+                    num_heads,
                     self.attention_function,
                     self.attention_input_keep,
                     self.attention_output_keep,
-                    num_heads,
                     self.dim,
                     self.num_layers,
                     self.use_copy,
                     self.vocab_size
                 )
-
+                attn_decoder_cell = decoder_cell
+                if bs_decoding and not self.forward_only:
+                    beam_decoder_cell = decoder.AttentionCellWrapper(
+                        decoder_cell,
+                        beam_attention_states,
+                        beam_encoder_attn_masks,
+                        num_heads,
+                        self.attention_function,
+                        self.attention_input_keep,
+                        self.attention_output_keep,
+                        self.dim,
+                        self.num_layers,
+                        self.use_copy,
+                        self.vocab_size
+                    )
+                    beam_attn_decoder_cell = beam_decoder_cell
             if self.use_copy and self.copy_fun == 'copynet':
+                if bs_decoding:
+                    if self.forward_only:
+                        encoder_copy_inputs = graph_utils.wrap_inputs(
+                            beam_decoder, encoder_copy_inputs)
+                    else:
+                        beam_encoder_copy_inputs = graph_utils.wrap_inputs(
+                            beam_decoder, encoder_copy_inputs)
                 decoder_cell = decoder.CopyCellWrapper(
                     decoder_cell,
                     self.output_project,
                     self.num_layers,
                     encoder_copy_inputs,
                     self.vocab_size)
+                if bs_decoding and not self.forward_only:
+                    beam_decoder_cell = decoder.CopyCellWrapper(
+                        beam_decoder_cell,
+                        self.output_project,
+                        self.num_layers,
+                        beam_encoder_copy_inputs,
+                        self.vocab_size
+                    )
 
             if bs_decoding:
-                decoder_cell = beam_decoder.wrap_cell(
-                    decoder_cell, self.output_project)
+                if self.forward_only:
+                    decoder_cell = beam_decoder.wrap_cell(
+                        decoder_cell, self.output_project)
+                else:
+                    # Beam search training: run beam search decoder in parallel
+                    # to the RNN decoder which computes the log likelihood of
+                    # the ground truth sequences
+                    beam_decoder_cell = beam_decoder.wrap_cell(
+                        beam_decoder_cell, self.output_project)
 
+            # --- RNN Decoder Loop
             def step_output_symbol_and_logit(output):
                 if self.copynet:
                     epsilon = tf.constant(1e-12)
@@ -115,58 +152,10 @@ class RNNDecoder(decoder.Decoder):
                 past_output_logits.append(output_logits)
                 return output_symbol, output_logits
 
-            for i, input in enumerate(decoder_inputs):
-                if bs_decoding:
-                    input = beam_decoder.wrap_input(input)
-
-                if i > 0:
-                    scope.reuse_variables()
-                    if self.forward_only and not self.force_reading_input:
-                        if self.decoding_algorithm == "beam_search":
-                            (
-                                past_beam_symbols,  # [batch_size*self.beam_size, max_len], right-aligned!!!
-                                past_beam_logprobs, # [batch_size*self.beam_size]
-                                past_cell_states,   # [batch_size*self.beam_size, max_len, dim]
-                            ) = state
-                            input = past_beam_symbols[:, -1]
-                        elif self.decoding_algorithm == "greedy":
-                            output_symbol, _ = step_output_symbol_and_logit(output)
-                            input = tf.cast(output_symbol, dtype=tf.int32)
-                        input = tf.where(input >= self.target_vocab_size,
-                                         tf.ones_like(input)*data_utils.UNK_ID, input)
-
-                input_embedding = tf.nn.embedding_lookup(input_embeddings, input)
-
-                if self.copynet:
-                    output, state, alignments, attns, read_copy_source = \
-                        decoder_cell(input_embedding, state)
-                    alignments_list.append(alignments)
-                elif self.use_attention:
-                    output, state, alignments, attns = \
-                        decoder_cell(input_embedding, state)
-                    alignments_list.append(alignments)
-                else:
-                    output, state = decoder_cell(input_embedding, state)
-               
-                # save output states
-                if not bs_decoding:
-                    # when doing beam search decoding, the output state of each
-                    # step cannot simply be gathered step-wise outside the decoder
-                    # (speical case: beam_size = 1)
-                    states.append(state)
-
-            if self.use_attention:
-                # Tensor list --> tenosr
-                attn_alignments = tf.concat(axis=1,
-                    values=[tf.expand_dims(x[0], 1) for x in alignments_list])
-            if self.copynet:
-                pointers = tf.concat(axis=1,
-                    values=[tf.expand_dims(x[1], 1) for x in alignments_list])
-
-            if bs_decoding:
+            def process_beam_search_output(state):
                 # Beam-search output
                 (
-                    past_beam_symbols,  # [batch_size*self.beam_size, max_len], right-aligned!!!
+                    past_beam_symbols,  # [batch_size*self.beam_size, max_len]
                     past_beam_logprobs, # [batch_size*self.beam_size]
                     past_cell_states,
                 ) = state
@@ -187,10 +176,6 @@ class RNNDecoder(decoder.Decoder):
                                             value=top_k_seq_logits)
                 top_k_seq_logits = [tf.squeeze(top_k_logit, axis=[0])
                                     for top_k_logit in top_k_seq_logits]
-                if self.use_attention:
-                    attn_alignments = tf.reshape(attn_alignments,
-                            [self.batch_size, self.beam_size, len(decoder_inputs),
-                             attention_states.get_shape()[1].value])
                 # LSTM: ([batch_size*self.beam_size, :, dim],
                 #        [batch_size*self.beam_size, :, dim])
                 # GRU: [batch_size*self.beam_size, :, dim]
@@ -206,7 +191,7 @@ class RNNDecoder(decoder.Decoder):
                                                   axis=1)]))
                     else:
                         layered_states = [list(zip(
-                                [tf.squeeze(x, axis=[1]) 
+                                [tf.squeeze(x, axis=[1])
                                     for x in tf.split(c_states, c_states.get_shape()[1],
                                                       axis=1)[1:]],
                                 [tf.squeeze(x, axis=[1])
@@ -221,15 +206,121 @@ class RNNDecoder(decoder.Decoder):
                 else:
                     raise AttributeError(
                         "Unrecognized rnn cell type: {}".format(self.rnn_cell))
-                return top_k_osbs, top_k_seq_logits, states, \
+                return top_k_osbs, top_k_seq_logits, states
+
+            for i in xrange(len(decoder_inputs)):
+                if not bs_decoding or not self.forward_only:
+                    input = decoder_inputs(i)
+
+                if bs_decoding and i == 0:
+                    if self.forward_only:
+                        input = beam_decoder.wrap_input(input)
+                    else:
+                        beam_input = beam_decoder.wrap_input(input)
+
+                input_embedding = tf.nn.embedding_lookup(input_embeddings, input)
+                if bs_decoding and not self.forward_only:
+                    beam_input_embedding = tf.nn.embedding_lookup(
+                        input_embeddings, beam_input)
+
+                if self.copynet:
+                    output, state, attns, read_copy_source = \
+                        decoder_cell(input_embedding, state)
+                elif self.use_attention:
+                    output, state, attns = \
+                        decoder_cell(input_embedding, state)
+                else:
+                    output, state = decoder_cell(input_embedding, state)
+                if bs_decoding and not self.forward_only:
+                    if self.copynet:
+                        beam_output, beam_state, beam_attns, \
+                            beam_read_copy_source = beam_decoder_cell(
+                                beam_input_embedding, beam_state)
+                    elif self.use_attention:
+                        beam_output, beam_state, beam_attns = \
+                            beam_decoder_cell(beam_input_embedding, beam_state)
+                    else:
+                        beam_output, beam_state = beam_decoder_cell(
+                            beam_input_embedding, beam_state)
+
+                # save output states
+                if not bs_decoding or not self.forward_only:
+                    # when doing beam search decoding, the output state of each
+                    # step cannot simply be gathered step-wise outside the decoder
+                    # (speical case: beam_size = 1)
+                    states.append(state)
+
+                scope.reuse_variables()
+                if bs_decoding:
+                    if self.forward_only:
+                        (
+                            past_beam_symbols,  # [batch_size*self.beam_size, i]
+                            past_beam_logprobs, # [batch_size*self.beam_size]
+                            past_cell_states,   # [batch_size*self.beam_size, i, dim]
+                        ) = state
+                        input = past_beam_symbols[:, -1]
+                    else:
+                        (
+                            past_beam_symbols,  # [batch_size*self.beam_size, i]
+                            past_beam_logprobs, # [batch_size*self.beam_size]
+                            past_cell_states,   # [batch_size*self.beam_size, i, dim]
+                        )
+                        beam_input = past_beam_symbols[:, -1]
+                else:
+                    if self.forward_only:
+                        output_symbol, _ = step_output_symbol_and_logit(output)
+                        input = tf.cast(output_symbol, dtype=tf.int32)
+                if self.copynet:
+                    input = tf.where(input >= self.target_vocab_size,
+                                     tf.ones_like(input)*data_utils.UNK_ID, input)
+
+            # --- Decoder Output
+            if self.use_attention:
+                # Tensor list --> tenosr
+                decoder_length = len(attn_decoder_cell.alignments_sequence)
+                attn_alignments = tf.concat(axis=1, values=[tf.expand_dims(x[0], 1)
+                    for x in attn_decoder_cell.alignments_sequence])
+                if bs_decoding:
+                    if self.forward_only:
+                        attn_alignments = tf.reshape(attn_alignments,
+                            [self.batch_size, self.beam_size, decoder_length, -1])
+                    else:
+                        beam_attn_alignments = tf.reshape(attn_alignments,
+                            [self.batch_size, self.beam_size, decoder_length, -1])
+            if self.copynet:
+                decoder_length = len(attn_decoder_cell.alignments_sequence)
+                pointers = tf.concat(axis=1, values=[tf.expand_dims(x[1], 1)
+                    for x in attn_decoder_cell.alignments_list])
+                if bs_decoding:
+                    if self.forward_only:
+                        pointers = tf.reshape(pointers,
+                            [self.batch_size, self.beam_size, decoder_length, -1])
+                    else:
+                        beam_pointers = tf.reshape(pointers,
+                            [self.batch_size, self.beam_size, decoder_length, -1])
+
+            if bs_decoding and self.forward_only:
+                # Beam-search decoding output
+                top_k_osbs, top_k_seq_logits, states = \
+                    process_beam_search_output(state)
+                return top_k_osbs, top_k_seq_logits, None, \
                        states, attn_alignments, pointers
             else:
                 # Greedy output
                 step_output_symbol_and_logit(output)
-                output_symbols = tf.concat(axis=1, values=past_output_symbols)
-                sequence_logits = tf.reduce_sum(past_output_logits)
-                return output_symbols, sequence_logits, past_output_logits, \
-                       states, attn_alignments, pointers
+                output_symbols = tf.concat(
+                    [tf.expand_dims(x, 1) for x in past_output_symbols], axis=1)
+                sequence_logits = tf.add_n(
+                    [tf.reduce_max(x, axis=1) for x in past_output_logits])
+                if bs_decoding:
+                    # Beam-search training output
+                    beam_top_k_osbs, beam_top_k_seq_logits, beam_states = \
+                        process_beam_search_output(state)
+                    return output_symbols, sequence_logits, beam_search_loss, \
+                           states, attn_alignments, pointers
+                else:
+                    return output_symbols, sequence_logits, past_output_logits, \
+                           states, attn_alignments, pointers
 
 
     def decoder_cell(self):

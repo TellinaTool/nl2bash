@@ -223,8 +223,6 @@ class EncoderDecoderModel(graph_utils.NNModel):
         if bs_decoding:
             targets = graph_utils.wrap_inputs(
                 self.decoder.beam_decoder, targets)
-            encoder_copy_inputs = graph_utils.wrap_inputs(
-                self.decoder.beam_decoder, encoder_copy_inputs)
         encoder_outputs, encoder_states = \
             self.encoder.define_graph(encoder_channel_inputs)
 
@@ -291,10 +289,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
                     char_decoder_init_state, char_decoder_inputs)
             encoder_decoder_char_loss = self.sequence_loss(
                 char_output_logits, char_targets, char_target_weights,
-                graph_utils.softmax_loss(
-                    self.char_decoder.output_project,
-                    self.tg_char_vocab_size / 2,
-                    self.tg_char_vocab_size))
+                graph_utils.sparse_cross_entropy)
         else:
             encoder_decoder_char_loss = 0
        
