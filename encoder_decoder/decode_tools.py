@@ -221,7 +221,6 @@ def decode(model_outputs, FLAGS, vocabs, sc_fillers=None,
                         target += ' '
                     else:
                         target += char
-                print(target)
             else:
                 target = ' '.join(output_tokens)
             
