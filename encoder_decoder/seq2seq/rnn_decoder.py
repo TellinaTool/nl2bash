@@ -148,7 +148,7 @@ class RNNDecoder(decoder.Decoder):
                 else:
                     output, state = decoder_cell(input_embedding, state)
                
-                # record output state to compute the loss.
+                # save output states
                 if not bs_decoding:
                     # when doing beam search decoding, the output state of each
                     # step cannot simply be gathered step-wise outside the decoder
@@ -226,8 +226,7 @@ class RNNDecoder(decoder.Decoder):
             else:
                 # Greedy output
                 step_output_symbol_and_logit(output)
-                output_symbols = tf.concat(axis=1, values=past_output_symbols) \
-                    if self.forward_only else None
+                output_symbols = tf.concat(axis=1, values=past_output_symbols)
                 sequence_logits = tf.reduce_sum(past_output_logits)
                 return output_symbols, sequence_logits, past_output_logits, \
                        states, attn_alignments, pointers
