@@ -167,7 +167,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         (
             past_beam_symbols,      # [batch_size*self.beam_size, :], right-aligned!!!
             past_beam_logprobs,     # [batch_size*self.beam_size]
-            past_cell_states,       # LSTM: ([batch_size*self.beam_size, :, dim],
+            past_cell_states        # LSTM: ([batch_size*self.beam_size, :, dim],
                                     #        [batch_size*self.beam_size, :, dim])
                                     # GRU: [batch_size*self.beam_size, :, dim]
         ) = state
@@ -335,8 +335,6 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         )
 
         return (
-            cand_symbols,
-            cand_logprobs,
             beam_symbols,
             beam_logprobs,
             nest_map(lambda element: tf.expand_dims(element, 1), cell_state)
