@@ -160,13 +160,11 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
 
         self.parent_refs_offsets = None
 
-        full_size = self.batch_size * self.beam_size
-        self.seq_len = tf.constant(1e-12, shape=[full_size], dtype=tf.float32)
+        self.full_size = self.batch_size * self.beam_size
+        self.seq_len = tf.constant(1e-12, shape=[self.full_size], dtype=tf.float32)
 
     def __call__(self, cell_inputs, state, scope=None):
         (
-            past_cand_symbols,      # [batch_size, :]
-            past_cand_logprobs,     # [batch_size]
             past_beam_symbols,      # [batch_size*self.beam_size, :], right-aligned!!!
             past_beam_logprobs,     # [batch_size*self.beam_size]
             past_cell_states,       # LSTM: ([batch_size*self.beam_size, :, dim],
@@ -174,12 +172,9 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
                                     # GRU: [batch_size*self.beam_size, :, dim]
         ) = state
 
-        batch_size = past_cand_symbols.get_shape()[0].value
-        full_size = batch_size * self.beam_size
-
         if self.parent_refs_offsets is None:
             self.parent_refs_offsets = \
-                (tf.range(full_size) // self.beam_size) * self.beam_size
+                (tf.range(self.full_size) // self.beam_size) * self.beam_size
 
         past_cell_state = self.get_last_cell_state(past_cell_states)
         if self.use_copy and self.copy_fun == 'copynet':
