@@ -250,7 +250,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
         # A. Sequence Loss
         if self.training_algorithm == "standard":
             encoder_decoder_token_loss = self.sequence_loss(
-                output_logits, targets, target_weights, graph_utils.sparse_cross_entropy)
+                output_logits, targets, target_weights, 
+                graph_utils.sparse_cross_entropy)
         elif self.training_algorithm == 'beam_search_opt':
             pass
         else:
@@ -527,6 +528,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
         for l in xrange(decoder_size):
             input_feed[self.decoder_inputs[l].name] = E.decoder_inputs[l]
             input_feed[self.target_weights[l].name] = E.target_weights[l]
+            print(E.target_weights[l])
         if self.copynet:
             for l in xrange(encoder_size):
                 input_feed[self.encoder_copy_inputs[l].name] = \
