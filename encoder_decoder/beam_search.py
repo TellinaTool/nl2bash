@@ -249,9 +249,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
 
         beam_symbols = tf.concat(axis=1, values=[tf.gather(past_beam_symbols, parent_refs),
                                                  tf.reshape(symbols, [-1, 1])])
-        self.seq_len = tf.gather(self.seq_len, parent_refs) + \
-                       tf.cast(tf.not_equal(tf.reshape(symbols, [-1]),
-                                            self.stop_token), tf.float32)
+        self.seq_len = tf.gather(self.seq_len, parent_refs)
 
         if self.use_copy and self.copy_fun == 'copynet':
             ranked_read_copy_source = tf.gather(read_copy_source, parent_refs)
