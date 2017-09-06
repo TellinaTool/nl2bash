@@ -154,8 +154,8 @@ def define_model(FLAGS, session, model_constructor, buckets, forward_only):
         if not os.path.exists(FLAGS.model_dir):
             print("Making model_dir...")
             os.mkdir(FLAGS.model_dir)
-        else:
-            clean_dir(FLAGS.model_dir)
+        # else:
+        #     clean_dir(FLAGS.model_dir)
         if FLAGS.pretrained_model_subdir:
             # load pre-trained parameteres for advanced training algorithms
             pretrain_dir = os.path.join(
