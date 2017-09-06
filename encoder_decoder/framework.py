@@ -248,7 +248,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
         # A. Sequence Loss
         if self.training_algorithm == "standard":
             encoder_decoder_token_loss = self.sequence_loss(
-                output_logits, targets, target_weights, graph_utils.sparse_cross_entropy)
+                output_logits, targets, target_weights,
+                graph_utils.sparse_cross_entropy)
         elif self.training_algorithm == 'beam_search_opt':
             pass
         else:
@@ -331,17 +332,14 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
     # Loss functions.
     def sequence_loss(self, logits, targets, target_weights, loss_function):
-        targets = targets[:len(logits)]
-        weights = target_weights[:len(logits)]
-
+        assert(len(logits) == len(targets))
         with tf.variable_scope("sequence_loss"):
             log_perp_list = []
-            for logit, target, weight in zip(logits, targets, weights):
+            for logit, target, weight in zip(logits, targets, target_weights):
                 crossent = loss_function(logit, target)
                 log_perp_list.append(crossent * weight)
             log_perps = tf.add_n(log_perp_list)
-            total_size = tf.add_n(weights)
-            total_size += 1e-12     # Just to avoid division by 0 for all-0 weights.
+            total_size = tf.add_n(target_weights)
             log_perps /= total_size
 
         avg_log_perps = tf.reduce_mean(log_perps)
@@ -350,15 +348,11 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
 
     def attention_regularization(self, attn_alignments):
-        """Entropy regularization term.
+        """
+        Entropy regularization term.
 
         :param attn_alignments: [batch_size, decoder_size, encoder_size]
         """
-        # P_unnorm = tf.reduce_sum(attn_alignments, 1)
-        # Z = tf.reduce_sum(P_unnorm, 1, keep_dims=True)
-        # P = P_unnorm / Z
-        # return tf.reduce_mean(tf.reduce_sum(P * tf.log(P), 1))
-
         P = tf.reduce_sum(attn_alignments, 1)
         P_exp = tf.exp(P)
         Z = tf.reduce_sum(P_exp, 1, keep_dims=True)
