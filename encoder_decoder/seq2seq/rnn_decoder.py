@@ -113,7 +113,7 @@ class RNNDecoder(decoder.Decoder):
                         tf.nn.softmax(tf.matmul(output, W) + b))
                 output_symbol = tf.argmax(output_logits, 1)
                 past_output_symbols.append(output_symbol)
-                past_output_logits.append(output_logits)
+                past_output_logits.append(output)
                 return output_symbol, output_logits
 
             for i, input in enumerate(decoder_inputs):
