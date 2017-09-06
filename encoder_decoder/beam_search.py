@@ -172,10 +172,10 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
 
         past_cell_state = self.get_last_cell_state(past_cell_states)
         if self.use_copy and self.copy_fun == 'copynet':
-            cell_output, cell_state, attns, read_copy_source = \
+            cell_output, cell_state, alignments, attns, read_copy_source = \
                 self.cell(cell_inputs, past_cell_state, scope)
         elif self.use_attention:
-            cell_output, cell_state, attns = \
+            cell_output, cell_state, alignments, attns = \
                 self.cell(cell_inputs, past_cell_state, scope)
         else:
             cell_output, cell_state = \
