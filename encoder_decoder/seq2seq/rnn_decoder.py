@@ -202,8 +202,8 @@ class RNNDecoder(decoder.Decoder):
                         beam_logprobs_with_restart,
                         cell_states_with_restart)
 
-            for i in xrange(len(decoder_inputs)):
-                if not self.forward_only:
+            for i in range(len(decoder_inputs)):
+                if not self.forward_only or i == 0:
                     # Always read ground truth input at training time
                     input = decoder_inputs[i]
 
@@ -341,7 +341,7 @@ class RNNDecoder(decoder.Decoder):
                 else:
                     raise AttributeError(
                         "Unrecognized rnn cell type: {}".format(self.rnn_cell))
-                return top_k_osbs, top_k_seq_logits, states
+                return top_k_osbs, top_k_seq_logits, states[1:]
 
             if self.use_attention:
                 # Tensor list --> tenosr
@@ -355,6 +355,7 @@ class RNNDecoder(decoder.Decoder):
                     else:
                         beam_attn_alignments = tf.reshape(attn_alignments,
                             [self.batch_size, self.beam_size, decoder_length, -1])
+            
             if self.copynet:
                 decoder_length = len(attn_decoder_cell.alignments_sequence)
                 pointers = tf.concat(axis=1, values=[tf.expand_dims(x[1], 1)
@@ -366,6 +367,8 @@ class RNNDecoder(decoder.Decoder):
                     else:
                         beam_pointers = tf.reshape(pointers,
                             [self.batch_size, self.beam_size, decoder_length, -1])
+            else:
+                pointers = None
 
             if bs_decoding:
                 top_k_osbs, top_k_seq_logits, states = \
@@ -380,7 +383,6 @@ class RNNDecoder(decoder.Decoder):
                         states, attn_alignments, pointers
             else:
                 # Greedy output
-                step_output_symbol_and_logit(output)
                 output_symbols = tf.concat(
                     [tf.expand_dims(x, 1) for x in past_output_symbols], axis=1)
                 sequence_logits = tf.add_n([tf.reduce_max(x, axis=1) 

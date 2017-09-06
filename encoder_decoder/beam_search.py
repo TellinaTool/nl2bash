@@ -172,10 +172,10 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
 
         past_cell_state = self.get_last_cell_state(past_cell_states)
         if self.use_copy and self.copy_fun == 'copynet':
-            cell_output, cell_state, alignments, attns, read_copy_source = \
+            cell_output, cell_state, attns, read_copy_source = \
                 self.cell(cell_inputs, past_cell_state, scope)
         elif self.use_attention:
-            cell_output, cell_state, alignments, attns = \
+            cell_output, cell_state, attns = \
                 self.cell(cell_inputs, past_cell_state, scope)
         else:
             cell_output, cell_state = \
@@ -188,7 +188,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
             W, b = self.output_project
             if self.locally_normalized:
                 epsilon = tf.constant(1e-12)
-                logprobs = tf.nn.log(
+                logprobs = tf.log(
                     tf.nn.softmax(tf.matmul(cell_output, W) + b) + epsilon)
             else:
                 logprobs = tf.matmul(cell_output, W) + b
@@ -221,7 +221,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
 
         # length normalization
         past_logprobs_unormalized = tf.reduce_sum(past_beam_logprobs, axis=1)
-        logprobs_unormalized = past_logprobs_unormalized + logprobs
+        logprobs_unormalized = tf.expand_dims(past_logprobs_unormalized, 1) + logprobs
         seq_len = tf.expand_dims(self.seq_len, 1) + (1 - stop_mask)
         logprobs_batched = tf.div(logprobs_unormalized, tf.pow(seq_len, self.alpha))
 
@@ -240,7 +240,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         beam_symbols = tf.concat(axis=1, values=[tf.gather(past_beam_symbols, parent_refs),
                                                  tf.reshape(top_k_symbols, [-1, 1])])
         beam_logprobs = tf.concat(axis=1, values=[tf.gather(past_beam_logprobs, parent_refs),
-                                                  tf.reshape(logprobs, [-1, 1])])
+                                                  tf.reshape(top_k_logprobs, [-1, 1])])
         self.seq_len = tf.squeeze(tf.gather(seq_len, parent_refs), squeeze_dims=[1])
 
         if self.use_copy and self.copy_fun == 'copynet':
@@ -274,7 +274,6 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
             ranked_cell_states = tf.gather(
                 tf.concat(axis=1, values=[past_cell_states, tf.expand_dims(cell_state, 1)]),
                 parent_refs)
-
         compound_cell_state = (
             beam_symbols,
             beam_logprobs,

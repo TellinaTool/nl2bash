@@ -30,8 +30,8 @@ hyperparam_range = {
     'tg_output_keep': [0.5, 0.6, 0.7, 0.8],
     'adam_epsilon': [1e-8, 1e-7, 1e-5, 1e-3, 1e-1],
     'learning_rate': [0.0001, 0.001, 0.01, 0.1],
-    'sc_token_dim': [300, 400, 500, 600],
-    'num_layers': [2, 4, 8],
+    'sc_token_dim': [200, 150, 250],
+    'num_layers': [1, 2],
     'num_samples': [1024, 512],
     'beta': [0.8,0.9,1.0,1.1,1.2],
     'min_vocab_frequency': [4, 6, 8, 10]
