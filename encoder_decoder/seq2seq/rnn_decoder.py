@@ -310,17 +310,10 @@ class RNNDecoder(decoder.Decoder):
                 step_output_symbol_and_logit(output)
                 output_symbols = tf.concat(
                     [tf.expand_dims(x, 1) for x in past_output_symbols], axis=1)
-                sequence_logits = tf.add_n(
-                    [tf.reduce_max(x, axis=1) for x in past_output_logits])
-                if bs_decoding:
-                    # Beam-search training output
-                    beam_top_k_osbs, beam_top_k_seq_logits, beam_states = \
-                        process_beam_search_output(state)
-                    return output_symbols, sequence_logits, beam_search_loss, \
-                           states, attn_alignments, pointers
-                else:
-                    return output_symbols, sequence_logits, past_output_logits, \
-                           states, attn_alignments, pointers
+                sequence_logits = tf.add_n([tf.reduce_max(x, axis=1) 
+                                            for x in past_output_logits])
+                return output_symbols, sequence_logits, past_output_logits, \
+                       states, attn_alignments, pointers
 
 
     def decoder_cell(self):

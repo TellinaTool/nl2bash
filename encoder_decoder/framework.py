@@ -647,8 +647,8 @@ class Example(object):
         self.encoder_attn_masks = None
         self.decoder_inputs = None
         self.target_weights = None
-        self.encoder_copy_inputs = None         # Copynet
-        self.copy_targets = None                # Copynet
+        self.encoder_copy_inputs = None     # Copynet
+        self.copy_targets = None            # Copynet
 
 
 class Output(object):
