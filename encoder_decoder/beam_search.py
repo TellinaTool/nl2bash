@@ -187,7 +187,9 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         else:
             W, b = self.output_project
             if self.locally_normalized:
-                logprobs = tf.nn.log_softmax(tf.matmul(cell_output, W) + b)
+                epsilon = tf.constant(1e-12)
+                logprobs = tf.nn.log(
+                    tf.nn.softmax(tf.matmul(cell_output, W) + b) + epsilon)
             else:
                 logprobs = tf.matmul(cell_output, W) + b
 
@@ -218,28 +220,27 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         logprobs = tf.multiply(logprobs, (1 - tf.multiply(stop_mask, done_mask)))
 
         # length normalization
-        past_logprobs_unormalized = \
-            tf.multiply(past_beam_logprobs, tf.pow(self.seq_len, self.alpha))
-        logprobs_unormalized = \
-            tf.expand_dims(past_logprobs_unormalized, 1) + logprobs
+        past_logprobs_unormalized = tf.reduce_sum(past_beam_logprobs, axis=1)
+        logprobs_unormalized = past_logprobs_unormalized + logprobs
         seq_len = tf.expand_dims(self.seq_len, 1) + (1 - stop_mask)
         logprobs_batched = tf.div(logprobs_unormalized, tf.pow(seq_len, self.alpha))
 
-        beam_logprobs, indices = tf.nn.top_k(
+        top_k_logprobs, indices = tf.nn.top_k(
             tf.reshape(logprobs_batched, [-1, self.beam_size * self.num_classes]),
             self.beam_size
         )
-        beam_logprobs = tf.reshape(beam_logprobs, [-1])
 
         # For continuing to the next symbols
         parent_refs_offsets = \
                 (tf.range(self.full_size) // self.beam_size) * self.beam_size
-        symbols = indices % self.num_classes # [batch_size, self.beam_size]
+        top_k_symbols = indices % self.num_classes # [batch_size, self.beam_size]
         parent_refs = tf.reshape(indices // self.num_classes, [-1]) # [batch_size*self.beam_size]
         parent_refs = parent_refs + parent_refs_offsets
 
         beam_symbols = tf.concat(axis=1, values=[tf.gather(past_beam_symbols, parent_refs),
-                                                 tf.reshape(symbols, [-1, 1])])
+                                                 tf.reshape(top_k_symbols, [-1, 1])])
+        beam_logprobs = tf.concat(axis=1, values=[tf.gather(past_beam_logprobs, parent_refs),
+                                                  tf.reshape(logprobs, [-1, 1])])
         self.seq_len = tf.squeeze(tf.gather(seq_len, parent_refs), squeeze_dims=[1])
 
         if self.use_copy and self.copy_fun == 'copynet':
@@ -293,7 +294,6 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
     def get_last_cell_state(self, past_cell_states):
         def get_last_tuple_state(pc_states):
             c_states, h_states = pc_states
-            c_states, h_states = pc_states
             lc_state = c_states[:, -1, :]
             lh_state = h_states[:, -1, :]
             l_state = (lc_state, lh_state)
@@ -310,10 +310,6 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         return last_cell_state
 
     def _create_state(self, batch_size, dtype, cell_state=None):
-        cand_symbols = tf.fill([batch_size, 1],
-                               tf.constant(self.start_token, dtype=tf.int32))
-        cand_logprobs = tf.ones((batch_size,), dtype=tf.float32) * -float('inf')
-
         if cell_state is None:
             cell_state = self.cell.zero_state(batch_size*self.beam_size, dtype=dtype)
         else:
@@ -325,9 +321,9 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
                                tf.constant(self.start_token, dtype=tf.int32))
         beam_logprobs = tf.where(
             first_in_beam_mask,
-            tf.fill([full_size], 0.0),
-            tf.fill([full_size], -1e18), # top_k does not play well with -inf
-                                         # TODO: dtype-dependent value here
+            tf.fill([full_size, 1], 0.0),
+            tf.fill([full_size, 1], -1e18)  # top_k does not play well with -inf
+                                            # TODO: dtype-dependent value here
         )
 
         return (

@@ -116,6 +116,8 @@ def define_input_flags():
     tf.app.flags.DEFINE_string('training_algorithm', 'standard', 'training algorithm to use.')
     tf.app.flags.DEFINE_string('pretrained_model_subdir', '', 'signature of pretrained model.')
 
+    tf.app.flags.DEFINE_float('margin', 1.0, 'margin for margin-based loss function')
+    
     tf.app.flags.DEFINE_string('encoder_topology', 'rnn', 'structure of the encoder.')
     tf.app.flags.DEFINE_string('decoder_topology', 'rnn', 'structure of the decoder.')
 
@@ -130,8 +132,6 @@ def define_input_flags():
                               'Proportion of attention input state to keep if dropout is used.')
     tf.app.flags.DEFINE_float('attention_output_keep', .5,
                               'Proportion of attention hidden state to keep if dropout is used.')
-
-    tf.app.flags.DEFINE_float('margin', 1.0, 'margin for margin-based loss function')
 
     # decoding hyperparameters
     tf.app.flags.DEFINE_string('token_decoding_algorithm', 'beam_search',

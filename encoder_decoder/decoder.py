@@ -135,9 +135,9 @@ class CopyCellWrapper(tf.nn.rnn_cell.RNNCell):
 
 
 class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
-    def __init__(self, cell, attention_states, encoder_attn_masks,
+    def __init__(self, cell, attention_states, encoder_attn_masks, num_heads,
             attention_function, attention_input_keep, attention_output_keep,
-            num_heads, dim, num_layers, use_copy, tg_vocab_size=-1):
+            dim, num_layers, use_copy, tg_vocab_size=-1):
         """
         Hidden layer above attention states.
 
@@ -156,7 +156,6 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
         :param num_layers: Number of layers in the RNN cells.
 
         :param use_copy: Copy source tokens to the target.
-        :param copy_fun: Parameterization of the copying function.
         """
         if attention_input_keep < 1:
             print("attention input keep probability = {}"
@@ -167,7 +166,8 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
         attn_dim = attention_states.get_shape()[2].value
 
         self.cell = cell
-        self.encoder_attn_masks = encoder_attn_masks
+        self.encoder_attn_masks = \
+            graph_utils.column_array_to_matrix(encoder_attn_masks)
         self.vocab_indices = tf.diag(tf.ones(tg_vocab_size))
         self.num_heads = num_heads
         self.dim = dim
@@ -177,6 +177,7 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
         self.attention_function = attention_function
         self.attention_input_keep = attention_input_keep
         self.attention_output_keep = attention_output_keep
+        self.alignments_sequence = []
 
         hidden_features = []
         v = []
@@ -194,7 +195,7 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
     def attention(self, state):
         """Put attention masks on hidden using hidden_features and query."""
         ds = []             # Results of attention reads will be stored here.
-        alignments = []     # Alignment values for each attention head.
+        alignments = []     # Alignments for all attention heads.
         if nest.is_sequence(state):  # If the query is a tuple, flatten it.
             query_list = nest.flatten(state)
             for q in query_list:  # Check that ndims == 2 if specified.
@@ -243,13 +244,11 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
                     d = tf.matmul(selective_indices, self.hidden_features[a])
                 context = tf.reshape(d, [-1, self.attn_dim])
                 ds.append(context)
-
         return ds, alignments
 
     def __call__(self, input_embedding, state, scope=None):
         cell_output, state = self.cell(input_embedding, state, scope)
         attns, alignments = self.attention(cell_output)
-
         # with tf.variable_scope("AttnStateProjection"):
         #     attn_state = tf.nn.dropout(
         #                     tf.tanh(tf.nn.rnn_cell.linear(
@@ -259,5 +258,6 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
         with tf.variable_scope("AttnOutputProjection"):
             output = rnn.linear([cell_output, attns[0]], self.dim, True)
 
+        self.alignments_sequence.append(alignments)
         self.attention_cell_vars = True
-        return output, state, alignments, attns
+        return output, state, attns

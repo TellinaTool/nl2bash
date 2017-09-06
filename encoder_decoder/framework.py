@@ -57,11 +57,22 @@ class EncoderDecoderModel(graph_utils.NNModel):
         # Decoder.
         decoder_embedding_dim = self.encoder.output_dim
         decoder_dim = decoder_embedding_dim
+        if self.training_algorithm == 'bso':
+            decoding_algorithm = 'beam_search'
+        elif self.training_algorithm == 'standard':
+            if self.forward_only:
+                decoding_algorithm = self.token_decoding_algorithm
+            else:
+                decoding_algorithm = 'greedy'
+        else:
+            raise AttributeError('Unrecognized training algorithm: {}'.format(
+                self.training_algorithm))
         self.define_decoder(decoder_dim, decoder_embedding_dim,
                             self.tg_token_use_attention,
                             self.tg_token_attn_fun,
                             self.tg_input_keep,
-                            self.tg_output_keep)
+                            self.tg_output_keep,
+                            decoding_algorithm)
 
         # Character Decoder.
         if self.tg_char:
@@ -223,8 +234,6 @@ class EncoderDecoderModel(graph_utils.NNModel):
         if bs_decoding:
             targets = graph_utils.wrap_inputs(
                 self.decoder.beam_decoder, targets)
-            encoder_copy_inputs = graph_utils.wrap_inputs(
-                self.decoder.beam_decoder, encoder_copy_inputs)
         encoder_outputs, encoder_states = \
             self.encoder.define_graph(encoder_channel_inputs)
 
@@ -250,9 +259,10 @@ class EncoderDecoderModel(graph_utils.NNModel):
         # A. Sequence Loss
         if self.training_algorithm == "standard":
             encoder_decoder_token_loss = self.sequence_loss(
-                output_logits, targets, target_weights, graph_utils.sparse_cross_entropy)
+                output_logits, targets, target_weights,
+                graph_utils.sparse_cross_entropy)
         elif self.training_algorithm == 'beam_search_opt':
-            pass
+            encoder_decoder_token_loss = output_logits
         else:
             raise AttributeError("Unrecognized training algorithm.")
 
@@ -291,10 +301,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
                     char_decoder_init_state, char_decoder_inputs)
             encoder_decoder_char_loss = self.sequence_loss(
                 char_output_logits, char_targets, char_target_weights,
-                graph_utils.softmax_loss(
-                    self.char_decoder.output_project,
-                    self.tg_char_vocab_size / 2,
-                    self.tg_char_vocab_size))
+                graph_utils.sparse_cross_entropy)
         else:
             encoder_decoder_char_loss = 0
        
@@ -336,17 +343,14 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
     # Loss functions.
     def sequence_loss(self, logits, targets, target_weights, loss_function):
-        targets = targets[:len(logits)]
-        weights = target_weights[:len(logits)]
-
+        assert(len(logits) == len(targets))
         with tf.variable_scope("sequence_loss"):
             log_perp_list = []
-            for logit, target, weight in zip(logits, targets, weights):
+            for logit, target, weight in zip(logits, targets, target_weights):
                 crossent = loss_function(logit, target)
                 log_perp_list.append(crossent * weight)
             log_perps = tf.add_n(log_perp_list)
-            total_size = tf.add_n(weights)
-            total_size += 1e-12     # Just to avoid division by 0 for all-0 weights.
+            total_size = tf.add_n(target_weights)
             log_perps /= total_size
 
         avg_log_perps = tf.reduce_mean(log_perps)
@@ -355,15 +359,11 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
 
     def attention_regularization(self, attn_alignments):
-        """Entropy regularization term.
+        """
+        Entropy regularization term.
 
         :param attn_alignments: [batch_size, decoder_size, encoder_size]
         """
-        # P_unnorm = tf.reduce_sum(attn_alignments, 1)
-        # Z = tf.reduce_sum(P_unnorm, 1, keep_dims=True)
-        # P = P_unnorm / Z
-        # return tf.reduce_mean(tf.reduce_sum(P * tf.log(P), 1))
-
         P = tf.reduce_sum(attn_alignments, 1)
         P_exp = tf.exp(P)
         Z = tf.reduce_sum(P_exp, 1, keep_dims=True)
@@ -376,7 +376,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
 
     def define_decoder(self, dim, embedding_dim, use_attention,
-                       attention_function, input_keep, output_keep):
+                       attention_function, input_keep, output_keep,
+                       decoding_algorithm):
         """Placeholder function."""
         self.decoder = None
 
