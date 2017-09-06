@@ -249,13 +249,9 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
         # A. Sequence Loss
         if self.training_algorithm == "standard":
-            step_loss_fun = graph_utils.softmax_loss(
-                    self.decoder.output_project,
-                    self.num_samples,
-                    self.target_vocab_size)
             encoder_decoder_token_loss = self.sequence_loss(
                 output_logits, targets, target_weights,
-                step_loss_fun)
+                graph_utils.sparse_cross_entropy)
         elif self.training_algorithm == 'beam_search_opt':
             pass
         else:
@@ -341,16 +337,14 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
     # Loss functions.
     def sequence_loss(self, logits, targets, target_weights, loss_function):
-        targets = targets[:len(logits)]
-        weights = target_weights[:len(logits)]
-
+        assert(len(logits) == len(targets))
         with tf.variable_scope("sequence_loss"):
             log_perp_list = []
-            for logit, target, weight in zip(logits, targets, weights):
+            for logit, target, weight in zip(logits, targets, target_weights):
                 crossent = loss_function(logit, target)
                 log_perp_list.append(crossent * weight)
             log_perps = tf.add_n(log_perp_list)
-            total_size = tf.add_n(weights)
+            total_size = tf.add_n(target_weights)
             log_perps /= total_size
 
         avg_log_perps = tf.reduce_mean(log_perps)
