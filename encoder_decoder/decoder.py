@@ -120,7 +120,8 @@ class CopyCellWrapper(tf.nn.rnn_cell.RNNCell):
         gen_prob = tf.slice(prob, [0, 0], [-1, self.tg_vocab_size])
         copy_prob = tf.slice(prob, [0, self.tg_vocab_size], [-1, -1])
         copy_vocab_prob = tf.squeeze(tf.matmul(tf.expand_dims(copy_prob, 1),
-            tf.one_hot(self.encoder_copy_inputs, depth=self.tg_vocab_size+copy_prob.get_shape()[1].value)), 1)
+            tf.one_hot(self.encoder_copy_inputs,
+                       depth=self.tg_vocab_size+copy_prob.get_shape()[1].value)), 1)
 
         # mixture probability
         mix_prob = tf.concat([gen_prob, tf.zeros(tf.shape(copy_prob))], 1) + \
@@ -177,7 +178,6 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
         self.attention_function = attention_function
         self.attention_input_keep = attention_input_keep
         self.attention_output_keep = attention_output_keep
-        self.alignments_sequence = []
 
         hidden_features = []
         v = []
@@ -196,9 +196,9 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
         """Put attention masks on hidden using hidden_features and query."""
         ds = []             # Results of attention reads will be stored here.
         alignments = []     # Alignments for all attention heads.
-        if nest.is_sequence(state):  # If the query is a tuple, flatten it.
+        if nest.is_sequence(state):     # If the query is a tuple, flatten it.
             query_list = nest.flatten(state)
-            for q in query_list:  # Check that ndims == 2 if specified.
+            for q in query_list:        # Check that ndims == 2 if specified.
                 ndims = q.get_shape().ndims
                 if ndims:
                     assert ndims == 2
@@ -214,7 +214,8 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
                                         [1, 1, 1, self.attn_dim])
                     z = tf.reshape(self.hidden_features[a],
                                    [-1, self.attn_length, 1, self.attn_dim])
-                    v = tf.concat(axis=3, values=[z, tf.tile(y, [1, self.attn_length, 1, 1])])
+                    v = tf.concat(axis=3, values=[z, tf.tile(
+                        y, [1, self.attn_length, 1, 1])])
                     s = tf.reduce_sum(
                         l * tf.tanh(tf.nn.conv2d(v, k, [1,1,1,1], "SAME")), [2, 3])
                 elif self.attention_function == 'inner_product':
@@ -258,6 +259,5 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
         with tf.variable_scope("AttnOutputProjection"):
             output = rnn.linear([cell_output, attns[0]], self.dim, True)
 
-        self.alignments_sequence.append(alignments)
         self.attention_cell_vars = True
-        return output, state, attns
+        return output, state, alignments, attns

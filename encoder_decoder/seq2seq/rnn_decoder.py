@@ -47,13 +47,14 @@ class RNNDecoder(decoder.Decoder):
             assert(attention_states.get_shape()[1:2].is_fully_defined())
         bs_decoding = (self.decoding_algorithm == "beam_search")
 
-        if input_embeddings is None:
-            input_embeddings = self.embeddings()
-
         with tf.variable_scope(self.scope + "_decoder_rnn") as scope:
             decoder_cell = self.decoder_cell()
+            if input_embeddings is None:
+                input_embeddings = self.embeddings()
+
             # Initializations
             states = []
+            alignments_sequence = []
             if bs_decoding:
                 beam_decoder = self.beam_decoder
                 if self.forward_only:
@@ -94,7 +95,6 @@ class RNNDecoder(decoder.Decoder):
                     self.use_copy,
                     self.vocab_size
                 )
-                attn_decoder_cell = decoder_cell
                 if bs_decoding and not self.forward_only:
                     beam_decoder_cell = decoder.AttentionCellWrapper(
                         decoder_cell,
@@ -109,7 +109,6 @@ class RNNDecoder(decoder.Decoder):
                         self.use_copy,
                         self.vocab_size
                     )
-                    beam_attn_decoder_cell = beam_decoder_cell
             # Copy Cell Wrapper
             if self.use_copy and self.copy_fun == 'copynet':
                 if bs_decoding:
@@ -220,20 +219,22 @@ class RNNDecoder(decoder.Decoder):
                     target = decoder_inputs[i+1]
 
                 if self.copynet:
-                    output, state, attns, read_copy_source = \
+                    output, state, alignments, attns, read_copy_source = \
                         decoder_cell(input_embedding, state)
+                    alignments_sequence.append(alignments)
                 elif self.use_attention:
-                    output, state, attns = \
+                    output, state, alignments, attns = \
                         decoder_cell(input_embedding, state)
+                    alignments_sequence.append(alignments)
                 else:
                     output, state = decoder_cell(input_embedding, state)
                 if bs_decoding and not self.forward_only:
                     if self.copynet:
-                        beam_output, beam_state, beam_attns, \
+                        beam_output, beam_state, beam_alignments, beam_attns, \
                             beam_read_copy_source = beam_decoder_cell(
                                 beam_input_embedding, beam_state)
                     elif self.use_attention:
-                        beam_output, beam_state, beam_attns = \
+                        beam_output, beam_state, beam_alignments, beam_attns = \
                             beam_decoder_cell(beam_input_embedding, beam_state)
                     else:
                         beam_output, beam_state = beam_decoder_cell(
@@ -245,6 +246,7 @@ class RNNDecoder(decoder.Decoder):
                     # step cannot simply be gathered step-wise outside the decoder
                     # (speical case: beam_size = 1)
                     states.append(state)
+                    alignments_sequence.append(alignments)
 
                 scope.reuse_variables()
                 if bs_decoding:
@@ -344,29 +346,28 @@ class RNNDecoder(decoder.Decoder):
                 return top_k_osbs, top_k_seq_logits, states[1:]
 
             if self.use_attention:
-                # Tensor list --> tenosr
-                decoder_length = len(attn_decoder_cell.alignments_sequence)
-                attn_alignments = tf.concat(axis=1, values=[tf.expand_dims(x[0], 1)
-                    for x in attn_decoder_cell.alignments_sequence])
+                if not bs_decoding or not self.forward_only:
+                    attn_alignments = tf.concat(axis=1, values=[tf.expand_dims(x[0], 1)
+                        for x in alignments_sequence])
                 if bs_decoding:
                     if self.forward_only:
                         attn_alignments = tf.reshape(attn_alignments,
-                            [self.batch_size, self.beam_size, decoder_length, -1])
+                            [self.batch_size, self.beam_size, len(decoder_inputs), -1])
                     else:
                         beam_attn_alignments = tf.reshape(attn_alignments,
-                            [self.batch_size, self.beam_size, decoder_length, -1])
+                            [self.batch_size, self.beam_size, len(decoder_inputs), -1])
             
             if self.copynet:
-                decoder_length = len(attn_decoder_cell.alignments_sequence)
-                pointers = tf.concat(axis=1, values=[tf.expand_dims(x[1], 1)
-                    for x in attn_decoder_cell.alignments_list])
+                if not bs_decoding or not self.forward_only:
+                    pointers = tf.concat(axis=1, values=[tf.expand_dims(x[1], 1)
+                        for x in alignments_sequence])
                 if bs_decoding:
                     if self.forward_only:
                         pointers = tf.reshape(pointers,
-                            [self.batch_size, self.beam_size, decoder_length, -1])
+                            [self.batch_size, self.beam_size, len(decoder_inputs), -1])
                     else:
                         beam_pointers = tf.reshape(pointers,
-                            [self.batch_size, self.beam_size, decoder_length, -1])
+                            [self.batch_size, self.beam_size, len(decoder_inputs), -1])
             else:
                 pointers = None
 
