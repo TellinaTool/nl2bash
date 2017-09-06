@@ -43,7 +43,8 @@ class Seq2SeqModel(EncoderDecoderModel):
 
 
     def define_decoder(self, dim, embedding_dim, use_attention,
-            attention_function, input_keep, output_keep):
+                       attention_function, input_keep, output_keep,
+                       decoding_algorithm):
         """
         Construct sequence decoder.
         """
@@ -56,7 +57,7 @@ class Seq2SeqModel(EncoderDecoderModel):
                 attention_function=attention_function,
                 input_keep=input_keep,
                 output_keep=output_keep,
-                decoding_algorithm=self.token_decoding_algorithm
+                decoding_algorithm=decoding_algorithm
             )
         else:
             raise ValueError("Unrecognized decoder topology: {}.".format(

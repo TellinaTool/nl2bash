@@ -52,20 +52,24 @@ class RNNDecoder(decoder.Decoder):
 
         with tf.variable_scope(self.scope + "_decoder_rnn") as scope:
             decoder_cell = self.decoder_cell()
+            # Initializations
             states = []
-
-            # --- Cell Wrappers: 'Attention', 'CopyNet', 'BeamSearch'
             if bs_decoding:
                 beam_decoder = self.beam_decoder
                 if self.forward_only:
                     state = beam_decoder.wrap_state(encoder_state, self.output_project)
                 else:
                     beam_state = beam_decoder.wrap_state(encoder_state, self.output_project)
+                    beam_search_losses = beam_decoder.wrap_input\
+                    (tf.zeros_like(decoder_inputs[0]))
             else:
                 state = encoder_state
                 past_output_symbols = []
                 past_output_logits = []
 
+            # --- Cell Wrappers: 'Attention', 'CopyNet', 'BeamSearch'
+
+            # Attention Cell Wrapper
             if self.use_attention:
                 if bs_decoding:
                     if self.forward_only:
@@ -105,6 +109,7 @@ class RNNDecoder(decoder.Decoder):
                         self.vocab_size
                     )
                     beam_attn_decoder_cell = beam_decoder_cell
+            # Copy Cell Wrapper
             if self.use_copy and self.copy_fun == 'copynet':
                 if bs_decoding:
                     if self.forward_only:
@@ -127,7 +132,7 @@ class RNNDecoder(decoder.Decoder):
                         beam_encoder_copy_inputs,
                         self.vocab_size
                     )
-
+            # Beam Search Cell Wrapper
             if bs_decoding:
                 if self.forward_only:
                     decoder_cell = beam_decoder.wrap_cell(
@@ -157,7 +162,7 @@ class RNNDecoder(decoder.Decoder):
                 # Beam-search output
                 (
                     past_beam_symbols,  # [batch_size*self.beam_size, max_len]
-                    past_beam_logprobs, # [batch_size*self.beam_size]
+                    past_beam_logprobs, # [batch_size*self.beam_size, max_len]
                     past_cell_states,
                 ) = state
                 # [self.batch_size, self.beam_size, max_len]
@@ -171,6 +176,8 @@ class RNNDecoder(decoder.Decoder):
                 top_k_osbs = [[tf.squeeze(output, axis=[0]) for output in top_k_output]
                               for top_k_output in top_k_osbs]
                 # [self.batch_size, self.beam_size]
+                top_k_seq_logits = tf.div(tf.reduce_sum(past_beam_logprobs, axis=1),
+                                          tf.pow(beam_decoder.seq_len, self.alpha))
                 top_k_seq_logits = tf.reshape(past_beam_logprobs,
                                               [self.batch_size, self.beam_size])
                 top_k_seq_logits = tf.split(axis=0, num_or_size_splits=self.batch_size,
@@ -210,8 +217,8 @@ class RNNDecoder(decoder.Decoder):
                 return top_k_osbs, top_k_seq_logits, states
 
             for i in xrange(len(decoder_inputs)):
-                if not bs_decoding or not self.forward_only:
-                    input = decoder_inputs(i)
+                if not self.forward_only:
+                    input = decoder_inputs[i]
 
                 if bs_decoding and i == 0:
                     if self.forward_only:
@@ -253,23 +260,25 @@ class RNNDecoder(decoder.Decoder):
 
                 scope.reuse_variables()
                 if bs_decoding:
+                    (
+                        past_beam_symbols,  # [batch_size*self.beam_size, i]
+                        past_beam_logprobs, # [batch_size*self.beam_size, i]
+                        past_cell_states,   # [batch_size*self.beam_size, i, dim]
+                    ) = state
                     if self.forward_only:
-                        (
-                            past_beam_symbols,  # [batch_size*self.beam_size, i]
-                            past_beam_logprobs, # [batch_size*self.beam_size]
-                            past_cell_states,   # [batch_size*self.beam_size, i, dim]
-                        ) = state
                         input = past_beam_symbols[:, -1]
                     else:
-                        (
-                            past_beam_symbols,  # [batch_size*self.beam_size, i]
-                            past_beam_logprobs, # [batch_size*self.beam_size]
-                            past_cell_states,   # [batch_size*self.beam_size, i, dim]
-                        )
                         beam_input = past_beam_symbols[:, -1]
+                        # Compute beam search losses
+                        output_symbol, output_logits = \
+                            step_output_symbol_and_logit(output)
+                        beam_boundary = tf.reshape(past_beam_logprobs,
+                                                   [self.batch_size, self.beam_size])[-1]
+                        beam_search_losses += max(output_logits - beam_boundary, self.margin)
                 else:
+                    output_symbol, output_logits = \
+                        step_output_symbol_and_logit(output)
                     if self.forward_only:
-                        output_symbol, _ = step_output_symbol_and_logit(output)
                         input = tf.cast(output_symbol, dtype=tf.int32)
                 if self.copynet:
                     input = tf.where(input >= self.target_vocab_size,
@@ -300,12 +309,17 @@ class RNNDecoder(decoder.Decoder):
                         beam_pointers = tf.reshape(pointers,
                             [self.batch_size, self.beam_size, decoder_length, -1])
 
-            if bs_decoding and self.forward_only:
-                # Beam-search decoding output
+            if bs_decoding:
                 top_k_osbs, top_k_seq_logits, states = \
-                    process_beam_search_output(state)
-                return top_k_osbs, top_k_seq_logits, None, \
-                       states, attn_alignments, pointers
+                        process_beam_search_output(state)
+                if self.forward_only:
+                    # Beam-search decoding output
+                    return top_k_osbs, top_k_seq_logits, None, \
+                           states, attn_alignments, pointers
+                else:
+                    # Beam-search training output
+                    return top_k_osbs, top_k_seq_logits, beam_search_losses, \
+                        states, attn_alignments, pointers
             else:
                 # Greedy output
                 step_output_symbol_and_logit(output)

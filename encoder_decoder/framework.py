@@ -57,6 +57,16 @@ class EncoderDecoderModel(graph_utils.NNModel):
         # Decoder.
         decoder_embedding_dim = self.encoder.output_dim
         decoder_dim = decoder_embedding_dim
+        if self.training_algorithm == 'bso':
+            decoding_algorithm = 'beam_search'
+        elif self.training_algorithm == 'standard':
+            if self.forward_only:
+                decoding_algorithm = self.token_decoding_algorithm
+            else:
+                decoding_algorithm = 'greedy'
+        else:
+            raise AttributeError('Unrecognized training algorithm: {}'.format(
+                self.training_algorithm))
         self.define_decoder(decoder_dim, decoder_embedding_dim,
                             self.tg_token_use_attention,
                             self.tg_token_attn_fun,
@@ -251,7 +261,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 output_logits, targets, target_weights,
                 graph_utils.sparse_cross_entropy)
         elif self.training_algorithm == 'beam_search_opt':
-            pass
+            encoder_decoder_token_loss = output_logits
         else:
             raise AttributeError("Unrecognized training algorithm.")
 
