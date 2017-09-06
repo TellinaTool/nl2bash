@@ -113,7 +113,7 @@ class RNNDecoder(decoder.Decoder):
                         tf.nn.softmax(tf.matmul(output, W) + b) + epsilon)
                 output_symbol = tf.argmax(output_logits, 1)
                 past_output_symbols.append(output_symbol)
-                past_output_logits.append(output)
+                past_output_logits.append(output_logits)
                 return output_symbol, output_logits
 
             for i, input in enumerate(decoder_inputs):
@@ -122,7 +122,7 @@ class RNNDecoder(decoder.Decoder):
 
                 if i > 0:
                     scope.reuse_variables()
-                    if self.forward_only and not self.force_reading_input:
+                    if self.forward_only:
                         if self.decoding_algorithm == "beam_search":
                             (
                                 past_beam_symbols,  # [batch_size*self.beam_size, max_len], right-aligned!!!
@@ -133,6 +133,9 @@ class RNNDecoder(decoder.Decoder):
                         elif self.decoding_algorithm == "greedy":
                             output_symbol, _ = step_output_symbol_and_logit(output)
                             input = tf.cast(output_symbol, dtype=tf.int32)
+                    else:
+                        step_output_symbol_and_logit(output)
+                    if self.copynet:
                         input = tf.where(input >= self.target_vocab_size,
                                          tf.ones_like(input)*data_utils.UNK_ID, input)
 
