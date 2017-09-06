@@ -240,7 +240,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         beam_symbols = tf.concat(axis=1, values=[tf.gather(past_beam_symbols, parent_refs),
                                                  tf.reshape(top_k_symbols, [-1, 1])])
         beam_logprobs = tf.concat(axis=1, values=[tf.gather(past_beam_logprobs, parent_refs),
-                                                  tf.reshape(top_k_logprobs, [-1, 1])])
+                                                  tf.gather(logprobs, parent_refs)])
         self.seq_len = tf.squeeze(tf.gather(seq_len, parent_refs), squeeze_dims=[1])
 
         if self.use_copy and self.copy_fun == 'copynet':
