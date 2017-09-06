@@ -249,9 +249,13 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
         # A. Sequence Loss
         if self.training_algorithm == "standard":
+            step_loss_fun = graph_utils.softmax_loss(
+                    self.decoder.output_project,
+                    self.num_samples,
+                    self.target_vocab_size)
             encoder_decoder_token_loss = self.sequence_loss(
-                output_logits, targets, target_weights, 
-                graph_utils.sparse_cross_entropy)
+                output_logits, targets, target_weights,
+                step_loss_fun)
         elif self.training_algorithm == 'beam_search_opt':
             pass
         else:
