@@ -15,5 +15,6 @@ python3 -m encoder_decoder.translate \
     --token_decoding_algorithm beam_search \
     --beam_size 100 \
     --alpha 1.0 \
+    --margin 1.0 \
     --num_nn_slot_filling 10 \
     ${ARGS}
