@@ -202,66 +202,6 @@ class RNNDecoder(decoder.Decoder):
                         beam_logprobs_with_restart,
                         cell_states_with_restart)
 
-            def process_beam_search_output(state):
-                """
-                Organize beam search output in the end of search.
-                """
-                (
-                    past_beam_symbols,  # [batch_size*self.beam_size, max_len]
-                    past_beam_logprobs, # [batch_size*self.beam_size, max_len]
-                    past_cell_states,
-                ) = state
-                # [self.batch_size, self.beam_size, max_len]
-                top_k_osbs = tf.reshape(past_beam_symbols[:, 1:],
-                                        [self.batch_size, self.beam_size, -1])
-                top_k_osbs = tf.split(axis=0, num_or_size_splits=self.batch_size,
-                                      value=top_k_osbs)
-                top_k_osbs = [tf.split(axis=0, num_or_size_splits=self.beam_size,
-                                       value=tf.squeeze(top_k_output, axis=[0]))
-                              for top_k_output in top_k_osbs]
-                top_k_osbs = [[tf.squeeze(output, axis=[0]) for output in top_k_output]
-                              for top_k_output in top_k_osbs]
-                # [self.batch_size, self.beam_size]
-                top_k_seq_logits = tf.div(tf.reduce_sum(past_beam_logprobs, axis=1),
-                                          tf.pow(beam_decoder.seq_len, self.alpha))
-                top_k_seq_logits = tf.reshape(top_k_seq_logits,
-                                              [self.batch_size, self.beam_size])
-                top_k_seq_logits = tf.split(axis=0, num_or_size_splits=self.batch_size,
-                                            value=top_k_seq_logits)
-                top_k_seq_logits = [tf.squeeze(top_k_logit, axis=[0])
-                                    for top_k_logit in top_k_seq_logits]
-                # LSTM: ([batch_size*self.beam_size, :, dim],
-                #        [batch_size*self.beam_size, :, dim])
-                # GRU: [batch_size*self.beam_size, :, dim]
-                if self.rnn_cell == 'lstm':
-                    if self.num_layers == 1:
-                        c_states, h_states = past_cell_states
-                        states = list(zip(
-                            [tf.squeeze(x, axis=[1])
-                                for x in tf.split(c_states, c_states.get_shape()[1],
-                                                  axis=1)],
-                            [tf.squeeze(x, axis=[1])
-                                for x in tf.split(h_states, h_states.get_shape()[1],
-                                                  axis=1)]))
-                    else:
-                        layered_states = [list(zip(
-                                [tf.squeeze(x, axis=[1])
-                                    for x in tf.split(c_states, c_states.get_shape()[1],
-                                                      axis=1)[1:]],
-                                [tf.squeeze(x, axis=[1])
-                                    for x in tf.split(h_states, h_states.get_shape()[1],
-                                                      axis=1)[1:]]))
-                            for c_states, h_states in past_cell_states]
-                        states = list(zip(layered_states))
-                elif self.rnn_cell in ['gru', 'ran']:
-                    states = [tf.squeeze(x, axis=[1]) for x in \
-                        tf.split(num_or_size_splits=past_cell_states.get_shape()[1],
-                                 axis=1, value=past_cell_states)][1:]
-                else:
-                    raise AttributeError(
-                        "Unrecognized rnn cell type: {}".format(self.rnn_cell))
-                return top_k_osbs, top_k_seq_logits, states
-
             for i in xrange(len(decoder_inputs)):
                 if not self.forward_only:
                     # Always read ground truth input at training time
@@ -343,6 +283,66 @@ class RNNDecoder(decoder.Decoder):
                                      tf.ones_like(input)*data_utils.UNK_ID, input)
 
             # --- Decoder Output
+            def process_beam_search_output(state):
+                """
+                Organize beam search output at the end of search.
+                """
+                (
+                    past_beam_symbols,  # [batch_size*self.beam_size, max_len]
+                    past_beam_logprobs, # [batch_size*self.beam_size, max_len]
+                    past_cell_states,
+                ) = state
+                # [self.batch_size, self.beam_size, max_len]
+                top_k_osbs = tf.reshape(past_beam_symbols[:, 1:],
+                                        [self.batch_size, self.beam_size, -1])
+                top_k_osbs = tf.split(axis=0, num_or_size_splits=self.batch_size,
+                                      value=top_k_osbs)
+                top_k_osbs = [tf.split(axis=0, num_or_size_splits=self.beam_size,
+                                       value=tf.squeeze(top_k_output, axis=[0]))
+                              for top_k_output in top_k_osbs]
+                top_k_osbs = [[tf.squeeze(output, axis=[0]) for output in top_k_output]
+                              for top_k_output in top_k_osbs]
+                # [self.batch_size, self.beam_size]
+                top_k_seq_logits = tf.div(tf.reduce_sum(past_beam_logprobs, axis=1),
+                                          tf.pow(beam_decoder.seq_len, self.alpha))
+                top_k_seq_logits = tf.reshape(top_k_seq_logits,
+                                              [self.batch_size, self.beam_size])
+                top_k_seq_logits = tf.split(axis=0, num_or_size_splits=self.batch_size,
+                                            value=top_k_seq_logits)
+                top_k_seq_logits = [tf.squeeze(top_k_logit, axis=[0])
+                                    for top_k_logit in top_k_seq_logits]
+                # LSTM: ([batch_size*self.beam_size, :, dim],
+                #        [batch_size*self.beam_size, :, dim])
+                # GRU: [batch_size*self.beam_size, :, dim]
+                if self.rnn_cell == 'lstm':
+                    if self.num_layers == 1:
+                        c_states, h_states = past_cell_states
+                        states = list(zip(
+                            [tf.squeeze(x, axis=[1])
+                                for x in tf.split(c_states, c_states.get_shape()[1],
+                                                  axis=1)],
+                            [tf.squeeze(x, axis=[1])
+                                for x in tf.split(h_states, h_states.get_shape()[1],
+                                                  axis=1)]))
+                    else:
+                        layered_states = [list(zip(
+                                [tf.squeeze(x, axis=[1])
+                                    for x in tf.split(c_states, c_states.get_shape()[1],
+                                                      axis=1)[1:]],
+                                [tf.squeeze(x, axis=[1])
+                                    for x in tf.split(h_states, h_states.get_shape()[1],
+                                                      axis=1)[1:]]))
+                            for c_states, h_states in past_cell_states]
+                        states = list(zip(layered_states))
+                elif self.rnn_cell in ['gru', 'ran']:
+                    states = [tf.squeeze(x, axis=[1]) for x in \
+                        tf.split(num_or_size_splits=past_cell_states.get_shape()[1],
+                                 axis=1, value=past_cell_states)][1:]
+                else:
+                    raise AttributeError(
+                        "Unrecognized rnn cell type: {}".format(self.rnn_cell))
+                return top_k_osbs, top_k_seq_logits, states
+
             if self.use_attention:
                 # Tensor list --> tenosr
                 decoder_length = len(attn_decoder_cell.alignments_sequence)
