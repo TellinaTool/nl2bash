@@ -255,61 +255,66 @@ class EncoderDecoderModel(graph_utils.NNModel):
                         encoder_copy_inputs=encoder_copy_inputs)
 
         # --- Compute Losses --- #
+        if not self.forward_only:
+            # A. Sequence Loss
+            if self.training_algorithm == "standard":
+                encoder_decoder_token_loss = self.sequence_loss(
+                    output_logits, targets, target_weights,
+                    graph_utils.sparse_cross_entropy)
+            elif self.training_algorithm == 'beam_search_opt':
+                encoder_decoder_token_loss = output_logits
+            else:
+                raise AttributeError("Unrecognized training algorithm.")
 
-        # A. Sequence Loss
-        if self.training_algorithm == "standard":
-            encoder_decoder_token_loss = self.sequence_loss(
-                output_logits, targets, target_weights,
-                graph_utils.sparse_cross_entropy)
-        elif self.training_algorithm == 'beam_search_opt':
-            encoder_decoder_token_loss = output_logits
+            # B. Attention Regularization
+            attention_reg = self.attention_regularization(attn_alignments) \
+                if self.tg_token_use_attention else 0
+
+            # C. Character Sequence Loss
+            if self.tg_char:
+                # re-arrange character inputs
+                char_decoder_inputs = [
+                    tf.squeeze(x, 1) for x in tf.split(
+                        axis=1, num_or_size_splits=self.max_target_token_size + 2,
+                        value=tf.concat(axis=0, values=self.char_decoder_inputs))]
+                char_targets = [
+                    tf.squeeze(x, 1) for x in tf.split(
+                        axis=1, num_or_size_splits=self.max_target_token_size + 1,
+                        value=tf.concat(axis=0, values=self.char_targets))]
+                char_target_weights = [
+                    tf.squeeze(x, 1) for x in tf.split(
+                        axis=1, num_or_size_splits=self.max_target_token_size + 1,
+                        value=tf.concat(axis=0, values=self.char_target_weights))]
+                if bs_decoding:
+                    char_decoder_inputs = graph_utils.wrap_inputs(
+                        self.decoder.beam_decoder, char_decoder_inputs)
+                    char_targets = graph_utils.wrap_inputs(
+                        self.decoder.beam_decoder, char_targets)
+                    char_target_weights = graph_utils.wrap_inputs(
+                        self.decoder.beam_decoder, char_target_weights)
+                # get initial state from decoder output
+                char_decoder_init_state = \
+                    tf.concat(axis=0, values=[tf.reshape(d_o, [-1, self.decoder.dim])
+                                              for d_o in states])
+                char_output_symbols, char_sequence_logits, char_output_logits, _, _ = \
+                    self.char_decoder.define_graph(
+                        char_decoder_init_state, char_decoder_inputs)
+                encoder_decoder_char_loss = self.sequence_loss(
+                    char_output_logits, char_targets, char_target_weights,
+                    graph_utils.softmax_loss(
+                        self.char_decoder.output_project,
+                        self.tg_char_vocab_size / 2,
+                        self.tg_char_vocab_size))
+            else:
+                encoder_decoder_char_loss = 0
+
+            losses = encoder_decoder_token_loss + \
+                     self.gamma * encoder_decoder_char_loss + \
+                     self.beta * attention_reg
         else:
-            raise AttributeError("Unrecognized training algorithm.")
+            losses = tf.zeros_like(decoder_inputs[0])
 
-        # B. Attention Regularization
-        attention_reg = self.attention_regularization(attn_alignments) \
-            if self.tg_token_use_attention else 0
-
-        # C. Character Sequence Loss
-        if self.tg_char:
-            # re-arrange character inputs
-            char_decoder_inputs = [
-                tf.squeeze(x, 1) for x in tf.split(
-                    axis=1, num_or_size_splits=self.max_target_token_size + 2,
-                    value=tf.concat(axis=0, values=self.char_decoder_inputs))]
-            char_targets = [
-                tf.squeeze(x, 1) for x in tf.split(
-                    axis=1, num_or_size_splits=self.max_target_token_size + 1,
-                    value=tf.concat(axis=0, values=self.char_targets))]
-            char_target_weights = [
-                tf.squeeze(x, 1) for x in tf.split(
-                    axis=1, num_or_size_splits=self.max_target_token_size + 1,
-                    value=tf.concat(axis=0, values=self.char_target_weights))]
-            if bs_decoding:
-                char_decoder_inputs = graph_utils.wrap_inputs(
-                    self.decoder.beam_decoder, char_decoder_inputs)
-                char_targets = graph_utils.wrap_inputs(
-                    self.decoder.beam_decoder, char_targets)
-                char_target_weights = graph_utils.wrap_inputs(
-                    self.decoder.beam_decoder, char_target_weights)
-            # get initial state from decoder output
-            char_decoder_init_state = \
-                tf.concat(axis=0, values=[tf.reshape(d_o, [-1, self.decoder.dim])
-                                          for d_o in states])
-            char_output_symbols, char_sequence_logits, char_output_logits, _, _ = \
-                self.char_decoder.define_graph(
-                    char_decoder_init_state, char_decoder_inputs)
-            encoder_decoder_char_loss = self.sequence_loss(
-                char_output_logits, char_targets, char_target_weights,
-                graph_utils.sparse_cross_entropy)
-        else:
-            encoder_decoder_char_loss = 0
-       
-        losses = encoder_decoder_token_loss + \
-                 self.gamma * encoder_decoder_char_loss + \
-                 self.beta * attention_reg
-
-        # store encoder/decoder output states
+        # --- Store encoder/decoder output states --- #
         self.encoder_hidden_states = tf.concat(axis=1,
             values=[tf.reshape(e_o, [-1, 1, self.encoder.output_dim])
                     for e_o in encoder_outputs])

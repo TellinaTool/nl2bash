@@ -154,8 +154,8 @@ def define_model(FLAGS, session, model_constructor, buckets, forward_only):
         if not os.path.exists(FLAGS.model_dir):
             print("Making model_dir...")
             os.mkdir(FLAGS.model_dir)
-        else:
-            clean_dir(FLAGS.model_dir)
+        # else:
+        #     clean_dir(FLAGS.model_dir)
         if FLAGS.pretrained_model_subdir:
             # load pre-trained parameteres for advanced training algorithms
             pretrain_dir = os.path.join(
@@ -164,7 +164,8 @@ def define_model(FLAGS, session, model_constructor, buckets, forward_only):
                   .format(pretrain_dir))
             pretrain_ckpt = tf.train.get_checkpoint_state(pretrain_dir)
             model.saver.restore(session, pretrain_ckpt.model_checkpoint_path)
-            session.run(model.learning_rate.assign(tf.constant(FLAGS.learning_rate)))
+            session.run(model.learning_rate.assign(
+                tf.constant(FLAGS.learning_rate)))
         else:
             print("Initialize the graph with random parameters.")
             session.run(tf.global_variables_initializer())
