@@ -273,7 +273,8 @@ def wrap_inputs(beam_decoder, inputs):
 
 
 def sparse_cross_entropy(logits, targets):
-    return -tf.reduce_sum(logits * tf.one_hot(targets, logits.get_shape()[1]), 1)
+    return -tf.reduce_sum(
+        logits * tf.one_hot(targets, logits.get_shape()[1]), 1)
 
 
 def nest_map(func, nested):

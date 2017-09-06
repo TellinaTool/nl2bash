@@ -87,6 +87,7 @@ def grid_search(train_fun, decode_fun, eval_fun, train_set, dev_set, FLAGS):
     param_grid = [v for v in hp_range[hyperparameters[0]]]
     for i in xrange(1, num_hps):
         param_grid = itertools.product(param_grid, hp_range[hyperparameters[i]])
+
     # Initialize metrics value
     best_hp_set = [-1] * num_hps
     best_seed = -1

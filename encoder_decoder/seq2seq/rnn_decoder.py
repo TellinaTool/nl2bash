@@ -104,12 +104,13 @@ class RNNDecoder(decoder.Decoder):
                     decoder_cell, self.output_project)
 
             def step_output_symbol_and_logit(output):
+                epsilon = tf.constant(1e-12)
                 if self.copynet:
-                    epsilon = tf.constant(1e-12)
                     output_logits = tf.log(output + epsilon)
                 else:
                     W, b = self.output_project
-                    output_logits = tf.nn.log_softmax(tf.matmul(output, W) + b)
+                    output_logits = tf.log(
+                        tf.nn.softmax(tf.matmul(output, W) + b) + epsilon)
                 output_symbol = tf.argmax(output_logits, 1)
                 past_output_symbols.append(output_symbol)
                 past_output_logits.append(output_logits)

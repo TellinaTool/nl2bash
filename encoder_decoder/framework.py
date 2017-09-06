@@ -347,7 +347,6 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 log_perp_list.append(crossent * weight)
             log_perps = tf.add_n(log_perp_list)
             total_size = tf.add_n(weights)
-            total_size += 1e-12     # Just to avoid division by 0 for all-0 weights.
             log_perps /= total_size
 
         avg_log_perps = tf.reduce_mean(log_perps)
@@ -356,15 +355,11 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
 
     def attention_regularization(self, attn_alignments):
-        """Entropy regularization term.
+        """
+        Entropy regularization term.
 
         :param attn_alignments: [batch_size, decoder_size, encoder_size]
         """
-        # P_unnorm = tf.reduce_sum(attn_alignments, 1)
-        # Z = tf.reduce_sum(P_unnorm, 1, keep_dims=True)
-        # P = P_unnorm / Z
-        # return tf.reduce_mean(tf.reduce_sum(P * tf.log(P), 1))
-
         P = tf.reduce_sum(attn_alignments, 1)
         P_exp = tf.exp(P)
         Z = tf.reduce_sum(P_exp, 1, keep_dims=True)
@@ -528,7 +523,6 @@ class EncoderDecoderModel(graph_utils.NNModel):
         for l in xrange(decoder_size):
             input_feed[self.decoder_inputs[l].name] = E.decoder_inputs[l]
             input_feed[self.target_weights[l].name] = E.target_weights[l]
-            print(E.target_weights[l])
         if self.copynet:
             for l in xrange(encoder_size):
                 input_feed[self.encoder_copy_inputs[l].name] = \
