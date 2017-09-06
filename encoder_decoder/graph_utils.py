@@ -268,13 +268,22 @@ def softmax_loss(output_project, num_samples, target_vocab_size):
     return loss_function
 
 
+def sparse_cross_entropy(logits, targets):
+    return -tf.reduce_sum(
+        logits * tf.one_hot(targets, logits.get_shape()[1]), 1)
+
+
 def wrap_inputs(beam_decoder, inputs):
     return [beam_decoder.wrap_input(input) for input in inputs]
 
 
-def sparse_cross_entropy(logits, targets):
-    return -tf.reduce_sum(
-        logits * tf.one_hot(targets, logits.get_shape()[1]), 1)
+def column_array_to_matrix(columns):
+    """
+    Concert a list of 1-D tensors to a matrix where each 1-D tensor becomes a
+    column of the matrix.
+    """
+    return tf.transpose(
+        tf.reshape(columns, [len(columns), -1]))
 
 
 def nest_map(func, nested):

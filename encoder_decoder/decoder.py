@@ -166,8 +166,8 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
         attn_dim = attention_states.get_shape()[2].value
 
         self.cell = cell
-        self.encoder_attn_masks = tf.transpose(
-            tf.reshape(encoder_attn_masks, [attn_length, -1]))
+        self.encoder_attn_masks = \
+            graph_utils.column_array_to_matrix(encoder_attn_masks)
         self.vocab_indices = tf.diag(tf.ones(tg_vocab_size))
         self.num_heads = num_heads
         self.dim = dim
