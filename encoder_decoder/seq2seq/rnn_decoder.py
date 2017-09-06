@@ -47,10 +47,11 @@ class RNNDecoder(decoder.Decoder):
             assert(attention_states.get_shape()[1:2].is_fully_defined())
         bs_decoding = (self.decoding_algorithm == "beam_search")
 
+        if input_embeddings is None:
+            input_embeddings = self.embeddings()
+        
         with tf.variable_scope(self.scope + "_decoder_rnn") as scope:
             decoder_cell = self.decoder_cell()
-            if input_embeddings is None:
-                input_embeddings = self.embeddings()
 
             # Initializations
             states = []
@@ -305,8 +306,12 @@ class RNNDecoder(decoder.Decoder):
                 top_k_osbs = [[tf.squeeze(output, axis=[0]) for output in top_k_output]
                               for top_k_output in top_k_osbs]
                 # [self.batch_size, self.beam_size]
+                seq_len = tf.minimum(graph_utils.get_indices(past_beam_symbols[:, 1:], 
+                                                             data_utils.EOS_ID),
+                                     graph_utils.get_indices(past_beam_symbols[:, 1:], 
+                                                             data_utils.PAD_ID)) + 1
                 top_k_seq_logits = tf.div(tf.reduce_sum(past_beam_logprobs, axis=1),
-                                          tf.pow(beam_decoder.seq_len, self.alpha))
+                                          tf.pow(tf.cast(seq_len, tf.float32), self.alpha))
                 top_k_seq_logits = tf.reshape(top_k_seq_logits,
                                               [self.batch_size, self.beam_size])
                 top_k_seq_logits = tf.split(axis=0, num_or_size_splits=self.batch_size,
@@ -349,6 +354,8 @@ class RNNDecoder(decoder.Decoder):
                 if not bs_decoding or not self.forward_only:
                     attn_alignments = tf.concat(axis=1, values=[tf.expand_dims(x[0], 1)
                         for x in alignments_sequence])
+                else:
+                    attn_alignments = alignments[0]
                 if bs_decoding:
                     if self.forward_only:
                         attn_alignments = tf.reshape(attn_alignments,
@@ -361,6 +368,8 @@ class RNNDecoder(decoder.Decoder):
                 if not bs_decoding or not self.forward_only:
                     pointers = tf.concat(axis=1, values=[tf.expand_dims(x[1], 1)
                         for x in alignments_sequence])
+                else:
+                    pointers = alignments[1]
                 if bs_decoding:
                     if self.forward_only:
                         pointers = tf.reshape(pointers,

@@ -287,6 +287,20 @@ def column_array_to_matrix(columns):
         tf.reshape(columns, [len(columns), -1]))
 
 
+def get_indices(M, v):
+    """
+    Return indices of v in the last dimension of M.
+    """
+    max_index = M.get_shape()[-1].value
+    v_indices = tf.cast(tf.equal(M, v), tf.int32) * \
+        tf.expand_dims(tf.range(max_index), 0)
+    return tf.reduce_min(
+                tf.where(tf.equal(v_indices, 0), 
+                         tf.ones_like(v_indices) * max_index,
+                         v_indices),
+                axis=-1)
+            
+    
 def nest_map(func, nested):
     """
     Apply function to each element in a nested list.
