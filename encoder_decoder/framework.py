@@ -303,7 +303,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
                      self.gamma * encoder_decoder_char_loss + \
                      self.beta * attention_reg
         else:
-            losses = 0
+            losses = tf.zeros_like(decoder_inputs[0])
 
         # --- Store encoder/decoder output states --- #
         self.encoder_hidden_states = tf.concat(axis=1,
@@ -339,7 +339,6 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
     # Loss functions.
     def sequence_loss(self, logits, targets, target_weights, loss_function):
-        print(len(logits), len(targets))
         assert(len(logits) == len(targets))
         with tf.variable_scope("sequence_loss"):
             log_perp_list = []
