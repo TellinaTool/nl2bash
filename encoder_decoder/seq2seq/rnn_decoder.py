@@ -67,7 +67,7 @@ class RNNDecoder(decoder.Decoder):
                 else:
                     beam_state = beam_decoder.wrap_state(encoder_state, self.output_project)
                     beam_search_losses = tf.zeros_like(decoder_inputs[0], dtype=tf.float32)
-                    ground_truth_logprobs = [tf.zeros_like(beam_search_losses)]
+                    ground_truth_logprobs = tf.zeros_like(beam_search_losses)
                 
             # --- Cell Wrappers: 'Attention', 'CopyNet', 'BeamSearch'
 
@@ -155,11 +155,11 @@ class RNNDecoder(decoder.Decoder):
                 past_output_symbols.append(output_symbol)
                 past_output_logits.append(output_logits)
                 if bs_decoding and not self.forward_only:
-                    ground_truth_logprobs.append(
-                        tf.reduce_sum(tf.multiply(
-                                output_logits,
-                                tf.one_hot(target, tf.shape(output_logits)[1])),
-                            axis=1))
+                    ground_truth_logprobs += tf.reduce_sum(
+                        tf.multiply(
+                            output_logits,
+                            tf.one_hot(target, tf.shape(output_logits)[1])),
+                        axis=1)
                 return output_symbol, output_logits
 
             def get_normalized_beam_logprobs(beam_symbols, beam_logprobs):
@@ -293,16 +293,12 @@ class RNNDecoder(decoder.Decoder):
                         # Compute beam search losses
                         beam_boundary = tf.reshape(past_beam_logprobs,
                             [self.batch_size, self.beam_size])[:, -1]
-                        ground_truth_sequence_logprobs = \
-                            get_normalized_beam_logprobs(
-                                graph_utils.column_array_to_matrix(decoder_inputs[:i+2]),
-                                graph_utils.column_array_to_matrix(ground_truth_logprobs))
-                        beam_margin = ground_truth_sequence_logprobs - beam_boundary
+                        beam_margin = ground_truth_logprobs - beam_boundary
                         beam_search_losses -= tf.where(beam_margin < self.margin, 
                             beam_margin, tf.ones_like(beam_margin) * self.margin)
                         # Update beam state when the ground truth falls out of the beam
                         restart_mask = beam_decoder.wrap_input(
-                            ground_truth_sequence_logprobs < beam_boundary)
+                            ground_truth_logprobs < beam_boundary)
                         beam_state = update_beam_state_with_restart(
                             beam_state, restart_mask)
                 else:
