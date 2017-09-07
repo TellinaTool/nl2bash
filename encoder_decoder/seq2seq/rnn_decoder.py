@@ -199,8 +199,10 @@ class RNNDecoder(decoder.Decoder):
                     past_beam_symbols)
                 beam_logprobs_with_restart = tf.where(restart_mask,
                     beam_decoder.wrap_input(
-                        graph_utils.column_array_to_matrix(
-                            ground_truth_logprobs)),
+                        tf.reduce_sum(
+                            graph_utils.column_array_to_matrix(
+                                ground_truth_logprobs),
+                            axis=1)),
                     past_beam_logprobs)
                 first_in_beam_mask = tf.equal(
                     tf.range(self.batch_size * self.beam_size) % self.beam_size, 0)
@@ -289,8 +291,7 @@ class RNNDecoder(decoder.Decoder):
                         ) = beam_state
                         beam_input = past_beam_symbols[:, -1]
                         # Compute beam search losses
-                        beam_boundary = tf.reshape(get_normalized_beam_logprobs(
-                            past_beam_symbols, past_beam_logprobs),
+                        beam_boundary = tf.reshape(past_beam_logprobs,
                             [self.batch_size, self.beam_size])[:, -1]
                         ground_truth_sequence_logprobs = \
                             get_normalized_beam_logprobs(
@@ -334,9 +335,7 @@ class RNNDecoder(decoder.Decoder):
                 top_k_osbs = [[tf.squeeze(output, axis=[0]) for output in top_k_output]
                               for top_k_output in top_k_osbs]
                 # [self.batch_size, self.beam_size]
-                seq_logprobs = get_normalized_beam_logprobs(past_beam_symbols,
-                                                            past_beam_logprobs)
-                seq_logprobs = tf.reshape(seq_logprobs,
+                seq_logprobs = tf.reshape(past_beam_logprobs,
                                           [self.batch_size, self.beam_size])
                 seq_logprobs = tf.split(axis=0, num_or_size_splits=self.batch_size,
                                         value=seq_logprobs)
