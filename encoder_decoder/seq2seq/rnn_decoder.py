@@ -57,6 +57,7 @@ class RNNDecoder(decoder.Decoder):
             state = encoder_state
             states = []
             alignments_sequence = []
+            pointers = []
             past_output_symbols = []
             past_output_logits = []
             if bs_decoding:
@@ -95,20 +96,6 @@ class RNNDecoder(decoder.Decoder):
                     self.use_copy,
                     self.vocab_size
                 )
-                if bs_decoding and not self.forward_only:
-                    beam_decoder_cell = decoder.AttentionCellWrapper(
-                        decoder_cell,
-                        beam_attention_states,
-                        beam_encoder_attn_masks,
-                        num_heads,
-                        self.attention_function,
-                        self.attention_input_keep,
-                        self.attention_output_keep,
-                        self.dim,
-                        self.num_layers,
-                        self.use_copy,
-                        self.vocab_size
-                    )
             # Copy Cell Wrapper
             if self.use_copy and self.copy_fun == 'copynet':
                 if bs_decoding:
@@ -124,14 +111,6 @@ class RNNDecoder(decoder.Decoder):
                     self.num_layers,
                     encoder_copy_inputs,
                     self.vocab_size)
-                if bs_decoding and not self.forward_only:
-                    beam_decoder_cell = decoder.CopyCellWrapper(
-                        beam_decoder_cell,
-                        self.output_project,
-                        self.num_layers,
-                        beam_encoder_copy_inputs,
-                        self.vocab_size
-                    )
             # Beam Search Cell Wrapper
             if bs_decoding:
                 if self.forward_only:
@@ -142,7 +121,7 @@ class RNNDecoder(decoder.Decoder):
                     # to the RNN decoder which computes the log likelihood of
                     # the ground truth sequences
                     beam_decoder_cell = beam_decoder.wrap_cell(
-                        beam_decoder_cell, self.output_project)
+                        decoder_cell, self.output_project)
 
             # --- RNN Decoder Loop
             def step_output_symbol_and_logit(output):
@@ -400,8 +379,6 @@ class RNNDecoder(decoder.Decoder):
                         beam_pointers = tf.reshape(pointers,
                             [self.batch_size, self.beam_size,
                              attn_alignments.get_shape()[1].value, -1])
-            else:
-                pointers = None
 
             if bs_decoding:
                 top_k_osbs, top_k_seq_logits, states = \

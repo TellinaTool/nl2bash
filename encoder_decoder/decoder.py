@@ -136,9 +136,15 @@ class CopyCellWrapper(tf.nn.rnn_cell.RNNCell):
 
 
 class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
-    def __init__(self, cell, attention_states, encoder_attn_masks, num_heads,
-            attention_function, attention_input_keep, attention_output_keep,
-            dim, num_layers, use_copy, tg_vocab_size=-1):
+    def __init__(self, cell,
+                 attention_states,
+                 encoder_attn_masks,
+                 num_heads,
+                 attention_function,
+                 attention_input_keep,
+                 attention_output_keep,
+                 dim, num_layers,
+                 use_copy, tg_vocab_size=-1):
         """
         Hidden layer above attention states.
 
@@ -181,7 +187,7 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
 
         hidden_features = []
         v = []
-        with tf.variable_scope("attention_cell_wrapper"):
+        with tf.variable_scope('attention_cell_wrapper'):
             for a in xrange(num_heads):
                 # [batch_size, attn_length, attn_dim]
                 hidden_features.append(attention_states)
@@ -204,7 +210,7 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
                     assert ndims == 2
             state = tf.concat(axis=1, values=query_list)
         for a in xrange(self.num_heads):
-            with tf.variable_scope("Attention_%d" % a):
+            with tf.variable_scope('Attention_%d' % a):
                 y = tf.reshape(state, [-1, 1, 1, self.attn_dim])
                 # Attention mask is a softmax of v^T * tanh(...).
                 if self.attention_function == 'non-linear':
