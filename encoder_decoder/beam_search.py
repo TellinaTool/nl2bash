@@ -223,24 +223,28 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         past_logprobs_unormalized = tf.reduce_sum(past_beam_logprobs, axis=1)
         logprobs_unormalized = tf.expand_dims(past_logprobs_unormalized, 1) + logprobs
         seq_len = tf.expand_dims(self.seq_len, 1) + (1 - stop_mask)
-        logprobs_batched = tf.div(logprobs_unormalized, tf.pow(seq_len, self.alpha))
+        logprobs_normalized = tf.div(logprobs_unormalized, tf.pow(seq_len, self.alpha))
 
         top_k_logprobs, indices = tf.nn.top_k(
-            tf.reshape(logprobs_batched, [-1, self.beam_size * self.num_classes]),
-            self.beam_size
-        )
+            tf.reshape(logprobs_normalized, [-1, self.beam_size * self.num_classes]),
+            self.beam_size)
 
         # For continuing to the next symbols
         parent_refs_offsets = \
                 (tf.range(self.full_size) // self.beam_size) * self.beam_size
-        top_k_symbols = indices % self.num_classes # [batch_size, self.beam_size]
+        top_k_symbols = indices % self.num_classes                  # [batch_size, self.beam_size]
         parent_refs = tf.reshape(indices // self.num_classes, [-1]) # [batch_size*self.beam_size]
         parent_refs = parent_refs + parent_refs_offsets
 
         beam_symbols = tf.concat(axis=1, values=[tf.gather(past_beam_symbols, parent_refs),
                                                  tf.reshape(top_k_symbols, [-1, 1])])
+        beam_step_logprobs = tf.reduce_sum(
+            tf.multiply(
+                tf.reshape(logprobs, [-1, self.beam_size, self.num_classes]),
+                tf.one_hot(top_k_symbols, self.num_classes)),
+            axis=-1)
         beam_logprobs = tf.concat(axis=1, values=[tf.gather(past_beam_logprobs, parent_refs),
-                                                  tf.gather(logprobs, parent_refs)])
+                                                  beam_step_logprobs])
         self.seq_len = tf.squeeze(tf.gather(seq_len, parent_refs), squeeze_dims=[1])
 
         if self.use_copy and self.copy_fun == 'copynet':
