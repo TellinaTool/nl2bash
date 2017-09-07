@@ -267,8 +267,8 @@ class RNNDecoder(decoder.Decoder):
                         ) = beam_state
                         beam_input = past_beam_symbols[:, -1]
                         # Compute beam search losses
-                        beam_boundary = tf.reshape(past_beam_logprobs,
-                                                   [self.batch_size, self.beam_size])[-1]
+                        beam_boundary = tf.reshape(past_beam_logprobs[-1],
+                                                   [self.batch_size, self.beam_size])
                         beam_search_losses += \
                             -min(ground_truth_logprobs[-1] - beam_boundary, self.margin)
                         # Update beam state when the ground truth falls out of the beam
@@ -359,10 +359,12 @@ class RNNDecoder(decoder.Decoder):
                 if bs_decoding:
                     if self.forward_only:
                         attn_alignments = tf.reshape(attn_alignments,
-                            [self.batch_size, self.beam_size, len(decoder_inputs), -1])
+                            [self.batch_size, self.beam_size,
+                             attn_alignments.get_shape()[1].value, -1])
                     else:
                         beam_attn_alignments = tf.reshape(attn_alignments,
-                            [self.batch_size, self.beam_size, len(decoder_inputs), -1])
+                            [self.batch_size, self.beam_size,
+                             attn_alignments.get_shape()[1].value, -1])
             
             if self.copynet:
                 if not bs_decoding or not self.forward_only:
@@ -373,10 +375,12 @@ class RNNDecoder(decoder.Decoder):
                 if bs_decoding:
                     if self.forward_only:
                         pointers = tf.reshape(pointers,
-                            [self.batch_size, self.beam_size, len(decoder_inputs), -1])
+                            [self.batch_size, self.beam_size,
+                             attn_alignments.get_shape()[1].value, -1])
                     else:
                         beam_pointers = tf.reshape(pointers,
-                            [self.batch_size, self.beam_size, len(decoder_inputs), -1])
+                            [self.batch_size, self.beam_size,
+                             attn_alignments.get_shape()[1].value, -1])
             else:
                 pointers = None
 
