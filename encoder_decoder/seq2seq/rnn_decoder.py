@@ -66,9 +66,8 @@ class RNNDecoder(decoder.Decoder):
                     state = beam_decoder.wrap_state(encoder_state, self.output_project)
                 else:
                     beam_state = beam_decoder.wrap_state(encoder_state, self.output_project)
-                    beam_search_losses = beam_decoder.wrap_input(
-                        tf.zeros_like(decoder_inputs[0]))
-                    ground_truth_logprobs = []
+                    beam_search_losses = tf.zeros_like(decoder_inputs[0], dtype=tf.float32)
+                    ground_truth_logprobs = [tf.zeros_like(beam_search_losses)]
                 
             # --- Cell Wrappers: 'Attention', 'CopyNet', 'BeamSearch'
 
@@ -153,7 +152,8 @@ class RNNDecoder(decoder.Decoder):
                 :param beam_logprobs: [batch_size*beam_size, seq_len+1]
                 :return seq_logprobs: [batch_size*beam_size]
                 """
-                assert(beam_symbols.get_shape() == beam_logprobs.get_shape())
+                assert(beam_symbols.get_shape()[0].value == beam_logprobs.get_shape()[0].value)
+                assert(beam_symbols.get_shape()[1].value == beam_logprobs.get_shape()[1].value)
                 seq_len = tf.minimum(graph_utils.get_indices(beam_symbols[:, 1:],
                                                              data_utils.EOS_ID),
                                      graph_utils.get_indices(beam_symbols[:, 1:],
@@ -172,12 +172,12 @@ class RNNDecoder(decoder.Decoder):
                     past_beam_logprobs,
                     past_cell_states
                 ) = beam_state
-                beam_symbols_with_restart = tf.select(restart_mask,
+                beam_symbols_with_restart = tf.where(restart_mask,
                     beam_decoder.wrap_input(
                         graph_utils.column_array_to_matrix(
-                            decoder_inputs[1:i+1])),
+                            decoder_inputs[:i+2])),
                     past_beam_symbols)
-                beam_logprobs_with_restart = tf.select(restart_mask,
+                beam_logprobs_with_restart = tf.where(restart_mask,
                     beam_decoder.wrap_input(
                         graph_utils.column_array_to_matrix(
                             ground_truth_logprobs)),
@@ -192,14 +192,18 @@ class RNNDecoder(decoder.Decoder):
                 # TODO: implement LSTM version
                 ground_truth_states = tf.concat(
                     [tf.expand_dims(x, 1) for x in states], axis=1)
-                cell_states_with_restart = tf.select(restart_mask,
-                    beam_decoder.wrap_input(ground_truth_states),
-                    past_cell_states)
+                cell_states_with_restart = tf.concat(
+                    [past_cell_states[:, 0:1, :],
+                     tf.where(restart_mask,
+                        beam_decoder.wrap_input(ground_truth_states),
+                        past_cell_states[:, 1:, :])],
+                    axis=1)
+      
                 return (beam_symbols_with_restart,
                         beam_logprobs_with_restart,
                         cell_states_with_restart)
 
-            for i in range(len(decoder_inputs)):
+            for i in range(len(decoder_inputs)-1):
                 if not self.forward_only or i == 0:
                     # Always read ground truth input at training time
                     input = decoder_inputs[i]
@@ -270,13 +274,14 @@ class RNNDecoder(decoder.Decoder):
                             [self.batch_size, self.beam_size])[:, -1]
                         ground_truth_sequence_logprobs = \
                             get_normalized_beam_logprobs(
-                                graph_utils.column_array_to_matrix(decoder_inputs[1:i+1]),
+                                graph_utils.column_array_to_matrix(decoder_inputs[:i+2]),
                                 graph_utils.column_array_to_matrix(ground_truth_logprobs))
-                        beam_search_losses += -min(
-                            ground_truth_sequence_logprobs - beam_boundary, self.margin)
+                        beam_margin = ground_truth_sequence_logprobs - beam_boundary
+                        beam_search_losses -= tf.where(beam_margin < self.margin, 
+                            beam_margin, tf.ones_like(beam_margin) * self.margin)
                         # Update beam state when the ground truth falls out of the beam
-                        restart_mask = \
-                            beam_decoder.wrap_input(output_logits < beam_boundary)
+                        restart_mask = beam_decoder.wrap_input(
+                            ground_truth_sequence_logprobs < beam_boundary)
                         beam_state = update_beam_state_with_restart(
                             beam_state, restart_mask)
                 else:
@@ -382,14 +387,16 @@ class RNNDecoder(decoder.Decoder):
                              attn_alignments.get_shape()[1].value, -1])
 
             if bs_decoding:
-                top_k_osbs, top_k_seq_logits, states = \
-                        process_beam_search_output(state)
                 if self.forward_only:
                     # Beam-search decoding output
+                    top_k_osbs, top_k_seq_logits, states = \
+                        process_beam_search_output(state)
                     return top_k_osbs, top_k_seq_logits, None, \
                            states, attn_alignments, pointers
                 else:
                     # Beam-search training output
+                    top_k_osbs, top_k_seq_logits, states = \
+                        process_beam_search_output(beam_state)
                     return top_k_osbs, top_k_seq_logits, beam_search_losses, \
                         states, attn_alignments, pointers
             else:

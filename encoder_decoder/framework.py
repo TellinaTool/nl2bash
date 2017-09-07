@@ -261,7 +261,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 encoder_decoder_token_loss = self.sequence_loss(
                     output_logits, targets, target_weights,
                     graph_utils.sparse_cross_entropy)
-            elif self.training_algorithm == 'beam_search_opt':
+            elif self.training_algorithm == 'bso':
                 encoder_decoder_token_loss = output_logits
             else:
                 raise AttributeError("Unrecognized training algorithm.")
