@@ -175,6 +175,7 @@ class RNNDecoder(decoder.Decoder):
                 :param beam_logprobs: [batch_size*beam_size, seq_len+1]
                 :return seq_logprobs: [batch_size*beam_size]
                 """
+                assert(len(beam_symbols) == len(beam_logprobs))
                 seq_len = tf.minimum(graph_utils.get_indices(beam_symbols[:, 1:],
                                                              data_utils.EOS_ID),
                                      graph_utils.get_indices(beam_symbols[:, 1:],
@@ -288,8 +289,11 @@ class RNNDecoder(decoder.Decoder):
                         beam_boundary = tf.reshape(get_normalized_beam_logprobs(
                             past_beam_symbols, past_beam_logprobs),
                             [self.batch_size, self.beam_size])[:, -1]
-                        beam_search_losses += \
-                            -min(ground_truth_logprobs[-1] - beam_boundary, self.margin)
+                        ground_truth_sequence_logprobs = \
+                            get_normalized_beam_logprobs(decoder_inputs[1:i+1],
+                                                         ground_truth_logprobs)
+                        beam_search_losses += -min(
+                            ground_truth_sequence_logprobs - beam_boundary, self.margin)
                         # Update beam state when the ground truth falls out of the beam
                         restart_mask = \
                             beam_decoder.wrap_input(output_logits < beam_boundary)
