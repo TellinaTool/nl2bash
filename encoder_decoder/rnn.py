@@ -349,7 +349,7 @@ def RNNModel(cell, inputs, initial_state=None, dtype=None,
 
   # Create a new scope in which the caching device is either
   # determined by the parent scope, or is set to place the cached
-  # Variable using the same placement as for the rest of the RNN.
+  # variable using the same placement as for the rest of the RNN.
   with tf.variable_scope(scope or "RNN") as varscope:
     if varscope.caching_device is None:
       varscope.set_caching_device(lambda op: op.device)

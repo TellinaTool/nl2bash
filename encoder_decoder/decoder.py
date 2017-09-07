@@ -51,13 +51,14 @@ class Decoder(graph_utils.NNModel):
         self.embedding_vars = False
         self.output_project_vars = False
 
+        beam_size = 10 if self.forward_only else self.beam_size
         self.beam_decoder = beam_search.BeamDecoder(
             self.vocab_size,
             self.num_layers,
             data_utils.ROOT_ID,
             data_utils.EOS_ID,
             self.batch_size,
-            self.beam_size,
+            beam_size,
             self.use_attention,
             self.use_copy,
             self.copy_fun,
@@ -131,14 +132,20 @@ class CopyCellWrapper(tf.nn.rnn_cell.RNNCell):
         read_copy_source = tf.cast(
             tf.reduce_max(gen_logit, [1], keep_dims=True) < \
             tf.reduce_max(copy_logit, [1], keep_dims=True), tf.float32)
-
+        
         return mix_prob, state, alignments, attns, read_copy_source
 
 
 class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
-    def __init__(self, cell, attention_states, encoder_attn_masks, num_heads,
-            attention_function, attention_input_keep, attention_output_keep,
-            dim, num_layers, use_copy, tg_vocab_size=-1):
+    def __init__(self, cell,
+                 attention_states,
+                 encoder_attn_masks,
+                 num_heads,
+                 attention_function,
+                 attention_input_keep,
+                 attention_output_keep,
+                 dim, num_layers,
+                 use_copy, tg_vocab_size=-1):
         """
         Hidden layer above attention states.
 
@@ -181,7 +188,7 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
 
         hidden_features = []
         v = []
-        with tf.variable_scope("attention_cell_wrapper"):
+        with tf.variable_scope('attention_cell_wrapper'):
             for a in xrange(num_heads):
                 # [batch_size, attn_length, attn_dim]
                 hidden_features.append(attention_states)
@@ -204,7 +211,7 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
                     assert ndims == 2
             state = tf.concat(axis=1, values=query_list)
         for a in xrange(self.num_heads):
-            with tf.variable_scope("Attention_%d" % a):
+            with tf.variable_scope('Attention_%d' % a):
                 y = tf.reshape(state, [-1, 1, 1, self.attn_dim])
                 # Attention mask is a softmax of v^T * tanh(...).
                 if self.attention_function == 'non-linear':
@@ -260,4 +267,5 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
             output = rnn.linear([cell_output, attns[0]], self.dim, True)
 
         self.attention_cell_vars = True
+        print(alignments)
         return output, state, alignments, attns

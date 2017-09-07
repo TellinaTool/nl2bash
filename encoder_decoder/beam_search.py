@@ -220,7 +220,8 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         logprobs = tf.multiply(logprobs, (1 - tf.multiply(stop_mask, done_mask)))
 
         # length normalization
-        past_logprobs_unormalized = tf.reduce_sum(past_beam_logprobs, axis=1)
+        past_logprobs_unormalized = tf.multiply(past_beam_logprobs,
+                                                tf.pow(self.seq_len, self.alpha))
         logprobs_unormalized = tf.expand_dims(past_logprobs_unormalized, 1) + logprobs
         seq_len = tf.expand_dims(self.seq_len, 1) + (1 - stop_mask)
         logprobs_normalized = tf.div(logprobs_unormalized, tf.pow(seq_len, self.alpha))
@@ -238,13 +239,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
 
         beam_symbols = tf.concat(axis=1, values=[tf.gather(past_beam_symbols, parent_refs),
                                                  tf.reshape(top_k_symbols, [-1, 1])])
-        beam_step_logprobs = tf.reduce_sum(
-                tf.multiply(tf.gather(logprobs, parent_refs),
-                    tf.one_hot(tf.reshape(top_k_symbols, [-1]), self.num_classes)), 
-                axis=-1, 
-                keep_dims=True)
-        beam_logprobs = tf.concat(axis=1, values=[tf.gather(past_beam_logprobs, parent_refs),
-                                                  beam_step_logprobs])
+        beam_logprobs = tf.reshape(top_k_logprobs, [-1])
         self.seq_len = tf.squeeze(tf.gather(seq_len, parent_refs), squeeze_dims=[1])
 
         if self.use_copy and self.copy_fun == 'copynet':
@@ -254,6 +249,8 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
                 lambda element: tf.gather(element, parent_refs), alignments)
             ranked_attns = nest_map(
                 lambda element: tf.gather(element, parent_refs), attns)
+            print(ranked_alignments)
+            print(ranked_attns)
 
         # update cell_states
         def concat_and_gather_tuple_states(pc_states, c_state):
@@ -324,8 +321,8 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
                                tf.constant(self.start_token, dtype=tf.int32))
         beam_logprobs = tf.where(
             first_in_beam_mask,
-            tf.fill([full_size, 1], 0.0),
-            tf.fill([full_size, 1], -1e18)  # top_k does not play well with -inf
+            tf.fill([full_size], 0.0),
+            tf.fill([full_size], -1e18)  # top_k does not play well with -inf
                                             # TODO: dtype-dependent value here
         )
 
