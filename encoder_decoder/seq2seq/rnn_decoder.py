@@ -165,6 +165,24 @@ class RNNDecoder(decoder.Decoder):
                             axis=1))
                 return output_symbol, output_logits
 
+            def get_normalized_beam_logprobs(beam_symbols, beam_logprobs):
+                """
+                Compute the log probability of beam sequences after length
+                normalization using the beam symbol sequences and the step-wise
+                beam log probability sequences.
+
+                :param beam_symbols: [batch_size*beam_size, seq_len+1]
+                :param beam_logprobs: [batch_size*beam_size, seq_len+1]
+                :return seq_logprobs: [batch_size*beam_size]
+                """
+                seq_len = tf.minimum(graph_utils.get_indices(beam_symbols[:, 1:],
+                                                             data_utils.EOS_ID),
+                                     graph_utils.get_indices(beam_symbols[:, 1:],
+                                                             data_utils.PAD_ID))
+                seq_logprobs = tf.div(tf.reduce_sum(beam_logprobs, axis=1),
+                                      tf.pow(tf.cast(seq_len, tf.float32), self.alpha))
+                return seq_logprobs
+
             def update_beam_state_with_restart(beam_state, restart_mask):
                 """
                 Reinitialize to search with ground-truth for batches where
@@ -267,8 +285,9 @@ class RNNDecoder(decoder.Decoder):
                         ) = beam_state
                         beam_input = past_beam_symbols[:, -1]
                         # Compute beam search losses
-                        beam_boundary = tf.reshape(past_beam_logprobs[-1],
-                                                   [self.batch_size, self.beam_size])
+                        beam_boundary = tf.reshape(get_normalized_beam_logprobs(
+                            past_beam_symbols, past_beam_logprobs),
+                            [self.batch_size, self.beam_size])[:, -1]
                         beam_search_losses += \
                             -min(ground_truth_logprobs[-1] - beam_boundary, self.margin)
                         # Update beam state when the ground truth falls out of the beam
@@ -306,18 +325,14 @@ class RNNDecoder(decoder.Decoder):
                 top_k_osbs = [[tf.squeeze(output, axis=[0]) for output in top_k_output]
                               for top_k_output in top_k_osbs]
                 # [self.batch_size, self.beam_size]
-                seq_len = tf.minimum(graph_utils.get_indices(past_beam_symbols[:, 1:], 
-                                                             data_utils.EOS_ID),
-                                     graph_utils.get_indices(past_beam_symbols[:, 1:], 
-                                                             data_utils.PAD_ID))
-                top_k_seq_logits = tf.div(tf.reduce_sum(past_beam_logprobs, axis=1),
-                                          tf.pow(tf.cast(seq_len, tf.float32), self.alpha))
-                top_k_seq_logits = tf.reshape(top_k_seq_logits,
-                                              [self.batch_size, self.beam_size])
-                top_k_seq_logits = tf.split(axis=0, num_or_size_splits=self.batch_size,
-                                            value=top_k_seq_logits)
-                top_k_seq_logits = [tf.squeeze(top_k_logit, axis=[0])
-                                    for top_k_logit in top_k_seq_logits]
+                seq_logprobs = get_normalized_beam_logprobs(past_beam_symbols,
+                                                            past_beam_logprobs)
+                seq_logprobs = tf.reshape(seq_logprobs,
+                                          [self.batch_size, self.beam_size])
+                seq_logprobs = tf.split(axis=0, num_or_size_splits=self.batch_size,
+                                        value=seq_logprobs)
+                top_k_seq_logits = [tf.squeeze(logprob, axis=[0])
+                                    for logprob in seq_logprobs]
                 # LSTM: ([batch_size*self.beam_size, :, dim],
                 #        [batch_size*self.beam_size, :, dim])
                 # GRU: [batch_size*self.beam_size, :, dim]
