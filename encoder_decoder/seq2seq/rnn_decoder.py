@@ -82,6 +82,19 @@ class RNNDecoder(decoder.Decoder):
                         beam_encoder_attn_masks = \
                             graph_utils.wrap_inputs(beam_decoder, encoder_attn_masks)
                         beam_attention_states = beam_decoder.wrap_input(attention_states)
+                        beam_decoder_cell = decoder.AttentionCellWrapper(
+                            decoder_cell,
+                            beam_attention_states,
+                            beam_encoder_attn_masks,
+                            num_heads,
+                            self.attention_function,
+                            self.attention_input_keep,
+                            self.attention_output_keep,
+                            self.dim,
+                            self.num_layers,
+                            self.use_copy,
+                            self.vocab_size
+                        )
                 decoder_cell = decoder.AttentionCellWrapper(
                     decoder_cell,
                     attention_states,
@@ -95,20 +108,6 @@ class RNNDecoder(decoder.Decoder):
                     self.use_copy,
                     self.vocab_size
                 )
-                if bs_decoding and not self.forward_only:
-                    beam_decoder_cell = decoder.AttentionCellWrapper(
-                        decoder_cell,
-                        beam_attention_states,
-                        beam_encoder_attn_masks,
-                        num_heads,
-                        self.attention_function,
-                        self.attention_input_keep,
-                        self.attention_output_keep,
-                        self.dim,
-                        self.num_layers,
-                        self.use_copy,
-                        self.vocab_size
-                    )
             # Copy Cell Wrapper
             if self.use_copy and self.copy_fun == 'copynet':
                 if bs_decoding:
@@ -118,20 +117,19 @@ class RNNDecoder(decoder.Decoder):
                     else:
                         beam_encoder_copy_inputs = graph_utils.wrap_inputs(
                             beam_decoder, encoder_copy_inputs)
+                        beam_decoder_cell = decoder.CopyCellWrapper(
+                            beam_decoder_cell,
+                            self.output_project,
+                            self.num_layers,
+                            beam_encoder_copy_inputs,
+                            self.vocab_size
+                        )
                 decoder_cell = decoder.CopyCellWrapper(
                     decoder_cell,
                     self.output_project,
                     self.num_layers,
                     encoder_copy_inputs,
                     self.vocab_size)
-                if bs_decoding and not self.forward_only:
-                    beam_decoder_cell = decoder.CopyCellWrapper(
-                        beam_decoder_cell,
-                        self.output_project,
-                        self.num_layers,
-                        encoder_copy_inputs,
-                        self.vocab_size
-                    )
             # Beam Search Cell Wrapper
             if bs_decoding:
                 if self.forward_only:
