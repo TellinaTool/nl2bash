@@ -68,7 +68,7 @@ class RNNDecoder(decoder.Decoder):
                     beam_search_losses = beam_decoder.wrap_input(
                         tf.zeros_like(decoder_inputs[0]))
                     ground_truth_logprobs = []
-                
+
             # --- Cell Wrappers: 'Attention', 'CopyNet', 'BeamSearch'
 
             # Attention Cell Wrapper
@@ -159,9 +159,9 @@ class RNNDecoder(decoder.Decoder):
                 if bs_decoding and not self.forward_only:
                     ground_truth_logprobs.append(
                         tf.reduce_sum(tf.multiply(
-                                output_logits,
-                                tf.one_hot(target, tf.shape(output_logits)[1])),
-                            axis=1))
+                            output_logits,
+                            tf.one_hot(target, tf.shape(output_logits)[1])),
+                        axis=1))
                 return output_symbol, output_logits
 
             def get_normalized_beam_logprobs(beam_symbols, beam_logprobs):
