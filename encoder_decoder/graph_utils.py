@@ -292,8 +292,10 @@ def get_indices(M, v):
     Return indices of v in the last dimension of M.
     """
     max_index = M.get_shape()[-1].value
-    v_indices = tf.cast(tf.equal(M, v), tf.int32) * \
-        tf.expand_dims(tf.range(max_index), 0)
+    index_range = tf.range(max_index)
+    for _ in M.get_shape()[:-1]:
+        index_range = tf.expand_dims(index_range, 0)
+    v_indices = tf.cast(tf.equal(M, v), tf.int32) * index_range
     return tf.reduce_min(
                 tf.where(tf.equal(v_indices, 0), 
                          tf.ones_like(v_indices) * max_index,

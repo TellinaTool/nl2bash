@@ -309,7 +309,7 @@ class RNNDecoder(decoder.Decoder):
                 seq_len = tf.minimum(graph_utils.get_indices(past_beam_symbols[:, 1:], 
                                                              data_utils.EOS_ID),
                                      graph_utils.get_indices(past_beam_symbols[:, 1:], 
-                                                             data_utils.PAD_ID)) + 1
+                                                             data_utils.PAD_ID))
                 top_k_seq_logits = tf.div(tf.reduce_sum(past_beam_logprobs, axis=1),
                                           tf.pow(tf.cast(seq_len, tf.float32), self.alpha))
                 top_k_seq_logits = tf.reshape(top_k_seq_logits,

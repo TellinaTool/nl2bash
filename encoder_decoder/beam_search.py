@@ -239,10 +239,10 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         beam_symbols = tf.concat(axis=1, values=[tf.gather(past_beam_symbols, parent_refs),
                                                  tf.reshape(top_k_symbols, [-1, 1])])
         beam_step_logprobs = tf.reduce_sum(
-            tf.multiply(
-                tf.reshape(logprobs, [-1, self.beam_size, self.num_classes]),
-                tf.one_hot(top_k_symbols, self.num_classes)),
-            axis=-1)
+                tf.multiply(tf.gather(logprobs, parent_refs),
+                    tf.one_hot(tf.reshape(top_k_symbols, [-1]), self.num_classes)), 
+                axis=-1, 
+                keep_dims=True)
         beam_logprobs = tf.concat(axis=1, values=[tf.gather(past_beam_logprobs, parent_refs),
                                                   beam_step_logprobs])
         self.seq_len = tf.squeeze(tf.gather(seq_len, parent_refs), squeeze_dims=[1])
