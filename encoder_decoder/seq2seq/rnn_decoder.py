@@ -54,8 +54,11 @@ class RNNDecoder(decoder.Decoder):
             decoder_cell = self.decoder_cell()
 
             # Initializations
+            state = encoder_state
             states = []
             alignments_sequence = []
+            past_output_symbols = []
+            past_output_logits = []
             if bs_decoding:
                 beam_decoder = self.beam_decoder
                 if self.forward_only:
@@ -65,11 +68,7 @@ class RNNDecoder(decoder.Decoder):
                     beam_search_losses = beam_decoder.wrap_input(
                         tf.zeros_like(decoder_inputs[0]))
                     ground_truth_logprobs = []
-            else:
-                state = encoder_state
-                past_output_symbols = []
-                past_output_logits = []
-
+                
             # --- Cell Wrappers: 'Attention', 'CopyNet', 'BeamSearch'
 
             # Attention Cell Wrapper
