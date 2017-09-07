@@ -198,7 +198,12 @@ class RNNDecoder(decoder.Decoder):
                             decoder_inputs[:i+2])),
                     past_beam_symbols)
                 beam_logprobs_with_restart = tf.where(restart_mask,
-                    ground_truth_logprobs, past_beam_logprobs)
+                    beam_decoder.wrap_input(
+                        tf.reduce_sum(
+                            graph_utils.column_array_to_matrix(
+                                ground_truth_logprobs),
+                            axis=1)),
+                    past_beam_logprobs)
                 first_in_beam_mask = tf.equal(
                     tf.range(self.batch_size * self.beam_size) % self.beam_size, 0)
                 beam_logprobs_with_restart = tf.where(
@@ -220,7 +225,7 @@ class RNNDecoder(decoder.Decoder):
                         beam_logprobs_with_restart,
                         cell_states_with_restart)
 
-            for i in range(len(decoder_inputs)-1):
+            for i in range(len(decoder_inputs)):
                 if not self.forward_only or i == 0:
                     # Always read ground truth input at training time
                     input = decoder_inputs[i]
@@ -372,15 +377,19 @@ class RNNDecoder(decoder.Decoder):
                 if not bs_decoding or not self.forward_only:
                     attn_alignments = tf.concat(axis=1, values=[tf.expand_dims(x[0], 1)
                         for x in alignments_sequence])
+                    if bs_decoding:
+                        beam_attn_alignments = beam_alignments[0]
                 else:
-                    attn_alignments = alignments[0]
+                    if self.forward_only:
+                        attn_alignments = alignments[0]
                 if bs_decoding:
                     if self.forward_only:
+                        print(attn_alignments.get_shape())
                         attn_alignments = tf.reshape(attn_alignments,
                             [self.batch_size, self.beam_size,
                              attn_alignments.get_shape()[1].value, -1])
                     else:
-                        beam_attn_alignments = tf.reshape(attn_alignments,
+                        beam_attn_alignments = tf.reshape(beam_attn_alignments,
                             [self.batch_size, self.beam_size,
                              attn_alignments.get_shape()[1].value, -1])
             
@@ -388,15 +397,18 @@ class RNNDecoder(decoder.Decoder):
                 if not bs_decoding or not self.forward_only:
                     pointers = tf.concat(axis=1, values=[tf.expand_dims(x[1], 1)
                         for x in alignments_sequence])
+                    if bs_decoding:
+                        beam_pointers = beam_alignments[1]
                 else:
-                    pointers = alignments[1]
+                    if self.forward_only:
+                        pointers = alignments[1]
                 if bs_decoding:
                     if self.forward_only:
                         pointers = tf.reshape(pointers,
                             [self.batch_size, self.beam_size,
                              attn_alignments.get_shape()[1].value, -1])
                     else:
-                        beam_pointers = tf.reshape(pointers,
+                        beam_pointers = tf.reshape(beam_pointers,
                             [self.batch_size, self.beam_size,
                              attn_alignments.get_shape()[1].value, -1])
 

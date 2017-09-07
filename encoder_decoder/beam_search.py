@@ -249,6 +249,8 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
                 lambda element: tf.gather(element, parent_refs), alignments)
             ranked_attns = nest_map(
                 lambda element: tf.gather(element, parent_refs), attns)
+            print(ranked_alignments)
+            print(ranked_attns)
 
         # update cell_states
         def concat_and_gather_tuple_states(pc_states, c_state):

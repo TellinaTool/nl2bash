@@ -132,7 +132,7 @@ class CopyCellWrapper(tf.nn.rnn_cell.RNNCell):
         read_copy_source = tf.cast(
             tf.reduce_max(gen_logit, [1], keep_dims=True) < \
             tf.reduce_max(copy_logit, [1], keep_dims=True), tf.float32)
-
+        
         return mix_prob, state, alignments, attns, read_copy_source
 
 
@@ -267,4 +267,5 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
             output = rnn.linear([cell_output, attns[0]], self.dim, True)
 
         self.attention_cell_vars = True
+        print(alignments)
         return output, state, alignments, attns
