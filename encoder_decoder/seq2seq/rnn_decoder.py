@@ -227,6 +227,7 @@ class RNNDecoder(decoder.Decoder):
                 else:
                     output, state = decoder_cell(input_embedding, state)
                 if bs_decoding and not self.forward_only:
+                    scope.reuse_variables()
                     if self.copynet:
                         beam_output, beam_state, beam_alignments, beam_attns, \
                             beam_read_copy_source = beam_decoder_cell(
