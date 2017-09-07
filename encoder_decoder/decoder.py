@@ -51,13 +51,14 @@ class Decoder(graph_utils.NNModel):
         self.embedding_vars = False
         self.output_project_vars = False
 
+        beam_size = 10 if self.forward_only else self.beam_size
         self.beam_decoder = beam_search.BeamDecoder(
             self.vocab_size,
             self.num_layers,
             data_utils.ROOT_ID,
             data_utils.EOS_ID,
             self.batch_size,
-            self.beam_size,
+            beam_size,
             self.use_attention,
             self.use_copy,
             self.copy_fun,

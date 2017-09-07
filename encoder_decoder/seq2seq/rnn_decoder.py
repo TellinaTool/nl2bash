@@ -60,6 +60,7 @@ class RNNDecoder(decoder.Decoder):
             pointers = []
             past_output_symbols = []
             past_output_logits = []
+            ground_truth_logprobs = tf.zeros_like(decoder_inputs[0], dtype=tf.float32)
             if bs_decoding:
                 beam_decoder = self.beam_decoder
                 if self.forward_only:
@@ -67,7 +68,6 @@ class RNNDecoder(decoder.Decoder):
                 else:
                     beam_state = beam_decoder.wrap_state(encoder_state, self.output_project)
                     beam_search_losses = tf.zeros_like(decoder_inputs[0], dtype=tf.float32)
-                    ground_truth_logprobs = tf.zeros_like(beam_search_losses)
                 
             # --- Cell Wrappers: 'Attention', 'CopyNet', 'BeamSearch'
 
@@ -154,12 +154,12 @@ class RNNDecoder(decoder.Decoder):
                 output_symbol = tf.argmax(output_logits, 1)
                 past_output_symbols.append(output_symbol)
                 past_output_logits.append(output_logits)
-                if bs_decoding and not self.forward_only:
-                    ground_truth_logprobs += tf.reduce_sum(
-                        tf.multiply(
-                            output_logits,
-                            tf.one_hot(target, tf.shape(output_logits)[1])),
-                        axis=1)
+                # if bs_decoding and not self.forward_only:
+                #     ground_truth_logprobs += tf.reduce_sum(
+                #         tf.multiply(
+                #             output_logits,
+                #             tf.one_hot(target, tf.shape(output_logits)[1])),
+                #         axis=1)
                 return output_symbol, output_logits
 
             def get_normalized_beam_logprobs(beam_symbols, beam_logprobs):
@@ -198,12 +198,7 @@ class RNNDecoder(decoder.Decoder):
                             decoder_inputs[:i+2])),
                     past_beam_symbols)
                 beam_logprobs_with_restart = tf.where(restart_mask,
-                    beam_decoder.wrap_input(
-                        tf.reduce_sum(
-                            graph_utils.column_array_to_matrix(
-                                ground_truth_logprobs),
-                            axis=1)),
-                    past_beam_logprobs)
+                    ground_truth_logprobs, past_beam_logprobs)
                 first_in_beam_mask = tf.equal(
                     tf.range(self.batch_size * self.beam_size) % self.beam_size, 0)
                 beam_logprobs_with_restart = tf.where(
