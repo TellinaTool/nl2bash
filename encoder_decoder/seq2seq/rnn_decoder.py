@@ -154,21 +154,12 @@ class RNNDecoder(decoder.Decoder):
                 output_symbol = tf.argmax(output_logits, 1)
                 past_output_symbols.append(output_symbol)
                 past_output_logits.append(output_logits)
-<<<<<<< HEAD
-                # if bs_decoding and not self.forward_only:
-                #     ground_truth_logprobs += tf.reduce_sum(
-                #         tf.multiply(
-                #             output_logits,
-                #             tf.one_hot(target, tf.shape(output_logits)[1])),
-                #         axis=1)
-=======
                 if bs_decoding and not self.forward_only:
                     ground_truth_logprobs.append(
                         tf.reduce_sum(tf.multiply(
                                 output_logits,
                                 tf.one_hot(target, tf.shape(output_logits)[1])),
                             axis=1))
->>>>>>> 95ac5b16b02d5f4e66a8d2b57a8e31a651172e3a
                 return output_symbol, output_logits
 
             def get_normalized_beam_logprobs(beam_symbols, beam_logprobs):
