@@ -69,11 +69,19 @@ def gen_slot_filling_training_data(sess, FLAGS, model, dataset, output_file):
 
     X, Y = [], []
     for bucket_id in xrange(len(model.buckets)):
+<<<<<<< HEAD
         for i in xrange(len(dataset[bucket_id])):
             dp = dataset[bucket_id][i]
             if dp.mappings:
                 source_inds, target_inds = dp.mappings.nonzero()
                 mappings = zip(list(source_inds), list(target_inds))
+=======
+        for i in xrange(len(dataset.data_points[bucket_id])):
+            dp = dataset.data_points[bucket_id][i]
+            if dp.alignments is not None:
+                source_inds, target_inds = dp.alignments.nonzero()
+                mappings = list(zip(list(source_inds), list(target_inds)))
+>>>>>>> master
                 encoder_channel_inputs = [[dp.sc_ids]]
                 decoder_channel_inputs = [[dp.tg_ids]]
                 if FLAGS.use_copy:

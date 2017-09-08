@@ -194,7 +194,8 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
     tg_file = open(tg_path)
     sc_token_file = open(sc_token_path)
     tg_token_file = open(tg_token_path)
-    with open(os.path.join(data_dir, '{}.{}.align'.format(split, FLAGS.channel))) as f:
+    with open(os.path.join(data_dir, '{}.{}.align'.format(split, FLAGS.channel)),
+              'rb') as f:
         alignments = pickle.load(f)
     for i, sc_txt in enumerate(sc_file.readlines()):
         data_point = DataPoint()
