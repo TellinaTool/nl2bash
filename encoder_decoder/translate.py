@@ -182,11 +182,11 @@ def gen_slot_filling_training_data(FLAGS, datasets):
         train_set, dev_set, test_set = datasets
         model = define_model(sess, forward_only=True)
         # Save slot filling embeddings.
-        slot_filling.gen_slot_filling_training_data(sess, model, train_set,
+        slot_filling.gen_slot_filling_training_data(sess, FLAGS, model, train_set,
             os.path.join(FLAGS.model_dir, 'train.mappings.X.Y.npz'))
-        slot_filling.gen_slot_filling_training_data(sess, model, dev_set,
+        slot_filling.gen_slot_filling_training_data(sess, FLAGS, model, dev_set,
             os.path.join(FLAGS.model_dir, 'dev.mappings.X.Y.npz'))
-        slot_filling.gen_slot_filling_training_data(sess, model, test_set,
+        slot_filling.gen_slot_filling_training_data(sess, FLAGS, model, test_set,
             os.path.join(FLAGS.model_dir, 'test.mappings.X.Y.npz'))
 
     # Restore hyperparameters
