@@ -189,44 +189,58 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
     num_data = 0
     max_sc_length = 0
     max_tg_length = 0
-    with open(sc_path) as sc_file:
-        with open(tg_path) as tg_file:
-            with open(sc_token_path) as sc_token_file:
-                with open(tg_token_path) as tg_token_file:
-                    for sc_txt in sc_file.readlines():
-                        data_point = DataPoint()
-                        data_point.sc_txt = sc_txt
-                        data_point.tg_txt = tg_file.readline().strip()
-                        data_point.sc_ids = \
-                            get_source_ids(sc_token_file.readline().strip())
-                        if len(data_point.sc_ids) > max_sc_length:
-                            max_sc_length = len(data_point.sc_ids)
-                        data_point.tg_ids = \
-                            get_target_ids(tg_token_file.readline().strip())
-                        if len(data_point.tg_ids) > max_tg_length:
-                            max_tg_length = len(data_point.tg_ids)
-                        dataset.append(data_point)
-                        num_data += 1
+    sc_file = open(sc_path)
+    tg_file = open(tg_path)
+    sc_token_file = open(sc_token_path)
+    tg_token_file = open(tg_token_path)
+    with open(os.path.join(data_dir, '{}.{}.align'.format(split, FLAGS.channel))) as f:
+        alignments = pickle.load(f)
+    for i, sc_txt in enumerate(sc_file.readlines()):
+        data_point = DataPoint()
+        data_point.sc_txt = sc_txt.strip()
+        data_point.tg_txt = tg_file.readline().strip()
+        data_point.sc_ids = \
+            get_source_ids(sc_token_file.readline().strip())
+        if len(data_point.sc_ids) > max_sc_length:
+            max_sc_length = len(data_point.sc_ids)
+        data_point.tg_ids = \
+            get_target_ids(tg_token_file.readline().strip())
+        data_point.alignments = alignments[i]
+        if len(data_point.tg_ids) > max_tg_length:
+            max_tg_length = len(data_point.tg_ids)
+        dataset.append(data_point)
+        num_data += 1
+    sc_file.close()
+    tg_file.close()
+    sc_token_file.close()
+    tg_token_file.close()
+
     print('{} data points read.'.format(num_data))
     print('max_source_length = {}'.format(max_sc_length))
     print('max_target_length = {}'.format(max_tg_length))
 
     if FLAGS.use_copy and FLAGS.copy_fun == 'copynet':
         copy_token_ext = 'copy.{}'.format(token_ext)
-        sc_copy_token_path = get_data_file_path(data_dir, split, source, copy_token_ext)
-        tg_copy_token_path = get_data_file_path(data_dir, split, target, copy_token_ext)
-        with open(sc_token_path) as sc_token_file:
-            with open(tg_token_path) as tg_token_file:
-                with open(sc_copy_token_path) as sc_copy_token_file:
-                    with open(tg_copy_token_path) as tg_copy_token_file:
-                        for i, data_point in enumerate(dataset):
-                            sc_tokens = sc_token_file.readline().strip().split(TOKEN_SEPARATOR)
-                            tg_tokens = tg_token_file.readline().strip().split(TOKEN_SEPARATOR)
-                            sc_copy_tokens = sc_copy_token_file.readline().strip().split(TOKEN_SEPARATOR)
-                            tg_copy_tokens = tg_copy_token_file.readline().strip().split(TOKEN_SEPARATOR)
-                            data_point.csc_ids, data_point.ctg_ids = \
-                                compute_copy_indices(sc_tokens, tg_tokens,
-                                    sc_copy_tokens, tg_copy_tokens, vocab.tg_vocab, token_ext)
+        sc_copy_token_path = get_data_file_path(data_dir, split, source,
+                                                copy_token_ext)
+        tg_copy_token_path = get_data_file_path(data_dir, split, target,
+                                                copy_token_ext)
+        sc_token_file = open(sc_token_path)
+        tg_token_file = open(tg_token_path)
+        sc_copy_token_file = open(sc_copy_token_path)
+        tg_copy_token_file = open(tg_copy_token_path)
+        for i, data_point in enumerate(dataset):
+            sc_tokens = sc_token_file.readline().strip().split(TOKEN_SEPARATOR)
+            tg_tokens = tg_token_file.readline().strip().split(TOKEN_SEPARATOR)
+            sc_copy_tokens = sc_copy_token_file.readline().strip().split(TOKEN_SEPARATOR)
+            tg_copy_tokens = tg_copy_token_file.readline().strip().split(TOKEN_SEPARATOR)
+            data_point.csc_ids, data_point.ctg_ids = \
+                compute_copy_indices(sc_tokens, tg_tokens,
+                    sc_copy_tokens, tg_copy_tokens, vocab.tg_vocab, token_ext)
+        sc_token_file.close()
+        tg_token_file.close()
+        sc_copy_token_file.close()
+        tg_copy_token_file.close()
     
     data_size = len(dataset)
 
