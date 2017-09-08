@@ -6,18 +6,20 @@ Functions for matching entity mentions in the natural language with the
 corresponding program slots.
 """
 
-import sys
+import os, sys
 if sys.version_info > (3, 0):
     from six.moves import xrange
 
-import collections, copy, re
+import collections, copy
 import numpy as np
 from numpy.linalg import norm
 
-from nlp_tools import constants, format_args, tokenizer
 from bashlint import data_tools
+from encoder_decoder import graph_utils
+from nlp_tools import constants, format_args, tokenizer
 
-# --- Local slot filling classifiers --- #
+
+# --- Classifiers for estimating likelihood of local matches --- #
 
 class KNearestNeighborModel():
     def __init__(self, k, train_X, train_Y):
@@ -61,6 +63,80 @@ class KNearestNeighborModel():
             num_total += 1
         print("Accuracy: ", num_correct / num_total)
 
+def gen_slot_filling_training_data(sess, FLAGS, train_set, dev_set, test_set):
+    # Set hyperparameters
+    token_decoding_algorithm = FLAGS.token_decoding_algorithm
+    FLAGS.token_decoding_algorithm = 'greedy'
+    FLAGS.force_reading_input = True
+
+    # Create model and load parameters.
+    model = graph_utils.create_model(sess, forward_only=True)
+    # Save slot filling embeddings.
+    gen_slot_filling_training_data_fun(sess, model, train_set,
+        os.path.join(FLAGS.model_dir, 'train.mappings.X.Y.npz'))
+    gen_slot_filling_training_data_fun(sess, model, dev_set,
+        os.path.join(FLAGS.model_dir, 'dev.mappings.X.Y.npz'))
+    gen_slot_filling_training_data_fun(sess, model, test_set,
+        os.path.join(FLAGS.model_dir, 'test.mappings.X.Y.npz'))
+
+    # Restore hyperparameters
+    FLAGS.token_decoding_algorithm = token_decoding_algorithm
+    FLAGS.force_reading_input = False
+
+def gen_slot_filling_training_data_fun(sess, FLAGS, model, dataset, output_file):
+    print("saving slot filling mappings to {}".format(output_file))
+
+    X, Y = [], []
+    for bucket_id in xrange(len(model.buckets)):
+        for i in xrange(len(dataset[bucket_id])):
+            dp = dataset[bucket_id][i]
+            if dp.mappings:
+                mappings = [tuple(m) for m in dp.mappings]
+                encoder_channel_inputs = [[dp.sc_ids]]
+                decoder_channel_inputs = [[dp.tg_ids]]
+                if FLAGS.use_copy:
+                    encoder_channel_inputs.append([dp.csc_ids])
+                    decoder_channel_inputs.append([dp.ctg_ids])
+                formatted_example = model.format_batch(
+                    encoder_channel_inputs, decoder_channel_inputs,
+                    bucket_id=bucket_id)
+                model_outputs = model.step(
+                    sess, formatted_example, bucket_id, forward_only=True)
+                encoder_outputs = model_outputs.encoder_hidden_states
+                decoder_outputs = model_outputs.decoder_hidden_states
+                # add positive examples
+                for f, s in mappings:
+                    # use reversed index for the encoder embedding matrix
+                    ff = model.buckets[bucket_id][0] - f - 1
+                    assert(f <= encoder_outputs.shape[1])
+                    assert(s <= decoder_outputs.shape[1])
+                    X.append(np.concatenate([encoder_outputs[:, ff, :],
+                                             decoder_outputs[:, s, :]], axis=1))
+                    Y.append(np.array([[1, 0]]))
+                    # add negative examples
+                    # sample unmatched filler-slot pairs as negative examples
+                    if len(mappings) > 1:
+                        for n_s in [ss for _, ss in mappings if ss != s]:
+                            X.append(np.concatenate(
+                                [encoder_outputs[:, ff, :],
+                                 decoder_outputs[:, n_s, :]], axis=1))
+                            Y.append(np.array([[0, 1]]))
+                    # Debugging
+                    # if i == 0:
+                    #     print(ff)
+                    #     print(encoder_outputs[0])
+                    #     print(decoder_outputs[0])
+
+            if len(X) > 0 and len(X) % 1000 == 0:
+                print('{} examples gathered for generating slot filling '
+                      'features...'.format(len(X)))
+
+    assert(len(X) == len(Y))
+    X = np.concatenate(X, axis=0)
+    X = X / np.linalg.norm(X, axis=1)[:, None]
+    Y = np.concatenate(Y, axis=0)
+
+    np.savez(output_file, X, Y)
 
 # --- Global slot filling functions --- #
 
@@ -268,7 +344,7 @@ def stable_marriage_alignment(M):
     return [(y, x) for (x, (y, score)) in sorted(matched_cols.items(),
             key=lambda x:x[1][1], reverse=True)], remained_rows
 
-# --- Slot-filling alignment induction from ground-truth translation pairs.
+# --- Slot-filling alignment induction from parallel data
 
 def slot_filler_alignment_induction(nl, cm, verbose=True):
     """Give an oracle translation pair of (nl, cm), align the slot fillers

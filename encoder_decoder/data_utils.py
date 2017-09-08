@@ -236,7 +236,9 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
     if use_buckets:
         print('Group data points into buckets...')
         if split == 'train':
-            # Compute bucket sizes, excluding outliers
+            # Determine bucket sizes on the fly
+            num_buckets = 3
+            # Excluding outliers when computing bucket sizes
             length_cutoff = 0.01 if not FLAGS.channel == 'char' else 0.1
             # A. Determine maximum source length
             sorted_dataset = sorted(dataset, key=lambda x:len(x.sc_ids), reverse=True)
@@ -246,7 +248,6 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
             max_tg_length = len(sorted_dataset[int(len(sorted_dataset) * length_cutoff)].tg_ids)
             print('max_source_length after filtering = {}'.format(max_sc_length))
             print('max_target_length after filtering = {}'.format(max_tg_length))
-            num_buckets = 3
             min_bucket_sc, min_bucket_tg = 30, 30
             sc_inc = int((max_sc_length - min_bucket_sc) / (num_buckets-1)) + 1 \
                 if max_sc_length > min_bucket_sc else 0
@@ -264,7 +265,7 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
         dataset2 = [[] for b in xrange(num_buckets)]
         for i in range(len(dataset)):
             data_point = dataset[i]
-            # compute bucket id
+            # Compute bucket id
             bucket_ids = [b for b in xrange(len(buckets))
                           if buckets[b][0] > len(data_point.sc_ids) and
                           buckets[b][1] > len(data_point.tg_ids)]

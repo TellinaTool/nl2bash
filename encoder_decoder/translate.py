@@ -277,6 +277,9 @@ def main(_):
         elif FLAGS.gen_error_analysis_sheet:
             gen_error_analysis_sheets(dataset, group_by_utility=True)
 
+        elif FLAGS.gen_slot_filling_training_data:
+            slot_filling.
+
         elif FLAGS.decode:
             model = decode(dataset, buckets=train_set.buckets)
             if not FLAGS.explain:
