@@ -348,7 +348,6 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
     # Loss functions.
     def sequence_loss(self, logits, targets, target_weights, loss_function):
-        print(len(logits), len(targets))
         assert(len(logits) == len(targets))
         with tf.variable_scope("sequence_loss"):
             log_perp_list = []
