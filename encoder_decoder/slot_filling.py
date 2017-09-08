@@ -10,7 +10,7 @@ import os, sys
 if sys.version_info > (3, 0):
     from six.moves import xrange
 
-import collections, copy
+import collections, copy, re
 import numpy as np
 from numpy.linalg import norm
 

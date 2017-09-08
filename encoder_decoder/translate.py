@@ -28,6 +28,7 @@ from encoder_decoder import decode_tools
 from encoder_decoder import graph_utils
 from encoder_decoder import meta_experiments
 from encoder_decoder import parse_args
+from encoder_decoder import slot_filling
 from .seq2seq.seq2seq_model import Seq2SeqModel
 from .seq2tree.seq2tree_model import Seq2TreeModel
 from eval import eval_tools
