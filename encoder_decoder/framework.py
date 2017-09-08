@@ -22,7 +22,6 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
     def __init__(self, hyperparams, buckets=None):
         """Create the model.
-
         Hyperparameters:
           source_vocab_size: size of the source vocabulary.
           target_vocab_size: size of the target vocabulary.
@@ -357,7 +356,6 @@ class EncoderDecoderModel(graph_utils.NNModel):
     def attention_regularization(self, attn_alignments):
         """
         Entropy regularization term.
-
         :param attn_alignments: [batch_size, decoder_size, encoder_size]
         """
         P = tf.reduce_sum(attn_alignments, 1)
@@ -395,7 +393,6 @@ class EncoderDecoderModel(graph_utils.NNModel):
         """
         Convert the feature vectors into the dimensions required by the neural
         network.
-
         :param encoder_input_channels:
             channel 0 - seq2seq encoder inputs
             channel 1 - copynet encoder copy inputs
