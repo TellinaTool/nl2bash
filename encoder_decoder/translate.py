@@ -152,7 +152,7 @@ def train(train_set, test_set):
 
 def decode(data_set, buckets=None, verbose=True):
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
-        log_device_placement=FLAGS.log_device_placement)) as sess:
+            log_device_placement=FLAGS.log_device_placement)) as sess:
         # Initialize model parameters.
         model = define_model(sess, forward_only=True, buckets=buckets)
         decode_tools.decode_set(sess, model, data_set, 3, FLAGS, verbose)
@@ -169,10 +169,10 @@ def eval(data_set, model_dir=None, decode_sig=None, verbose=True):
         verbose=verbose)
 
 
-def manual_eval(dataset, num_eval):
-    _, decode_sig = graph_utils.get_decode_signature(FLAGS)
-    eval_tools.manual_eval(
-        decode_sig, dataset, FLAGS, FLAGS.model_root_dir, num_eval)
+def gen_slot_filling_training_data(FLAGS, datasets):
+    with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
+            log_device_placement=FLAGS.log_device_placement)) as sess:
+        slot_filling.gen_slot_filling_training_data(sess, FLAGS, datasets)
 
 
 def gen_error_analysis_sheets(dataset, model_dir=None, decode_sig=None,
@@ -273,13 +273,11 @@ def main(_):
         dataset = test_set if FLAGS.test else dev_set
         if FLAGS.eval:
             eval(dataset, verbose=True)
-        elif FLAGS.manual_eval:
-            manual_eval(dataset, 100)
         elif FLAGS.gen_error_analysis_sheet:
             gen_error_analysis_sheets(dataset, group_by_utility=True)
 
         elif FLAGS.gen_slot_filling_training_data:
-            slot_filling.
+            gen_slot_filling_training_data(FLAGS, [train_set, dev_set, test_set])
 
         elif FLAGS.decode:
             model = decode(dataset, buckets=train_set.buckets)
