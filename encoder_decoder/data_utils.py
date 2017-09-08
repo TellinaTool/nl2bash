@@ -13,6 +13,7 @@ import pickle
 import sys
 
 import numpy as np
+import scipy.sparse as ssp
 import tensorflow as tf
 
 if sys.version_info > (3, 0):
@@ -760,7 +761,7 @@ def compute_pair_alignment(nl_tokens, cm_tokens, out_file):
                 out_file.write('{}-{} '.format(i, j))
     out_file.write('\n')
 
-    return A
+    return ssp.lil_matrix(A)
 
 
 def create_vocabulary(vocab_path, dataset, min_word_frequency=1,

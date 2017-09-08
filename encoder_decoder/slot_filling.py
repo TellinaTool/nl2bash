@@ -72,7 +72,8 @@ def gen_slot_filling_training_data(sess, FLAGS, model, dataset, output_file):
         for i in xrange(len(dataset[bucket_id])):
             dp = dataset[bucket_id][i]
             if dp.mappings:
-                mappings = [tuple(m) for m in dp.mappings]
+                source_inds, target_inds = dp.mappings.nonzero()
+                mappings = zip(list(source_inds), list(target_inds))
                 encoder_channel_inputs = [[dp.sc_ids]]
                 decoder_channel_inputs = [[dp.tg_ids]]
                 if FLAGS.use_copy:
