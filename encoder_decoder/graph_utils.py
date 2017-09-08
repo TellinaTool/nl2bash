@@ -12,7 +12,6 @@ from tensorflow.python.util import nest
 
 
 def define_model(FLAGS, session, model_constructor, buckets, forward_only):
-    source, target = ('nl', 'cm') if not FLAGS.explain else ('cm', 'nl')
     params = collections.defaultdict()
 
     params["source_vocab_size"] = FLAGS.sc_vocab_size
