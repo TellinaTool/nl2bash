@@ -159,7 +159,11 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         self.locally_normalized = locally_normalized
 
         self.full_size = self.batch_size * self.beam_size
-        self.seq_len = tf.constant(1e-12, shape=[self.full_size], dtype=tf.float32)
+        self.seq_len = tf.constant(1e-12, shape=[self.full_size],
+                                   dtype=tf.float32)
+        if self.use_attention:
+            self.alignments = None
+            self.attns = None
 
     def __call__(self, cell_inputs, state, scope=None):
         (
@@ -233,8 +237,10 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         # For continuing to the next symbols
         parent_refs_offsets = \
                 (tf.range(self.full_size) // self.beam_size) * self.beam_size
-        top_k_symbols = indices % self.num_classes                  # [batch_size, self.beam_size]
-        parent_refs = tf.reshape(indices // self.num_classes, [-1]) # [batch_size*self.beam_size]
+        # [batch_size, self.beam_size]
+        top_k_symbols = indices % self.num_classes
+        # [batch_size*self.beam_size]
+        parent_refs = tf.reshape(indices // self.num_classes, [-1])
         parent_refs = parent_refs + parent_refs_offsets
 
         beam_symbols = tf.concat(axis=1, values=[tf.gather(past_beam_symbols, parent_refs),
@@ -249,8 +255,21 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
                 lambda element: tf.gather(element, parent_refs), alignments)
             ranked_attns = nest_map(
                 lambda element: tf.gather(element, parent_refs), attns)
-            print(ranked_alignments)
-            print(ranked_attns)
+            if self.alignments is None:
+                self.alignments = ranked_alignments
+            else:
+                self.alignments = nest_map(
+                    lambda x, y: tf.concat([tf.gather(x, parent_refs), y], axis=1),
+                    zip(self.alignments, alignments)
+                )
+                self.attns = nest_map(
+                    lambda x, y: tf.concat([tf.gather(x, parent_refs), y], axis=1),
+                    zip(self.attns, attns)
+                )
+            if self.attns is None:
+                self.attns = ranked_attns
+            else:
+
 
         # update cell_states
         def concat_and_gather_tuple_states(pc_states, c_state):
@@ -273,7 +292,8 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
                     past_cell_states, cell_state)
         else:
             ranked_cell_states = tf.gather(
-                tf.concat(axis=1, values=[past_cell_states, tf.expand_dims(cell_state, 1)]),
+                tf.concat(axis=1, values=[past_cell_states,
+                                          tf.expand_dims(cell_state, 1)]),
                 parent_refs)
         compound_cell_state = (
             beam_symbols,
@@ -322,8 +342,8 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         beam_logprobs = tf.where(
             first_in_beam_mask,
             tf.fill([full_size], 0.0),
-            tf.fill([full_size], -1e18)  # top_k does not play well with -inf
-                                            # TODO: dtype-dependent value here
+            tf.fill([full_size], -1e18) # top_k does not play well with -inf
+                                        # TODO: dtype-dependent value here
         )
 
         return (

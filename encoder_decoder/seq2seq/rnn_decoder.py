@@ -56,10 +56,10 @@ class RNNDecoder(decoder.Decoder):
             # Initializations
             state = encoder_state
             states = []
-            alignments_sequence = []
-            pointers = []
             past_output_symbols = []
             past_output_logits = []
+            alignments_sequence = []        # visualization purpose
+            pointers = []                   # visualization purpose
             if bs_decoding:
                 beam_decoder = self.beam_decoder
                 if self.forward_only:
@@ -246,11 +246,9 @@ class RNNDecoder(decoder.Decoder):
                 if self.copynet:
                     output, state, alignments, attns, read_copy_source = \
                         decoder_cell(input_embedding, state)
-                    alignments_sequence.append(alignments)
                 elif self.use_attention:
                     output, state, alignments, attns = \
                         decoder_cell(input_embedding, state)
-                    alignments_sequence.append(alignments)
                 else:
                     output, state = decoder_cell(input_embedding, state)
                 if bs_decoding and not self.forward_only:
@@ -379,10 +377,10 @@ class RNNDecoder(decoder.Decoder):
                     attn_alignments = tf.concat(axis=1, values=[tf.expand_dims(x[0], 1)
                         for x in alignments_sequence])
                     if bs_decoding:
-                        beam_attn_alignments = beam_alignments[0]
+                        beam_attn_alignments = beam_decoder_cell.alignments[0]
                 else:
                     if self.forward_only:
-                        attn_alignments = alignments[0]
+                        attn_alignments = decoder_cell.alignments[0]
                 if bs_decoding:
                     if self.forward_only:
                         print(attn_alignments.get_shape())
@@ -399,10 +397,10 @@ class RNNDecoder(decoder.Decoder):
                     pointers = tf.concat(axis=1, values=[tf.expand_dims(x[1], 1)
                         for x in alignments_sequence])
                     if bs_decoding:
-                        beam_pointers = beam_alignments[1]
+                        beam_pointers = beam_decoder_cell.alignments[1]
                 else:
                     if self.forward_only:
-                        pointers = alignments[1]
+                        pointers = decoder_cell.alignments[1]
                 if bs_decoding:
                     if self.forward_only:
                         pointers = tf.reshape(pointers,
