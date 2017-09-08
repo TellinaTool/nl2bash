@@ -63,28 +63,8 @@ class KNearestNeighborModel():
             num_total += 1
         print("Accuracy: ", num_correct / num_total)
 
-def gen_slot_filling_training_data(sess, FLAGS, datasets):
-    # Set hyperparameters
-    token_decoding_algorithm = FLAGS.token_decoding_algorithm
-    FLAGS.token_decoding_algorithm = 'greedy'
-    FLAGS.force_reading_input = True
 
-    # Create model and load parameters.
-    train_set, dev_set, test_set = datasets
-    model = graph_utils.define_model(sess, forward_only=True)
-    # Save slot filling embeddings.
-    gen_slot_filling_training_data_fun(sess, model, train_set,
-        os.path.join(FLAGS.model_dir, 'train.mappings.X.Y.npz'))
-    gen_slot_filling_training_data_fun(sess, model, dev_set,
-        os.path.join(FLAGS.model_dir, 'dev.mappings.X.Y.npz'))
-    gen_slot_filling_training_data_fun(sess, model, test_set,
-        os.path.join(FLAGS.model_dir, 'test.mappings.X.Y.npz'))
-
-    # Restore hyperparameters
-    FLAGS.token_decoding_algorithm = token_decoding_algorithm
-    FLAGS.force_reading_input = False
-
-def gen_slot_filling_training_data_fun(sess, FLAGS, model, dataset, output_file):
+def gen_slot_filling_training_data(sess, FLAGS, model, dataset, output_file):
     print("saving slot filling mappings to {}".format(output_file))
 
     X, Y = [], []
