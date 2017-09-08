@@ -12,6 +12,7 @@ from __future__ import print_function
 
 import os
 import sys
+
 if sys.version_info > (3, 0):
     from six.moves import xrange
     
@@ -30,8 +31,6 @@ from encoder_decoder import parse_args
 from .seq2seq.seq2seq_model import Seq2SeqModel
 from .seq2tree.seq2tree_model import Seq2TreeModel
 from eval import eval_tools
-from nlp_tools import tokenizer, slot_filling, constants
-
 
 FLAGS = tf.app.flags.FLAGS
 parse_args.define_input_flags()
@@ -49,14 +48,14 @@ def define_model(session, forward_only, buckets=None):
         return graph_utils.define_model(
             FLAGS, session, Seq2SeqModel, buckets, forward_only)
     else:
-        raise ValueError("Unrecognized decoder topology: {}."
-                         .format(FLAGS.decoder_topology))
+        raise ValueError("Unrecognized decoder topology: {}.".format(
+            FLAGS.decoder_topology))
 
 # --- Run/train encoder-decoder models --- #
 
 def train(train_set, test_set):
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
-        log_device_placement=FLAGS.log_device_placement)) as sess:
+            log_device_placement=FLAGS.log_device_placement)) as sess:
         # Initialize model parameters
         model = define_model(sess, forward_only=False, buckets=train_set.buckets)
 

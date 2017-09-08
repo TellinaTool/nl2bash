@@ -2,23 +2,26 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import os, sys
+import os
+import sys
+
 if sys.version_info > (3, 0):
     from six.moves import xrange
-import re
 
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
-import datetime, time
 import numpy as np
+
+import datetime, time
+import re
 import shutil
 
 from bashlint import data_tools
-from encoder_decoder import data_utils
+from encoder_decoder import data_utils, slot_filling
 from eval import tree_dist
-from nlp_tools import constants, slot_filling, tokenizer
+from nlp_tools import constants, tokenizer
 
 APOLOGY_MSG = "Sorry, I don't know how to translate this command."
 
@@ -406,8 +409,9 @@ def get_slot_filling_classifer(FLAGS):
         # create slot filling classifier
         mapping_param_dir = os.path.join(
             FLAGS.model_dir, 'train.mappings.X.Y.npz')
-        train_X, train_Y = \
-            data_utils.load_slot_filling_data(mapping_param_dir)
+        npz = np.load(mapping_param_dir)
+        train_X = npz['arr_0']
+        train_Y = npz['arr_1']
         slot_filling_classifier = slot_filling.KNearestNeighborModel(
             FLAGS.num_nn_slot_filling, train_X, train_Y)
         print('Slot filling classifier parameters loaded.')

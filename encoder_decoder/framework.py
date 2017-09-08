@@ -561,7 +561,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
         
         # Since our targets are decoder inputs shifted by one, we need one more.
         last_target = self.decoder_inputs[decoder_size].name
-        input_feed[last_target] = np.zeros(E.decoder_inputs[0].shape, dtype=np.int32)
+        input_feed[last_target] = np.zeros(
+            E.decoder_inputs[0].shape, dtype=np.int32)
 
         return input_feed
 

@@ -320,8 +320,8 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         beam_logprobs = tf.where(
             first_in_beam_mask,
             tf.fill([full_size], 0.0),
-            tf.fill([full_size], -1e18)  # top_k does not play well with -inf
-                                            # TODO: dtype-dependent value here
+            tf.fill([full_size], -1e18) # top_k does not play well with -inf
+                                        # TODO: dtype-dependent value here
         )
 
         return (

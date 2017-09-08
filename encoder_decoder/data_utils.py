@@ -6,21 +6,20 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import tensorflow as tf
-
 import collections
 import functools
-import numpy as np
+import os
 import pickle
-import random
-import re
-import os, sys
+import sys
+
+import numpy as np
+import tensorflow as tf
 
 if sys.version_info > (3, 0):
     from six.moves import xrange
 
 from bashlint import bash, nast, data_tools
-from nlp_tools import constants, ops, slot_filling, tokenizer
+from nlp_tools import constants, tokenizer
 
 # Special token symbols
 _PAD = "__SP__PAD"
