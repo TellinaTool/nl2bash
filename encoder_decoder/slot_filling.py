@@ -71,7 +71,7 @@ def gen_slot_filling_training_data(sess, FLAGS, datasets):
 
     # Create model and load parameters.
     train_set, dev_set, test_set = datasets
-    model = graph_utils.create_model(sess, forward_only=True)
+    model = graph_utils.define_model(sess, forward_only=True)
     # Save slot filling embeddings.
     gen_slot_filling_training_data_fun(sess, model, train_set,
         os.path.join(FLAGS.model_dir, 'train.mappings.X.Y.npz'))
