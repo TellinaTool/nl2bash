@@ -262,14 +262,13 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
                     lambda x, y: tf.concat([tf.gather(x, parent_refs), y], axis=1),
                     zip(self.alignments, alignments)
                 )
+            if self.attns is None:
+                self.attns = ranked_attns
+            else:
                 self.attns = nest_map(
                     lambda x, y: tf.concat([tf.gather(x, parent_refs), y], axis=1),
                     zip(self.attns, attns)
                 )
-            if self.attns is None:
-                self.attns = ranked_attns
-            else:
-
 
         # update cell_states
         def concat_and_gather_tuple_states(pc_states, c_state):
