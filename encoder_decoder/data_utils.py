@@ -6,21 +6,20 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import tensorflow as tf
-
 import collections
 import functools
-import numpy as np
+import os
 import pickle
-import random
-import re
-import os, sys
+import sys
+
+import numpy as np
+import tensorflow as tf
 
 if sys.version_info > (3, 0):
     from six.moves import xrange
 
 from bashlint import bash, nast, data_tools
-from nlp_tools import constants, ops, tokenizer
+from nlp_tools import constants, tokenizer
 
 # Special token symbols
 _PAD = "__SP__PAD"
@@ -190,44 +189,59 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
     num_data = 0
     max_sc_length = 0
     max_tg_length = 0
-    with open(sc_path) as sc_file:
-        with open(tg_path) as tg_file:
-            with open(sc_token_path) as sc_token_file:
-                with open(tg_token_path) as tg_token_file:
-                    for sc_txt in sc_file.readlines():
-                        data_point = DataPoint()
-                        data_point.sc_txt = sc_txt
-                        data_point.tg_txt = tg_file.readline().strip()
-                        data_point.sc_ids = \
-                            get_source_ids(sc_token_file.readline().strip())
-                        if len(data_point.sc_ids) > max_sc_length:
-                            max_sc_length = len(data_point.sc_ids)
-                        data_point.tg_ids = \
-                            get_target_ids(tg_token_file.readline().strip())
-                        if len(data_point.tg_ids) > max_tg_length:
-                            max_tg_length = len(data_point.tg_ids)
-                        dataset.append(data_point)
-                        num_data += 1
+    sc_file = open(sc_path)
+    tg_file = open(tg_path)
+    sc_token_file = open(sc_token_path)
+    tg_token_file = open(tg_token_path)
+    with open(os.path.join(data_dir, '{}.{}.align'.format(split, FLAGS.channel)), 
+              'rb') as f:
+        alignments = pickle.load(f)
+    for i, sc_txt in enumerate(sc_file.readlines()):
+        data_point = DataPoint()
+        data_point.sc_txt = sc_txt.strip()
+        data_point.tg_txt = tg_file.readline().strip()
+        data_point.sc_ids = \
+            get_source_ids(sc_token_file.readline().strip())
+        if len(data_point.sc_ids) > max_sc_length:
+            max_sc_length = len(data_point.sc_ids)
+        data_point.tg_ids = \
+            get_target_ids(tg_token_file.readline().strip())
+        data_point.alignments = alignments[i]
+        if len(data_point.tg_ids) > max_tg_length:
+            max_tg_length = len(data_point.tg_ids)
+        dataset.append(data_point)
+        num_data += 1
+    sc_file.close()
+    tg_file.close()
+    sc_token_file.close()
+    tg_token_file.close()
+
     print('{} data points read.'.format(num_data))
     print('max_source_length = {}'.format(max_sc_length))
     print('max_target_length = {}'.format(max_tg_length))
 
     if FLAGS.use_copy and FLAGS.copy_fun == 'copynet':
         copy_token_ext = 'copy.{}'.format(token_ext)
-        sc_copy_token_path = get_data_file_path(data_dir, split, source, copy_token_ext)
-        tg_copy_token_path = get_data_file_path(data_dir, split, target, copy_token_ext)
-        with open(sc_token_path) as sc_token_file:
-            with open(tg_token_path) as tg_token_file:
-                with open(sc_copy_token_path) as sc_copy_token_file:
-                    with open(tg_copy_token_path) as tg_copy_token_file:
-                        for i, data_point in enumerate(dataset):
-                            sc_tokens = sc_token_file.readline().strip().split(TOKEN_SEPARATOR)
-                            tg_tokens = tg_token_file.readline().strip().split(TOKEN_SEPARATOR)
-                            sc_copy_tokens = sc_copy_token_file.readline().strip().split(TOKEN_SEPARATOR)
-                            tg_copy_tokens = tg_copy_token_file.readline().strip().split(TOKEN_SEPARATOR)
-                            data_point.csc_ids, data_point.ctg_ids = \
-                                compute_copy_indices(sc_tokens, tg_tokens,
-                                    sc_copy_tokens, tg_copy_tokens, vocab.tg_vocab, token_ext)
+        sc_copy_token_path = get_data_file_path(data_dir, split, source,
+                                                copy_token_ext)
+        tg_copy_token_path = get_data_file_path(data_dir, split, target,
+                                                copy_token_ext)
+        sc_token_file = open(sc_token_path)
+        tg_token_file = open(tg_token_path)
+        sc_copy_token_file = open(sc_copy_token_path)
+        tg_copy_token_file = open(tg_copy_token_path)
+        for i, data_point in enumerate(dataset):
+            sc_tokens = sc_token_file.readline().strip().split(TOKEN_SEPARATOR)
+            tg_tokens = tg_token_file.readline().strip().split(TOKEN_SEPARATOR)
+            sc_copy_tokens = sc_copy_token_file.readline().strip().split(TOKEN_SEPARATOR)
+            tg_copy_tokens = tg_copy_token_file.readline().strip().split(TOKEN_SEPARATOR)
+            data_point.csc_ids, data_point.ctg_ids = \
+                compute_copy_indices(sc_tokens, tg_tokens,
+                    sc_copy_tokens, tg_copy_tokens, vocab.tg_vocab, token_ext)
+        sc_token_file.close()
+        tg_token_file.close()
+        sc_copy_token_file.close()
+        tg_copy_token_file.close()
     
     data_size = len(dataset)
 
@@ -237,7 +251,9 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
     if use_buckets:
         print('Group data points into buckets...')
         if split == 'train':
-            # Compute bucket sizes, excluding outliers
+            # Determine bucket sizes on the fly
+            num_buckets = 3
+            # Excluding outliers when computing bucket sizes
             length_cutoff = 0.01 if not FLAGS.channel == 'char' else 0.1
             # A. Determine maximum source length
             sorted_dataset = sorted(dataset, key=lambda x:len(x.sc_ids), reverse=True)
@@ -247,7 +263,6 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
             max_tg_length = len(sorted_dataset[int(len(sorted_dataset) * length_cutoff)].tg_ids)
             print('max_source_length after filtering = {}'.format(max_sc_length))
             print('max_target_length after filtering = {}'.format(max_tg_length))
-            num_buckets = 3
             min_bucket_sc, min_bucket_tg = 30, 30
             sc_inc = int((max_sc_length - min_bucket_sc) / (num_buckets-1)) + 1 \
                 if max_sc_length > min_bucket_sc else 0
@@ -265,7 +280,7 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
         dataset2 = [[] for b in xrange(num_buckets)]
         for i in range(len(dataset)):
             data_point = dataset[i]
-            # compute bucket id
+            # Compute bucket id
             bucket_ids = [b for b in xrange(len(buckets))
                           if buckets[b][0] > len(data_point.sc_ids) and
                           buckets[b][1] > len(data_point.tg_ids)]

@@ -69,10 +69,11 @@ def gen_slot_filling_training_data(sess, FLAGS, model, dataset, output_file):
 
     X, Y = [], []
     for bucket_id in xrange(len(model.buckets)):
-        for i in xrange(len(dataset[bucket_id])):
-            dp = dataset[bucket_id][i]
-            if dp.mappings:
-                mappings = [tuple(m) for m in dp.mappings]
+        for i in xrange(len(dataset.data_points[bucket_id])):
+            dp = dataset.data_points[bucket_id][i]
+            print(dp.alignments)
+            if dp.alignments:
+                mappings = [tuple(m) for m in dp.alignments]
                 encoder_channel_inputs = [[dp.sc_ids]]
                 decoder_channel_inputs = [[dp.tg_ids]]
                 if FLAGS.use_copy:
