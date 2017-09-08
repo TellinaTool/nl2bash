@@ -383,7 +383,6 @@ class RNNDecoder(decoder.Decoder):
                         attn_alignments = decoder_cell.alignments[0]
                 if bs_decoding:
                     if self.forward_only:
-                        print(attn_alignments.get_shape())
                         attn_alignments = tf.reshape(attn_alignments,
                             [self.batch_size, self.beam_size,
                              attn_alignments.get_shape()[1].value, -1])

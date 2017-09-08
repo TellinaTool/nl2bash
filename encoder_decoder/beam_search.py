@@ -233,7 +233,6 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         top_k_logprobs, indices = tf.nn.top_k(
             tf.reshape(logprobs_normalized, [-1, self.beam_size * self.num_classes]),
             self.beam_size)
-
         # For continuing to the next symbols
         parent_refs_offsets = \
                 (tf.range(self.full_size) // self.beam_size) * self.beam_size
@@ -256,19 +255,17 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
             ranked_attns = nest_map(
                 lambda element: tf.gather(element, parent_refs), attns)
             if self.alignments is None:
-                self.alignments = ranked_alignments
+                self.alignments = [tf.expand_dims(x, 1) for x in ranked_alignments]
             else:
-                self.alignments = nest_map(
-                    lambda x, y: tf.concat([tf.gather(x, parent_refs), y], axis=1),
-                    zip(self.alignments, alignments)
-                )
+                self.alignments = [tf.concat([tf.gather(x, parent_refs), 
+                                              tf.expand_dims(y, 1)], axis=1)
+                    for x, y in zip(self.alignments, alignments)]
             if self.attns is None:
-                self.attns = ranked_attns
+                self.attns = [tf.expand_dims(x, 1) for x in ranked_attns]
             else:
-                self.attns = nest_map(
-                    lambda x, y: tf.concat([tf.gather(x, parent_refs), y], axis=1),
-                    zip(self.attns, attns)
-                )
+                self.attns = [tf.concat([tf.gather(x, parent_refs), 
+                                         tf.expand_dims(y, 1)], axis=1)
+                    for x, y in zip(self.attns, attns)]
 
         # update cell_states
         def concat_and_gather_tuple_states(pc_states, c_state):
