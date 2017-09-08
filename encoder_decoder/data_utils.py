@@ -13,6 +13,7 @@ import pickle
 import sys
 
 import numpy as np
+import scipy.sparse as ssp
 import tensorflow as tf
 
 if sys.version_info > (3, 0):
@@ -193,7 +194,7 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
     tg_file = open(tg_path)
     sc_token_file = open(sc_token_path)
     tg_token_file = open(tg_token_path)
-    with open(os.path.join(data_dir, '{}.{}.align'.format(split, FLAGS.channel)), 
+    with open(os.path.join(data_dir, '{}.{}.align'.format(split, FLAGS.channel)),
               'rb') as f:
         alignments = pickle.load(f)
     for i, sc_txt in enumerate(sc_file.readlines()):
@@ -761,7 +762,7 @@ def compute_pair_alignment(nl_tokens, cm_tokens, out_file):
                 out_file.write('{}-{} '.format(i, j))
     out_file.write('\n')
 
-    return A
+    return ssp.lil_matrix(A)
 
 
 def create_vocabulary(vocab_path, dataset, min_word_frequency=1,
