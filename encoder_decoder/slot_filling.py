@@ -14,7 +14,7 @@ import collections, copy, re
 import numpy as np
 from numpy.linalg import norm
 
-from nlp_tools import constants, tokenizer
+from nlp_tools import constants, format_args, tokenizer
 from bashlint import data_tools
 
 # --- Local slot filling classifiers --- #
@@ -139,7 +139,8 @@ def stable_slot_filling(template_tokens, sc_fillers, tg_slots, pointer_targets,
 
     if not remained_fillers:
         for f, s in mappings:
-            template_tokens[s] = get_fill_in_value(tg_slots[s], sc_fillers[f])
+            template_tokens[s] = \
+                format_args.get_fill_in_value(tg_slots[s], sc_fillers[f])
         cmd = ' '.join(template_tokens)
         tree = data_tools.bash_parser(cmd)
         if not tree is None:
@@ -166,11 +167,10 @@ def heuristic_slot_filling(node, ner_by_category):
         return True
 
     def slot_filling_fun(node, arguments):
-
         def fill_argument(filler_type, slot_type=None):
             surface = arguments[filler_type][0][0]
-            node.value = get_fill_in_value((node.value, slot_type),
-                                           (surface, filler_type))
+            node.value = format_args.get_fill_in_value(
+                (node.value, slot_type), (surface, filler_type))
             arguments[filler_type].pop(0)
 
         if node.is_argument():
@@ -285,7 +285,7 @@ def slot_filler_alignment_induction(nl, cm, verbose=True):
     cm_slots = {}
     for i in xrange(len(cm_tokens_with_types)):
         if cm_tokens_with_types[i] in constants._ENTITIES:
-            if i > 0 and is_min_flag(cm_tokens_with_types[i-1]):
+            if i > 0 and format_args.is_min_flag(cm_tokens_with_types[i-1]):
                 cm_token_type = 'Timespan'
             else:
                 cm_token_type = cm_tokens_with_types[i]
@@ -295,10 +295,10 @@ def slot_filler_alignment_induction(nl, cm, verbose=True):
     M = collections.defaultdict(dict)               # alignment score matrix
     for i in nl_fillers:
         surface, filler_type = nl_fillers[i]
-        filler_value = extract_value(filler_type, filler_type, surface)
+        filler_value = format_args.extract_value(filler_type, filler_type, surface)
         for j in cm_slots:
             slot_value, slot_type = cm_slots[j]
-            if (filler_value and is_parameter(filler_value)) or \
+            if (filler_value and format_args.is_parameter(filler_value)) or \
                     slot_filler_type_match(slot_type, filler_type):
                 M[i][j] = slot_filler_value_match(
                     slot_value, filler_value, slot_type)
@@ -329,20 +329,20 @@ def slot_filler_value_match(slot_value, filler_value, slot_type):
        :param slot_type: category of the slot in the command
     """
     if slot_type in constants._PATTERNS or \
-            (filler_value and is_parameter(filler_value)):
+            (filler_value and format_args.is_parameter(filler_value)):
         if slot_value == filler_value:
             return 1
 
         slot_value = constants.remove_quotation(slot_value).lower()
         filler_value = constants.remove_quotation(filler_value).lower()
 
-        if filler_value and is_parameter(filler_value):
-            if strip(strip_sign(slot_value)).lower() == \
-                    strip(filler_value).lower():
+        if filler_value and format_args.is_parameter(filler_value):
+            if format_args.strip(slot_value).lower() == \
+                    format_args.strip(filler_value).lower():
                 return 1
         else:
-            sv = strip(slot_value).lower()
-            fv = strip(filler_value).lower()
+            sv = format_args.strip(slot_value).lower()
+            fv = format_args.strip(filler_value).lower()
             if sv == fv:
                 return 1
             elif fv in sv:
@@ -359,13 +359,16 @@ def slot_filler_value_match(slot_value, filler_value, slot_type):
             else:
                 return 0
         if slot_type.endswith('Number'):
-            if strip_sign(slot_value) == extract_number(filler_value):
+            if format_args.strip_sign(slot_value) == \
+                    format_args.extract_number(filler_value):
                 return 1
-        if strip_sign(slot_value) == strip_sign(filler_value):
+        if format_args.strip_sign(slot_value) == \
+                format_args.strip_sign(filler_value):
             return 1
         else:
             if slot_type.endswith('Timespan') or slot_type.endswith('Size'):
-                if extract_number(slot_value) == extract_number(filler_value):
+                if format_args.extract_number(slot_value) == \
+                        format_args.extract_number(filler_value):
                     return 1
         return 0
 
@@ -376,42 +379,37 @@ def slot_filler_type_match(slot_type, filler_type):
     from the training data.
 
     :param slot_type: slot category in the bash command
-    :param filler_type: slot filler category extracted from the natural
-        language.
+    :param filler_type: slot filler category extracted from the natural language.
     """
-    category_matches = {
-        '_NUMBER:::Number',
-        '_NUMBER:::+Number',
-        '_NUMBER:::-Number',
-        '_NUMBER:::Regex',
-        '_SIZE:::Size',
-        '_SIZE:::+Size',
-        '_SIZE:::-Size',
-        '_TIMESPAN:::Timespan',
-        '_TIMESPAN:::+Timespan',
-        '_TIMESPAN:::-Timespan',
-        # '_DATETIME:::Timespan',
-        # '_DATETIME:::+Timespan',
-        # '_DATETIME:::-Timespan',
-        '_DATETIME:::DateTime',
-        '_DATETIME:::+DateTime',
-        '_DATETIME:::-DateTime',
-        '_PERMISSION:::Permission',
-        '_PERMISSION:::+Permission',
-        '_PERMISSION:::-Permission',
-        '_PATH:::Path',
-        '_DIRECTORY:::Directory',
-        '_DIRECTORY:::Path',
-        '_FILE:::Path',
-        '_FILE:::File',
-        '_FILE:::Directory',
-        '_FILE:::Regex',
-        '_REGEX:::Username',
-        '_REGEX:::Groupname',
-        '_REGEX:::Directory',
-        '_REGEX:::File',
-        '_REGEX:::Path',
-        '_REGEX:::Regex'
+    c_matches = {
+        '_NUMBER, Number',
+        '_NUMBER, +Number',
+        '_NUMBER, -Number',
+        '_NUMBER, Regex',
+        '_SIZE, Size',
+        '_SIZE, +Size',
+        '_SIZE, -Size',
+        '_TIMESPAN, Timespan',
+        '_TIMESPAN, +Timespan',
+        '_TIMESPAN, -Timespan',
+        '_DATETIME, DateTime',
+        '_DATETIME, +DateTime',
+        '_DATETIME, -DateTime',
+        '_PERMISSION, Permission',
+        '_PERMISSION, +Permission',
+        '_PERMISSION, -Permission',
+        '_PATH, Path',
+        '_DIRECTORY, Directory',
+        '_DIRECTORY, Path',
+        '_FILE, Path',
+        '_FILE, File',
+        '_FILE, Directory',
+        '_FILE, Regex',
+        '_REGEX, Username',
+        '_REGEX, Groupname',
+        '_REGEX, Directory',
+        '_REGEX, File',
+        '_REGEX, Path',
+        '_REGEX, Regex'
     }
-
-    return '{}:::{}'.format(filler_type, slot_type) in category_matches
+    return '{}, {}'.format(filler_type, slot_type) in c_matches
