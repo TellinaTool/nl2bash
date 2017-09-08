@@ -12,6 +12,7 @@ from __future__ import print_function
 
 import os
 import sys
+
 if sys.version_info > (3, 0):
     from six.moves import xrange
     
@@ -31,9 +32,8 @@ from encoder_decoder import slot_filling
 from .seq2seq.seq2seq_model import Seq2SeqModel
 from .seq2tree.seq2tree_model import Seq2TreeModel
 from eval import eval_tools
-from nlp_tools import tokenizer, constants
 
-
+# Refer to parse_args.py for model parameter explanations
 FLAGS = tf.app.flags.FLAGS
 parse_args.define_input_flags()
 
@@ -41,7 +41,7 @@ parse_args.define_input_flags()
 
 def define_model(session, forward_only, buckets=None):
     """
-    Refer to parse_args.py for model parameter explanations.
+    Define tensor graphs.
     """
     if FLAGS.decoder_topology in ['basic_tree']:
         return graph_utils.define_model(
@@ -50,14 +50,14 @@ def define_model(session, forward_only, buckets=None):
         return graph_utils.define_model(
             FLAGS, session, Seq2SeqModel, buckets, forward_only)
     else:
-        raise ValueError("Unrecognized decoder topology: {}."
-                         .format(FLAGS.decoder_topology))
+        raise ValueError("Unrecognized decoder topology: {}.".format(
+            FLAGS.decoder_topology))
 
-# --- Run/train encoder-decoder models --- #
+# --- Run experiments --- #
 
 def train(train_set, test_set):
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
-        log_device_placement=FLAGS.log_device_placement)) as sess:
+            log_device_placement=FLAGS.log_device_placement)) as sess:
         # Initialize model parameters
         model = define_model(sess, forward_only=False, buckets=train_set.buckets)
 
@@ -153,7 +153,7 @@ def train(train_set, test_set):
 
 def decode(data_set, buckets=None, verbose=True):
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
-        log_device_placement=FLAGS.log_device_placement)) as sess:
+            log_device_placement=FLAGS.log_device_placement)) as sess:
         # Initialize model parameters.
         model = define_model(sess, forward_only=True, buckets=buckets)
         decode_tools.decode_set(sess, model, data_set, 3, FLAGS, verbose)
@@ -170,10 +170,28 @@ def eval(data_set, model_dir=None, decode_sig=None, verbose=True):
         verbose=verbose)
 
 
-def manual_eval(dataset, num_eval):
-    _, decode_sig = graph_utils.get_decode_signature(FLAGS)
-    eval_tools.manual_eval(
-        decode_sig, dataset, FLAGS, FLAGS.model_root_dir, num_eval)
+def gen_slot_filling_training_data(FLAGS, datasets):
+    # Set hyperparameters
+    token_decoding_algorithm = FLAGS.token_decoding_algorithm
+    FLAGS.token_decoding_algorithm = 'greedy'
+    FLAGS.force_reading_input = True
+
+    with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
+            log_device_placement=FLAGS.log_device_placement)) as sess:
+        # Create model and load parameters.
+        train_set, dev_set, test_set = datasets
+        model = define_model(sess, forward_only=True)
+        # Save slot filling embeddings.
+        slot_filling.gen_slot_filling_training_data(sess, model, train_set,
+            os.path.join(FLAGS.model_dir, 'train.mappings.X.Y.npz'))
+        slot_filling.gen_slot_filling_training_data(sess, model, dev_set,
+            os.path.join(FLAGS.model_dir, 'dev.mappings.X.Y.npz'))
+        slot_filling.gen_slot_filling_training_data(sess, model, test_set,
+            os.path.join(FLAGS.model_dir, 'test.mappings.X.Y.npz'))
+
+    # Restore hyperparameters
+    FLAGS.token_decoding_algorithm = token_decoding_algorithm
+    FLAGS.force_reading_input = False
 
 
 def gen_error_analysis_sheets(dataset, model_dir=None, decode_sig=None,
@@ -274,10 +292,11 @@ def main(_):
         dataset = test_set if FLAGS.test else dev_set
         if FLAGS.eval:
             eval(dataset, verbose=True)
-        elif FLAGS.manual_eval:
-            manual_eval(dataset, 100)
         elif FLAGS.gen_error_analysis_sheet:
             gen_error_analysis_sheets(dataset, group_by_utility=True)
+
+        elif FLAGS.gen_slot_filling_training_data:
+            gen_slot_filling_training_data(FLAGS, [train_set, dev_set, test_set])
 
         elif FLAGS.decode:
             model = decode(dataset, buckets=train_set.buckets)
