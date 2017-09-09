@@ -98,8 +98,8 @@ def gen_slot_filling_training_data(sess, FLAGS, model, dataset, output_file):
                 for f, s in mappings:
                     # use reversed index for the encoder embedding matrix
                     ff = model.buckets[bucket_id][0] - f - 1
-                    assert(f <= encoder_outputs.shape[1])
-                    assert(s <= decoder_outputs.shape[1])
+                    if f > encoder_outputs.shape[1] or s > decoder_outputs.shape[1]:
+                        continue
                     X.append(np.concatenate([encoder_outputs[:, ff, :],
                                              decoder_outputs[:, s, :]], axis=1))
                     Y.append(np.array([[1, 0]]))
@@ -107,6 +107,8 @@ def gen_slot_filling_training_data(sess, FLAGS, model, dataset, output_file):
                     # sample unmatched filler-slot pairs as negative examples
                     if len(mappings) > 1:
                         for n_s in [ss for _, ss in mappings if ss != s]:
+                            if n_s > decoder_outputs.shape[1]:
+                                continue
                             X.append(np.concatenate(
                                 [encoder_outputs[:, ff, :],
                                  decoder_outputs[:, n_s, :]], axis=1))
