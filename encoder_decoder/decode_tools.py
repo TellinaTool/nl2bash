@@ -2,17 +2,20 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import os, sys
+import os
+import sys
+
 if sys.version_info > (3, 0):
     from six.moves import xrange
-import re
 
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
-import datetime, time
 import numpy as np
+
+import datetime, time
+import re
 import shutil
 
 from bashlint import data_tools
@@ -27,8 +30,6 @@ def demo(sess, model, FLAGS):
     """
     Simple command line decoding interface.
     """
-    slot_filling_classifier = get_slot_filling_classifer(FLAGS)
-
     # Decode from standard input.
     sys.stdout.write('> ')
     sys.stdout.flush()
@@ -37,8 +38,13 @@ def demo(sess, model, FLAGS):
     vocabs = data_utils.load_vocabulary(FLAGS)
 
     while sentence:
-        batch_outputs, sequence_logits = translate_fun(sentence, sess, model,
-            vocabs, FLAGS, slot_filling_classifier=slot_filling_classifier)
+        if FLAGS.fill_argument_slots:
+            slot_filling_classifier = get_slot_filling_classifer(FLAGS)
+            batch_outputs, sequence_logits = translate_fun(sentence, sess, model,
+                vocabs, FLAGS, slot_filling_classifier=slot_filling_classifier)
+        else:
+            batch_outputs, sequence_logits = translate_fun(sentence, sess, model,
+                vocabs, FLAGS)
         if FLAGS.token_decoding_algorithm == 'greedy':
             tree, pred_cmd, outputs = batch_outputs[0]
             score = sequence_logits[0]
@@ -251,12 +257,7 @@ def decode(model_outputs, FLAGS, vocabs, sc_fillers=None,
                 # Step 3: match the fillers to the argument slots
                 batch_sc_fillers = sc_fillers[batch_id]
                 if len(tg_slots) >= len(batch_sc_fillers):
-                    if FLAGS.use_copy and FLAGS.copy_fun == 'supervised':
-                        target_ast, target, _ = slot_filling.stable_slot_filling(
-                            output_tokens, batch_sc_fillers, tg_slots,
-                            batch_pointers[batch_id, beam_id, :, :],
-                            None, None, None, verbose=False)
-                    elif FLAGS.fill_argument_slots:
+                    if FLAGS.fill_argument_slots:
                         target_ast, target, _ = slot_filling.stable_slot_filling(
                             output_tokens, batch_sc_fillers, tg_slots, None,
                             encoder_outputs[batch_id],
@@ -304,8 +305,6 @@ def decode_set(sess, model, dataset, top_k, FLAGS, verbose=True):
     vocabs = data_utils.load_vocabulary(FLAGS)
     rev_sc_vocab = vocabs.rev_sc_vocab
 
-    slot_filling_classifier = get_slot_filling_classifer(FLAGS)
-
     ts = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d-%H%M%S')
     pred_file_path = os.path.join(model.model_dir, 'predictions.{}.{}'.format(
         model.decode_sig, ts))
@@ -334,8 +333,13 @@ def decode_set(sess, model, dataset, top_k, FLAGS, verbose=True):
             for j in xrange(len(data_group)):
                 print('GT Target {}: {}'.format(j+1, data_group[j].tg_txt))
 
-        batch_outputs, sequence_logits = translate_fun(data_group, sess, model,
-            vocabs, FLAGS, slot_filling_classifier=slot_filling_classifier)
+        if FLAGS.fill_argument_slots:
+            slot_filling_classifier = get_slot_filling_classifer(FLAGS)
+            batch_outputs, sequence_logits = translate_fun(data_group, sess, model,
+                vocabs, FLAGS, slot_filling_classifier=slot_filling_classifier)
+        else:
+            batch_outputs, sequence_logits = translate_fun(data_group, sess, model,
+                vocabs, FLAGS)
         if FLAGS.tg_char:
             batch_outputs, batch_char_outputs = batch_outputs
 
@@ -402,18 +406,17 @@ def decode_set(sess, model, dataset, top_k, FLAGS, verbose=True):
 
 
 def get_slot_filling_classifer(FLAGS):
-    if FLAGS.fill_argument_slots:
-        # create slot filling classifier
-        mapping_param_dir = os.path.join(
-            FLAGS.model_dir, 'train.mappings.X.Y.npz')
-        train_X, train_Y = \
-            data_utils.load_slot_filling_data(mapping_param_dir)
-        slot_filling_classifier = slot_filling.KNearestNeighborModel(
-            FLAGS.num_nn_slot_filling, train_X, train_Y)
-        print('Slot filling classifier parameters loaded.')
-        return slot_filling_classifier
-    else:
-        return None
+    # create slot filling classifier
+    mapping_param_dir = os.path.join(
+        FLAGS.model_dir, 'train.mappings.X.Y.npz')
+    npz = np.load(mapping_param_dir)
+    train_X = npz['arr_0']
+    train_Y = npz['arr_1']
+    slot_filling_classifier = slot_filling.KNearestNeighborModel(
+        FLAGS.num_nn_slot_filling, train_X, train_Y)
+    print('Slot filling classifier parameters loaded.')
+    return slot_filling_classifier
+
 
 # --- Compute query features
 
@@ -451,10 +454,12 @@ def query_to_copy_tokens(sentence, FLAGS):
         tokens = data_utils.nl_to_characters(sentence)
     elif FLAGS.channel == 'partial.token':
         tokens = data_utils.nl_to_partial_tokens(
-            sentence, tokenizer.basic_tokenizer, to_lower_case=False, lemmatization=False)
+            sentence, tokenizer.basic_tokenizer, to_lower_case=False,
+            lemmatization=False)
     else:
         tokens = data_utils.nl_to_tokens(
-            sentence, tokenizer.basic_tokenizer, to_lower_case=False, lemmatization=False)
+            sentence, tokenizer.basic_tokenizer, to_lower_case=False,
+            lemmatization=False)
     return tokens
 
 # --- Visualization --- #
