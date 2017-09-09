@@ -16,9 +16,9 @@ import numpy as np
 import shutil
 
 from bashlint import data_tools
-from encoder_decoder import data_utils
+from encoder_decoder import data_utils, slot_filling
 from eval import tree_dist
-from nlp_tools import constants, slot_filling, tokenizer
+from nlp_tools import constants, tokenizer
 
 APOLOGY_MSG = "Sorry, I don't know how to translate this command."
 
