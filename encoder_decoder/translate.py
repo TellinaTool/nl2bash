@@ -294,6 +294,8 @@ def main(_):
             eval(dataset, verbose=True)
         elif FLAGS.gen_error_analysis_sheet:
             gen_error_analysis_sheets(dataset, group_by_utility=True)
+        elif FLAGS.gen_manual_evaluation_sheet:
+            eval_tools.gen_manual_evaluation_csv(dataset, FLAGS)
 
         elif FLAGS.gen_slot_filling_training_data:
             gen_slot_filling_training_data(FLAGS, [train_set, dev_set, test_set])
