@@ -377,8 +377,9 @@ class BashGrammar(object):
                     if not name in self.name2type:
                         self.name2type[name] = type
                     else:
-                        raise ValueError('Ambiguity in name type: "{}" ({} vs. {})'.format(
-                            name, self.name2type[name], type))
+                        raise ValueError(
+                            'Ambiguity in name type: "{}" ({} vs. {})'.format(
+                                name, self.name2type[name], type))
             elif reading_synopsis:
                 self.make_utility(line)
 
@@ -463,7 +464,8 @@ class BashGrammar(object):
                 if c == ']':
                     stack.pop()
                     if not stack:
-                        self.make_positional_argument(u_state, arg_synopsis.strip(), optional=True)
+                        self.make_positional_argument\
+                            (u_state, arg_synopsis.strip(), optional=True)
                         arg_synopsis = ''
                         status = 'IDLE'
                     else:
