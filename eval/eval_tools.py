@@ -18,7 +18,7 @@ if sys.version_info > (3, 0):
     from six.moves import xrange
 
 from bashlint import bash, data_tools, nast
-from encoder_decoder import data_utils
+from encoder_decoder import data_utils, graph_utils
 from eval import token_based, tree_dist, zss
 from eval.dfa_equal import regexDFAEquals
 from nlp_tools import constants, tokenizer
@@ -265,7 +265,7 @@ def gen_eval_csv(model_dir, decode_sig, dataset, FLAGS, output_path, top_k=3):
                 o_f.write(output_str + '\n')
 
 
-def gen_error_analysis_csv(grouped_dataset, prediction_list, FLAGS,
+def print_error_analysis_csv(grouped_dataset, prediction_list, FLAGS,
         cached_evaluation_results=None, group_by_utility=False,
         error_predictions_only=True):
     """
@@ -286,8 +286,6 @@ def gen_error_analysis_csv(grouped_dataset, prediction_list, FLAGS,
         else:
             error_list.append(example)
 
-    grammar_errors = collections.defaultdict(list) if group_by_utility else []
-    argument_errors = collections.defaultdict(list) if group_by_utility else []
     eval_bash = FLAGS.dataset.startswith("bash")
     cmd_parser = data_tools.bash_parser if eval_bash \
         else data_tools.paren_parser
@@ -297,6 +295,8 @@ def gen_error_analysis_csv(grouped_dataset, prediction_list, FLAGS,
             ind, utility, _, _, _ = line.split(',')
             utility_index[utility] = ind
 
+    grammar_errors = collections.defaultdict(list) if group_by_utility else []
+    argument_errors = collections.defaultdict(list) if group_by_utility else []
     example_id = 0
     for nl_temp, data_group in grouped_dataset:
         sc_txt = data_group[0].sc_txt.strip()
@@ -365,9 +365,121 @@ def gen_error_analysis_csv(grouped_dataset, prediction_list, FLAGS,
     return grammar_errors, argument_errors
 
 
+def gen_manual_evaluation_csv(dataset, FLAGS):
+    """
+    Generate manual evaluation spreadsheet on 100 FIXED dev set examples, list
+    the predictions of different models side-by-side.
+    """
+    def load_model_predictions():
+        model_subdir, decode_sig = graph_utils.get_decode_signature(FLAGS)
+        model_dir = os.path.join(FLAGS.model_root_dir, model_subdir)
+        prediction_list = load_predictions(model_dir, decode_sig, 1)
+        if len(grouped_dataset) != len(prediction_list):
+            raise ValueError("ground truth and predictions length must be equal: "
+                "{} vs. {}".format(len(grouped_dataset), len(prediction_list)))
+        return prediction_list
+
+    # Group dataset
+    tokenizer_selector = "cm" if FLAGS.explain else "nl"
+    grouped_dataset = data_utils.group_parallel_data(
+        dataset, use_bucket=True, tokenizer_selector=tokenizer_selector)
+
+    # Load model predictions
+    model_names = []
+    model_predictions = []
+
+    # Token
+    FLAGS.channel = 'token'
+    FLAGS.normalized = False
+    FLAGS.use_copy = False
+    # -- Seq2Seq
+    model_names.append('token-seq2seq')
+    model_predictions.append(load_model_predictions())
+    # -- Tellina
+    FLAGS.normalized = True
+    model_names.append('tellina')
+    model_predictions.append(load_model_predictions())
+    # -- CopyNet
+    FLAGS.normalized = False
+    FLAGS.use_copy = True
+    FLAGS.copy_fun = 'copynet'
+    model_names.append('token-copynet')
+    model_predictions.append(load_model_predictions())
+
+    # Parital token
+    FLAGS.channel = 'partial.token'
+    FLAGS.normalized = False
+    FLAGS.use_copy = False
+    # -- Seq2Seq
+    model_names.append('partial.token-seq2seq')
+    model_predictions.append(load_model_predictions())
+    # -- CopyNet
+    FLAGS.use_copy = True
+    FLAGS.copy_fun = 'copynet'
+    model_names.append('partial.token-copynet')
+    model_predictions.append(load_model_predictions())
+
+    # Get FIXED dev set samples
+    random.seed(100)
+    example_ids = list(range(len(grouped_dataset)))
+    random.shuffle(example_ids)
+    sample_ids = example_ids[:100]
+
+    # Load cached evaluation results
+    cached_evaluation_results = load_cached_evaluation_results(
+        os.path.join(FLAGS.data_dir, 'manual_judgments'))
+
+    eval_bash = FLAGS.dataset.startswith("bash")
+    cmd_parser = data_tools.bash_parser if eval_bash \
+        else data_tools.paren_parser
+
+    with open(os.path.join(FLAGS.data_dir, 'manual.evaluations.csv'), 'w') as o_f:
+        o_f.write('example_id, description, ground_truth, model, prediction, '
+                  'correct template, correct command\n')
+        for example_id in sample_ids:
+            data_group = grouped_dataset[example_ids]
+            sc_txt = data_group[0].sc_txt.strip()
+            tg_strs = [dp.tg_txt for dp in data_group]
+            gt_trees = [cmd_parser(cm_str) for cm_str in tg_strs]
+            for model_id, model_names in enumerate(model_names):
+                predictions = model_predictions[model_id][example_id]
+                for i in xrange(min(3, len(predictions))):
+                    if model_id == 0 and i == 0:
+                        output_str = '{},"{}",'.format(
+                            example_id, sc_txt.replace('"', '""'))
+                    else:
+                        output_str = ',,'
+                    pred_cmd = predictions[i]
+                    tree = cmd_parser(pred_cmd)
+                    # evaluation ignoring flag orders
+                    temp_match = tree_dist.one_match(
+                        gt_trees, tree, ignore_arg_value=True)
+                    str_match = tree_dist.one_match(
+                        gt_trees, tree, ignore_arg_value=False)
+                    if i < len(tg_strs):
+                        output_str += '"{}",'.format(
+                            tg_strs[i].strip().replace('"', '""'))
+                    else:
+                        output_str += ','
+                    output_str += '"{}",'.format(pred_cmd.replace('"', '""'))
+
+                    example_sig = '{}<NL_PREDICTION>{}'.format(sc_txt, pred_cmd)
+                    if cached_evaluation_results and \
+                            example_sig in cached_evaluation_results:
+                        output_str += cached_evaluation_results[example_sig]
+                    else:
+                        if str_match:
+                            output_str += 'y,y'
+                        elif temp_match:
+                            output_str += 'y,'
+                    o_f.write('{}\n'.format(output_str))
+
+
 def gen_error_analysis_csv(model_dir, decode_sig, dataset, FLAGS, top_k=3):
     """
     Generate error analysis evaluation spreadsheet.
+        - grammar error analysis
+        - argument error analysis
     """
     # Group dataset
     tokenizer_selector = "cm" if FLAGS.explain else "nl"
@@ -377,40 +489,41 @@ def gen_error_analysis_csv(model_dir, decode_sig, dataset, FLAGS, top_k=3):
     # Load model predictions
     prediction_list = load_predictions(model_dir, decode_sig, top_k)
     if len(grouped_dataset) != len(prediction_list):
-        raise ValueError(
-            "ground truth and predictions length must be equal: {} vs. {}"
-            .format(len(grouped_dataset), len(prediction_list)))
+        raise ValueError("ground truth and predictions length must be equal: "
+            "{} vs. {}".format(len(grouped_dataset), len(prediction_list)))
 
     # Convert the predictions to csv format
-    grammar_errors, argument_errors = gen_error_analysis_csv(
+    grammar_errors, argument_errors = print_error_analysis_csv(
         grouped_dataset, prediction_list, FLAGS)
 
     grammar_error_path = os.path.join(model_dir, 'grammar.error.analysis.csv')
-    arg_error_path = os.path.join(model_dir, 'argument.error.analysis.csv')
-    print("Saving grammar errors to {}".format(grammar_error_path))
-    print("Saving argument errors to {}".format(arg_error_path))
-    random.shuffle(argument_errors)
     random.shuffle(grammar_errors)
     with open(grammar_error_path, 'w') as grammar_error_file:
-        with open(arg_error_path, 'w') as arg_error_file:
-            # print csv file header
-            arg_error_file.write(
-                'example_id, description, ground_truth, prediction, ' +
-                'correct template, correct command\n')
-            for example in argument_errors[:100]:
-                for line in example:
-                    arg_error_file.write('{}\n'.format(line))
-            # print csv file header
-            grammar_error_file.write(
-                'example_id, description, ground_truth, prediction, ' +
-                'correct template, correct command\n')
-            for example in grammar_errors[:100]:
-                for line in example:
-                    grammar_error_file.write('{}\n'.format(line))
+        print("Saving grammar errors to {}".format(grammar_error_path))
+        # print csv file header
+        grammar_error_file.write(
+            'example_id, description, ground_truth, prediction, ' +
+            'correct template, correct command\n')
+        for example in grammar_errors[:100]:
+            for line in example:
+                grammar_error_file.write('{}\n'.format(line))
+
+    arg_error_path = os.path.join(model_dir, 'argument.error.analysis.csv')
+    random.shuffle(argument_errors)
+    with open(arg_error_path, 'w') as arg_error_file:
+        print("Saving argument errors to {}".format(arg_error_path))
+        # print csv file header
+        arg_error_file.write(
+            'example_id, description, ground_truth, prediction, ' +
+            'correct template, correct command\n')
+        for example in argument_errors[:100]:
+            for line in example:
+                arg_error_file.write('{}\n'.format(line))
+
 
 
 def gen_error_analysis_csv_by_utility(model_dir, decode_sig, dataset, FLAGS,
-                                        top_k=10):
+                                      top_k=10):
     """
     Generate error analysis evaluation sheet grouped by utility.
     """
@@ -427,11 +540,10 @@ def gen_error_analysis_csv_by_utility(model_dir, decode_sig, dataset, FLAGS,
             .format(len(grouped_dataset), len(prediction_list)))
 
     # Load cached evaluation results
-    cached_evaluation_results = \
-        load_cached_evaluation_results(model_dir, decode_sig)
+    cached_evaluation_results = load_cached_evaluation_results(model_dir)
 
     # Convert the predictions into csv format
-    grammar_errors, argument_errors = gen_error_analysis_csv(
+    grammar_errors, argument_errors = print_error_analysis_csv(
         grouped_dataset, prediction_list, FLAGS, cached_evaluation_results,
         group_by_utility=True, error_predictions_only=False)
 
