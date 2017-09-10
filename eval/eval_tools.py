@@ -382,7 +382,7 @@ def gen_manual_evaluation_csv(dataset, FLAGS):
     tokenizer_selector = "cm" if FLAGS.explain else "nl"
     grouped_dataset = data_utils.group_parallel_data(
         dataset, use_bucket=True, tokenizer_selector=tokenizer_selector)
-
+    
     # Load model predictions
     model_names = []
     model_predictions = []
@@ -432,20 +432,21 @@ def gen_manual_evaluation_csv(dataset, FLAGS):
     cmd_parser = data_tools.bash_parser if eval_bash \
         else data_tools.paren_parser
 
-    with open(os.path.join(FLAGS.data_dir, 'manual.evaluations.csv'), 'w') as o_f:
+    output_path = os.path.join(FLAGS.data_dir, 'manual.evaluations.csv')
+    with open(output_path, 'w') as o_f:
         o_f.write('example_id, description, ground_truth, model, prediction, '
                   'correct template, correct command\n')
         for example_id in sample_ids:
-            data_group = grouped_dataset[example_ids]
+            data_group = grouped_dataset[example_id][1]
             sc_txt = data_group[0].sc_txt.strip()
             tg_strs = [dp.tg_txt for dp in data_group]
             gt_trees = [cmd_parser(cm_str) for cm_str in tg_strs]
-            for model_id, model_names in enumerate(model_names):
+            for model_id, model_name in enumerate(model_names):
                 predictions = model_predictions[model_id][example_id]
                 for i in xrange(min(3, len(predictions))):
                     if model_id == 0 and i == 0:
-                        output_str = '{},"{}",'.format(
-                            example_id, sc_txt.replace('"', '""'))
+                        output_str = '{},"{}",'.format(example_id, 
+                            sc_txt.replace('"', '""'))
                     else:
                         output_str = ',,'
                     pred_cmd = predictions[i]
@@ -460,7 +461,8 @@ def gen_manual_evaluation_csv(dataset, FLAGS):
                             tg_strs[i].strip().replace('"', '""'))
                     else:
                         output_str += ','
-                    output_str += '"{}",'.format(pred_cmd.replace('"', '""'))
+                    output_str += '{},"{}",'.format(model_name, 
+                        pred_cmd.replace('"', '""'))
 
                     example_sig = '{}<NL_PREDICTION>{}'.format(sc_txt, pred_cmd)
                     if cached_evaluation_results and \
@@ -472,6 +474,8 @@ def gen_manual_evaluation_csv(dataset, FLAGS):
                         elif temp_match:
                             output_str += 'y,'
                     o_f.write('{}\n'.format(output_str))
+
+    print('Manual evaluation results saved to {}'.format(output_path))
 
 
 def gen_error_analysis_csv(model_dir, decode_sig, dataset, FLAGS, top_k=3):
