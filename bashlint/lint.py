@@ -523,7 +523,7 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
                 if child.is_argument():
                     arguments.append(child)
             if head.get_num_of_children() > 0 and len(arguments) < 1:
-                norm_node = ArgumentNode(value=".", arg_type="File")
+                norm_node = ArgumentNode(value=".", arg_type="Path")
                 make_sibling(norm_node, head.children[0])
                 norm_node.parent = head
                 head.children.insert(0, norm_node)
