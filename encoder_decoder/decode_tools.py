@@ -419,7 +419,6 @@ def get_slot_filling_classifer(FLAGS):
 
 
 # --- Compute query features
-
 def query_to_encoder_features(sentence, vocabs, FLAGS):
     """
     Convert a natural language query into feature vectors used by the encoder.
@@ -463,7 +462,6 @@ def query_to_copy_tokens(sentence, FLAGS):
     return tokens
 
 # --- Visualization --- #
-
 def visualize_attn_alignments(M, source, target, rev_sc_vocab,
                               rev_tg_vocab, output_path):
     target_length, source_length = M.shape
