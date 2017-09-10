@@ -105,8 +105,10 @@ def eval_set(model_dir, decode_sig, dataset, top_k, FLAGS, verbose=True):
             unprocessed_pred_cmd = regexDFAEquals.unprocess_regex(pred_cmd)
             # evaluation ignoring flag orders
             if eval_bash:
-                temp_match = tree_dist.one_match(template_gt_asts, tree, ignore_arg_value=True)
-                str_match = tree_dist.one_match(command_gt_asts, tree, ignore_arg_value=False)
+                temp_match = tree_dist.one_match(
+                    template_gt_asts, tree, ignore_arg_value=True)
+                str_match = tree_dist.one_match(
+                    command_gt_asts, tree, ignore_arg_value=False)
             else:
                 if eval_regex:
                     str_match = False

@@ -5,6 +5,7 @@ from __future__ import print_function
 from bashlint import data_tools, nast, rewrites
 from eval import zss
 
+
 def ignore_differences(cmd):
     cmd = cmd.replace('-ls', '')
     cmd = cmd.replace('-print', '')
@@ -112,13 +113,11 @@ def one_match(asts, ast2, rewrite=True, ignore_arg_value=False):
             ast_rewrites = get_rewrites(asts, db)
     else:
         ast_rewrites = asts
-
     cmd2 = ignore_differences(data_tools.ast2template(
         ast2, loose_constraints=True, arg_type_only=ignore_arg_value))
     for ast1 in ast_rewrites:
-        cmd1 = data_tools.ast2template(
-            ast1, loose_constraints=True, arg_type_only=ignore_arg_value)
-        cmd1 = ignore_differences(cmd1)
+        cmd1 = ignore_differences(data_tools.ast2template(
+            ast1, loose_constraints=True, arg_type_only=ignore_arg_value))
         if cmd1 == cmd2:
             return True
     return False
@@ -136,3 +135,10 @@ def string_match(ast1, ast2):
     str2 = ignore_differences(
         data_tools.ast2template(ast2, loose_constraints=True, arg_type_only=False))
     return str1 == str2
+
+
+if __name__ == '__main__':
+    asts = [data_tools.bash_parser('find . -perm -600 -print')]
+    ast = data_tools.bash_parser('find . -perm __SP__UNK -print')
+    print(one_match(asts, ast, ignore_arg_value=True))
+    print(one_match(asts, ast, ignore_arg_value=False))
