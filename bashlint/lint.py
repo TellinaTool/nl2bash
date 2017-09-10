@@ -286,7 +286,9 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
                 raise errors.LintParsingError("Warning: grammar not found - utility {}".format(token),
                     num_tokens, 0)
                 for bast_node in input[1:]:
-                    if bast_node.kind == 'word' and not bast_node.parts:
+                    if bast_node.kind == 'word' and (not bast_node.parts
+                            or (bast_node.parts[0].kind == 'parameter' and
+                                bast_node.word.startswith('-'))):
                         token = normalize_word(bast_node)
                         if token.startswith('-'):
                             child = FlagNode(token, parent=head, lsb=head.get_right_child())
@@ -309,7 +311,9 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
                 for next_state in bash_grammar.next_states:
                     if next_state.is_compound_flag():
                         # Next state is a flag
-                        if bast_node.kind != 'word' or bast_node.parts:
+                        if bast_node.kind != 'word' or (bast_node.parts and not (
+                                bast_node.word.startswith('-') and
+                                    bast_node.parts[0].kind == 'parameter')):
                             continue
                         if is_parenthesis(bast_node, current):
                             flag = FlagNode(bast_node.word, parent=current,
@@ -622,8 +626,8 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
                     attach_to_tree(norm_node, current)
                     for child in node.parts:
                         normalize(child, norm_node)
-                elif node.parts[0].kind == "parameter" or \
-                    node.parts[0].kind == "tilde":
+                elif (node.parts[0].kind == "parameter" or
+                      node.parts[0].kind == "tilde"):
                     normalize_argument(node, current, arg_type)
                 else:
                     for child in node.parts:
