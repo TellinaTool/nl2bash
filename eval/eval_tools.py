@@ -456,7 +456,7 @@ def gen_manual_evaluation_csv(dataset, FLAGS):
                         gt_trees, tree, ignore_arg_value=True)
                     str_match = tree_dist.one_match(
                         gt_trees, tree, ignore_arg_value=False)
-                    if i < len(tg_strs):
+                    if (model_id*min(3, len(predictions))+i) < len(tg_strs):
                         output_str += '"{}",'.format(
                             tg_strs[i].strip().replace('"', '""'))
                     else:
