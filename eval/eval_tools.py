@@ -57,11 +57,11 @@ def eval_set(model_dir, decode_sig, dataset, top_k, FLAGS, verbose=True):
     if len(grouped_dataset) != len(prediction_list):
         raise ValueError("ground truth and predictions length must be equal: "
             "{} vs. {}".format(len(grouped_dataset), len(prediction_list)))
-    
-    # Load manual judgements
+
+    # Load additional ground truths
     if eval_bash:
         template_translations, command_translations = \
-            load_judgments(FLAGS.data_dir)
+            load_ground_truths_from_manual_evaluation(FLAGS.data_dir)
    
     num_eval = 0
     top_k_temp_correct = np.zeros([len(grouped_dataset), top_k])
@@ -72,21 +72,19 @@ def eval_set(model_dir, decode_sig, dataset, top_k, FLAGS, verbose=True):
     for data_id in xrange(len(grouped_dataset)):
         _, data_group = grouped_dataset[data_id]
         sc_str = data_group[0].sc_txt.strip()
-        sc_temp = normalize_nl(sc_str)
+        sc_temp = normalize_nl_ground_truth(sc_str)
         sc_tokens = [rev_sc_vocab[i] for i in data_group[0].sc_ids]
         if FLAGS.channel == 'char':
             sc_features = ''.join(sc_tokens)
             sc_features = sc_features.replace(constants._SPACE, ' ')
         else:
             sc_features = ' '.join(sc_tokens)
+        command_gts = [dp.tg_txt.strip() for dp in data_group]
         if eval_bash:
-            command_gts = set([dp.tg_txt.strip() for dp in data_group] + \
-                          command_translations[sc_temp])
-            command_gt_asts = [data_tools.bash_parser(gt) for gt in command_gts]
-            template_gt_asts = [data_tools.bash_parser(gt)
-                for gt in (command_gts | set(template_translations[sc_temp]))]
-        else:
-            command_gts = [dp.tg_txt.strip() for dp in data_group]
+            command_gt_asts, template_gt_asts = extend_ground_truths(
+                sc_temp, command_gts, command_translations,
+                template_translations)
+
         num_gts = len(command_gts)
 
 
@@ -428,6 +426,10 @@ def gen_manual_evaluation_csv(dataset, FLAGS):
     random.shuffle(example_ids)
     sample_ids = example_ids[:100]
 
+    # Load additional ground truths
+    template_translations, command_translations = \
+        load_ground_truths_from_manual_evaluation(FLAGS.data_dir)
+
     # Load cached evaluation results
     cached_evaluation_results = load_cached_evaluation_results(
         os.path.join(FLAGS.data_dir, 'manual_judgments'))
@@ -443,8 +445,11 @@ def gen_manual_evaluation_csv(dataset, FLAGS):
         for example_id in sample_ids:
             data_group = grouped_dataset[example_id][1]
             sc_txt = data_group[0].sc_txt.strip()
-            tg_strs = [dp.tg_txt for dp in data_group]
-            gt_trees = [cmd_parser(cm_str) for cm_str in tg_strs]
+            sc_temp = normalize_nl_ground_truth(sc_txt)
+            command_gts = [dp.tg_txt for dp in data_group]
+            command_gt_asts, template_gt_asts = extend_ground_truths(
+                sc_temp, command_gts, command_translations,
+                template_translations)
             for model_id, model_name in enumerate(model_names):
                 predictions = model_predictions[model_id][example_id]
                 for i in xrange(min(3, len(predictions))):
@@ -457,13 +462,13 @@ def gen_manual_evaluation_csv(dataset, FLAGS):
                     tree = cmd_parser(pred_cmd)
                     # evaluation ignoring flag orders
                     temp_match = tree_dist.one_match(
-                        gt_trees, tree, ignore_arg_value=True)
+                        template_gt_asts, tree, ignore_arg_value=True)
                     str_match = tree_dist.one_match(
-                        gt_trees, tree, ignore_arg_value=False)
-                    if (model_id*min(3, len(predictions))+i) < len(tg_strs):
+                        command_gt_asts, tree, ignore_arg_value=False)
+                    if (model_id*min(3, len(predictions))+i) < len(command_gt_asts):
                         output_str += '"{}",'.format(
-                            tg_strs[model_id*min(3, len(predictions))+i].strip()
-                                .replace('"', '""'))
+                            command_gt_asts[model_id*min(
+                                3, len(predictions))+i].strip().replace('"', '""'))
                     else:
                         output_str += ','
                     output_str += '{},"{}",'.format(model_name, 
@@ -481,6 +486,16 @@ def gen_manual_evaluation_csv(dataset, FLAGS):
                     o_f.write('{}\n'.format(output_str))
 
     print('Manual evaluation results saved to {}'.format(output_path))
+
+
+def extend_ground_truths(sc_temp, tg_strs, command_translations,
+                         template_translations):
+    command_gts = set(tg_strs + \
+                  command_translations[sc_temp])
+    command_gt_asts = [data_tools.bash_parser(gt) for gt in command_gts]
+    template_gt_asts = [data_tools.bash_parser(gt)
+        for gt in (command_gts | set(template_translations[sc_temp]))]
+    return command_gt_asts, template_gt_asts
 
 
 def gen_error_analysis_csv(model_dir, decode_sig, dataset, FLAGS, top_k=3):
@@ -623,7 +638,7 @@ def load_cached_evaluation_results(model_dir):
     return evaluation_results
 
 
-def load_judgments(data_dir):
+def load_ground_truths_from_manual_evaluation(data_dir):
     """
     Load cached evaluation results from disk.
 
@@ -647,17 +662,12 @@ def load_judgments(data_dir):
                     structure_eval = row['correct template']
                     command_eval = row['correct command']
                     if structure_eval == 'y':
-                        template_translations[normalize_nl(current_nl)].append(pred_cmd)
+                        template_translations[normalize_nl_ground_truth(current_nl)].append(pred_cmd)
                     if command_eval == 'y':
-                        command_translations[normalize_nl(current_nl)].append(pred_cmd)
+                        command_translations[normalize_nl_ground_truth(current_nl)].append(pred_cmd)
     print('{} template translations loaded'.format(len(template_translations)))
     print('{} command translations loaded'.format(len(command_translations)))
     return template_translations, command_translations
-
-
-def normalize_nl(nl):
-    tokens, _ = tokenizer.basic_tokenizer(nl)
-    return ' '.join(tokens)
 
 
 def gen_accuracy_by_utility_csv(eval_by_utility_path):
@@ -707,8 +717,12 @@ def gen_accuracy_by_utility_csv(eval_by_utility_path):
                     command_acc, annotation_error_rate, complex_task_rate,
                     (annotation_error_rate+complex_task_rate)))
 
-# Unit Tests
+def normalize_nl_ground_truth(nl):
+    tokens, _ = tokenizer.basic_tokenizer(nl)
+    return ' '.join(tokens)
 
+
+# Unit Tests
 def test_ted():
     while True:
         cmd1 = input(">cmd1: ")
