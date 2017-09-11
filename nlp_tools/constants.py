@@ -299,7 +299,7 @@ def polarity_safe(r):
     """
     Match a regular expression with or without "+/-" signs.
     """
-    return r'[+|-]?' + r
+    return r'[+|-]?({})'.format(r)
 
 def add_quotations(s):
     return '"' + s + '"'

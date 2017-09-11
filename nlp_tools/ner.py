@@ -98,8 +98,8 @@ def annotate(tokens):
         _DIRECTORY_RE, constants._DIRECTORY, sentence, entities)
 
     # -- File
-    _FILE_RE = re.compile(constants.include_quotations(r'(([^"\']*\.[^ "\']+)|' +
-        r'(([^"\']*\/)+[^"\']*)|' + constants._FILE_EXTENSION_RE + ')'))
+    _FILE_RE = re.compile(constants.include_quotations(r'([^"\']*\.[^ "\']+)|' +
+        r'(([^"\']*\/)+[^"\']*)|' + constants._FILE_EXTENSION_RE))
     sentence = annotate_ner(_FILE_RE, constants._FILE, sentence, entities)
     
     # -- Other patterns
@@ -153,7 +153,6 @@ def annotate_ner(pattern, category, sentence, entities):
     ner_by_char_pos, ner_by_category = entities
     for m in re.finditer(pattern, sentence):
         surface = sentence[m.start(0):m.end(0)].strip()
-        print(pattern, surface)
         if category == constants._DATETIME:
             # TODO: rule-based system is not good at differentiating between
             # "May" the month and "may" the modal verb
