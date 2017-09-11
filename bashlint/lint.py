@@ -416,8 +416,14 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
                         # Next state is an argument
                         if bast_node.kind == 'word' and not bast_node.parts:
                             token = normalize_word(bast_node)
-                            argument = ArgumentNode(token, arg_type=next_state.arg_type,
-                                                    parent=current, lsb=current.get_right_child())
+                            if next_state.is_list and next_state.list_separator != ' ':
+                                list_separator = next_state.list_separator
+                                argument = ArgumentNode(token, arg_type=next_state.arg_type,
+                                    parent=current, lsb=current.get_right_child(),
+                                    is_list=True, list_members=token.split(list_separator))
+                            else:
+                                argument = ArgumentNode(token, arg_type=next_state.arg_type,
+                                    parent=current, lsb=current.get_right_child())
                             current.add_child(argument)
                             status = bash_grammar.push(token, ARG_S)
                         else:

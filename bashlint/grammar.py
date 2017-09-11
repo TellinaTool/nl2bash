@@ -78,7 +78,8 @@ class UtilityState(BashGrammarState):
         else:
             next_states = [self.compound_flag]
         for arg_state in self.positional_arguments:
-            if not arg_state.filled or arg_state.is_list:
+            if not arg_state.filled or (arg_state.is_list
+                    and arg_state.list_separator == ' '):
                 next_states.append(arg_state)
         next_states.append(self.eof)
         return next_states
