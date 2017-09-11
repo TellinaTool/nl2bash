@@ -398,10 +398,12 @@ def gen_manual_evaluation_csv(dataset, FLAGS):
     model_predictions.append(load_model_predictions())
     # -- Tellina
     FLAGS.normalized = True
+    FLAGS.fill_argument_slots = True
     model_names.append('tellina')
     model_predictions.append(load_model_predictions())
     # -- CopyNet
     FLAGS.normalized = False
+    FLAGS.fill_argument_slots = False
     FLAGS.use_copy = True
     FLAGS.copy_fun = 'copynet'
     model_names.append('token-copynet')
