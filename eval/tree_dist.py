@@ -138,7 +138,7 @@ def string_match(ast1, ast2):
 
 
 if __name__ == '__main__':
-    asts = [data_tools.bash_parser('find . -perm -600 -print')]
-    ast = data_tools.bash_parser('find . -perm __SP__UNK -print')
+    asts = [data_tools.bash_parser('find -name "MyCProgram.c"')]
+    ast = data_tools.bash_parser('find . -name __SP__UNK')
     print(one_match(asts, ast, ignore_arg_value=True))
     print(one_match(asts, ast, ignore_arg_value=False))
