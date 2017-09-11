@@ -153,6 +153,7 @@ def annotate_ner(pattern, category, sentence, entities):
     ner_by_char_pos, ner_by_category = entities
     for m in re.finditer(pattern, sentence):
         surface = sentence[m.start(0):m.end(0)].strip()
+        print(pattern, surface)
         if category == constants._DATETIME:
             # TODO: rule-based system is not good at differentiating between
             # "May" the month and "may" the modal verb
