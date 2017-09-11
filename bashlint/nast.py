@@ -206,10 +206,13 @@ class FlagNode(Node):
 class ArgumentNode(Node):
     num_child = 0
 
-    def __init__(self, value='', arg_type='', parent=None, lsb=None):
+    def __init__(self, value='', arg_type='', parent=None, lsb=None,
+                 list_members=None, list_separator=None):
         super(ArgumentNode, self).__init__(parent, lsb, "argument", value)
         self.arg_type = arg_type
         self.index = 1
+        self.list_separator = list_separator
+        self.list_members = list_members
 
     def is_bracket(self):
         return self.value == "(" or self.value == ")"
