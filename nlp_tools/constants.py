@@ -283,7 +283,7 @@ def include_space(r):
     A regular expression has to have a whitespace or other separator
     at both ends.
     """
-    return r'(^|\s)' + r + r'(\s|$|,|\.){1}'
+    return r'(^|\s)' + r + r'(\s|$|,|\.)'
 
 def include_quotations(r):
     return '(\'{}\'|"{}")'.format(r, r)
