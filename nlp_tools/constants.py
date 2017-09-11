@@ -61,7 +61,7 @@ type_conversion = {
     _NUMBER: 'Number',
 }
 
-_QUOTED_RE = r'(\'[^ \']*\')|("[^ "]*")'
+_QUOTED_RE = r'(\'[^\']*\')|("[^"]*")'
 _SPECIAL_SYMBOL_RE = r'[^ ]*[_\.\*|\\|\/|\~|\@|\%|\#|\?|\+|\$|\{|\}|\<|\>]+[^ ]*'
 _FILE_EXTENSION_RE1 = r'(aiff|cda|mid|mp3|mp4|mpa|ogg|wav|wma|wpl|7z|arj|deb|pkg|' \
         r'rar|rpm|gz|bin|dmg|iso|vcd|vcr|dvd|csv|dat|db|log|mdb|sav|sql|' \
@@ -283,7 +283,7 @@ def include_space(r):
     A regular expression has to have a whitespace or other separator
     at both ends.
     """
-    return r'(^|\s)({}$|{}(\s|,|\.))'.format(r, r)
+    return r'(^|\s){}(\b|,|\.)'.format(r)
 
 def include_quotations(r):
     return '(\'{}\'|"{}")'.format(r, r)
