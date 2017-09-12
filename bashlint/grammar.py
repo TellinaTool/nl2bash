@@ -338,7 +338,7 @@ class BashGrammar(object):
         elif state_type == OPERATOR_S:
             for i, next_state in enumerate(self.next_states):
                 if next_state.is_compound_flag():
-                    self.next_states.remove(i)
+                    del(self.next_states[i])
         elif state.type == ARG_S:
             state.filled = True
             if state.rsb:
