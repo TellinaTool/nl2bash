@@ -433,8 +433,9 @@ def gen_manual_evaluation_csv(dataset, FLAGS):
         load_ground_truths_from_manual_evaluation(FLAGS.data_dir)
 
     # Load cached evaluation results
-    cached_evaluation_results = load_cached_evaluation_results(
-        os.path.join(FLAGS.data_dir, 'manual_judgments'))
+    structure_eval_cache, command_eval_cache = \
+        load_cached_evaluation_results(
+            os.path.join(FLAGS.data_dir, 'manual_judgments'))
 
     eval_bash = FLAGS.dataset.startswith("bash")
     cmd_parser = data_tools.bash_parser if eval_bash \
@@ -461,6 +462,7 @@ def gen_manual_evaluation_csv(dataset, FLAGS):
                     else:
                         output_str = ',,'
                     pred_cmd = predictions[i]
+                    cmd = normalize_cm_ground_truth(pred_cmd)
                     tree = cmd_parser(pred_cmd)
                     # evaluation ignoring flag orders
                     temp_match = tree_dist.one_match(
@@ -476,16 +478,21 @@ def gen_manual_evaluation_csv(dataset, FLAGS):
                     output_str += '{},"{}",'.format(model_name, 
                         pred_cmd.replace('"', '""'))
 
-                    example_sig = '{}<NL_PREDICTION>{}'.format(
-                        sc_temp, normalize_cm_ground_truth(pred_cmd))
-                    if cached_evaluation_results and \
-                            example_sig in cached_evaluation_results:
-                        output_str += cached_evaluation_results[example_sig]
-                    else:
-                        if str_match:
-                            output_str += 'y,y'
-                        elif temp_match:
-                            output_str += 'y,'
+                    command_example_sig = '{}<NL_PREDICTION>{}'.format(sc_temp, cmd)
+                    structure_example_sig = '{}<NL_PREDICTION>{}'.format(
+                        sc_temp, data_tools.ast2template(cmd))
+                    if str_match:
+                        command_eval = 'y'
+                        structure_eval = 'y'
+                    elif temp_match:
+                        structure_eval = 'y'
+                    if command_eval_cache and \
+                            command_example_sig in command_eval_cache:
+                        command_eval = command_eval_cache[command_example_sig]
+                    if structure_eval_cache and \
+                            structure_example_sig in structure_eval_cache:
+                        structure_eval = structure_eval_cache[structure_example_sig]
+                    output_str += '{},{}'.format(structure_eval, command_eval)
                     o_f.write('{}\n'.format(output_str))
 
     print('Manual evaluation results saved to {}'.format(output_path))
@@ -625,9 +632,10 @@ def load_cached_evaluation_results(model_dir):
 
     :param model_dir: Directory where the evaluation result file is stored.
     :param decode_sig: The decoding signature of the model being evaluated.
-    :return: dictionary storing the evaluation results.
+    :return: dictionaries storing the evaluation results.
     """
-    evaluation_results = {}
+    structure_eval_results = {}
+    command_eval_results = {}
     for file_name in os.listdir(model_dir):
         if 'evaluations' in file_name:
             with open(os.path.join(model_dir, file_name)) as f:
@@ -636,16 +644,18 @@ def load_cached_evaluation_results(model_dir):
                 for row in reader:
                     if row['description']:
                         current_nl = row['description']
+                        nl = normalize_nl_ground_truth(current_nl)
                     pred_cmd = row['prediction']
-                    structure_eval = row['correct template']
+                    cm = normalize_cm_ground_truth(pred_cmd)
                     command_eval = row['correct command']
-                    row_sig = '{}<NL_PREDICTION>{}'.format(
-                        normalize_nl_ground_truth(current_nl),
-                        normalize_cm_ground_truth(pred_cmd))
-                    evaluation_results[row_sig] = \
-                        '{},{}'.format(structure_eval, command_eval)
-    print('{} evaluation results loaded'.format(len(evaluation_results)))
-    return evaluation_results
+                    command_row_sig = '{}<NL_PREDICTION>{}'.format(nl, cm)
+                    command_eval_results[command_row_sig] = command_eval
+                    structure_eval = row['correct template']
+                    structure_row_sig = '{}<NL_PREDICTION>{}'.format(
+                        nl, data_tools.ast2template(cm))
+                    structure_eval_results[structure_row_sig] = structure_eval
+    print('{} evaluation results loaded'.format(len(command_eval_results)))
+    return structure_eval_results, command_eval_results
 
 
 def load_ground_truths_from_manual_evaluation(data_dir):
