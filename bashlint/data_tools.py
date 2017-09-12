@@ -12,7 +12,7 @@ import sys
 if sys.version_info > (3, 0):
     from six.moves import xrange
 
-from bashlint import nast, lint
+from bashlint import bash, lint, nast
 from nlp_tools import constants
 
 flag_suffix = '<FLAG_SUFFIX>'
@@ -216,7 +216,7 @@ def ast2tokens(node, loose_constraints=False, ignore_flag_order=False,
                     # TODO: define the criteria for "common args"
                     token = node.value
                 else:
-                    if node.arg_type in constants._QUANTITIES:
+                    if node.arg_type in bash.quantity_argument_types:
                         if node.value.startswith('+'):
                             token = '+{}'.format(node.arg_type)
                         elif node.value.startswith('-'):
@@ -317,7 +317,7 @@ def ast2list(node, order='dfs', _list=None, ignore_flag_order=False,
 def fill_default_value(node):
     """Fill empty slot in the bash ast with default value."""
     if node.is_argument():
-        if node.value in constants._ENTITIES:
+        if node.value in bash.argument_types:
             if node.arg_type == 'Path' and node.parent.is_utility() \
                     and node.parent.value == 'find':
                 node.value = '.'

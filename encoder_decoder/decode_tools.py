@@ -18,7 +18,7 @@ import datetime, time
 import re
 import shutil
 
-from bashlint import data_tools
+from bashlint import bash, data_tools
 from encoder_decoder import data_utils, slot_filling
 from eval import tree_dist
 from nlp_tools import constants, format_args, tokenizer
@@ -189,7 +189,7 @@ def decode(model_outputs, FLAGS, vocabs, sc_fillers=None,
                 if data_tools.flag_suffix in pred_token:
                     pred_token = pred_token.split(data_tools.flag_suffix)[0]
                 # process argument slots
-                if pred_token in constants._ENTITIES:
+                if pred_token in bash.argument_types:
                     if token_id > 0 and format_args.is_min_flag(
                         rev_tg_vocab[outputs[token_id-1]]):
                         pred_token_type = 'Timespan'

@@ -23,32 +23,6 @@ _DIRECTORY = "_DIRECTORY"
 _PERMISSION = "_PERMISSION"
 _REGEX = "_REGEX"
 
-_PATTERNS = {
-    'Regex',
-    'File',
-    'Directory',
-    'Path'
-}
-_QUANTITIES = {
-    'Number',
-    '+Number',
-    '-Number',
-    'Size',
-    '+Size',
-    '-Size',
-    'Timespan',
-    '+Timespan',
-    '-Timespan',
-    'DateTime',
-    '+DateTime',
-    '-DateTime',
-    'Permission',
-    '+Permission',
-    '-Permission'
-}
-
-_ENTITIES = _PATTERNS | _QUANTITIES | {'Type', 'Unknown'}
-
 type_conversion = {
     _FILE: 'File',
     _DIRECTORY: 'Directory',
