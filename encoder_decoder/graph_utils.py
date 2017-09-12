@@ -10,8 +10,6 @@ import os
 import tensorflow as tf
 from tensorflow.python.util import nest
 
-from encoder_decoder import data_utils
-
 
 def define_model(FLAGS, session, model_constructor, buckets, forward_only):
     source, target = ('nl', 'cm') if not FLAGS.explain else ('cm', 'nl')
