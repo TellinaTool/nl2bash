@@ -13,7 +13,6 @@ if sys.version_info > (3, 0):
     from six.moves import xrange
 
 from bashlint import bash, lint, nast
-from nlp_tools import constants
 
 flag_suffix = '<FLAG_SUFFIX>'
 
@@ -290,7 +289,9 @@ def pretty_print(node, depth=0):
 def ast2list(node, order='dfs', _list=None, ignore_flag_order=False,
              arg_type_only=False, keep_common_args=False,
              with_flag_head=False, with_prefix=False):
-    """Linearize the AST."""
+    """
+    Linearize the AST.
+    """
     if order == 'dfs':
         if node.is_argument() and node.is_open_vocab() and arg_type_only:
             token = node.arg_type
@@ -317,7 +318,9 @@ def ast2list(node, order='dfs', _list=None, ignore_flag_order=False,
 
 
 def fill_default_value(node):
-    """Fill empty slot in the bash ast with default value."""
+    """
+    Fill empty slot in the bash ast with default value.
+    """
     if node.is_argument():
         if node.value in bash.argument_types:
             if node.arg_type == 'Path' and node.parent.is_utility() \
@@ -337,7 +340,6 @@ def fill_default_value(node):
     else:
         for child in node.children:
             fill_default_value(child)
-
 
 # --- Other syntax parsers --- #
 
