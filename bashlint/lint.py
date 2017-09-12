@@ -427,7 +427,8 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
                                 list_separator = next_state.list_separator
                                 argument = ArgumentNode(token, arg_type=next_state.arg_type,
                                     parent=current, lsb=current.get_right_child(),
-                                    is_list=True, list_members=token.split(list_separator))
+                                    list_members=token.split(list_separator),
+                                    list_separator=list_separator)
                             else:
                                 argument = ArgumentNode(token, arg_type=next_state.arg_type,
                                     parent=current, lsb=current.get_right_child())
