@@ -23,8 +23,9 @@ def make_sibling(lsb, rsb):
         rsb.lsb = lsb
 
 class Node(object):
-    num_child = -1      # default value = -1, allow arbitrary number of children
-    children_types = [] # list of children types
+    num_child = -1          # number of children taken by node
+                            # -1 indicates "any number of"
+    children_types = []     # list of compatible types of children
 
     def __init__(self, parent=None, lsb=None, kind="", value=""):
         """
@@ -247,6 +248,13 @@ class ArgumentNode(Node):
 
     def set_index(self, ind):
         self.index = ind
+
+class OperatorNode(Node):
+    num_child = 0
+
+    def __init__(self, value='', parent=None, lsb=None):
+        super(OperatorNode, self).__init__(
+            parent, lsb, kind='operator', value=value)
 
 class UnaryLogicOpNode(Node):
     num_child = 1
