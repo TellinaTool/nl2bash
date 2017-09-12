@@ -370,7 +370,7 @@ quantity_argument_types = {
     '-Permission'
 }
 
-argument_types = pattern_argument_types | quantity_arguments | \
+argument_types = pattern_argument_types | quantity_argument_types | \
                  {'Type', 'Unknown'}
 
 reserved_tokens = {
