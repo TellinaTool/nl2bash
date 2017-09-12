@@ -480,7 +480,7 @@ def gen_manual_evaluation_csv(dataset, FLAGS):
 
                     command_example_sig = '{}<NL_PREDICTION>{}'.format(sc_temp, cmd)
                     structure_example_sig = '{}<NL_PREDICTION>{}'.format(
-                        sc_temp, data_tools.ast2template(cmd))
+                        sc_temp, data_tools.cmd2template(cmd, loose_constraints=True))
                     if str_match:
                         command_eval = 'y'
                         structure_eval = 'y'
@@ -652,7 +652,7 @@ def load_cached_evaluation_results(model_dir):
                     command_eval_results[command_row_sig] = command_eval
                     structure_eval = row['correct template']
                     structure_row_sig = '{}<NL_PREDICTION>{}'.format(
-                        nl, data_tools.ast2template(cm))
+                        nl, data_tools.cmd2template(cm, loose_constraints=True))
                     structure_eval_results[structure_row_sig] = structure_eval
     print('{} evaluation results loaded'.format(len(command_eval_results)))
     return structure_eval_results, command_eval_results
