@@ -89,7 +89,6 @@ def ast2tokens(node, loose_constraints=False, ignore_flag_order=False,
 
     lc = loose_constraints
     ifo = ignore_flag_order
-    ato = arg_type_only
 
     def to_tokens_fun(node):
         tokens = []
@@ -211,7 +210,7 @@ def ast2tokens(node, loose_constraints=False, ignore_flag_order=False,
             tokens.append(")")
         elif node.is_argument() or node.kind in ["t"]:
             assert(loose_constraints or node.get_num_of_children() == 0)
-            if ato and node.is_open_vocab():
+            if arg_type_only and node.is_open_vocab():
                 if keep_common_args:
                     # keep frequently-occurred arguments in the vocabulary
                     # TODO: define the criteria for "common args"
@@ -428,19 +427,6 @@ def test_bash_parser():
             print()
         except EOFError as ex:
             break
-
-
-def test_tokenization():
-    i_f = open(sys.argv[1])
-    o_f = open(sys.argv[2], 'w')
-
-    for cmd in i_f.readlines():
-        cmd = cmd.strip()
-        cmd = ' '.join(bash_tokenizer(cmd))
-        # str = ''
-        # for token in tokenizer.split(cmd):
-        #     str += cmd + ' '
-        o_f.write(cmd.strip() + '\n')
 
 
 if __name__ == "__main__":
