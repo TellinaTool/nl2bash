@@ -854,4 +854,4 @@ def group_parallel_data(dataset, attribute='source', use_bucket=False,
 
 if __name__ == '__main__':
     print(nl_to_partial_tokens('Execute md5sum command on files found by the find command', tokenizer=tokenizer.basic_tokenizer))
-    print(cm_to_partial_tokens("find . -iname \"MyCProgram.c\" -exec md5sum {} \;", tokenizer=data_tools.bash_tokenizer))
+    print(cm_to_partial_tokens("find . -perm -600 -print", tokenizer=data_tools.bash_tokenizer))
