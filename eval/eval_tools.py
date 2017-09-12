@@ -481,6 +481,7 @@ def gen_manual_evaluation_csv(dataset, FLAGS):
                     command_example_sig = '{}<NL_PREDICTION>{}'.format(sc_temp, cmd)
                     structure_example_sig = '{}<NL_PREDICTION>{}'.format(
                         sc_temp, data_tools.ast2template(cmd))
+                    command_eval, structure_eval = '', ''
                     if str_match:
                         command_eval = 'y'
                         structure_eval = 'y'
@@ -637,8 +638,14 @@ def load_cached_evaluation_results(model_dir):
     structure_eval_results = {}
     command_eval_results = {}
     for file_name in os.listdir(model_dir):
+        eval_files = []
         if 'evaluations' in file_name:
-            with open(os.path.join(model_dir, file_name)) as f:
+            eval_files.append(file_name)
+        for file_name in sorted(eval_files):
+            manual_judgment_path = os.path.join(model_dir, file_name)
+            with open(manual_judgment_path) as f:
+                print('reading cached evaluations from {}'.format(
+                    manual_judgment_path))
                 reader = csv.DictReader(f)
                 current_nl = ''
                 for row in reader:
@@ -668,7 +675,10 @@ def load_ground_truths_from_manual_evaluation(data_dir):
     template_translations = collections.defaultdict(list)
     data_dir = os.path.join(data_dir, 'manual_judgments')
     for file_name in os.listdir(data_dir):
+        eval_files = []
         if 'evaluations' in file_name:
+            eval_files.append(file_name)
+        for file_name in sorted(eval_files):
             manual_judgment_path = os.path.join(data_dir, file_name)
             with open(manual_judgment_path) as f:
                 print('reading cached evaluations from {}'.format(
@@ -682,9 +692,11 @@ def load_ground_truths_from_manual_evaluation(data_dir):
                     structure_eval = row['correct template']
                     command_eval = row['correct command']
                     if structure_eval == 'y':
-                        template_translations[normalize_nl_ground_truth(current_nl)].append(pred_cmd)
+                        template_translations[normalize_nl_ground_truth(
+                            current_nl)].append(pred_cmd)
                     if command_eval == 'y':
-                        command_translations[normalize_nl_ground_truth(current_nl)].append(pred_cmd)
+                        command_translations[normalize_nl_ground_truth(
+                            current_nl)].append(pred_cmd)
     print('{} template translations loaded'.format(len(template_translations)))
     print('{} command translations loaded'.format(len(command_translations)))
     return template_translations, command_translations
