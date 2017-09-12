@@ -283,8 +283,8 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
 
             # If utility grammar is not known, parse into a simple two-level tree
             if not bg.consume(token):
-                raise errors.LintParsingError("Warning: grammar not found - utility {}".format(token),
-                    num_tokens, 0)
+                raise errors.LintParsingError(
+                    "Warning: grammar not found - utility {}".format(token), num_tokens, 0)
                 for bast_node in input[1:]:
                     if bast_node.kind == 'word' and (not bast_node.parts
                             or (bast_node.parts[0].kind == 'parameter' and
@@ -306,6 +306,13 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
 
             while i < len(input):
                 bast_node = input[i]
+                # '--': signal the end of options
+                if bast_node.kind == 'word' and bast_node.word == '--':
+                    op = OperatorNode('--', parent=current, lsb=current.get_right_child())
+                    current.add_child(op)
+                    bash_grammar.push('--', OPERATOR_S)
+                    i += 1
+                    continue
                 # examine each possible next states in order
                 matched = False
                 for next_state in bash_grammar.next_states:
