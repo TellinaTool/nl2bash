@@ -465,9 +465,9 @@ def gen_manual_evaluation_csv(dataset, FLAGS):
                         template_gt_asts, tree, ignore_arg_value=True)
                     str_match = tree_dist.one_match(
                         command_gt_asts, tree, ignore_arg_value=False)
-                    if (model_id*min(3, len(predictions))+i) < len(command_gt_asts):
+                    if (model_id*min(3, len(predictions))+i) < len(command_gts):
                         output_str += '"{}",'.format(
-                            command_gt_asts[model_id*min(
+                            command_gts[model_id*min(
                                 3, len(predictions))+i].strip().replace('"', '""'))
                     else:
                         output_str += ','
@@ -495,6 +495,11 @@ def extend_ground_truths(sc_temp, tg_strs, command_translations,
     command_gt_asts = [data_tools.bash_parser(gt) for gt in command_gts]
     template_gt_asts = [data_tools.bash_parser(gt)
         for gt in (command_gts | set(template_translations[sc_temp]))]
+    
+    for gt in (command_gts | set(template_translations[sc_temp])):
+        if data_tools.bash_parser(gt) is None:
+            print('Warning: ground truth parsing error: {}'.format(gt))
+    
     return command_gt_asts, template_gt_asts
 
 
