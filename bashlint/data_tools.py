@@ -171,6 +171,8 @@ def ast2tokens(node, loose_constraints=False, ignore_flag_order=False,
                 if op == ';':
                     op = "\\;"
                 tokens.append(op)
+        elif node.kind == 'operator':
+            tokens.append(node.value)
         elif node.kind == "binarylogicop":
             assert(loose_constraints or node.get_num_of_children() == 0)
             if lc and node.get_num_of_children() > 0:
