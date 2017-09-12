@@ -150,7 +150,7 @@ def grid_search(train_fun, decode_fun, eval_fun, train_set, dev_set, FLAGS):
                 best_hp_set = row
                 best_seed = seed
                 best_metrics_value = metrics_value
-                print('☺ New best parameter setting found')
+                print('☺ New best parameter setting found\n')
 
     print()
     print('*****************************')
