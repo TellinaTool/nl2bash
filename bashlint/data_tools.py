@@ -316,30 +316,6 @@ def ast2list(node, order='dfs', _list=None, ignore_flag_order=False,
     return _list
 
 
-def fill_default_value(node):
-    """
-    Fill empty slot in the bash ast with default value.
-    """
-    if node.is_argument():
-        if node.value in bash.argument_types:
-            if node.arg_type == 'Path' and node.parent.is_utility() \
-                    and node.parent.value == 'find':
-                node.value = '.'
-            elif node.arg_type == 'Regex':
-                if node.parent.is_utility() and node.parent.value == 'grep':
-                    node.value = '\'.*\''
-                elif node.parent.is_option() and node.parent.value == '-name' \
-                        and node.value == 'Regex':
-                    node.value = '"*"'
-            elif node.arg_type == 'Number' and node.utility.value in ['head', 'tail']:
-                node.value = '10'
-            else:
-                if node.is_open_vocab():
-                    node.value = '[' + node.arg_type.lower() + ']'
-    else:
-        for child in node.children:
-            fill_default_value(child)
-
 # --- Other syntax parsers --- #
 
 def paren_parser(line):

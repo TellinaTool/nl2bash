@@ -203,7 +203,7 @@ def stable_slot_filling(template_tokens, sc_fillers, tg_slots, pointer_targets,
         cmd = ' '.join(template_tokens)
         tree = data_tools.bash_parser(cmd)
         if not tree is None:
-            data_tools.fill_default_value(tree)
+            fill_default_value(tree)
         temp = data_tools.ast2command(
             tree, loose_constraints=True, ignore_flag_order=False)
     else:
@@ -326,6 +326,34 @@ def stable_marriage_alignment(M):
 
     return [(y, x) for (x, (y, score)) in sorted(matched_cols.items(),
             key=lambda x:x[1][1], reverse=True)], remained_rows
+
+
+def fill_default_value(node):
+    """
+    Fill empty slot in the bash ast with default value.
+    """
+    if node.is_argument():
+        if node.value in bash.argument_types:
+            if node.arg_type == 'Path' and node.parent.is_utility() \
+                    and node.parent.value == 'find':
+                node.value = '.'
+            elif node.arg_type == 'Regex':
+                if node.parent.is_utility() and node.parent.value == 'grep':
+                    node.value = '\'.*\''
+                elif node.parent.is_option() and node.parent.value == '-name' \
+                        and node.value == 'Regex':
+                    node.value = '"*"'
+                else:
+                    node.value = '[' + node.arg_type.lower() + ']'
+            elif node.arg_type == 'Number' and node.utility.value in ['head', 'tail']:
+                node.value = '10'
+            else:
+                if node.is_open_vocab():
+                    node.value = '[' + node.arg_type.lower() + ']'
+    else:
+        for child in node.children:
+            fill_default_value(child)
+
 
 # --- Slot-filling alignment induction from parallel data
 
