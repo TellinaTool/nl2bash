@@ -21,7 +21,8 @@ COMMAND_S = 3
 ARG_COMMAND_S = 4
 EXEC_COMMAND_S = 5
 ARG_S = 6
-EOF_S = 7
+OPERATOR_S = 7
+EOF_S = 8
 
 
 class BashGrammarState(object):
@@ -334,6 +335,10 @@ class BashGrammar(object):
             self.next_states = state.get_utility().next_states()
         elif state_type == EXEC_COMMAND_S:
             self.next_states = state.get_utility().next_states()
+        elif state_type == OPERATOR_S:
+            for i, next_state in enumerate(self.next_states):
+                if next_state.is_compound_flag():
+                    self.next_states.remove(i)
         elif state.type == ARG_S:
             state.filled = True
             if state.rsb:
