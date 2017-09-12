@@ -299,6 +299,7 @@ def print_error_analysis_csv(grouped_dataset, prediction_list, FLAGS,
     example_id = 0
     for nl_temp, data_group in grouped_dataset:
         sc_txt = data_group[0].sc_txt.strip()
+        sc_temp = normalize_nl_ground_truth(sc_txt)
         tg_strs = [dp.tg_txt for dp in data_group]
         gt_trees = [cmd_parser(cm_str) for cm_str in tg_strs]
         if group_by_utility:
@@ -341,7 +342,8 @@ def print_error_analysis_csv(grouped_dataset, prediction_list, FLAGS,
                     if i == 0:
                         grammar_error = True
 
-            example_sig = '{}<NL_PREDICTION>{}'.format(sc_txt, pred_cmd)
+            example_sig = '{}<NL_PREDICTION>{}'.format(
+                sc_temp, normalize_cm_ground_truth(pred_cmd))
             if cached_evaluation_results and \
                     example_sig in cached_evaluation_results:
                 # print('example_sig: {}'.format(example_sig))
@@ -474,7 +476,8 @@ def gen_manual_evaluation_csv(dataset, FLAGS):
                     output_str += '{},"{}",'.format(model_name, 
                         pred_cmd.replace('"', '""'))
 
-                    example_sig = '{}<NL_PREDICTION>{}'.format(sc_txt, pred_cmd)
+                    example_sig = '{}<NL_PREDICTION>{}'.format(
+                        sc_temp, normalize_cm_ground_truth(pred_cmd))
                     if cached_evaluation_results and \
                             example_sig in cached_evaluation_results:
                         output_str += cached_evaluation_results[example_sig]
@@ -631,7 +634,9 @@ def load_cached_evaluation_results(model_dir):
                     pred_cmd = row['prediction']
                     structure_eval = row['correct template']
                     command_eval = row['correct command']
-                    row_sig = '{}<NL_PREDICTION>{}'.format(current_nl, pred_cmd)
+                    row_sig = '{}<NL_PREDICTION>{}'.format(
+                        normalize_nl_ground_truth(current_nl),
+                        normalize_cm_ground_truth(pred_cmd))
                     evaluation_results[row_sig] = \
                         '{},{}'.format(structure_eval, command_eval)
     print('{} evaluation results loaded'.format(len(evaluation_results)))
@@ -721,6 +726,8 @@ def normalize_nl_ground_truth(nl):
     tokens, _ = tokenizer.basic_tokenizer(nl)
     return ' '.join(tokens)
 
+def normalize_cm_ground_truth(cm):
+    return tree_dist.ignore_differences(cm)
 
 # Unit Tests
 def test_ted():
