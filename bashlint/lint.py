@@ -823,6 +823,8 @@ def serialize_ast(node, loose_constraints=False, ignore_flag_order=False):
                     op = "\\;"
                 str += op + ' '
             str = str.strip()
+        elif node.kind == 'operator':
+            str += '-- '
         elif node.kind == "binarylogicop":
             assert(loose_constraints or node.get_num_of_children() == 0)
             if lc and node.get_num_of_children() > 0:
