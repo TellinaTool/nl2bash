@@ -6,7 +6,7 @@ ARGS=${@:1}
 
 ./bash-run.sh \
     --dataset bash \
-    --channel token \
+    --channel partial.token \
     --use_copy \
     --copy_fun copynet \
     --batch_size 128 \
