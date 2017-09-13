@@ -138,7 +138,7 @@ def string_match(ast1, ast2):
 
 
 if __name__ == '__main__':
-    asts = [data_tools.bash_parser('find . -name "*.java" -exec grep -i -l __SP__UNK {} \;')]
-    ast = data_tools.bash_parser('find . -name "*.java" -exec grep -i -l "TODO" {} \;')
+    asts = [data_tools.bash_parser('find . -type f -print0 | xargs -0 -I {} grep -i -l __SP__UNK {}')]
+    ast = data_tools.bash_parser('find . -type f -print0 | xargs -0 -I {} grep -i -l \'.*\' {}')
     print(one_match(asts, ast, ignore_arg_value=True))
     print(one_match(asts, ast, ignore_arg_value=False))
