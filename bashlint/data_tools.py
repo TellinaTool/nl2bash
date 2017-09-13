@@ -12,8 +12,7 @@ import sys
 if sys.version_info > (3, 0):
     from six.moves import xrange
 
-from bashlint import nast, lint
-from nlp_tools import constants
+from bashlint import bash, lint, nast
 
 flag_suffix = '<FLAG_SUFFIX>'
 
@@ -90,7 +89,6 @@ def ast2tokens(node, loose_constraints=False, ignore_flag_order=False,
 
     lc = loose_constraints
     ifo = ignore_flag_order
-    ato = arg_type_only
 
     def to_tokens_fun(node):
         tokens = []
@@ -171,6 +169,8 @@ def ast2tokens(node, loose_constraints=False, ignore_flag_order=False,
                 if op == ';':
                     op = "\\;"
                 tokens.append(op)
+        elif node.kind == 'operator':
+            tokens.append(node.value)
         elif node.kind == "binarylogicop":
             assert(loose_constraints or node.get_num_of_children() == 0)
             if lc and node.get_num_of_children() > 0:
@@ -210,13 +210,13 @@ def ast2tokens(node, loose_constraints=False, ignore_flag_order=False,
             tokens.append(")")
         elif node.is_argument() or node.kind in ["t"]:
             assert(loose_constraints or node.get_num_of_children() == 0)
-            if ato and node.is_open_vocab():
+            if arg_type_only and node.is_open_vocab():
                 if keep_common_args:
                     # keep frequently-occurred arguments in the vocabulary
                     # TODO: define the criteria for "common args"
                     token = node.value
                 else:
-                    if node.arg_type in constants._QUANTITIES:
+                    if node.arg_type in bash.quantity_argument_types:
                         if node.value.startswith('+'):
                             token = '+{}'.format(node.arg_type)
                         elif node.value.startswith('-'):
@@ -288,7 +288,9 @@ def pretty_print(node, depth=0):
 def ast2list(node, order='dfs', _list=None, ignore_flag_order=False,
              arg_type_only=False, keep_common_args=False,
              with_flag_head=False, with_prefix=False):
-    """Linearize the AST."""
+    """
+    Linearize the AST.
+    """
     if order == 'dfs':
         if node.is_argument() and node.is_open_vocab() and arg_type_only:
             token = node.arg_type
@@ -312,29 +314,6 @@ def ast2list(node, order='dfs', _list=None, ignore_flag_order=False,
         else:
             _list.append(nast._V_NO_EXPAND)
     return _list
-
-
-def fill_default_value(node):
-    """Fill empty slot in the bash ast with default value."""
-    if node.is_argument():
-        if node.value in constants._ENTITIES:
-            if node.arg_type == 'Path' and node.parent.is_utility() \
-                    and node.parent.value == 'find':
-                node.value = '.'
-            elif node.arg_type == 'Regex':
-                if node.parent.is_utility() and node.parent.value == 'grep':
-                    node.value = '\'.*\''
-                elif node.parent.is_option() and node.parent.value == '-name' \
-                        and node.value == 'Regex':
-                    node.value = '"*"'
-            elif node.arg_type == 'Number' and node.utility.value in ['head', 'tail']:
-                node.value = '10'
-            else:
-                if node.is_open_vocab():
-                    node.value = '[' + node.arg_type.lower() + ']'
-    else:
-        for child in node.children:
-            fill_default_value(child)
 
 
 # --- Other syntax parsers --- #
@@ -424,19 +403,6 @@ def test_bash_parser():
             print()
         except EOFError as ex:
             break
-
-
-def test_tokenization():
-    i_f = open(sys.argv[1])
-    o_f = open(sys.argv[2], 'w')
-
-    for cmd in i_f.readlines():
-        cmd = cmd.strip()
-        cmd = ' '.join(bash_tokenizer(cmd))
-        # str = ''
-        # for token in tokenizer.split(cmd):
-        #     str += cmd + ' '
-        o_f.write(cmd.strip() + '\n')
 
 
 if __name__ == "__main__":

@@ -370,7 +370,7 @@ class RNNDecoder(decoder.Decoder):
                 else:
                     raise AttributeError(
                         "Unrecognized rnn cell type: {}".format(self.rnn_cell))
-                return top_k_osbs, top_k_seq_logits, states[1:]
+                return top_k_osbs, top_k_seq_logits, states
 
             if self.use_attention:
                 if not bs_decoding or not self.forward_only:

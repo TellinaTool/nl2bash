@@ -55,6 +55,11 @@ def define_input_flags():
     tf.app.flags.DEFINE_boolean('self_test', False,
                                 'Run a self-test if this is set to True.')
 
+    tf.app.flags.DEFINE_boolean('gen_error_analysis_sheet', False,
+                                'Set to True to generate error analysis spreadsheet.')
+    tf.app.flags.DEFINE_boolean('gen_manual_evaluation_sheet', False,
+                                'Set to True to generate manual evaluation spreadsheet.')
+
     # device
     tf.app.flags.DEFINE_string('gpu', '0', 'GPU device where the computation is going to be placed.')
     tf.app.flags.DEFINE_boolean('log_device_placement', False,
@@ -158,8 +163,7 @@ def define_input_flags():
                                 'Set to True for evaluation of the slot-filling classifier.')
     tf.app.flags.DEFINE_boolean('eval_local_slot_filling', False,
                                 'Set to True for raw evaluation of the slot-filling classifier.')
-    tf.app.flags.DEFINE_boolean('gen_error_analysis_sheet', False,
-                                'Set to True to generate error analysis spreadsheet.')
+
 
     # channel network hyperparameters
     tf.app.flags.DEFINE_boolean('sc_token', True,

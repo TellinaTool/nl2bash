@@ -21,7 +21,8 @@ COMMAND_S = 3
 ARG_COMMAND_S = 4
 EXEC_COMMAND_S = 5
 ARG_S = 6
-EOF_S = 7
+OPERATOR_S = 7
+EOF_S = 8
 
 
 class BashGrammarState(object):
@@ -78,7 +79,8 @@ class UtilityState(BashGrammarState):
         else:
             next_states = [self.compound_flag]
         for arg_state in self.positional_arguments:
-            if not arg_state.filled or arg_state.is_list:
+            if not arg_state.filled or (arg_state.is_list
+                    and arg_state.list_separator == ' '):
                 next_states.append(arg_state)
         next_states.append(self.eof)
         return next_states
@@ -333,6 +335,10 @@ class BashGrammar(object):
             self.next_states = state.get_utility().next_states()
         elif state_type == EXEC_COMMAND_S:
             self.next_states = state.get_utility().next_states()
+        elif state_type == OPERATOR_S:
+            for i, next_state in enumerate(self.next_states):
+                if next_state.is_compound_flag():
+                    del(self.next_states[i])
         elif state.type == ARG_S:
             state.filled = True
             if state.rsb:
@@ -377,8 +383,9 @@ class BashGrammar(object):
                     if not name in self.name2type:
                         self.name2type[name] = type
                     else:
-                        raise ValueError('Ambiguity in name type: "{}" ({} vs. {})'.format(
-                            name, self.name2type[name], type))
+                        raise ValueError(
+                            'Ambiguity in name type: "{}" ({} vs. {})'.format(
+                                name, self.name2type[name], type))
             elif reading_synopsis:
                 self.make_utility(line)
 
@@ -463,7 +470,8 @@ class BashGrammar(object):
                 if c == ']':
                     stack.pop()
                     if not stack:
-                        self.make_positional_argument(u_state, arg_synopsis.strip(), optional=True)
+                        self.make_positional_argument\
+                            (u_state, arg_synopsis.strip(), optional=True)
                         arg_synopsis = ''
                         status = 'IDLE'
                     else:

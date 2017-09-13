@@ -283,10 +283,12 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
 
             # If utility grammar is not known, parse into a simple two-level tree
             if not bg.consume(token):
-                raise errors.LintParsingError("Warning: grammar not found - utility {}".format(token),
-                    num_tokens, 0)
+                raise errors.LintParsingError(
+                    "Warning: grammar not found - utility {}".format(token), num_tokens, 0)
                 for bast_node in input[1:]:
-                    if bast_node.kind == 'word' and not bast_node.parts:
+                    if bast_node.kind == 'word' and (not bast_node.parts
+                            or (bast_node.parts[0].kind == 'parameter' and
+                                bast_node.word.startswith('-'))):
                         token = normalize_word(bast_node)
                         if token.startswith('-'):
                             child = FlagNode(token, parent=head, lsb=head.get_right_child())
@@ -304,12 +306,21 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
 
             while i < len(input):
                 bast_node = input[i]
+                # '--': signal the end of options
+                if bast_node.kind == 'word' and bast_node.word == '--':
+                    op = OperatorNode('--', parent=current, lsb=current.get_right_child())
+                    current.add_child(op)
+                    bash_grammar.push('--', OPERATOR_S)
+                    i += 1
+                    continue
                 # examine each possible next states in order
                 matched = False
                 for next_state in bash_grammar.next_states:
                     if next_state.is_compound_flag():
                         # Next state is a flag
-                        if bast_node.kind != 'word' or bast_node.parts:
+                        if bast_node.kind != 'word' or (bast_node.parts and not (
+                                bast_node.word.startswith('-') and
+                                    bast_node.parts[0].kind == 'parameter')):
                             continue
                         if is_parenthesis(bast_node, current):
                             flag = FlagNode(bast_node.word, parent=current,
@@ -412,8 +423,15 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
                         # Next state is an argument
                         if bast_node.kind == 'word' and not bast_node.parts:
                             token = normalize_word(bast_node)
-                            argument = ArgumentNode(token, arg_type=next_state.arg_type,
-                                                    parent=current, lsb=current.get_right_child())
+                            if next_state.is_list and next_state.list_separator != ' ':
+                                list_separator = next_state.list_separator
+                                argument = ArgumentNode(token, arg_type=next_state.arg_type,
+                                    parent=current, lsb=current.get_right_child(),
+                                    list_members=token.split(list_separator),
+                                    list_separator=list_separator)
+                            else:
+                                argument = ArgumentNode(token, arg_type=next_state.arg_type,
+                                    parent=current, lsb=current.get_right_child())
                             current.add_child(argument)
                             status = bash_grammar.push(token, ARG_S)
                         else:
@@ -519,7 +537,7 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
                 if child.is_argument():
                     arguments.append(child)
             if head.get_num_of_children() > 0 and len(arguments) < 1:
-                norm_node = ArgumentNode(value=".", arg_type="File")
+                norm_node = ArgumentNode(value=".", arg_type="Path")
                 make_sibling(norm_node, head.children[0])
                 norm_node.parent = head
                 head.children.insert(0, norm_node)
@@ -622,8 +640,8 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
                     attach_to_tree(norm_node, current)
                     for child in node.parts:
                         normalize(child, norm_node)
-                elif node.parts[0].kind == "parameter" or \
-                    node.parts[0].kind == "tilde":
+                elif (node.parts[0].kind == "parameter" or
+                      node.parts[0].kind == "tilde"):
                     normalize_argument(node, current, arg_type)
                 else:
                     for child in node.parts:
@@ -805,6 +823,8 @@ def serialize_ast(node, loose_constraints=False, ignore_flag_order=False):
                     op = "\\;"
                 str += op + ' '
             str = str.strip()
+        elif node.kind == 'operator':
+            str += '--'
         elif node.kind == "binarylogicop":
             assert(loose_constraints or node.get_num_of_children() == 0)
             if lc and node.get_num_of_children() > 0:

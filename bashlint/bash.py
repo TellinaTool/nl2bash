@@ -74,7 +74,6 @@ utility_stats = """1,find,103,5457,566
 71,env,8,24,6
 72,kill,9,21,1"""
 
-
 top_100_utilities = {
     'echo',
     'bash',
@@ -211,7 +210,6 @@ top_100_utilities = {
     'yum'
 }
 
-
 # Compilers
 BLACK_LIST = {
     'cpp',
@@ -232,7 +230,6 @@ BLACK_LIST = {
     'yum',
     'apt-get'
 }
-
 
 # Flow controls
 GREY_LIST = {
@@ -344,6 +341,37 @@ findutils = {
 }
 
 # --- Other Constants Lists --- #
+
+pattern_argument_types = {
+    'Regex',
+    'File',
+    'Directory',
+    'Path'
+}
+
+quantity_argument_types = {
+    'Number',
+    '+Number',
+    '-Number',
+    'Quantity',
+    '+Quantity',
+    '-Quantity',
+    'Size',
+    '+Size',
+    '-Size',
+    'Timespan',
+    '+Timespan',
+    '-Timespan',
+    'DateTime',
+    '+DateTime',
+    '-DateTime',
+    'Permission',
+    '+Permission',
+    '-Permission'
+}
+
+argument_types = pattern_argument_types | quantity_argument_types | \
+                 {'Type', 'Unknown'}
 
 reserved_tokens = {
     '+',

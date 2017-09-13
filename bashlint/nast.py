@@ -23,8 +23,9 @@ def make_sibling(lsb, rsb):
         rsb.lsb = lsb
 
 class Node(object):
-    num_child = -1      # default value = -1, allow arbitrary number of children
-    children_types = [] # list of children types
+    num_child = -1          # number of children taken by node
+                            # -1 indicates "any number of"
+    children_types = []     # list of compatible types of children
 
     def __init__(self, parent=None, lsb=None, kind="", value=""):
         """
@@ -206,10 +207,13 @@ class FlagNode(Node):
 class ArgumentNode(Node):
     num_child = 0
 
-    def __init__(self, value='', arg_type='', parent=None, lsb=None):
+    def __init__(self, value='', arg_type='', parent=None, lsb=None,
+                 list_members=None, list_separator=None):
         super(ArgumentNode, self).__init__(parent, lsb, "argument", value)
         self.arg_type = arg_type
         self.index = 1
+        self.list_separator = list_separator
+        self.list_members = list_members
 
     def is_bracket(self):
         return self.value == "(" or self.value == ")"
@@ -220,9 +224,11 @@ class ArgumentNode(Node):
     def is_open_vocab(self):
         if self.is_reserved():
             return False
-        if self.arg_type == "Type":
+        if self.arg_type == 'Type':
             return False
-        if self.arg_type == "Option":
+        if self.arg_type == 'Option':
+            return False
+        if self.arg_type == 'Format':
             return False
         # if self.arg_type == "Size":
         #     return False
@@ -242,6 +248,13 @@ class ArgumentNode(Node):
 
     def set_index(self, ind):
         self.index = ind
+
+class OperatorNode(Node):
+    num_child = 0
+
+    def __init__(self, value='', parent=None, lsb=None):
+        super(OperatorNode, self).__init__(
+            parent, lsb, kind='operator', value=value)
 
 class UnaryLogicOpNode(Node):
     num_child = 1

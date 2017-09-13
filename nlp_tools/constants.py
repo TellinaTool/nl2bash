@@ -23,32 +23,6 @@ _DIRECTORY = "_DIRECTORY"
 _PERMISSION = "_PERMISSION"
 _REGEX = "_REGEX"
 
-_PATTERNS = {
-    'Regex',
-    'File',
-    'Directory',
-    'Path'
-}
-_QUANTITIES = {
-    'Number',
-    '+Number',
-    '-Number',
-    'Size',
-    '+Size',
-    '-Size',
-    'Timespan',
-    '+Timespan',
-    '-Timespan',
-    'DateTime',
-    '+DateTime',
-    '-DateTime',
-    'Permission',
-    '+Permission',
-    '-Permission'
-}
-
-_ENTITIES = _PATTERNS | _QUANTITIES | {'Type', 'Unknown'}
-
 type_conversion = {
     _FILE: 'File',
     _DIRECTORY: 'Directory',
@@ -61,7 +35,7 @@ type_conversion = {
     _NUMBER: 'Number',
 }
 
-_QUOTED_RE = r'(\'[^ \']*\')|("[^ "]*")'
+_QUOTED_RE = r'(\'[^\']*\')|("[^"]*")'
 _SPECIAL_SYMBOL_RE = r'[^ ]*[_\.\*|\\|\/|\~|\@|\%|\#|\?|\+|\$|\{|\}|\<|\>]+[^ ]*'
 _FILE_EXTENSION_RE1 = r'(aiff|cda|mid|mp3|mp4|mpa|ogg|wav|wma|wpl|7z|arj|deb|pkg|' \
         r'rar|rpm|gz|bin|dmg|iso|vcd|vcr|dvd|csv|dat|db|log|mdb|sav|sql|' \
@@ -283,23 +257,23 @@ def include_space(r):
     A regular expression has to have a whitespace or other separator
     at both ends.
     """
-    return r'(^|\s)' + r + r'(\s|$|,|\.){1}'
+    return r'(^|\s)({})(\s|$|,|\.)'.format(r)
 
 def include_quotations(r):
-    return '(\'{}\'|"{}")'.format(r, r)
+    return '(\'({})\'|"({})")'.format(r, r)
 
 def quotation_safe(r, rq=None):
     """
     Match a regular expression with or without quotation marks.
     """
     rq = r if rq is None else rq
-    return '({}|\'{}\'|"{}")'.format(r, rq, rq)
+    return '(({})|\'({})\'|"({})")'.format(r, rq, rq)
 
 def polarity_safe(r):
     """
     Match a regular expression with or without "+/-" signs.
     """
-    return r'[+|-]?' + r
+    return r'[+|-]?({})'.format(r)
 
 def add_quotations(s):
     return '"' + s + '"'

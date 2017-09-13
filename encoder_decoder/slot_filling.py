@@ -14,8 +14,7 @@ import collections, copy, re
 import numpy as np
 from numpy.linalg import norm
 
-from bashlint import data_tools
-from encoder_decoder import graph_utils
+from bashlint import bash, data_tools
 from nlp_tools import constants, format_args, tokenizer
 
 
@@ -199,12 +198,12 @@ def stable_slot_filling(template_tokens, sc_fillers, tg_slots, pointer_targets,
 
     if not remained_fillers:
         for f, s in mappings:
-            template_tokens[s] = \
-                format_args.get_fill_in_value(tg_slots[s], sc_fillers[f])
+            template_tokens[s] = format_args.get_fill_in_value(
+                tg_slots[s], sc_fillers[f])
         cmd = ' '.join(template_tokens)
         tree = data_tools.bash_parser(cmd)
         if not tree is None:
-            data_tools.fill_default_value(tree)
+            fill_default_value(tree)
         temp = data_tools.ast2command(
             tree, loose_constraints=True, ignore_flag_order=False)
     else:
@@ -328,6 +327,34 @@ def stable_marriage_alignment(M):
     return [(y, x) for (x, (y, score)) in sorted(matched_cols.items(),
             key=lambda x:x[1][1], reverse=True)], remained_rows
 
+
+def fill_default_value(node):
+    """
+    Fill empty slot in the bash ast with default value.
+    """
+    if node.is_argument():
+        if node.value in bash.argument_types:
+            if node.arg_type == 'Path' and node.parent.is_utility() \
+                    and node.parent.value == 'find':
+                node.value = '.'
+            elif node.arg_type == 'Regex':
+                if node.parent.is_utility() and node.parent.value == 'grep':
+                    node.value = '\'.*\''
+                elif node.parent.is_option() and node.parent.value == '-name' \
+                        and node.value == 'Regex':
+                    node.value = '"*"'
+                else:
+                    node.value = '[' + node.arg_type.lower() + ']'
+            elif node.arg_type == 'Number' and node.utility.value in ['head', 'tail']:
+                node.value = '10'
+            else:
+                if node.is_open_vocab():
+                    node.value = '[' + node.arg_type.lower() + ']'
+    else:
+        for child in node.children:
+            fill_default_value(child)
+
+
 # --- Slot-filling alignment induction from parallel data
 
 def slot_filler_alignment_induction(nl, cm, verbose=True):
@@ -344,7 +371,7 @@ def slot_filler_alignment_induction(nl, cm, verbose=True):
     assert(len(cm_tokens) == len(cm_tokens_with_types))
     cm_slots = {}
     for i in xrange(len(cm_tokens_with_types)):
-        if cm_tokens_with_types[i] in constants._ENTITIES:
+        if cm_tokens_with_types[i] in bash.argument_types:
             if i > 0 and format_args.is_min_flag(cm_tokens_with_types[i-1]):
                 cm_token_type = 'Timespan'
             else:
@@ -379,6 +406,7 @@ def slot_filler_alignment_induction(nl, cm, verbose=True):
     
     return mappings
 
+
 def slot_filler_value_match(slot_value, filler_value, slot_type):
     """(Fuzzily) compute the matching score between a slot filler extracted
         from the natural language and a the slot in the command. Used for
@@ -388,7 +416,7 @@ def slot_filler_value_match(slot_value, filler_value, slot_type):
        :param filler_value: slot filler value extracted from the natural language
        :param slot_type: category of the slot in the command
     """
-    if slot_type in constants._PATTERNS or \
+    if slot_type in bash.pattern_argument_types or \
             (filler_value and format_args.is_parameter(filler_value)):
         if slot_value == filler_value:
             return 1
@@ -446,6 +474,9 @@ def slot_filler_type_match(slot_type, filler_type):
         '_NUMBER, +Number',
         '_NUMBER, -Number',
         '_NUMBER, Regex',
+        '_NUMBER, Quantity',
+        '_NUMBER, +Quantity',
+        '_NUMBER, -Quantity',
         '_SIZE, Size',
         '_SIZE, +Size',
         '_SIZE, -Size',
@@ -455,6 +486,9 @@ def slot_filler_type_match(slot_type, filler_type):
         '_DATETIME, DateTime',
         '_DATETIME, +DateTime',
         '_DATETIME, -DateTime',
+        '_NUMBER, Permission',
+        '_NUMBER, +Permission',
+        '_NUMBER, -Permission',
         '_PERMISSION, Permission',
         '_PERMISSION, +Permission',
         '_PERMISSION, -Permission',

@@ -200,10 +200,10 @@ def gen_error_analysis_sheets(dataset, model_dir=None, decode_sig=None,
         model_subdir, decode_sig = graph_utils.get_decode_signature(FLAGS)
         model_dir = os.path.join(FLAGS.model_root_dir, model_subdir)
     if group_by_utility:
-        eval_tools.gen_error_analysis_sheet_by_utility(
+        eval_tools.gen_error_analysis_csv_by_utility(
             model_dir, decode_sig, dataset, FLAGS)
     else:
-        eval_tools.gen_error_analysis_sheets(
+        eval_tools.gen_error_analysis_csv(
             model_dir, decode_sig, dataset, FLAGS)
 
 
@@ -294,6 +294,8 @@ def main(_):
             eval(dataset, verbose=True)
         elif FLAGS.gen_error_analysis_sheet:
             gen_error_analysis_sheets(dataset, group_by_utility=True)
+        elif FLAGS.gen_manual_evaluation_sheet:
+            eval_tools.gen_manual_evaluation_csv(dataset, FLAGS)
 
         elif FLAGS.gen_slot_filling_training_data:
             gen_slot_filling_training_data(FLAGS, [train_set, dev_set, test_set])

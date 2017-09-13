@@ -81,8 +81,7 @@ def annotate(tokens):
     permission_bit = r'(suid|sgid|sticky|sticki)(\sbit)?'
     permission_bit_set = r'(set)?(uid|gid|sticky|sticki)(=\d+)*'
     _PERMISSION_RE = re.compile(decorate_boundaries(constants.polarity_safe(
-                    '(' + constants._NUMERICAL_PERMISSION_RE + '|' +
-                    constants._PATTERN_PERMISSION_RE + '|' +
+                    '(' + constants._PATTERN_PERMISSION_RE + '|' +
                     permission_bit + '|' + permission_bit_set + ')')))
     sentence = annotate_ner(
         _PERMISSION_RE, constants._PERMISSION, sentence, entities)
@@ -99,8 +98,8 @@ def annotate(tokens):
         _DIRECTORY_RE, constants._DIRECTORY, sentence, entities)
 
     # -- File
-    _FILE_RE = re.compile(constants.include_quotations(r'(([^"\']*\.[^ "\']+)|' +
-        r'(([^"\']*\/)+[^"\']*)|' + constants._FILE_EXTENSION_RE + ')'))
+    _FILE_RE = re.compile(constants.include_quotations(r'([^"\']*\.[^ "\']+)|' +
+        r'(([^"\']*\/)+[^"\']*)|' + constants._FILE_EXTENSION_RE))
     sentence = annotate_ner(_FILE_RE, constants._FILE, sentence, entities)
     
     # -- Other patterns
@@ -124,7 +123,6 @@ def annotate(tokens):
 
     # prepare list of tokens
     normalized_words = []
-    ner_by_char_pos, ner_by_category = entities
     i = 0
     for m in re.finditer(
         re.compile(constants._WORD_SPLIT_RESPECT_QUOTES), sentence):

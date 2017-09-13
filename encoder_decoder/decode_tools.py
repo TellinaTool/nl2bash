@@ -18,10 +18,10 @@ import datetime, time
 import re
 import shutil
 
-from bashlint import data_tools
+from bashlint import bash, data_tools
 from encoder_decoder import data_utils, slot_filling
 from eval import tree_dist
-from nlp_tools import constants, tokenizer
+from nlp_tools import constants, format_args, tokenizer
 
 APOLOGY_MSG = "Sorry, I don't know how to translate this command."
 
@@ -189,8 +189,8 @@ def decode(model_outputs, FLAGS, vocabs, sc_fillers=None,
                 if data_tools.flag_suffix in pred_token:
                     pred_token = pred_token.split(data_tools.flag_suffix)[0]
                 # process argument slots
-                if pred_token in constants._ENTITIES:
-                    if token_id > 0 and slot_filling.is_min_flag(
+                if pred_token in bash.argument_types:
+                    if token_id > 0 and format_args.is_min_flag(
                         rev_tg_vocab[outputs[token_id-1]]):
                         pred_token_type = 'Timespan'
                     else:
@@ -229,7 +229,7 @@ def decode(model_outputs, FLAGS, vocabs, sc_fillers=None,
                         target += char
             else:
                 target = ' '.join(output_tokens)
-            
+            print(target) 
             # Step 2: checvik if the predicted command template is grammatical
             if FLAGS.grammatical_only and not FLAGS.explain:
                 if FLAGS.dataset.startswith('bash'):
@@ -419,7 +419,6 @@ def get_slot_filling_classifer(FLAGS):
 
 
 # --- Compute query features
-
 def query_to_encoder_features(sentence, vocabs, FLAGS):
     """
     Convert a natural language query into feature vectors used by the encoder.
@@ -463,7 +462,6 @@ def query_to_copy_tokens(sentence, FLAGS):
     return tokens
 
 # --- Visualization --- #
-
 def visualize_attn_alignments(M, source, target, rev_sc_vocab,
                               rev_tg_vocab, output_path):
     target_length, source_length = M.shape

@@ -10,12 +10,9 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import sys
-if sys.version_info > (3, 0):
-    from six.moves import xrange
-
 import datetime, re
 
+from bashlint import bash
 from nlp_tools import constants
 
 
@@ -36,7 +33,7 @@ def get_fill_in_value(cm_slot, nl_filler):
     # In most cases the filler can be directly copied into the slot
     slot_filler_value = filler_value
 
-    if slot_type in constants._QUANTITIES:
+    if slot_type in bash.quantity_argument_types:
         if slot_value.startswith('+'):
             slot_filler_value = filler_value if filler_value.startswith('+') \
                 else '+{}'.format(filler_value)
@@ -79,7 +76,8 @@ def extract_value(filler_type, slot_type, surface):
         value = value
 
     # add quotations for pattern slots
-    if filler_type in constants._PATTERNS and not constants.with_quotation(value):
+    if filler_type in bash.pattern_argument_types and \
+            not constants.with_quotation(value):
         value = constants.add_quotations(value)
 
     return value

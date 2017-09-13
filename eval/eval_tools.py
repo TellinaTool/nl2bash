@@ -7,7 +7,6 @@ from __future__ import division
 from __future__ import print_function
 
 import collections
-import copy
 import csv
 import functools
 import numpy as np
@@ -18,7 +17,7 @@ if sys.version_info > (3, 0):
     from six.moves import xrange
 
 from bashlint import bash, data_tools, nast
-from encoder_decoder import data_utils
+from encoder_decoder import data_utils, graph_utils
 from eval import token_based, tree_dist, zss
 from eval.dfa_equal import regexDFAEquals
 from nlp_tools import constants, tokenizer
@@ -58,11 +57,11 @@ def eval_set(model_dir, decode_sig, dataset, top_k, FLAGS, verbose=True):
     if len(grouped_dataset) != len(prediction_list):
         raise ValueError("ground truth and predictions length must be equal: "
             "{} vs. {}".format(len(grouped_dataset), len(prediction_list)))
-    
-    # Load manual judgements
+
+    # Load additional ground truths
     if eval_bash:
         template_translations, command_translations = \
-            load_judgments(FLAGS.data_dir)
+            load_ground_truths_from_manual_evaluation(FLAGS.data_dir)
    
     num_eval = 0
     top_k_temp_correct = np.zeros([len(grouped_dataset), top_k])
@@ -73,21 +72,19 @@ def eval_set(model_dir, decode_sig, dataset, top_k, FLAGS, verbose=True):
     for data_id in xrange(len(grouped_dataset)):
         _, data_group = grouped_dataset[data_id]
         sc_str = data_group[0].sc_txt.strip()
-        sc_temp = normalize_nl(sc_str)
+        sc_temp = normalize_nl_ground_truth(sc_str)
         sc_tokens = [rev_sc_vocab[i] for i in data_group[0].sc_ids]
         if FLAGS.channel == 'char':
             sc_features = ''.join(sc_tokens)
             sc_features = sc_features.replace(constants._SPACE, ' ')
         else:
             sc_features = ' '.join(sc_tokens)
+        command_gts = [dp.tg_txt.strip() for dp in data_group]
         if eval_bash:
-            command_gts = set([dp.tg_txt.strip() for dp in data_group] + \
-                          command_translations[sc_temp])
-            command_gt_asts = [data_tools.bash_parser(gt) for gt in command_gts]
-            template_gt_asts = [data_tools.bash_parser(gt)
-                for gt in (command_gts | set(template_translations[sc_temp]))]
-        else:
-            command_gts = [dp.tg_txt.strip() for dp in data_group]
+            command_gt_asts, template_gt_asts = extend_ground_truths(
+                sc_temp, command_gts, command_translations,
+                template_translations)
+
         num_gts = len(command_gts)
 
 
@@ -106,8 +103,10 @@ def eval_set(model_dir, decode_sig, dataset, top_k, FLAGS, verbose=True):
             unprocessed_pred_cmd = regexDFAEquals.unprocess_regex(pred_cmd)
             # evaluation ignoring flag orders
             if eval_bash:
-                temp_match = tree_dist.one_match(template_gt_asts, tree, ignore_arg_value=True)
-                str_match = tree_dist.one_match(command_gt_asts, tree, ignore_arg_value=False)
+                temp_match = tree_dist.one_match(
+                    template_gt_asts, tree, ignore_arg_value=True)
+                str_match = tree_dist.one_match(
+                    command_gt_asts, tree, ignore_arg_value=False)
             else:
                 if eval_regex:
                     str_match = False
@@ -265,7 +264,7 @@ def gen_eval_csv(model_dir, decode_sig, dataset, FLAGS, output_path, top_k=3):
                 o_f.write(output_str + '\n')
 
 
-def gen_error_analysis_csv(grouped_dataset, prediction_list, FLAGS,
+def print_error_analysis_csv(grouped_dataset, prediction_list, FLAGS,
         cached_evaluation_results=None, group_by_utility=False,
         error_predictions_only=True):
     """
@@ -286,8 +285,6 @@ def gen_error_analysis_csv(grouped_dataset, prediction_list, FLAGS,
         else:
             error_list.append(example)
 
-    grammar_errors = collections.defaultdict(list) if group_by_utility else []
-    argument_errors = collections.defaultdict(list) if group_by_utility else []
     eval_bash = FLAGS.dataset.startswith("bash")
     cmd_parser = data_tools.bash_parser if eval_bash \
         else data_tools.paren_parser
@@ -297,9 +294,12 @@ def gen_error_analysis_csv(grouped_dataset, prediction_list, FLAGS,
             ind, utility, _, _, _ = line.split(',')
             utility_index[utility] = ind
 
+    grammar_errors = collections.defaultdict(list) if group_by_utility else []
+    argument_errors = collections.defaultdict(list) if group_by_utility else []
     example_id = 0
     for nl_temp, data_group in grouped_dataset:
         sc_txt = data_group[0].sc_txt.strip()
+        sc_temp = normalize_nl_ground_truth(sc_txt)
         tg_strs = [dp.tg_txt for dp in data_group]
         gt_trees = [cmd_parser(cm_str) for cm_str in tg_strs]
         if group_by_utility:
@@ -342,7 +342,8 @@ def gen_error_analysis_csv(grouped_dataset, prediction_list, FLAGS,
                     if i == 0:
                         grammar_error = True
 
-            example_sig = '{}<NL_PREDICTION>{}'.format(sc_txt, pred_cmd)
+            example_sig = '{}<NL_PREDICTION>{}'.format(
+                sc_temp, normalize_cm_ground_truth(pred_cmd))
             if cached_evaluation_results and \
                     example_sig in cached_evaluation_results:
                 # print('example_sig: {}'.format(example_sig))
@@ -365,9 +366,181 @@ def gen_error_analysis_csv(grouped_dataset, prediction_list, FLAGS,
     return grammar_errors, argument_errors
 
 
+def gen_manual_evaluation_csv(dataset, FLAGS):
+    """
+    Generate manual evaluation spreadsheet on 100 FIXED dev set examples, list
+    the predictions of different models side-by-side.
+    """
+    def load_model_predictions():
+        model_subdir, decode_sig = graph_utils.get_decode_signature(FLAGS)
+        model_dir = os.path.join(FLAGS.model_root_dir, model_subdir)
+        prediction_list = load_predictions(model_dir, decode_sig, 1)
+        if len(grouped_dataset) != len(prediction_list):
+            raise ValueError("ground truth and predictions length must be equal: "
+                "{} vs. {}".format(len(grouped_dataset), len(prediction_list)))
+        return prediction_list
+
+    # Group dataset
+    tokenizer_selector = "cm" if FLAGS.explain else "nl"
+    grouped_dataset = data_utils.group_parallel_data(
+        dataset, use_bucket=True, tokenizer_selector=tokenizer_selector)
+    
+    # Load model predictions
+    model_names = []
+    model_predictions = []
+
+    # GRUs
+    # -- Token
+    FLAGS.channel = 'token'
+    FLAGS.normalized = False
+    FLAGS.use_copy = False
+    # --- Seq2Seq
+    model_names.append('token-seq2seq')
+    model_predictions.append(load_model_predictions())
+    # --- Tellina
+    FLAGS.normalized = True
+    FLAGS.fill_argument_slots = True
+    model_names.append('tellina')
+    model_predictions.append(load_model_predictions())
+    # --- CopyNet
+    FLAGS.normalized = False
+    FLAGS.fill_argument_slots = False
+    FLAGS.use_copy = True
+    FLAGS.copy_fun = 'copynet'
+    model_names.append('token-copynet')
+    model_predictions.append(load_model_predictions())
+
+    # -- Parital token
+    FLAGS.normalized = False
+    FLAGS.use_copy = False
+    FLAGS.channel = 'partial.token'
+    # --- Seq2Seq
+    model_names.append('partial.token-seq2seq')
+    model_predictions.append(load_model_predictions())
+    # --- CopyNet
+    FLAGS.use_copy = True
+    FLAGS.copy_fun = 'copynet'
+    model_names.append('partial.token-copynet')
+    model_predictions.append(load_model_predictions())
+    
+    # LSTMs
+    FLAGS.rnn_cell = 'lstm'
+    # -- Token 
+    FLAGS.channel = 'token'
+    # --- Seq2Seq
+    FLAGS.normalized = False
+    FLAGS.use_copy = False
+    model_names.append('token-seq2seq-lstm')
+    model_predictions.append(load_model_predictions())
+    # --- Tellina
+    FLAGS.normalized = True
+    FLAGS.fill_argument_slots = True
+    model_names.append('tellina-lstm')
+    model_predictions.append(load_model_predictions())
+    # -- Partial token
+    FLAGS.channel = 'partial.token'
+    # --- Seq2Seq
+    FLAGS.normalized = False
+    FLAGS.fill_argument_slots = False
+    model_names.append('partial.token-seq2seq-lstm')
+    model_predictions.append(load_model_predictions())
+
+    # Get FIXED dev set samples
+    random.seed(100)
+    example_ids = list(range(len(grouped_dataset)))
+    random.shuffle(example_ids)
+    sample_ids = example_ids[:100]
+    # Load additional ground truths
+    template_translations, command_translations = \
+        load_ground_truths_from_manual_evaluation(FLAGS.data_dir)
+
+    # Load cached evaluation results
+    structure_eval_cache, command_eval_cache = \
+        load_cached_evaluation_results(
+            os.path.join(FLAGS.data_dir, 'manual_judgments'))
+
+    eval_bash = FLAGS.dataset.startswith("bash")
+    cmd_parser = data_tools.bash_parser if eval_bash \
+        else data_tools.paren_parser
+
+    output_path = os.path.join(FLAGS.data_dir, 'manual.evaluations.csv')
+    with open(output_path, 'w') as o_f:
+        o_f.write('example_id, description, ground_truth, model, prediction, '
+                  'correct template, correct command\n')
+        for example_id in sample_ids:
+            data_group = grouped_dataset[example_id][1]
+            sc_txt = data_group[0].sc_txt.strip()
+            sc_temp = normalize_nl_ground_truth(sc_txt)
+            command_gts = [dp.tg_txt for dp in data_group]
+            command_gt_asts, template_gt_asts = extend_ground_truths(
+                sc_temp, command_gts, command_translations,
+                template_translations)
+            for model_id, model_name in enumerate(model_names):
+                predictions = model_predictions[model_id][example_id]
+                for i in xrange(min(3, len(predictions))):
+                    if model_id == 0 and i == 0:
+                        output_str = '{},"{}",'.format(example_id, 
+                            sc_txt.replace('"', '""'))
+                    else:
+                        output_str = ',,'
+                    pred_cmd = predictions[i]
+                    cmd = normalize_cm_ground_truth(pred_cmd)
+                    tree = cmd_parser(pred_cmd)
+                    # evaluation ignoring flag orders
+                    temp_match = tree_dist.one_match(
+                        template_gt_asts, tree, ignore_arg_value=True)
+                    str_match = tree_dist.one_match(
+                        command_gt_asts, tree, ignore_arg_value=False)
+                    if (model_id*min(3, len(predictions))+i) < len(command_gts):
+                        output_str += '"{}",'.format(
+                            command_gts[model_id*min(
+                                3, len(predictions))+i].strip().replace('"', '""'))
+                    else:
+                        output_str += ','
+                    output_str += '{},"{}",'.format(model_name, 
+                        pred_cmd.replace('"', '""'))
+
+                    command_example_sig = '{}<NL_PREDICTION>{}'.format(sc_temp, cmd)
+                    structure_example_sig = '{}<NL_PREDICTION>{}'.format(
+                        sc_temp, data_tools.cmd2template(cmd, loose_constraints=True))
+                    command_eval, structure_eval = '', ''
+                    if str_match:
+                        command_eval = 'y'
+                        structure_eval = 'y'
+                    elif temp_match:
+                        structure_eval = 'y'
+                    if command_eval_cache and \
+                            command_example_sig in command_eval_cache:
+                        command_eval = command_eval_cache[command_example_sig]
+                    if structure_eval_cache and \
+                            structure_example_sig in structure_eval_cache:
+                        structure_eval = structure_eval_cache[structure_example_sig]
+                    output_str += '{},{}'.format(structure_eval, command_eval)
+                    o_f.write('{}\n'.format(output_str))
+
+    print('Manual evaluation results saved to {}'.format(output_path))
+
+
+def extend_ground_truths(sc_temp, tg_strs, command_translations,
+                         template_translations):
+    command_gts = set(tg_strs + \
+                  command_translations[sc_temp])
+    command_gt_asts = [data_tools.bash_parser(gt) for gt in command_gts]
+    template_gt_asts = [data_tools.bash_parser(gt)
+        for gt in (command_gts | set(template_translations[sc_temp]))]
+    
+    for gt in (command_gts | set(template_translations[sc_temp])):
+        if data_tools.bash_parser(gt) is None:
+            print('Warning: ground truth parsing error: {}'.format(gt))
+    
+    return command_gt_asts, template_gt_asts
+
+
 def gen_error_analysis_csv(model_dir, decode_sig, dataset, FLAGS, top_k=3):
     """
     Generate error analysis evaluation spreadsheet.
+        - grammar error analysis
+        - argument error analysis
     """
     # Group dataset
     tokenizer_selector = "cm" if FLAGS.explain else "nl"
@@ -377,40 +550,41 @@ def gen_error_analysis_csv(model_dir, decode_sig, dataset, FLAGS, top_k=3):
     # Load model predictions
     prediction_list = load_predictions(model_dir, decode_sig, top_k)
     if len(grouped_dataset) != len(prediction_list):
-        raise ValueError(
-            "ground truth and predictions length must be equal: {} vs. {}"
-            .format(len(grouped_dataset), len(prediction_list)))
+        raise ValueError("ground truth and predictions length must be equal: "
+            "{} vs. {}".format(len(grouped_dataset), len(prediction_list)))
 
     # Convert the predictions to csv format
-    grammar_errors, argument_errors = gen_error_analysis_csv(
+    grammar_errors, argument_errors = print_error_analysis_csv(
         grouped_dataset, prediction_list, FLAGS)
 
     grammar_error_path = os.path.join(model_dir, 'grammar.error.analysis.csv')
-    arg_error_path = os.path.join(model_dir, 'argument.error.analysis.csv')
-    print("Saving grammar errors to {}".format(grammar_error_path))
-    print("Saving argument errors to {}".format(arg_error_path))
-    random.shuffle(argument_errors)
     random.shuffle(grammar_errors)
     with open(grammar_error_path, 'w') as grammar_error_file:
-        with open(arg_error_path, 'w') as arg_error_file:
-            # print csv file header
-            arg_error_file.write(
-                'example_id, description, ground_truth, prediction, ' +
-                'correct template, correct command\n')
-            for example in argument_errors[:100]:
-                for line in example:
-                    arg_error_file.write('{}\n'.format(line))
-            # print csv file header
-            grammar_error_file.write(
-                'example_id, description, ground_truth, prediction, ' +
-                'correct template, correct command\n')
-            for example in grammar_errors[:100]:
-                for line in example:
-                    grammar_error_file.write('{}\n'.format(line))
+        print("Saving grammar errors to {}".format(grammar_error_path))
+        # print csv file header
+        grammar_error_file.write(
+            'example_id, description, ground_truth, prediction, ' +
+            'correct template, correct command\n')
+        for example in grammar_errors[:100]:
+            for line in example:
+                grammar_error_file.write('{}\n'.format(line))
+
+    arg_error_path = os.path.join(model_dir, 'argument.error.analysis.csv')
+    random.shuffle(argument_errors)
+    with open(arg_error_path, 'w') as arg_error_file:
+        print("Saving argument errors to {}".format(arg_error_path))
+        # print csv file header
+        arg_error_file.write(
+            'example_id, description, ground_truth, prediction, ' +
+            'correct template, correct command\n')
+        for example in argument_errors[:100]:
+            for line in example:
+                arg_error_file.write('{}\n'.format(line))
+
 
 
 def gen_error_analysis_csv_by_utility(model_dir, decode_sig, dataset, FLAGS,
-                                        top_k=10):
+                                      top_k=10):
     """
     Generate error analysis evaluation sheet grouped by utility.
     """
@@ -427,11 +601,10 @@ def gen_error_analysis_csv_by_utility(model_dir, decode_sig, dataset, FLAGS,
             .format(len(grouped_dataset), len(prediction_list)))
 
     # Load cached evaluation results
-    cached_evaluation_results = \
-        load_cached_evaluation_results(model_dir, decode_sig)
+    cached_evaluation_results = load_cached_evaluation_results(model_dir)
 
     # Convert the predictions into csv format
-    grammar_errors, argument_errors = gen_error_analysis_csv(
+    grammar_errors, argument_errors = print_error_analysis_csv(
         grouped_dataset, prediction_list, FLAGS, cached_evaluation_results,
         group_by_utility=True, error_predictions_only=False)
 
@@ -482,28 +655,39 @@ def load_cached_evaluation_results(model_dir):
 
     :param model_dir: Directory where the evaluation result file is stored.
     :param decode_sig: The decoding signature of the model being evaluated.
-    :return: dictionary storing the evaluation results.
+    :return: dictionaries storing the evaluation results.
     """
-    evaluation_results = {}
+    structure_eval_results = {}
+    command_eval_results = {}
+    eval_files = []
     for file_name in os.listdir(model_dir):
         if 'evaluations' in file_name:
-            with open(os.path.join(model_dir, file_name)) as f:
-                reader = csv.DictReader(f)
-                current_nl = ''
-                for row in reader:
-                    if row['description']:
-                        current_nl = row['description']
-                    pred_cmd = row['prediction']
-                    structure_eval = row['correct template']
-                    command_eval = row['correct command']
-                    row_sig = '{}<NL_PREDICTION>{}'.format(current_nl, pred_cmd)
-                    evaluation_results[row_sig] = \
-                        '{},{}'.format(structure_eval, command_eval)
-    print('{} evaluation results loaded'.format(len(evaluation_results)))
-    return evaluation_results
+            eval_files.append(file_name)
+    for file_name in sorted(eval_files):
+        manual_judgment_path = os.path.join(model_dir, file_name)
+        with open(manual_judgment_path) as f:
+            print('reading cached evaluations from {}'.format(
+                manual_judgment_path))
+            reader = csv.DictReader(f)
+            current_nl = ''
+            for row in reader:
+                if row['description']:
+                    current_nl = row['description']
+                    nl = normalize_nl_ground_truth(current_nl)
+                pred_cmd = row['prediction']
+                cm = normalize_cm_ground_truth(pred_cmd)
+                command_eval = row['correct command']
+                command_row_sig = '{}<NL_PREDICTION>{}'.format(nl, cm)
+                command_eval_results[command_row_sig] = command_eval
+                structure_eval = row['correct template']
+                structure_row_sig = '{}<NL_PREDICTION>{}'.format(
+                    nl, data_tools.cmd2template(cm, loose_constraints=True))
+                structure_eval_results[structure_row_sig] = structure_eval
+    print('{} evaluation results loaded'.format(len(command_eval_results)))
+    return structure_eval_results, command_eval_results
 
 
-def load_judgments(data_dir):
+def load_ground_truths_from_manual_evaluation(data_dir):
     """
     Load cached evaluation results from disk.
 
@@ -512,32 +696,32 @@ def load_judgments(data_dir):
     command_translations = collections.defaultdict(list)
     template_translations = collections.defaultdict(list)
     data_dir = os.path.join(data_dir, 'manual_judgments')
+    eval_files = []
     for file_name in os.listdir(data_dir):
         if 'evaluations' in file_name:
-            manual_judgment_path = os.path.join(data_dir, file_name)
-            with open(manual_judgment_path) as f:
-                print('reading cached evaluations from {}'.format(
-                    manual_judgment_path))
-                reader = csv.DictReader(f)
-                current_nl = ''
-                for row in reader:
-                    if row['description']:
-                        current_nl = row['description']
-                    pred_cmd = row['prediction']
-                    structure_eval = row['correct template']
-                    command_eval = row['correct command']
-                    if structure_eval == 'y':
-                        template_translations[normalize_nl(current_nl)].append(pred_cmd)
-                    if command_eval == 'y':
-                        command_translations[normalize_nl(current_nl)].append(pred_cmd)
+            eval_files.append(file_name)
+    for file_name in sorted(eval_files):
+        manual_judgment_path = os.path.join(data_dir, file_name)
+        with open(manual_judgment_path) as f:
+            print('reading cached evaluations from {}'.format(
+                manual_judgment_path))
+            reader = csv.DictReader(f)
+            current_nl = ''
+            for row in reader:
+                if row['description']:
+                    current_nl = row['description']
+                pred_cmd = row['prediction']
+                structure_eval = row['correct template']
+                command_eval = row['correct command']
+                if structure_eval == 'y':
+                    template_translations[normalize_nl_ground_truth(
+                        current_nl)].append(pred_cmd)
+                if command_eval == 'y':
+                    command_translations[normalize_nl_ground_truth(
+                        current_nl)].append(pred_cmd)
     print('{} template translations loaded'.format(len(template_translations)))
     print('{} command translations loaded'.format(len(command_translations)))
     return template_translations, command_translations
-
-
-def normalize_nl(nl):
-    tokens, _ = tokenizer.basic_tokenizer(nl)
-    return ' '.join(tokens)
 
 
 def gen_accuracy_by_utility_csv(eval_by_utility_path):
@@ -587,8 +771,14 @@ def gen_accuracy_by_utility_csv(eval_by_utility_path):
                     command_acc, annotation_error_rate, complex_task_rate,
                     (annotation_error_rate+complex_task_rate)))
 
-# Unit Tests
+def normalize_nl_ground_truth(nl):
+    tokens, _ = tokenizer.basic_tokenizer(nl)
+    return ' '.join(tokens)
 
+def normalize_cm_ground_truth(cm):
+    return tree_dist.ignore_differences(cm)
+
+# Unit Tests
 def test_ted():
     while True:
         cmd1 = input(">cmd1: ")

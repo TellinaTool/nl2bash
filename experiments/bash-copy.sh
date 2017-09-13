@@ -24,4 +24,5 @@ ARGS=${@:1}
     --attention_output_keep 1.0 \
     --beta 0 \
     --create_fresh_params \
+    --min_vocab_frequency 4 \
     ${ARGS}
