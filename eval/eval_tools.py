@@ -389,19 +389,20 @@ def gen_manual_evaluation_csv(dataset, FLAGS):
     model_names = []
     model_predictions = []
 
-    # Token
+    # GRUs
+    # -- Token
     FLAGS.channel = 'token'
     FLAGS.normalized = False
     FLAGS.use_copy = False
-    # -- Seq2Seq
+    # --- Seq2Seq
     model_names.append('token-seq2seq')
     model_predictions.append(load_model_predictions())
-    # -- Tellina
+    # --- Tellina
     FLAGS.normalized = True
     FLAGS.fill_argument_slots = True
     model_names.append('tellina')
     model_predictions.append(load_model_predictions())
-    # -- CopyNet
+    # --- CopyNet
     FLAGS.normalized = False
     FLAGS.fill_argument_slots = False
     FLAGS.use_copy = True
@@ -409,17 +410,39 @@ def gen_manual_evaluation_csv(dataset, FLAGS):
     model_names.append('token-copynet')
     model_predictions.append(load_model_predictions())
 
-    # Parital token
-    FLAGS.channel = 'partial.token'
+    # -- Parital token
     FLAGS.normalized = False
     FLAGS.use_copy = False
-    # -- Seq2Seq
+    FLAGS.channel = 'partial.token'
+    # --- Seq2Seq
     model_names.append('partial.token-seq2seq')
     model_predictions.append(load_model_predictions())
-    # -- CopyNet
+    # --- CopyNet
     FLAGS.use_copy = True
     FLAGS.copy_fun = 'copynet'
     model_names.append('partial.token-copynet')
+    model_predictions.append(load_model_predictions())
+    
+    # LSTMs
+    FLAGS.rnn_cell = 'lstm'
+    # -- Token 
+    FLAGS.channel = 'token'
+    # --- Seq2Seq
+    FLAGS.normalized = False
+    FLAGS.use_copy = False
+    model_names.append('token-seq2seq-lstm')
+    model_predictions.append(load_model_predictions())
+    # --- Tellina
+    FLAGS.normalized = True
+    FLAGS.fill_argument_slots = True
+    model_names.append('tellina-lstm')
+    model_predictions.append(load_model_predictions())
+    # -- Partial token
+    FLAGS.channel = 'partial.token'
+    # --- Seq2Seq
+    FLAGS.normalized = False
+    FLAGS.fill_argument_slots = False
+    model_names.append('partial.token-seq2seq-lstm')
     model_predictions.append(load_model_predictions())
 
     # Get FIXED dev set samples
@@ -637,30 +660,32 @@ def load_cached_evaluation_results(model_dir):
     """
     structure_eval_results = {}
     command_eval_results = {}
+    eval_files = []
     for file_name in os.listdir(model_dir):
-        eval_files = []
         if 'evaluations' in file_name:
+            if file_name.startswith('manual.evaluations'):
+                continue
             eval_files.append(file_name)
-        for file_name in sorted(eval_files):
-            manual_judgment_path = os.path.join(model_dir, file_name)
-            with open(manual_judgment_path) as f:
-                print('reading cached evaluations from {}'.format(
-                    manual_judgment_path))
-                reader = csv.DictReader(f)
-                current_nl = ''
-                for row in reader:
-                    if row['description']:
-                        current_nl = row['description']
-                        nl = normalize_nl_ground_truth(current_nl)
-                    pred_cmd = row['prediction']
-                    cm = normalize_cm_ground_truth(pred_cmd)
-                    command_eval = row['correct command']
-                    command_row_sig = '{}<NL_PREDICTION>{}'.format(nl, cm)
-                    command_eval_results[command_row_sig] = command_eval
-                    structure_eval = row['correct template']
-                    structure_row_sig = '{}<NL_PREDICTION>{}'.format(
-                        nl, data_tools.cmd2template(cm, loose_constraints=True))
-                    structure_eval_results[structure_row_sig] = structure_eval
+    for file_name in sorted(eval_files):
+        manual_judgment_path = os.path.join(model_dir, file_name)
+        with open(manual_judgment_path) as f:
+            print('reading cached evaluations from {}'.format(
+                manual_judgment_path))
+            reader = csv.DictReader(f)
+            current_nl = ''
+            for row in reader:
+                if row['description']:
+                    current_nl = row['description']
+                    nl = normalize_nl_ground_truth(current_nl)
+                pred_cmd = row['prediction']
+                cm = normalize_cm_ground_truth(pred_cmd)
+                command_eval = row['correct command']
+                command_row_sig = '{}<NL_PREDICTION>{}'.format(nl, cm)
+                command_eval_results[command_row_sig] = command_eval
+                structure_eval = row['correct template']
+                structure_row_sig = '{}<NL_PREDICTION>{}'.format(
+                    nl, data_tools.cmd2template(cm, loose_constraints=True))
+                structure_eval_results[structure_row_sig] = structure_eval
     print('{} evaluation results loaded'.format(len(command_eval_results)))
     return structure_eval_results, command_eval_results
 
@@ -674,29 +699,29 @@ def load_ground_truths_from_manual_evaluation(data_dir):
     command_translations = collections.defaultdict(list)
     template_translations = collections.defaultdict(list)
     data_dir = os.path.join(data_dir, 'manual_judgments')
+    eval_files = []
     for file_name in os.listdir(data_dir):
-        eval_files = []
         if 'evaluations' in file_name:
             eval_files.append(file_name)
-        for file_name in sorted(eval_files):
-            manual_judgment_path = os.path.join(data_dir, file_name)
-            with open(manual_judgment_path) as f:
-                print('reading cached evaluations from {}'.format(
-                    manual_judgment_path))
-                reader = csv.DictReader(f)
-                current_nl = ''
-                for row in reader:
-                    if row['description']:
-                        current_nl = row['description']
-                    pred_cmd = row['prediction']
-                    structure_eval = row['correct template']
-                    command_eval = row['correct command']
-                    if structure_eval == 'y':
-                        template_translations[normalize_nl_ground_truth(
-                            current_nl)].append(pred_cmd)
-                    if command_eval == 'y':
-                        command_translations[normalize_nl_ground_truth(
-                            current_nl)].append(pred_cmd)
+    for file_name in sorted(eval_files):
+        manual_judgment_path = os.path.join(data_dir, file_name)
+        with open(manual_judgment_path) as f:
+            print('reading cached evaluations from {}'.format(
+                manual_judgment_path))
+            reader = csv.DictReader(f)
+            current_nl = ''
+            for row in reader:
+                if row['description']:
+                    current_nl = row['description']
+                pred_cmd = row['prediction']
+                structure_eval = row['correct template']
+                command_eval = row['correct command']
+                if structure_eval == 'y':
+                    template_translations[normalize_nl_ground_truth(
+                        current_nl)].append(pred_cmd)
+                if command_eval == 'y':
+                    command_translations[normalize_nl_ground_truth(
+                        current_nl)].append(pred_cmd)
     print('{} template translations loaded'.format(len(template_translations)))
     print('{} command translations loaded'.format(len(command_translations)))
     return template_translations, command_translations
