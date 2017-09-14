@@ -291,7 +291,7 @@ def main(_):
 
         dataset = test_set if FLAGS.test else dev_set
         if FLAGS.eval:
-            eval(dataset, verbose=True)
+            eval(dataset)
         elif FLAGS.gen_error_analysis_sheet:
             gen_error_analysis_sheets(dataset, group_by_utility=True)
         elif FLAGS.gen_manual_evaluation_sheet:

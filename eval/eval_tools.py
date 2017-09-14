@@ -36,7 +36,7 @@ error_types = {
 }
 
 
-def eval_set(model_dir, decode_sig, dataset, top_k, FLAGS, verbose=True):
+def eval_set(model_dir, decode_sig, dataset, top_k, FLAGS, verbose=False):
     eval_bash = FLAGS.dataset.startswith("bash") and not FLAGS.explain
     eval_regex = FLAGS.dataset.startswith("regex") and not FLAGS.explain
 
