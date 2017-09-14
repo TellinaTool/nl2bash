@@ -648,7 +648,7 @@ def load_predictions(model_dir, decode_sig, top_k):
     return prediction_list
 
 
-def load_cached_evaluation_results(model_dir):
+def load_cached_evaluation_results(model_dir, verbose=False):
     """
     Load cached evaluation results from disk.
 
@@ -665,8 +665,9 @@ def load_cached_evaluation_results(model_dir):
     for file_name in sorted(eval_files):
         manual_judgment_path = os.path.join(model_dir, file_name)
         with open(manual_judgment_path) as f:
-            print('reading cached evaluations from {}'.format(
-                manual_judgment_path))
+            if verbose:
+                print('reading cached evaluations from {}'.format(
+                    manual_judgment_path))
             reader = csv.DictReader(f)
             current_nl = ''
             for row in reader:
@@ -682,11 +683,12 @@ def load_cached_evaluation_results(model_dir):
                 structure_row_sig = '{}<NL_PREDICTION>{}'.format(
                     nl, data_tools.cmd2template(cm, loose_constraints=True))
                 structure_eval_results[structure_row_sig] = structure_eval
-    print('{} evaluation results loaded'.format(len(command_eval_results)))
+    print('{} structure evaluation results loaded'.format(len(structure_eval_results)))
+    print('{} command evaluation results loaded'.format(len(command_eval_results)))
     return structure_eval_results, command_eval_results
 
 
-def load_ground_truths_from_manual_evaluation(data_dir):
+def load_ground_truths_from_manual_evaluation(data_dir, verbose=False):
     """
     Load cached evaluation results from disk.
 
@@ -702,8 +704,9 @@ def load_ground_truths_from_manual_evaluation(data_dir):
     for file_name in sorted(eval_files):
         manual_judgment_path = os.path.join(data_dir, file_name)
         with open(manual_judgment_path) as f:
-            print('reading cached evaluations from {}'.format(
-                manual_judgment_path))
+            if verbose:
+                print('reading cached evaluations from {}'.format(
+                    manual_judgment_path))
             reader = csv.DictReader(f)
             current_nl = ''
             for row in reader:
