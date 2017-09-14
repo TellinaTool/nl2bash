@@ -45,17 +45,17 @@ def get_utilities(ast):
 
 def bash_tokenizer(cmd, recover_quotation=True, loose_constraints=False,
         ignore_flag_order=False, arg_type_only=False, with_flag_head=False,
-        with_flag_argtype=False, with_prefix=False):
+        with_flag_argtype=False, with_prefix=False, verbose=False):
     """
     Tokenize a bash command.
     """
-    tree = lint.normalize_ast(cmd, recover_quotation)
+    tree = lint.normalize_ast(cmd, recover_quotation, verbose=verbose)
     return ast2tokens(tree, loose_constraints, ignore_flag_order,
                       arg_type_only, with_flag_head=with_flag_head,
                       with_prefix=with_prefix, with_flag_argtype=with_flag_argtype)
 
 
-def bash_parser(cmd, recover_quotation=True, verbose=True):
+def bash_parser(cmd, recover_quotation=True, verbose=False):
     """
     Parse bash command into AST.
     """
@@ -261,12 +261,12 @@ def ast2template(node, loose_constraints=False, ignore_flag_order=False,
 
 
 def cmd2template(cmd, recover_quotation=True, arg_type_only=True,
-                loose_constraints=False):
+                loose_constraints=False, verbose=False):
     """
     Convert a bash command to a template that contains only reserved words
     and argument types flags are alphabetically ordered.
     """
-    tree = lint.normalize_ast(cmd, recover_quotation)
+    tree = lint.normalize_ast(cmd, recover_quotation, verbose=verbose)
     return ast2template(tree, loose_constraints, arg_type_only)
 
 
