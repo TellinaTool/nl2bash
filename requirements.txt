@@ -1,10 +1,8 @@
-nltk
-bs4
-matplotlib
-tqdm
-
-# zss
+tqdm>=4.9.0
 nose>=1.1.2
 numpy>=1.7
+scipy>0.13.3
 six>=1.8
--e hg+https://code.google.com/p/py-editdist/#egg=editdist
+# nltk
+# bs4
+# matplotlib
