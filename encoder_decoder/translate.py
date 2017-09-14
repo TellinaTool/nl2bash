@@ -63,6 +63,8 @@ def train(train_set, test_set):
 
         train_bucket_sizes = [len(train_set.data_points[b])
                               for b in xrange(len(train_set.buckets))]
+        for i, bucket in enumerate(train_set.buckets):
+            print('bucket {}: {} ({})'.format(i, bucket, train_bucket_sizes[i]))
         train_total_size = float(sum(train_bucket_sizes))
 
         # A bucket scale is a list of increasing numbers from 0 to 1 that we'll
