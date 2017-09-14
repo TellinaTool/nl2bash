@@ -787,8 +787,9 @@ def create_vocabulary(vocab_path, dataset, min_word_frequency=1,
         for data_point in dataset:
             for token in data_point:
                 vocab[token] += 1
-    sorted_vocab = [(x, y) for x, y in sorted(vocab.items(), key=lambda x:x[1],
-                    reverse=True) if y >= min_word_frequency]
+    sorted_vocab = [(x, y) for x, y in sorted(
+            vocab.items(), key=lambda x:(x[1], x[0]), reverse=True) 
+            if y >= min_word_frequency]
     
     if is_character_model:
         # Character model
