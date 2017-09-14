@@ -286,7 +286,7 @@ def decode(model_outputs, FLAGS, vocabs, sc_fillers=None,
     return batch_outputs
 
 
-def decode_set(sess, model, dataset, top_k, FLAGS, verbose=True):
+def decode_set(sess, model, dataset, top_k, FLAGS, verbose=False):
     """
     Compute top-k predictions on the dev/test dataset and write the predictions
     to disk.
