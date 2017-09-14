@@ -87,7 +87,6 @@ def eval_set(model_dir, decode_sig, dataset, top_k, FLAGS, verbose=True):
 
         num_gts = len(command_gts)
 
-
         if verbose:
             print("Example {}".format(data_id))
             print("Original Source: {}".format(sc_str))
@@ -524,16 +523,16 @@ def gen_manual_evaluation_csv(dataset, FLAGS):
 
 def extend_ground_truths(sc_temp, tg_strs, command_translations,
                          template_translations):
-    command_gts = set(tg_strs + \
-                  command_translations[sc_temp])
+    command_gts = set(tg_strs + command_translations[sc_temp])
     command_gt_asts = [data_tools.bash_parser(gt) for gt in command_gts]
-    template_gt_asts = [data_tools.bash_parser(gt)
-        for gt in (command_gts | set(template_translations[sc_temp]))]
-    
+    template_gt_asts = []
     for gt in (command_gts | set(template_translations[sc_temp])):
-        if data_tools.bash_parser(gt) is None:
-            print('Warning: ground truth parsing error: {}'.format(gt))
-    
+        gt_ast = data_tools.bash_parser(gt)
+        if gt_ast is None:
+            # Check error in ground truth command
+            print('Warning: ground truth command parsing error: {}'.format(gt))
+        else:
+            template_gt_asts.append(gt_ast)
     return command_gt_asts, template_gt_asts
 
 
