@@ -357,7 +357,7 @@ def fill_default_value(node):
 
 # --- Slot-filling alignment induction from parallel data
 
-def slot_filler_alignment_induction(nl, cm, verbose=True):
+def slot_filler_alignment_induction(nl, cm, verbose=False):
     """Give an oracle translation pair of (nl, cm), align the slot fillers
        extracted from the natural language with the slots in the command.
     """
