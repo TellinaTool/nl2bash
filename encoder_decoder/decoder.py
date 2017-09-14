@@ -51,19 +51,24 @@ class Decoder(graph_utils.NNModel):
         self.embedding_vars = False
         self.output_project_vars = False
 
-        self.beam_decoder = beam_search.BeamDecoder(
-            self.vocab_size,
-            self.num_layers,
-            data_utils.ROOT_ID,
-            data_utils.EOS_ID,
-            self.batch_size,
-            self.beam_size,
-            self.use_attention,
-            self.use_copy,
-            self.copy_fun,
-            self.alpha,
-            locally_normalized=(self.training_algorithm != "bso")
-        ) if self.decoding_algorithm == "beam_search" else None
+        if self.decoding_algorithm == "beam_search":
+            num_classes = self.vocab_size + self.max_source_length \
+                if self.copynet else self.vocab_size
+            self.beam_decoder = beam_search.BeamDecoder(
+                num_classes,
+                self.num_layers,
+                data_utils.ROOT_ID,
+                data_utils.EOS_ID,
+                self.batch_size,
+                self.beam_size,
+                self.use_attention,
+                self.use_copy,
+                self.copy_fun,
+                self.alpha,
+                locally_normalized=(self.training_algorithm != "bso")
+            )
+        else:
+            self.beam_decoder = None
 
         self.output_project = self.output_project()
 
