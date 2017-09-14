@@ -269,13 +269,16 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
             # Determine thresholds for buckets of equal capacity
             buckets = []
             sorted_dataset = sorted(dataset, key=lambda x:max(len(x.sc_ids), len(x.tg_ids)),
-                                    reverse=True)
+                                    reverse=False)
             for i, dp in enumerate(sorted_dataset):
                 max_seq_len = max((len(dp.sc_ids), len(dp.tg_ids)))
                 if max_seq_len > max(max_sc_length, max_tg_length):
-                    break
+                    continue
                 if i > 0 and i % bucket_capacity == 0:
                     buckets.append((max_seq_len, max_seq_len))
+            if len(buckets) == 0 or buckets[-1][0] < max(max_sc_length, max_tg_length):
+                buckets.append((max(max_sc_length, max_tg_length),
+                                max(max_sc_length, max_tg_length)))
         else:
             num_buckets = len(buckets)
             assert(num_buckets >= 1)
