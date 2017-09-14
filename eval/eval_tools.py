@@ -449,7 +449,6 @@ def gen_manual_evaluation_csv(dataset, FLAGS):
     example_ids = list(range(len(grouped_dataset)))
     random.shuffle(example_ids)
     sample_ids = example_ids[:100]
-
     # Load additional ground truths
     template_translations, command_translations = \
         load_ground_truths_from_manual_evaluation(FLAGS.data_dir)
@@ -662,8 +661,6 @@ def load_cached_evaluation_results(model_dir):
     eval_files = []
     for file_name in os.listdir(model_dir):
         if 'evaluations' in file_name:
-            if file_name.startswith('manual.evaluations'):
-                continue
             eval_files.append(file_name)
     for file_name in sorted(eval_files):
         manual_judgment_path = os.path.join(model_dir, file_name)
