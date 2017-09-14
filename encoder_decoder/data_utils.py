@@ -252,10 +252,12 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
     if use_buckets:
         print('Group data points into buckets...')
         if split == 'train':
-            # Determine bucket sizes on the fly
+            # Determine bucket sizes based on the characteristics of the dataset
             num_buckets = 3
-            # Excluding outliers when computing bucket sizes
-            length_cutoff = 0.01 if not FLAGS.channel == 'char' else 0.1
+            bucket_capacity = len(dataset) / num_buckets
+            assert(bucket_capacity > 0)
+            # Excluding outliers (very long sequences)
+            length_cutoff = 0.01
             # A. Determine maximum source length
             sorted_dataset = sorted(dataset, key=lambda x:len(x.sc_ids), reverse=True)
             max_sc_length = len(sorted_dataset[int(len(sorted_dataset) * length_cutoff)].sc_ids)
@@ -264,16 +266,16 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
             max_tg_length = len(sorted_dataset[int(len(sorted_dataset) * length_cutoff)].tg_ids)
             print('max_source_length after filtering = {}'.format(max_sc_length))
             print('max_target_length after filtering = {}'.format(max_tg_length))
-            min_bucket_sc, min_bucket_tg = 30, 30
-            sc_inc = int((max_sc_length - min_bucket_sc) / (num_buckets-1)) + 1 \
-                if max_sc_length > min_bucket_sc else 0
-            tg_inc = int((max_tg_length - min_bucket_tg) / (num_buckets-1)) + 1 \
-                if max_tg_length > min_bucket_tg else 0
+            # Determine thresholds for buckets of equal capacity
             buckets = []
-            for b in range(num_buckets):
-                buckets.append((min_bucket_sc + b * sc_inc,
-                                min_bucket_tg + b * tg_inc))
-            buckets = sorted(list(set(buckets)), key=lambda x:100*x[0]+x[1])
+            sorted_dataset = sorted(dataset, key=lambda x:max(len(x.sc_ids), len(x.tg_ids)),
+                                    reverse=True)
+            for i, dp in enumerate(sorted_dataset):
+                max_seq_len = max((len(dp.sc_ids), len(dp.tg_ids)))
+                if max_seq_len > max(max_sc_length, max_tg_length):
+                    break
+                if i > 0 and i % bucket_capacity == 0:
+                    buckets.append((max_seq_len, max_seq_len))
         else:
             num_buckets = len(buckets)
             assert(num_buckets >= 1)
