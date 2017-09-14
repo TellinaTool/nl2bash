@@ -97,7 +97,7 @@ def translate_fun(data_point, sess, model, vocabs, FLAGS,
 
     # Which bucket does it belong to?
     bucket_ids = [b for b in xrange(len(model.buckets))
-                  if model.buckets[b][0] > len(encoder_features[0])]
+                  if model.buckets[b][0] > len(encoder_features[0][0])]
     bucket_id = min(bucket_ids) if bucket_ids else (len(model.buckets) - 1)
     
     # Get a 1-element batch to feed the sentence to the model.
@@ -229,7 +229,7 @@ def decode(model_outputs, FLAGS, vocabs, sc_fillers=None,
                         target += char
             else:
                 target = ' '.join(output_tokens)
-            print(target) 
+            
             # Step 2: checvik if the predicted command template is grammatical
             if FLAGS.grammatical_only and not FLAGS.explain:
                 if FLAGS.dataset.startswith('bash'):
