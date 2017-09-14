@@ -60,7 +60,7 @@ class DBConnection(object):
     def get_rewrite_templates(self, s1):
         rewrites = set([s1])
         c = self.cursor
-        for s1, s2 in c.execute("SELECT s1, s2 FROM Rewrit7es WHERE s1 = ?",
+        for s1, s2 in c.execute("SELECT s1, s2 FROM Rewrites WHERE s1 = ?",
                                 (s1,)):
             rewrites.add(s2)
         return rewrites
@@ -83,6 +83,20 @@ class DBConnection(object):
                            (s1, s2)):
             return True
         return False
+
+
+def export_rewrites(output_dir):
+    with DBConnection() as db:
+        rewrites = set()
+        db.create_schema()
+        c = db.cursor
+        for t1, t2 in c.execute("SELECT s1, s2 FROM Rewrites"):
+            rewrites.add(sorted((t1, t2)))
+
+    with open(os.path.join(output_dir, 'rewrites.csv'), 'w') as o_f:
+        o_f.write('template 1,template 2\n')
+        for t1, t2 in sorted(list(rewrites)):
+            o_f.write('{},{}\n'.format(t1, t2))
 
 
 def clean_rewrites():
@@ -162,21 +176,5 @@ def test_rewrite(cmd):
 
 
 if __name__ == "__main__":
-    nl_path = sys.argv[1]
-    cm_path = sys.argv[2]
-
-    clean_rewrites()
-
-    with open(nl_path) as f:
-        nls = f.readlines()
-    with open(cm_path) as f:
-        cms = f.readlines()
-
-    extract_rewrites((nls, cms))
-    # while True:
-    #     try:
-    #         cmd = raw_input("> ")
-    #         cmd = cmd.decode("utf-8")
-    #         test_rewrite(cmd)
-    #     except EOFError as ex:
-    #         break
+    output_dir = sys.argv[1]
+    export_rewrites(output_dir)
