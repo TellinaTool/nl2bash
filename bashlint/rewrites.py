@@ -91,7 +91,7 @@ def export_rewrites(output_dir):
         db.create_schema()
         c = db.cursor
         for t1, t2 in c.execute("SELECT s1, s2 FROM Rewrites"):
-            rewrites.add(sorted((t1, t2)))
+            rewrites.add(tuple(sorted((t1, t2))))
 
     with open(os.path.join(output_dir, 'rewrites.csv'), 'w') as o_f:
         o_f.write('template 1,template 2\n')
