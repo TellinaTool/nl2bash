@@ -59,38 +59,6 @@ def extract_rewrites(data):
             rewrites[nls[i]] = group_pairs_by_nl[nls[i]]
 
     # Step 4: print extracted rewrites and store in database.
-<<<<<<< HEAD
-    with DBConnection() as db:
-        db.create_schema()
-        for nl, cm_temps in sorted(rewrites.items(), key=lambda x: len(x[1]),
-                                   reverse=True)[:10]:
-            if len(cm_temps) >= 2:
-                for cm_temp1 in cm_temps:
-                    for cm_temp2 in cm_temps:
-                        if cm_temp1 == cm_temp2:
-                            continue
-                        if not db.exist_rewrite((cm_temp1, cm_temp2)):
-                            db.add_rewrite((cm_temp1, cm_temp2))
-                            print("* {} --> {}".format(cm_temp1, cm_temp2))
-                print()
-
-
-def rewrite(ast, temp):
-    return
-
-
-def test_rewrite(cmd):
-    with DBConnection() as db:
-        ast = data_tools.bash_parser(cmd)
-        rewrites = list(db.get_rewrites(ast))
-        for i in xrange(len(rewrites)):
-            print("rewrite %d: %s" % (i, data_tools.ast2command(rewrites[i])))
-
-
-if __name__ == "__main__":
-    output_dir = sys.argv[1]
-    export_rewrites(output_dir)
-=======
     for nl, cm_temps in sorted(rewrites.items(), key=lambda x: len(x[1]),
                                reverse=True):
         if len(cm_temps) >= 2:
@@ -100,4 +68,3 @@ if __name__ == "__main__":
                         continue
                     print("* {} --> {}".format(cm_temp1, cm_temp2))
             print()
->>>>>>> 719b8adfc4567fa277a2c2738d51d7e821c4bae7
