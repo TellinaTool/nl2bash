@@ -54,6 +54,7 @@ class Decoder(graph_utils.NNModel):
         if self.decoding_algorithm == "beam_search":
             num_classes = self.vocab_size + self.max_source_length \
                 if self.copynet else self.vocab_size
+            print(self.max_source_length)
             self.beam_decoder = beam_search.BeamDecoder(
                 num_classes,
                 self.num_layers,
