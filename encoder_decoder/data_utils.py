@@ -607,6 +607,7 @@ def nl_to_partial_tokens(s, tokenizer, to_lower_case=True, lemmatization=True):
 
 
 def cm_to_partial_tokens(s, tokenizer):
+    s = data_tools.correct_errors_and_normalize_surface(s)
     return string_to_partial_tokens(cm_to_tokens(s, tokenizer))
 
 
@@ -853,5 +854,7 @@ def group_parallel_data(dataset, attribute='source', use_bucket=False,
 
 
 if __name__ == '__main__':
-    print(nl_to_partial_tokens('Execute md5sum command on files found by the find command', tokenizer=tokenizer.basic_tokenizer))
-    print(cm_to_partial_tokens("find . -perm -600 -print", tokenizer=data_tools.bash_tokenizer))
+    print(nl_to_partial_tokens('Execute md5sum command on files found by the find command',
+                               tokenizer=tokenizer.basic_tokenizer))
+    print(cm_to_partial_tokens("find . -perm -600 -print",
+                               tokenizer=data_tools.bash_tokenizer))
