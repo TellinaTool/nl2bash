@@ -229,7 +229,7 @@ def decode(model_outputs, FLAGS, vocabs, sc_fillers=None,
                         target += char
             else:
                 target = ' '.join(output_tokens)
-            print(target) 
+            
             # Step 2: checvik if the predicted command template is grammatical
             if FLAGS.grammatical_only and not FLAGS.explain:
                 if FLAGS.dataset.startswith('bash'):
