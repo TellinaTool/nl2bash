@@ -12,6 +12,7 @@ import functools
 import numpy as np
 import os, sys
 import random
+import shutil
 
 if sys.version_info > (3, 0):
     from six.moves import xrange
@@ -887,6 +888,26 @@ def test_ted():
         )
         print("ted = {}".format(dist))
         print()
+
+
+def normalize_judgement_file(judgement_file):
+    data_dir = os.path.dirname(judgement_file)
+    file_name = os.path.basename(judgement_file)
+    shutil.move(judgement_file, os.path.join(data_dir, file_name + '.base'))
+
+    with open(judgement_file, 'w') as o_f:
+        o_f.write('description,prediction,correct template,correct command\n')
+        with open(os.path.join(data_dir, file_name + '.base')) as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                description = row['description']
+                prediction = row['prediction']
+                correct_template = row['correct template']
+                correct_command = row['correct command']
+                o_f.write('"{}","{}",{},{}\n').format(
+                    description.replace('"', '""'),
+                    prediction.replace('"', '""'),
+                    correct_template, correct_command)
 
 
 if __name__ == "__main__":
