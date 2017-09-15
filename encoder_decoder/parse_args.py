@@ -59,6 +59,8 @@ def define_input_flags():
                                 'Set to True to generate error analysis spreadsheet.')
     tf.app.flags.DEFINE_boolean('gen_manual_evaluation_sheet', False,
                                 'Set to True to generate manual evaluation spreadsheet.')
+    tf.app.flags.DEFINE_boolean('gen_manual_evaluation_table', False,
+                                'Set to True to open manual evaluation commandline interface')
 
     # device
     tf.app.flags.DEFINE_string('gpu', '0', 'GPU device where the computation is going to be placed.')
