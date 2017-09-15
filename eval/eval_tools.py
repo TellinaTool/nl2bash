@@ -22,6 +22,8 @@ from eval import token_based, tree_dist, zss
 from eval.dfa_equal import regexDFAEquals
 from nlp_tools import constants, tokenizer
 
+DEBUG = False
+
 
 error_types = {
     0 : "unmarked error",
@@ -212,56 +214,413 @@ def eval_set(model_dir, decode_sig, dataset, top_k, FLAGS, verbose=False):
     return M
 
 
-def gen_eval_csv(model_dir, decode_sig, dataset, FLAGS, output_path, top_k=3):
+def gen_manual_evaluation_table(dataset, FLAGS):
     """
-    Generate evaluation spreadsheet.
+    Generate a table of manual evaluation results on 100 FIXED dev set examples.
+    Prompt the user to enter judgement interactively.
     """
-    with open(output_path, 'w') as o_f:
-        # print evaluation form header
-        o_f.write('example_id, description, ground_truth, prediction, ' +
-                  'correct command, correct template\n')
+    # Group dataset
+    tokenizer_selector = "cm" if FLAGS.explain else "nl"
+    grouped_dataset = data_utils.group_parallel_data(
+        dataset, use_bucket=True, tokenizer_selector=tokenizer_selector)
 
-        eval_bash = FLAGS.dataset.startswith("bash")
-        cmd_parser = data_tools.bash_parser if eval_bash \
-            else data_tools.paren_parser
-        tokenizer_selector = "cm" if FLAGS.explain else "nl"
-        grouped_dataset = data_utils.group_parallel_data(
-            dataset, use_bucket=True, tokenizer_selector=tokenizer_selector)
-        prediction_list = load_predictions(model_dir, decode_sig, top_k)
+    model_names, model_predictions = load_multiple_model_predictions(
+        grouped_dataset, FLAGS)
+
+    # Get FIXED dev set samples
+    random.seed(100)
+    example_ids = list(range(len(grouped_dataset)))
+    random.shuffle(example_ids)
+    sample_ids = example_ids[:100]
+
+    # Load additional ground truths
+    template_translations, command_translations = \
+        load_ground_truths_from_manual_evaluation(FLAGS.data_dir)
+
+    # Load cached evaluation results
+    structure_eval_cache, command_eval_cache = \
+        load_cached_evaluation_results(
+            os.path.join(FLAGS.data_dir, 'manual_judgements'))
+
+    eval_bash = FLAGS.dataset.startswith("bash")
+    cmd_parser = data_tools.bash_parser if eval_bash \
+        else data_tools.paren_parser
+
+    # Interactive manual evaluation interface
+    num_s_correct = collections.defaultdict(int)
+    num_f_correct = collections.defaultdict(int)
+    for example_id in sample_ids:
+        data_group = grouped_dataset[example_id][1]
+        sc_txt = data_group[0].sc_txt.strip()
+        sc_temp = normalize_nl_ground_truth(sc_txt)
+        command_gts = [dp.tg_txt for dp in data_group]
+        command_gt_asts, template_gt_asts = extend_ground_truths(
+            sc_temp, command_gts, command_translations,
+            template_translations)
+        for model_id, model_name in enumerate(model_names):
+            predictions = model_predictions[model_id][example_id]
+            for i in xrange(min(3, len(predictions))):
+                pred_cmd = predictions[i]
+                cmd = normalize_cm_ground_truth(pred_cmd)
+                tree = cmd_parser(pred_cmd)
+                temp_match = tree_dist.one_match(
+                    template_gt_asts, tree, ignore_arg_value=True)
+                str_match = tree_dist.one_match(
+                    command_gt_asts, tree, ignore_arg_value=False)
+                # Match ground truths & exisitng judgements
+                command_example_sig = '{}<NL_PREDICTION>{}'.format(sc_temp, cmd)
+                structure_example_sig = '{}<NL_PREDICTION>{}'.format(
+                    sc_temp, data_tools.cmd2template(cmd, loose_constraints=True))
+                command_eval, structure_eval = '', ''
+                if str_match:
+                    command_eval = 'y'
+                    structure_eval = 'y'
+                elif temp_match:
+                    structure_eval = 'y'
+                if command_eval_cache and \
+                        command_example_sig in command_eval_cache:
+                    command_eval = command_eval_cache[command_example_sig]
+                if structure_eval_cache and \
+                        structure_example_sig in structure_eval_cache:
+                    structure_eval = structure_eval_cache[structure_example_sig]
+                # Prompt for new judgements
+                if command_eval == 'y':
+                    num_f_correct += 1
+                    num_s_correct += 1
+                elif structure_eval == 'y':
+                    num_s_correct += 1
+                    command_eval = input('Is the command correct? [y/reason]')
+                    add_new_judgements(FLAGS.data_dir, sc_txt, pred_cmd,
+                                       structure_eval, command_eval)
+                else:
+                    structure_eval = input('Does the command have correct structure? [y/reason]')
+                    if structure_eval == 'y':
+                        command_eval = input('Is the command correct? [y/reason]')
+                    add_new_judgements(FLAGS.data_dir, sc_txt, pred_cmd,
+                                       structure_eval, command_eval)
+                if structure_eval == 'y':
+                    num_s_correct[model_name] += 1
+                if command_eval == 'y':
+                    num_f_correct[model_name] += 1
+
+    # print evaluation table
+    print('Model\tAcc_F\tAcc_T')
+    for i, model_name in enumerate(model_names):
+        print('{.2f}\t{.2f}\t{.2f}'.format(model_name,
+            num_f_correct[model_name] / len(sample_ids),
+            num_s_correct[model_name] / len(sample_ids)))
+
+
+def gen_manual_evaluation_csv(dataset, FLAGS):
+    """
+    Generate .csv spreadsheet for manual evaluation of model performance on 100
+    FIXED dev set examples, predictions of different models are listed side-by-side.
+    """
+    # Group dataset
+    tokenizer_selector = "cm" if FLAGS.explain else "nl"
+    grouped_dataset = data_utils.group_parallel_data(
+        dataset, use_bucket=True, tokenizer_selector=tokenizer_selector)
+
+    model_names, model_predictions = load_multiple_model_predictions(
+        grouped_dataset, FLAGS)
+
+    # Get FIXED dev set samples
+    random.seed(100)
+    example_ids = list(range(len(grouped_dataset)))
+    random.shuffle(example_ids)
+    sample_ids = example_ids[:100]
+
+    # Load additional ground truths
+    template_translations, command_translations = \
+        load_ground_truths_from_manual_evaluation(FLAGS.data_dir)
+
+    # Load cached evaluation results
+    structure_eval_cache, command_eval_cache = \
+        load_cached_evaluation_results(
+            os.path.join(FLAGS.data_dir, 'manual_judgements'))
+
+    eval_bash = FLAGS.dataset.startswith("bash")
+    cmd_parser = data_tools.bash_parser if eval_bash \
+        else data_tools.paren_parser
+
+    output_path = os.path.join(FLAGS.data_dir, 'manual.evaluations.csv')
+    with open(output_path, 'w') as o_f:
+        o_f.write('example_id, description, ground_truth, model, prediction, '
+                  'correct template, correct command\n')
+        for example_id in sample_ids:
+            data_group = grouped_dataset[example_id][1]
+            sc_txt = data_group[0].sc_txt.strip()
+            sc_temp = normalize_nl_ground_truth(sc_txt)
+            command_gts = [dp.tg_txt for dp in data_group]
+            command_gt_asts, template_gt_asts = extend_ground_truths(
+                sc_temp, command_gts, command_translations,
+                template_translations)
+            for model_id, model_name in enumerate(model_names):
+                predictions = model_predictions[model_id][example_id]
+                for i in xrange(min(3, len(predictions))):
+                    if model_id == 0 and i == 0:
+                        output_str = '{},"{}",'.format(example_id,
+                            sc_txt.replace('"', '""'))
+                    else:
+                        output_str = ',,'
+                    pred_cmd = predictions[i]
+                    cmd = normalize_cm_ground_truth(pred_cmd)
+                    tree = cmd_parser(pred_cmd)
+                    temp_match = tree_dist.one_match(
+                        template_gt_asts, tree, ignore_arg_value=True)
+                    str_match = tree_dist.one_match(
+                        command_gt_asts, tree, ignore_arg_value=False)
+                    if (model_id*min(3, len(predictions))+i) < len(command_gts):
+                        output_str += '"{}",'.format(
+                            command_gts[model_id*min(
+                                3, len(predictions))+i].strip().replace('"', '""'))
+                    else:
+                        output_str += ','
+                    output_str += '{},"{}",'.format(model_name, 
+                        pred_cmd.replace('"', '""'))
+
+                    command_example_sig = '{}<NL_PREDICTION>{}'.format(sc_temp, cmd)
+                    structure_example_sig = '{}<NL_PREDICTION>{}'.format(
+                        sc_temp, data_tools.cmd2template(cmd, loose_constraints=True))
+                    command_eval, structure_eval = '', ''
+                    if str_match:
+                        command_eval = 'y'
+                        structure_eval = 'y'
+                    elif temp_match:
+                        structure_eval = 'y'
+                    if command_eval_cache and \
+                            command_example_sig in command_eval_cache:
+                        command_eval = command_eval_cache[command_example_sig]
+                    if structure_eval_cache and \
+                            structure_example_sig in structure_eval_cache:
+                        structure_eval = structure_eval_cache[structure_example_sig]
+                    output_str += '{},{}'.format(structure_eval, command_eval)
+                    o_f.write('{}\n'.format(output_str))
+
+    print('Manual evaluation results saved to {}'.format(output_path))
+
+
+def load_multiple_model_predictions(grouped_dataset, FLAGS):
+    """
+    Load predictions of multiple models.
+
+    :param dataset: The dataset over which the predictions are generated.
+    :param FLAGS: Experiment hyperparametrs.
+    :return model_names: List of model names.
+    :return model_predictions:
+    """
+    def load_model_predictions():
+        model_subdir, decode_sig = graph_utils.get_decode_signature(FLAGS)
+        model_dir = os.path.join(FLAGS.model_root_dir, model_subdir)
+        prediction_list = load_predictions(model_dir, decode_sig, 1)
         if len(grouped_dataset) != len(prediction_list):
             raise ValueError("ground truth and predictions length must be equal: "
                 "{} vs. {}".format(len(grouped_dataset), len(prediction_list)))
+        return prediction_list
 
-        example_id = 0
-        for nl_temp, data_group in grouped_dataset:
-            tg_strs = [dp.tg_txt for dp in data_group]
-            gt_trees = [cmd_parser(cm_str) for cm_str in tg_strs]
-            predictions = prediction_list[example_id]
-            example_id += 1
-            for i in xrange(min(3, len(predictions))):
-                if i == 0:
-                    output_str = '{},{},'.format(
-                        example_id, data_group[0].sc_txt.strip())
-                else:
-                    output_str = ',,'
-                pred_cmd, score = predictions[i]
-                tree = cmd_parser(pred_cmd)
-                # evaluation ignoring flag orders
-                temp_match = tree_dist.one_match(
-                    gt_trees, tree, ignore_arg_value=True)
-                str_match = tree_dist.one_match(
-                    gt_trees, tree, ignore_arg_value=False)
-                if i < len(tg_strs):
-                    output_str += '{},'.format(tg_strs[i].strip())
-                else:
-                    output_str += ','
-                output_str += '{},'.format(pred_cmd)
-                if temp_match:
-                    output_str += 'y,'
-                if str_match:
-                    output_str += 'y'
-                o_f.write(output_str + '\n')
+    # Load model predictions
+    model_names = []
+    model_predictions = []
 
+    # GRUs
+    # -- Token
+    FLAGS.channel = 'token'
+    FLAGS.normalized = False
+    FLAGS.use_copy = False
+    # --- Seq2Seq
+    model_names.append('token-seq2seq')
+    model_predictions.append(load_model_predictions())
+    # --- Tellina
+    FLAGS.normalized = True
+    FLAGS.fill_argument_slots = True
+    model_names.append('tellina')
+    model_predictions.append(load_model_predictions())
+    # --- CopyNet
+    FLAGS.normalized = False
+    FLAGS.fill_argument_slots = False
+    FLAGS.use_copy = True
+    FLAGS.copy_fun = 'copynet'
+    model_names.append('token-copynet')
+    model_predictions.append(load_model_predictions())
+
+    # -- Parital token
+    FLAGS.normalized = False
+    FLAGS.use_copy = False
+    FLAGS.channel = 'partial.token'
+    # --- Seq2Seq
+    model_names.append('partial.token-seq2seq')
+    model_predictions.append(load_model_predictions())
+    # --- CopyNet
+    FLAGS.use_copy = True
+    FLAGS.copy_fun = 'copynet'
+    model_names.append('partial.token-copynet')
+    model_predictions.append(load_model_predictions())
+
+    # LSTMs
+    FLAGS.rnn_cell = 'lstm'
+    # -- Token
+    FLAGS.channel = 'token'
+    # --- Seq2Seq
+    FLAGS.normalized = False
+    FLAGS.use_copy = False
+    model_names.append('token-seq2seq-lstm')
+    model_predictions.append(load_model_predictions())
+    # --- Tellina
+    FLAGS.normalized = True
+    FLAGS.fill_argument_slots = True
+    model_names.append('tellina-lstm')
+    model_predictions.append(load_model_predictions())
+    # -- Partial token
+    FLAGS.channel = 'partial.token'
+    # --- Seq2Seq
+    FLAGS.normalized = False
+    FLAGS.fill_argument_slots = False
+    model_names.append('partial.token-seq2seq-lstm')
+    model_predictions.append(load_model_predictions())
+
+    return model_names, model_predictions
+
+
+def extend_ground_truths(sc_temp, tg_strs, command_translations,
+                         template_translations):
+    command_gts = set(tg_strs + command_translations[sc_temp])
+    command_gt_asts = [data_tools.bash_parser(gt) for gt in command_gts]
+    template_gt_asts = []
+    for gt in (command_gts | set(template_translations[sc_temp])):
+        gt_ast = data_tools.bash_parser(gt)
+        if gt_ast is None:
+            # Check error in ground truth command
+            print('Warning: ground truth command parsing error: {}'.format(gt))
+        else:
+            template_gt_asts.append(gt_ast)
+    return command_gt_asts, template_gt_asts
+
+
+def load_predictions(model_dir, decode_sig, top_k):
+    """
+    Load model predictions (top_k per example) from disk.
+
+    :param model_dir: Directory where the model prediction file is stored.
+    :param decode_sig: The decoding signature of the model which generated the
+        prediction results.
+    :param top_k: Maximum number of predictions to read per example.
+    :return: List of top k predictions.
+    """
+    with open(os.path.join(model_dir,
+            'predictions.{}.latest'.format(decode_sig))) as f:
+        prediction_list = []
+        for line in f:
+            predictions = line.split('|||')
+            prediction_list.append(predictions[:top_k])
+    return prediction_list
+
+
+def load_cached_evaluation_results(model_dir, verbose=False):
+    """
+    Load cached evaluation results from disk.
+
+    :param model_dir: Directory where the evaluation result file is stored.
+    :param decode_sig: The decoding signature of the model being evaluated.
+    :return: dictionaries storing the evaluation results.
+    """
+    structure_eval_results = {}
+    command_eval_results = {}
+    eval_files = []
+    for file_name in os.listdir(model_dir):
+        if 'evaluations' in file_name:
+            eval_files.append(file_name)
+    for file_name in sorted(eval_files):
+        manual_judgement_path = os.path.join(model_dir, file_name)
+        with open(manual_judgement_path) as f:
+            if verbose:
+                print('reading cached evaluations from {}'.format(
+                    manual_judgement_path))
+            reader = csv.DictReader(f)
+            current_nl = ''
+            for row in reader:
+                if row['description']:
+                    current_nl = row['description']
+                    nl = normalize_nl_ground_truth(current_nl)
+                pred_cmd = row['prediction']
+                cm = normalize_cm_ground_truth(pred_cmd)
+                command_eval = row['correct command']
+                command_row_sig = '{}<NL_PREDICTION>{}'.format(nl, cm)
+                command_eval_results[command_row_sig] = command_eval
+                structure_eval = row['correct template']
+                structure_row_sig = '{}<NL_PREDICTION>{}'.format(
+                    nl, data_tools.cmd2template(cm, loose_constraints=True))
+                structure_eval_results[structure_row_sig] = structure_eval
+    print('{} structure evaluation results loaded'.format(len(structure_eval_results)))
+    print('{} command evaluation results loaded'.format(len(command_eval_results)))
+    return structure_eval_results, command_eval_results
+
+
+def load_ground_truths_from_manual_evaluation(data_dir, verbose=False):
+    """
+    Load cached evaluation results from disk.
+
+    :return: nl -> template translation map, nl -> command translation map
+    """
+    command_translations = collections.defaultdict(list)
+    template_translations = collections.defaultdict(list)
+    data_dir = os.path.join(data_dir, 'manual_judgements')
+    eval_files = []
+    for file_name in os.listdir(data_dir):
+        if 'evaluations' in file_name:
+            eval_files.append(file_name)
+    for file_name in sorted(eval_files):
+        manual_judgement_path = os.path.join(data_dir, file_name)
+        with open(manual_judgement_path) as f:
+            if verbose:
+                print('reading cached evaluations from {}'.format(
+                    manual_judgement_path))
+            reader = csv.DictReader(f)
+            current_nl = ''
+            for row in reader:
+                if row['description']:
+                    current_nl = row['description']
+                pred_cmd = row['prediction']
+                structure_eval = row['correct template']
+                command_eval = row['correct command']
+                if structure_eval == 'y':
+                    template_translations[normalize_nl_ground_truth(
+                        current_nl)].append(pred_cmd)
+                if command_eval == 'y':
+                    command_translations[normalize_nl_ground_truth(
+                        current_nl)].append(pred_cmd)
+    print('{} template translations loaded'.format(len(template_translations)))
+    print('{} command translations loaded'.format(len(command_translations)))
+    return template_translations, command_translations
+
+
+def add_new_judgements(data_dir, nl, command, correct_template='',
+                       correct_command=''):
+    """
+    Append a new judgement
+    """
+    data_dir = os.path.join(data_dir, 'manual_judgements')
+    manual_judgement_path = os.path.join(
+        data_dir, 'manual_evaluations.additional')
+    empty_file = (os.stat(manual_judgement_path).st_size == 0)
+    with open(manual_judgement_path, 'a') as o_f:
+        if empty_file:
+            o_f.write(
+                'description,prediction,correct template,correct command\n')
+        o_f.write('{},{},{},{}\n'.format(
+            nl, command, correct_template, correct_command))
+    print('new judgement added to {}'.format(manual_judgement_path))
+
+
+def normalize_nl_ground_truth(nl):
+    tokens, _ = tokenizer.basic_tokenizer(nl)
+    return ' '.join(tokens)
+
+
+def normalize_cm_ground_truth(cm):
+    return tree_dist.ignore_differences(cm)
+
+
+# -- Generate error analysis spreadsheet -- #
 
 def print_error_analysis_csv(grouped_dataset, prediction_list, FLAGS,
         cached_evaluation_results=None, group_by_utility=False,
@@ -365,176 +724,6 @@ def print_error_analysis_csv(grouped_dataset, prediction_list, FLAGS,
     return grammar_errors, argument_errors
 
 
-def gen_manual_evaluation_csv(dataset, FLAGS):
-    """
-    Generate manual evaluation spreadsheet on 100 FIXED dev set examples, list
-    the predictions of different models side-by-side.
-    """
-    def load_model_predictions():
-        model_subdir, decode_sig = graph_utils.get_decode_signature(FLAGS)
-        model_dir = os.path.join(FLAGS.model_root_dir, model_subdir)
-        prediction_list = load_predictions(model_dir, decode_sig, 1)
-        if len(grouped_dataset) != len(prediction_list):
-            raise ValueError("ground truth and predictions length must be equal: "
-                "{} vs. {}".format(len(grouped_dataset), len(prediction_list)))
-        return prediction_list
-
-    # Group dataset
-    tokenizer_selector = "cm" if FLAGS.explain else "nl"
-    grouped_dataset = data_utils.group_parallel_data(
-        dataset, use_bucket=True, tokenizer_selector=tokenizer_selector)
-    
-    # Load model predictions
-    model_names = []
-    model_predictions = []
-
-    # GRUs
-    # -- Token
-    FLAGS.channel = 'token'
-    FLAGS.normalized = False
-    FLAGS.use_copy = False
-    # --- Seq2Seq
-    model_names.append('token-seq2seq')
-    model_predictions.append(load_model_predictions())
-    # --- Tellina
-    FLAGS.normalized = True
-    FLAGS.fill_argument_slots = True
-    model_names.append('tellina')
-    model_predictions.append(load_model_predictions())
-    # --- CopyNet
-    FLAGS.normalized = False
-    FLAGS.fill_argument_slots = False
-    FLAGS.use_copy = True
-    FLAGS.copy_fun = 'copynet'
-    model_names.append('token-copynet')
-    model_predictions.append(load_model_predictions())
-
-    # -- Parital token
-    FLAGS.normalized = False
-    FLAGS.use_copy = False
-    FLAGS.channel = 'partial.token'
-    # --- Seq2Seq
-    model_names.append('partial.token-seq2seq')
-    model_predictions.append(load_model_predictions())
-    # --- CopyNet
-    FLAGS.use_copy = True
-    FLAGS.copy_fun = 'copynet'
-    model_names.append('partial.token-copynet')
-    model_predictions.append(load_model_predictions())
-    
-    # LSTMs
-    FLAGS.rnn_cell = 'lstm'
-    # -- Token 
-    FLAGS.channel = 'token'
-    # --- Seq2Seq
-    FLAGS.normalized = False
-    FLAGS.use_copy = False
-    model_names.append('token-seq2seq-lstm')
-    model_predictions.append(load_model_predictions())
-    # --- Tellina
-    FLAGS.normalized = True
-    FLAGS.fill_argument_slots = True
-    model_names.append('tellina-lstm')
-    model_predictions.append(load_model_predictions())
-    # -- Partial token
-    FLAGS.channel = 'partial.token'
-    # --- Seq2Seq
-    FLAGS.normalized = False
-    FLAGS.fill_argument_slots = False
-    model_names.append('partial.token-seq2seq-lstm')
-    model_predictions.append(load_model_predictions())
-
-    # Get FIXED dev set samples
-    random.seed(100)
-    example_ids = list(range(len(grouped_dataset)))
-    random.shuffle(example_ids)
-    sample_ids = example_ids[:100]
-    # Load additional ground truths
-    template_translations, command_translations = \
-        load_ground_truths_from_manual_evaluation(FLAGS.data_dir)
-
-    # Load cached evaluation results
-    structure_eval_cache, command_eval_cache = \
-        load_cached_evaluation_results(
-            os.path.join(FLAGS.data_dir, 'manual_judgments'))
-
-    eval_bash = FLAGS.dataset.startswith("bash")
-    cmd_parser = data_tools.bash_parser if eval_bash \
-        else data_tools.paren_parser
-
-    output_path = os.path.join(FLAGS.data_dir, 'manual.evaluations.csv')
-    with open(output_path, 'w') as o_f:
-        o_f.write('example_id, description, ground_truth, model, prediction, '
-                  'correct template, correct command\n')
-        for example_id in sample_ids:
-            data_group = grouped_dataset[example_id][1]
-            sc_txt = data_group[0].sc_txt.strip()
-            sc_temp = normalize_nl_ground_truth(sc_txt)
-            command_gts = [dp.tg_txt for dp in data_group]
-            command_gt_asts, template_gt_asts = extend_ground_truths(
-                sc_temp, command_gts, command_translations,
-                template_translations)
-            for model_id, model_name in enumerate(model_names):
-                predictions = model_predictions[model_id][example_id]
-                for i in xrange(min(3, len(predictions))):
-                    if model_id == 0 and i == 0:
-                        output_str = '{},"{}",'.format(example_id, 
-                            sc_txt.replace('"', '""'))
-                    else:
-                        output_str = ',,'
-                    pred_cmd = predictions[i]
-                    cmd = normalize_cm_ground_truth(pred_cmd)
-                    tree = cmd_parser(pred_cmd)
-                    # evaluation ignoring flag orders
-                    temp_match = tree_dist.one_match(
-                        template_gt_asts, tree, ignore_arg_value=True)
-                    str_match = tree_dist.one_match(
-                        command_gt_asts, tree, ignore_arg_value=False)
-                    if (model_id*min(3, len(predictions))+i) < len(command_gts):
-                        output_str += '"{}",'.format(
-                            command_gts[model_id*min(
-                                3, len(predictions))+i].strip().replace('"', '""'))
-                    else:
-                        output_str += ','
-                    output_str += '{},"{}",'.format(model_name, 
-                        pred_cmd.replace('"', '""'))
-
-                    command_example_sig = '{}<NL_PREDICTION>{}'.format(sc_temp, cmd)
-                    structure_example_sig = '{}<NL_PREDICTION>{}'.format(
-                        sc_temp, data_tools.cmd2template(cmd, loose_constraints=True))
-                    command_eval, structure_eval = '', ''
-                    if str_match:
-                        command_eval = 'y'
-                        structure_eval = 'y'
-                    elif temp_match:
-                        structure_eval = 'y'
-                    if command_eval_cache and \
-                            command_example_sig in command_eval_cache:
-                        command_eval = command_eval_cache[command_example_sig]
-                    if structure_eval_cache and \
-                            structure_example_sig in structure_eval_cache:
-                        structure_eval = structure_eval_cache[structure_example_sig]
-                    output_str += '{},{}'.format(structure_eval, command_eval)
-                    o_f.write('{}\n'.format(output_str))
-
-    print('Manual evaluation results saved to {}'.format(output_path))
-
-
-def extend_ground_truths(sc_temp, tg_strs, command_translations,
-                         template_translations):
-    command_gts = set(tg_strs + command_translations[sc_temp])
-    command_gt_asts = [data_tools.bash_parser(gt) for gt in command_gts]
-    template_gt_asts = []
-    for gt in (command_gts | set(template_translations[sc_temp])):
-        gt_ast = data_tools.bash_parser(gt)
-        if gt_ast is None:
-            # Check error in ground truth command
-            print('Warning: ground truth command parsing error: {}'.format(gt))
-        else:
-            template_gt_asts.append(gt_ast)
-    return command_gt_asts, template_gt_asts
-
-
 def gen_error_analysis_csv(model_dir, decode_sig, dataset, FLAGS, top_k=3):
     """
     Generate error analysis evaluation spreadsheet.
@@ -579,7 +768,6 @@ def gen_error_analysis_csv(model_dir, decode_sig, dataset, FLAGS, top_k=3):
         for example in argument_errors[:100]:
             for line in example:
                 arg_error_file.write('{}\n'.format(line))
-
 
 
 def gen_error_analysis_csv_by_utility(model_dir, decode_sig, dataset, FLAGS,
@@ -629,103 +817,6 @@ def gen_error_analysis_csv_by_utility(model_dir, decode_sig, dataset, FLAGS,
                         error_by_utility_file.write('{},{}\n'.format(utility, l))
 
 
-def load_predictions(model_dir, decode_sig, top_k):
-    """
-    Load model predictions (top_k per example) from disk.
-
-    :param model_dir: Directory where the model prediction file is stored.
-    :param decode_sig: The decoding signature of the model which generated the
-        prediction results.
-    :param top_k: Maximum number of predictions to read per example.
-    :return: List of top k predictions.
-    """
-    with open(os.path.join(model_dir,
-            'predictions.{}.latest'.format(decode_sig))) as f:
-        prediction_list = []
-        for line in f:
-            predictions = line.split('|||')
-            prediction_list.append(predictions[:top_k])
-    return prediction_list
-
-
-def load_cached_evaluation_results(model_dir, verbose=False):
-    """
-    Load cached evaluation results from disk.
-
-    :param model_dir: Directory where the evaluation result file is stored.
-    :param decode_sig: The decoding signature of the model being evaluated.
-    :return: dictionaries storing the evaluation results.
-    """
-    structure_eval_results = {}
-    command_eval_results = {}
-    eval_files = []
-    for file_name in os.listdir(model_dir):
-        if 'evaluations' in file_name:
-            eval_files.append(file_name)
-    for file_name in sorted(eval_files):
-        manual_judgment_path = os.path.join(model_dir, file_name)
-        with open(manual_judgment_path) as f:
-            if verbose:
-                print('reading cached evaluations from {}'.format(
-                    manual_judgment_path))
-            reader = csv.DictReader(f)
-            current_nl = ''
-            for row in reader:
-                if row['description']:
-                    current_nl = row['description']
-                    nl = normalize_nl_ground_truth(current_nl)
-                pred_cmd = row['prediction']
-                cm = normalize_cm_ground_truth(pred_cmd)
-                command_eval = row['correct command']
-                command_row_sig = '{}<NL_PREDICTION>{}'.format(nl, cm)
-                command_eval_results[command_row_sig] = command_eval
-                structure_eval = row['correct template']
-                structure_row_sig = '{}<NL_PREDICTION>{}'.format(
-                    nl, data_tools.cmd2template(cm, loose_constraints=True))
-                structure_eval_results[structure_row_sig] = structure_eval
-    print('{} structure evaluation results loaded'.format(len(structure_eval_results)))
-    print('{} command evaluation results loaded'.format(len(command_eval_results)))
-    return structure_eval_results, command_eval_results
-
-
-def load_ground_truths_from_manual_evaluation(data_dir, verbose=False):
-    """
-    Load cached evaluation results from disk.
-
-    :return: nl -> template translation map, nl -> command translation map
-    """
-    command_translations = collections.defaultdict(list)
-    template_translations = collections.defaultdict(list)
-    data_dir = os.path.join(data_dir, 'manual_judgments')
-    eval_files = []
-    for file_name in os.listdir(data_dir):
-        if 'evaluations' in file_name:
-            eval_files.append(file_name)
-    for file_name in sorted(eval_files):
-        manual_judgment_path = os.path.join(data_dir, file_name)
-        with open(manual_judgment_path) as f:
-            if verbose:
-                print('reading cached evaluations from {}'.format(
-                    manual_judgment_path))
-            reader = csv.DictReader(f)
-            current_nl = ''
-            for row in reader:
-                if row['description']:
-                    current_nl = row['description']
-                pred_cmd = row['prediction']
-                structure_eval = row['correct template']
-                command_eval = row['correct command']
-                if structure_eval == 'y':
-                    template_translations[normalize_nl_ground_truth(
-                        current_nl)].append(pred_cmd)
-                if command_eval == 'y':
-                    command_translations[normalize_nl_ground_truth(
-                        current_nl)].append(pred_cmd)
-    print('{} template translations loaded'.format(len(template_translations)))
-    print('{} command translations loaded'.format(len(command_translations)))
-    return template_translations, command_translations
-
-
 def gen_accuracy_by_utility_csv(eval_by_utility_path):
     """
     Generate accuracy by utility spreadsheet table based on the evaluation by
@@ -750,7 +841,7 @@ def gen_accuracy_by_utility_csv(eval_by_utility_path):
             if row['correct template'] == 'complex task':
                 num_complex_tasks[utility] += 1
     output_path = os.path.join(os.path.dirname(eval_by_utility_path),
-            'accuracy.by.utility.csv')
+                               'accuracy.by.utility.csv')
     print('Save accuracy by utility metrics to {}'.format(output_path))
     with open(output_path, 'w') as o_f: 
         # print csv file header
@@ -773,14 +864,9 @@ def gen_accuracy_by_utility_csv(eval_by_utility_path):
                     command_acc, annotation_error_rate, complex_task_rate,
                     (annotation_error_rate+complex_task_rate)))
 
-def normalize_nl_ground_truth(nl):
-    tokens, _ = tokenizer.basic_tokenizer(nl)
-    return ' '.join(tokens)
 
-def normalize_cm_ground_truth(cm):
-    return tree_dist.ignore_differences(cm)
+# -- Unit Tests -- #
 
-# Unit Tests
 def test_ted():
     while True:
         cmd1 = input(">cmd1: ")
