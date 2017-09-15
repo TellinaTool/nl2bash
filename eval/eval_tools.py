@@ -284,20 +284,26 @@ def gen_manual_evaluation_table(dataset, FLAGS):
                         structure_example_sig in structure_eval_cache:
                     structure_eval = structure_eval_cache[structure_example_sig]
                 # Prompt for new judgements
-                if command_eval == 'y':
-                    num_f_correct += 1
-                    num_s_correct += 1
-                elif structure_eval == 'y':
-                    num_s_correct += 1
-                    command_eval = input('Is the command correct? [y/reason]')
-                    add_new_judgements(FLAGS.data_dir, sc_txt, pred_cmd,
-                                       structure_eval, command_eval)
-                else:
-                    structure_eval = input('Does the command have correct structure? [y/reason]')
+                if command_eval != 'y':
                     if structure_eval == 'y':
-                        command_eval = input('Is the command correct? [y/reason]')
-                    add_new_judgements(FLAGS.data_dir, sc_txt, pred_cmd,
-                                       structure_eval, command_eval)
+                        if not command_eval:
+                            print('# {}'.format(sc_txt))
+                            print('> {}'.format(pred_cmd))
+                            command_eval = input('Is the command correct? [y/reason] ')
+                            add_new_judgements(FLAGS.data_dir, sc_txt, pred_cmd,
+                                               structure_eval, command_eval)
+                            print()
+                    else:
+                        if not structure_eval:
+                            print('# {}'.format(sc_txt))
+                            print('> {}'.format(pred_cmd))
+                            structure_eval = input('Does the command have correct structure? [y/reason] ')
+                            if structure_eval == 'y':
+                                command_eval = input('Is the command correct? [y/reason] ')
+                            print(structure_eval, command_eval)
+                            add_new_judgements(FLAGS.data_dir, sc_temp, cmd,
+                                               structure_eval, command_eval)
+                            print()
                 if structure_eval == 'y':
                     num_s_correct[model_name] += 1
                 if command_eval == 'y':
@@ -515,7 +521,7 @@ def load_predictions(model_dir, decode_sig, top_k):
     return prediction_list
 
 
-def load_cached_evaluation_results(model_dir, verbose=False):
+def load_cached_evaluation_results(model_dir, verbose=True):
     """
     Load cached evaluation results from disk.
 
@@ -600,14 +606,16 @@ def add_new_judgements(data_dir, nl, command, correct_template='',
     """
     data_dir = os.path.join(data_dir, 'manual_judgements')
     manual_judgement_path = os.path.join(
-        data_dir, 'manual_evaluations.additional')
-    empty_file = (os.stat(manual_judgement_path).st_size == 0)
-    with open(manual_judgement_path, 'a') as o_f:
-        if empty_file:
+        data_dir, 'manual.evaluations.additional')
+    if not os.path.exists(manual_judgement_path):
+        with open(manual_judgement_path, 'w') as o_f:
             o_f.write(
                 'description,prediction,correct template,correct command\n')
-        o_f.write('{},{},{},{}\n'.format(
-            nl, command, correct_template, correct_command))
+    print(correct_template, correct_command)
+    with open(manual_judgement_path, 'a') as o_f:
+        o_f.write('"{}","{}",{},{}\n'.format(
+            nl.replace('"', '""'), command.replace('"', '""'), 
+            correct_template, correct_command))
     print('new judgement added to {}'.format(manual_judgement_path))
 
 
@@ -770,8 +778,8 @@ def gen_error_analysis_csv(model_dir, decode_sig, dataset, FLAGS, top_k=3):
                 arg_error_file.write('{}\n'.format(line))
 
 
-def gen_error_analysis_csv_by_utility(model_dir, decode_sig, dataset, FLAGS,
-                                      top_k=10):
+def gen_error_analysis_csv_by_utility(model_dir, decode_sig, dataset, 
+        FLAGS, top_k=10):
     """
     Generate error analysis evaluation sheet grouped by utility.
     """
