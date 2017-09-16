@@ -39,7 +39,8 @@ error_types = {
 }
 
 
-def eval_set(model_dir, decode_sig, dataset, top_k, FLAGS, verbose=False):
+def eval_set(model_dir, decode_sig, dataset, top_k, FLAGS, manual=False,
+             verbose=False):
     eval_bash = FLAGS.dataset.startswith("bash") and not FLAGS.explain
     eval_regex = FLAGS.dataset.startswith("regex") and not FLAGS.explain
 
@@ -65,6 +66,14 @@ def eval_set(model_dir, decode_sig, dataset, top_k, FLAGS, verbose=False):
     if eval_bash:
         template_translations, command_translations = \
             load_ground_truths_from_manual_evaluation(FLAGS.data_dir)
+
+    # Compute manual evaluation scores on a subset of examples
+    # Get FIXED dev set samples
+    random.seed(100)
+    example_ids = list(range(len(grouped_dataset)))
+    random.shuffle(example_ids)
+    sample_ids = example_ids[:100]
+    grouped_dataset = [grouped_dataset[i] for i in sample_ids]
    
     num_eval = 0
     top_k_temp_correct = np.zeros([len(grouped_dataset), top_k])
@@ -290,7 +299,8 @@ def gen_manual_evaluation_table(dataset, FLAGS):
                         if not command_eval:
                             print('# {}'.format(sc_txt))
                             print('> {}'.format(pred_cmd))
-                            command_eval = input('Is the command correct? [y/reason] ')
+                            command_eval = input(
+                                'Is the command correct? [y/reason] ')
                             add_new_judgements(FLAGS.data_dir, sc_txt, pred_cmd,
                                                structure_eval, command_eval)
                             print()
@@ -298,9 +308,11 @@ def gen_manual_evaluation_table(dataset, FLAGS):
                         if not structure_eval:
                             print('# {}'.format(sc_txt))
                             print('> {}'.format(pred_cmd))
-                            structure_eval = input('Does the command have correct structure? [y/reason] ')
+                            structure_eval = input(
+                                'Does the command have correct structure? [y/reason] ')
                             if structure_eval == 'y':
-                                command_eval = input('Is the command correct? [y/reason] ')
+                                command_eval = input(
+                                    'Is the command correct? [y/reason] ')
                             print(structure_eval, command_eval)
                             add_new_judgements(FLAGS.data_dir, sc_temp, cmd,
                                                structure_eval, command_eval)
