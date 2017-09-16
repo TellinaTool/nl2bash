@@ -225,7 +225,7 @@ def eval_set(model_dir, decode_sig, dataset, top_k, FLAGS, manual=True,
     return M
 
 
-def gen_manual_evaluation_table(dataset, FLAGS):
+def gen_manual_evaluation_table(dataset, FLAGS, interactive=False):
     """
     Generate a table of manual evaluation results on 100 FIXED dev set examples.
     Prompt the user to enter judgement interactively.
@@ -297,7 +297,7 @@ def gen_manual_evaluation_table(dataset, FLAGS):
                 # Prompt for new judgements
                 if command_eval != 'y':
                     if structure_eval == 'y':
-                        if not command_eval:
+                        if not command_eval and interactive:
                             print(model_name)
                             print('# {}'.format(sc_txt))
                             print('> {}'.format(pred_cmd))
@@ -307,7 +307,7 @@ def gen_manual_evaluation_table(dataset, FLAGS):
                                                structure_eval, command_eval)
                             print()
                     else:
-                        if not structure_eval:
+                        if not structure_eval and interactive:
                             print('# {}'.format(sc_txt))
                             print('> {}'.format(pred_cmd))
                             structure_eval = input(
@@ -636,6 +636,10 @@ def add_new_judgements(data_dir, nl, command, correct_template='',
     with open(manual_judgement_path, 'a') as o_f:
         temp = data_tools.cmd2template(
             normalize_cm_ground_truth(command), loose_constraints=True)
+        if not correct_template:
+            correct_template = 'n'
+        if not correct_command:
+            correct_command = 'n'
         o_f.write('"{}","{}","{}",{},{}\n'.format(
             nl.replace('"', '""'), command.replace('"', '""'), 
             temp.replace('"', '""'), correct_template, correct_command))
