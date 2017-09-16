@@ -325,11 +325,23 @@ def gen_manual_evaluation_table(dataset, FLAGS, interactive=False):
                     num_f_correct[model_name] += 1
 
     # print evaluation table
-    print('Model\tAcc_F\tAcc_T')
-    for i, model_name in enumerate(model_names):
-        print('{.2f}\t{.2f}\t{.2f}'.format(model_name,
+    # compute model name length offset
+    max_len = len(max(model_names, key=len))
+    max_len_with_offset = (int(max_len / 4) + 1) * 4
+    first_line = '{}Acc_F    Acc_T'.format(
+        padding_spaces('Model', max_len_with_offset))
+    print(first_line)
+    print('-' * len(first_line))
+    for i, model_name in enumerate(model_names):    
+        print('{}{:.2f}    {:.2f}'.format(
+            padding_spaces(model_name, max_len_with_offset),
             num_f_correct[model_name] / len(sample_ids),
             num_s_correct[model_name] / len(sample_ids)))
+    print('-' * len(first_line))
+
+
+def padding_spaces(s, max_len):
+    return s + ' ' * (max_len - len(s))
 
 
 def gen_manual_evaluation_csv(dataset, FLAGS):
@@ -540,7 +552,7 @@ def load_predictions(model_dir, decode_sig, top_k):
     return prediction_list
 
 
-def load_cached_evaluation_results(model_dir, verbose=True):
+def load_cached_evaluation_results(model_dir, verbose=False):
     """
     Load cached evaluation results from disk.
 
@@ -593,9 +605,7 @@ def load_ground_truths_from_manual_evaluation(data_dir, verbose=False):
     data_dir = os.path.join(data_dir, 'manual_judgements')
     eval_files = []
     for file_name in os.listdir(data_dir):
-        # if 'evaluations' in file_name and not file_name.endswith('base'):
-        #     eval_files.append(file_name)
-        if file_name == 'manual.evaluations.0912.csv':  
+        if 'evaluations' in file_name and not file_name.endswith('base'):
             eval_files.append(file_name)
     for file_name in sorted(eval_files):
         manual_judgement_path = os.path.join(data_dir, file_name)
