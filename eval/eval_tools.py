@@ -119,7 +119,6 @@ def eval_set(model_dir, decode_sig, dataset, top_k, FLAGS, manual=True,
                     template_gt_asts, tree, ignore_arg_value=True)
                 str_match = tree_dist.one_match(
                     command_gt_asts, tree, ignore_arg_value=False)
-                print(temp_match, str_match)
             else:
                 if eval_regex:
                     str_match = False
@@ -299,6 +298,7 @@ def gen_manual_evaluation_table(dataset, FLAGS):
                 if command_eval != 'y':
                     if structure_eval == 'y':
                         if not command_eval:
+                            print(model_name)
                             print('# {}'.format(sc_txt))
                             print('> {}'.format(pred_cmd))
                             command_eval = input(
@@ -570,11 +570,13 @@ def load_cached_evaluation_results(model_dir, verbose=True):
                 command_eval = row['correct command']
                 command_row_sig = '{}<NL_PREDICTION>{}'.format(
                     current_nl, pred_cmd)
-                command_eval_results[command_row_sig] = command_eval
+                if command_eval:
+                    command_eval_results[command_row_sig] = command_eval
                 structure_eval = row['correct template']
                 structure_row_sig = '{}<NL_PREDICTION>{}'.format(
                     current_nl, pred_temp)
-                structure_eval_results[structure_row_sig] = structure_eval
+                if structure_eval:
+                    structure_eval_results[structure_row_sig] = structure_eval
     print('{} structure evaluation results loaded'.format(len(structure_eval_results)))
     print('{} command evaluation results loaded'.format(len(command_eval_results)))
     return structure_eval_results, command_eval_results
