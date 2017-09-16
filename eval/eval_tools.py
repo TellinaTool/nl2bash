@@ -550,12 +550,12 @@ def load_cached_evaluation_results(model_dir, verbose=True):
                     nl = normalize_nl_ground_truth(current_nl)
                 pred_cmd = row['prediction']
                 cm = normalize_cm_ground_truth(pred_cmd)
+                temp = row['template']
                 command_eval = row['correct command']
                 command_row_sig = '{}<NL_PREDICTION>{}'.format(nl, cm)
                 command_eval_results[command_row_sig] = command_eval
                 structure_eval = row['correct template']
-                structure_row_sig = '{}<NL_PREDICTION>{}'.format(
-                    nl, data_tools.cmd2template(cm, loose_constraints=True))
+                structure_row_sig = '{}<NL_PREDICTION>{}'.format(nl, temp)
                 structure_eval_results[structure_row_sig] = structure_eval
     print('{} structure evaluation results loaded'.format(len(structure_eval_results)))
     print('{} command evaluation results loaded'.format(len(command_eval_results)))
@@ -586,15 +586,15 @@ def load_ground_truths_from_manual_evaluation(data_dir, verbose=False):
             for row in reader:
                 if row['description']:
                     current_nl = row['description']
+                    nl = normalize_nl_ground_truth(current_nl)
                 pred_cmd = row['prediction']
+                temp = row['template']
                 structure_eval = row['correct template']
                 command_eval = row['correct command']
                 if structure_eval == 'y':
-                    template_translations[normalize_nl_ground_truth(
-                        current_nl)].append(pred_cmd)
+                    template_translations[nl].append(temp)
                 if command_eval == 'y':
-                    command_translations[normalize_nl_ground_truth(
-                        current_nl)].append(pred_cmd)
+                    command_translations[nl].append(pred_cmd)
     print('{} template translations loaded'.format(len(template_translations)))
     print('{} command translations loaded'.format(len(command_translations)))
     return template_translations, command_translations
@@ -893,10 +893,11 @@ def test_ted():
 def normalize_judgement_file(judgement_file):
     data_dir = os.path.dirname(judgement_file)
     file_name = os.path.basename(judgement_file)
-    shutil.move(judgement_file, os.path.join(data_dir, file_name + '.base'))
+    if not os.path.exists(os.path.join(data_dir, file_name + '.base')):
+        shutil.move(judgement_file, os.path.join(data_dir, file_name + '.base'))
 
     with open(judgement_file, 'w') as o_f:
-        o_f.write('description,prediction,correct template,correct command\n')
+        o_f.write('description,prediction,template,correct template,correct command\n')
         with open(os.path.join(data_dir, file_name + '.base')) as f:
             reader = csv.DictReader(f)
             for row in reader:
@@ -904,12 +905,23 @@ def normalize_judgement_file(judgement_file):
                 prediction = row['prediction']
                 correct_template = row['correct template']
                 correct_command = row['correct command']
-                o_f.write('"{}","{}",{},{}\n').format(
-                    description.replace('"', '""'),
-                    prediction.replace('"', '""'),
-                    correct_template, correct_command)
+                o_f.write('"{}","{}","{}",{},{}\n'.format(
+                    normalize_nl_ground_truth(description).replace('"', '""'),
+                    normalize_cm_ground_truth(prediction).replace('"', '""'),
+                    data_tools.cmd2template(
+                        normalize_cm_ground_truth(prediction),
+                        loose_constraints=True).replace('"', '""'),
+                    correct_template, correct_command))
 
+
+def normalize_judgement_files(data_dir):
+    for file_name in os.listdir(data_dir):
+        if '.evaluations.' in file_name:
+            normalize_judgement_file(os.path.join(data_dir, file_name))
+    
 
 if __name__ == "__main__":
-    eval_file = sys.argv[1]
-    gen_accuracy_by_utility_csv(eval_file)
+    # eval_file = sys.argv[1]
+    # gen_accuracy_by_utility_csv(eval_file)
+    judgement_file = sys.argv[1]
+    normalize_judgement_files(judgement_file)
