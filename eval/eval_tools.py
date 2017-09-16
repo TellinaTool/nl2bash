@@ -534,7 +534,7 @@ def load_cached_evaluation_results(model_dir, verbose=True):
     command_eval_results = {}
     eval_files = []
     for file_name in os.listdir(model_dir):
-        if 'evaluations' in file_name:
+        if 'evaluations' in file_name and not file_name.endswith('base'):
             eval_files.append(file_name)
     for file_name in sorted(eval_files):
         manual_judgement_path = os.path.join(model_dir, file_name)
@@ -573,10 +573,11 @@ def load_ground_truths_from_manual_evaluation(data_dir, verbose=False):
     data_dir = os.path.join(data_dir, 'manual_judgements')
     eval_files = []
     for file_name in os.listdir(data_dir):
-        if 'evaluations' in file_name:
+        if 'evaluations' in file_name and not file_name.endswith('base'):
             eval_files.append(file_name)
     for file_name in sorted(eval_files):
         manual_judgement_path = os.path.join(data_dir, file_name)
+        print(manual_judgement_path)
         with open(manual_judgement_path) as f:
             if verbose:
                 print('reading cached evaluations from {}'.format(
@@ -611,12 +612,14 @@ def add_new_judgements(data_dir, nl, command, correct_template='',
     if not os.path.exists(manual_judgement_path):
         with open(manual_judgement_path, 'w') as o_f:
             o_f.write(
-                'description,prediction,correct template,correct command\n')
+                'description,prediction,template,correct template,correct command\n')
     print(correct_template, correct_command)
     with open(manual_judgement_path, 'a') as o_f:
-        o_f.write('"{}","{}",{},{}\n'.format(
+        temp = data_tools.cmd2template(
+            normalize_cm_ground_truth(command), loose_constraints=True)
+        o_f.write('"{}","{}","{}",{},{}\n'.format(
             nl.replace('"', '""'), command.replace('"', '""'), 
-            correct_template, correct_command))
+            temp.replace('"', '""'), correct_template, correct_command))
     print('new judgement added to {}'.format(manual_judgement_path))
 
 
@@ -916,7 +919,7 @@ def normalize_judgement_file(judgement_file):
 
 def normalize_judgement_files(data_dir):
     for file_name in os.listdir(data_dir):
-        if '.evaluations.' in file_name:
+        if 'evaluations.' in file_name:
             normalize_judgement_file(os.path.join(data_dir, file_name))
     
 
