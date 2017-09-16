@@ -112,8 +112,6 @@ def eval_set(model_dir, decode_sig, dataset, top_k, FLAGS, manual=True,
         for i in xrange(len(predictions)):
             pred_cmd = predictions[i]
             tree = cmd_parser(pred_cmd)
-            print(sc_temp)
-            print(template_translations[sc_temp])
             unprocessed_pred_cmd = regexDFAEquals.unprocess_regex(pred_cmd)
             # evaluation ignoring flag orders
             if eval_bash:
@@ -156,8 +154,6 @@ def eval_set(model_dir, decode_sig, dataset, top_k, FLAGS, manual=True,
                 if eval_bash else -1
 
             if temp_match:
-                if i == 0:
-                    print("love is magical")
                 top_k_temp_correct[data_id, i] = 1 if eval_bash else num_gts
             if str_match:
                 top_k_str_correct[data_id, i] = 1 if eval_bash else num_gts
@@ -447,61 +443,65 @@ def load_multiple_model_predictions(grouped_dataset, FLAGS):
     model_names = []
     model_predictions = []
 
-    # GRUs
-    # -- Token
-    FLAGS.channel = 'token'
-    FLAGS.normalized = False
-    FLAGS.use_copy = False
-    # --- Seq2Seq
-    model_names.append('token-seq2seq')
-    model_predictions.append(load_model_predictions())
-    # --- Tellina
-    FLAGS.normalized = True
-    FLAGS.fill_argument_slots = True
-    model_names.append('tellina')
-    model_predictions.append(load_model_predictions())
-    # --- CopyNet
-    FLAGS.normalized = False
-    FLAGS.fill_argument_slots = False
-    FLAGS.use_copy = True
-    FLAGS.copy_fun = 'copynet'
-    model_names.append('token-copynet')
-    model_predictions.append(load_model_predictions())
+    include_gru = True
+    include_lstm = False
 
-    # -- Parital token
-    FLAGS.normalized = False
-    FLAGS.use_copy = False
-    FLAGS.channel = 'partial.token'
-    # --- Seq2Seq
-    model_names.append('partial.token-seq2seq')
-    model_predictions.append(load_model_predictions())
-    # --- CopyNet
-    FLAGS.use_copy = True
-    FLAGS.copy_fun = 'copynet'
-    model_names.append('partial.token-copynet')
-    model_predictions.append(load_model_predictions())
+    # GRUs
+    if include_gru:
+        # -- Token
+        FLAGS.channel = 'token'
+        FLAGS.normalized = False
+        FLAGS.use_copy = False
+        # --- Seq2Seq
+        model_names.append('token-seq2seq')
+        model_predictions.append(load_model_predictions())
+        # --- Tellina
+        FLAGS.normalized = True
+        FLAGS.fill_argument_slots = True
+        model_names.append('tellina')
+        model_predictions.append(load_model_predictions())
+        # --- CopyNet
+        FLAGS.normalized = False
+        FLAGS.fill_argument_slots = False
+        FLAGS.use_copy = True
+        FLAGS.copy_fun = 'copynet'
+        model_names.append('token-copynet')
+        model_predictions.append(load_model_predictions())
+        # -- Parital token
+        FLAGS.normalized = False
+        FLAGS.use_copy = False
+        FLAGS.channel = 'partial.token'
+        # --- Seq2Seq
+        model_names.append('partial.token-seq2seq')
+        model_predictions.append(load_model_predictions())
+        # --- CopyNet
+        FLAGS.use_copy = True
+        FLAGS.copy_fun = 'copynet'
+        model_names.append('partial.token-copynet')
+        model_predictions.append(load_model_predictions())
 
     # LSTMs
-    FLAGS.rnn_cell = 'lstm'
-    # -- Token
-    FLAGS.channel = 'token'
-    # --- Seq2Seq
-    FLAGS.normalized = False
-    FLAGS.use_copy = False
-    model_names.append('token-seq2seq-lstm')
-    model_predictions.append(load_model_predictions())
-    # --- Tellina
-    FLAGS.normalized = True
-    FLAGS.fill_argument_slots = True
-    model_names.append('tellina-lstm')
-    model_predictions.append(load_model_predictions())
-    # -- Partial token
-    FLAGS.channel = 'partial.token'
-    # --- Seq2Seq
-    FLAGS.normalized = False
-    FLAGS.fill_argument_slots = False
-    model_names.append('partial.token-seq2seq-lstm')
-    model_predictions.append(load_model_predictions())
+    if include_lstm:
+        FLAGS.rnn_cell = 'lstm'
+        # -- Token
+        FLAGS.channel = 'token'
+        # --- Seq2Seq
+        FLAGS.normalized = False
+        FLAGS.use_copy = False
+        model_names.append('token-seq2seq-lstm')
+        model_predictions.append(load_model_predictions())
+        # --- Tellina
+        FLAGS.normalized = True
+        FLAGS.fill_argument_slots = True
+        model_names.append('tellina-lstm')
+        model_predictions.append(load_model_predictions())
+        # -- Partial token
+        FLAGS.channel = 'partial.token'
+        # --- Seq2Seq
+        FLAGS.normalized = False
+        FLAGS.fill_argument_slots = False
+        model_names.append('partial.token-seq2seq-lstm')
+        model_predictions.append(load_model_predictions())
 
     return model_names, model_predictions
 
@@ -631,7 +631,6 @@ def add_new_judgements(data_dir, nl, command, correct_template='',
         with open(manual_judgement_path, 'w') as o_f:
             o_f.write(
                 'description,prediction,template,correct template,correct command\n')
-    print(correct_template, correct_command)
     with open(manual_judgement_path, 'a') as o_f:
         temp = data_tools.cmd2template(
             normalize_cm_ground_truth(command), loose_constraints=True)
@@ -734,8 +733,6 @@ def print_error_analysis_csv(grouped_dataset, prediction_list, FLAGS,
                 sc_temp, normalize_cm_ground_truth(pred_cmd))
             if cached_evaluation_results and \
                     example_sig in cached_evaluation_results:
-                # print('example_sig: {}'.format(example_sig))
-                # print(cached_evaluation_results[example_sig])
                 output_str += cached_evaluation_results[example_sig]
             else:
                 if str_match:
