@@ -5,11 +5,16 @@ from __future__ import print_function
 from bashlint import data_tools, nast
 from eval import zss
 
+import re
+
 
 def ignore_differences(cmd):
-    cmd = cmd.replace(' -ls', '')
-    cmd = cmd.replace(' -print', '')
-    cmd = cmd.replace(' -print0', '')
+    cmd = re.sub(' -ls\s', ' ', cmd)
+    cmd = re.sub(' -ls$', '', cmd) 
+    cmd = re.sub(' -print\s', ' ', cmd)
+    cmd = re.sub(' -print$', '', cmd)
+    cmd = re.sub(' -print0\s', ' ', cmd)
+    cmd = re.sub(' -print0$', '', cmd)
     return cmd
 
 def local_dist(s1, s2, skip_argument=False):

@@ -39,7 +39,7 @@ error_types = {
 }
 
 
-def eval_set(model_dir, decode_sig, dataset, top_k, FLAGS, manual=False,
+def eval_set(model_dir, decode_sig, dataset, top_k, FLAGS, manual=True,
              verbose=False):
     eval_bash = FLAGS.dataset.startswith("bash") and not FLAGS.explain
     eval_regex = FLAGS.dataset.startswith("regex") and not FLAGS.explain
@@ -68,12 +68,14 @@ def eval_set(model_dir, decode_sig, dataset, top_k, FLAGS, manual=False,
             load_ground_truths_from_manual_evaluation(FLAGS.data_dir)
 
     # Compute manual evaluation scores on a subset of examples
-    # Get FIXED dev set samples
-    random.seed(100)
-    example_ids = list(range(len(grouped_dataset)))
-    random.shuffle(example_ids)
-    sample_ids = example_ids[:100]
-    grouped_dataset = [grouped_dataset[i] for i in sample_ids]
+    if manual:
+        # Get FIXED dev set samples
+        random.seed(100)
+        example_ids = list(range(len(grouped_dataset)))
+        random.shuffle(example_ids)
+        sample_ids = example_ids[:100]
+        grouped_dataset = [grouped_dataset[i] for i in sample_ids]
+        prediction_list = [prediction_list[i] for i in sample_ids]
    
     num_eval = 0
     top_k_temp_correct = np.zeros([len(grouped_dataset), top_k])
@@ -106,11 +108,12 @@ def eval_set(model_dir, decode_sig, dataset, top_k, FLAGS, manual=False,
             for j, command_gt in enumerate(command_gts):
                 print("GT Target {}: ".format(j+1) + command_gt.strip())
         num_eval += (1 if eval_bash else num_gts)
-
         predictions = prediction_list[data_id]
         for i in xrange(len(predictions)):
             pred_cmd = predictions[i]
             tree = cmd_parser(pred_cmd)
+            print(sc_temp)
+            print(template_translations[sc_temp])
             unprocessed_pred_cmd = regexDFAEquals.unprocess_regex(pred_cmd)
             # evaluation ignoring flag orders
             if eval_bash:
@@ -118,6 +121,7 @@ def eval_set(model_dir, decode_sig, dataset, top_k, FLAGS, manual=False,
                     template_gt_asts, tree, ignore_arg_value=True)
                 str_match = tree_dist.one_match(
                     command_gt_asts, tree, ignore_arg_value=False)
+                print(temp_match, str_match)
             else:
                 if eval_regex:
                     str_match = False
@@ -152,6 +156,8 @@ def eval_set(model_dir, decode_sig, dataset, top_k, FLAGS, manual=False,
                 if eval_bash else -1
 
             if temp_match:
+                if i == 0:
+                    print("love is magical")
                 top_k_temp_correct[data_id, i] = 1 if eval_bash else num_gts
             if str_match:
                 top_k_str_correct[data_id, i] = 1 if eval_bash else num_gts
@@ -502,10 +508,10 @@ def load_multiple_model_predictions(grouped_dataset, FLAGS):
 
 def extend_ground_truths(sc_temp, tg_strs, command_translations,
                          template_translations):
-    command_gts = set(tg_strs + command_translations[sc_temp])
+    command_gts = set(tg_strs) | command_translations[sc_temp]
     command_gt_asts = [data_tools.bash_parser(gt) for gt in command_gts]
     template_gt_asts = []
-    for gt in (command_gts | set(template_translations[sc_temp])):
+    for gt in (command_gts | template_translations[sc_temp]):
         gt_ast = data_tools.bash_parser(gt)
         if gt_ast is None:
             # Check error in ground truth command
@@ -559,15 +565,15 @@ def load_cached_evaluation_results(model_dir, verbose=True):
             for row in reader:
                 if row['description']:
                     current_nl = row['description']
-                    nl = normalize_nl_ground_truth(current_nl)
                 pred_cmd = row['prediction']
-                cm = normalize_cm_ground_truth(pred_cmd)
-                temp = row['template']
+                pred_temp = row['template']
                 command_eval = row['correct command']
-                command_row_sig = '{}<NL_PREDICTION>{}'.format(nl, cm)
+                command_row_sig = '{}<NL_PREDICTION>{}'.format(
+                    current_nl, pred_cmd)
                 command_eval_results[command_row_sig] = command_eval
                 structure_eval = row['correct template']
-                structure_row_sig = '{}<NL_PREDICTION>{}'.format(nl, temp)
+                structure_row_sig = '{}<NL_PREDICTION>{}'.format(
+                    current_nl, pred_temp)
                 structure_eval_results[structure_row_sig] = structure_eval
     print('{} structure evaluation results loaded'.format(len(structure_eval_results)))
     print('{} command evaluation results loaded'.format(len(command_eval_results)))
@@ -580,16 +586,17 @@ def load_ground_truths_from_manual_evaluation(data_dir, verbose=False):
 
     :return: nl -> template translation map, nl -> command translation map
     """
-    command_translations = collections.defaultdict(list)
-    template_translations = collections.defaultdict(list)
+    command_translations = collections.defaultdict(set)
+    template_translations = collections.defaultdict(set)
     data_dir = os.path.join(data_dir, 'manual_judgements')
     eval_files = []
     for file_name in os.listdir(data_dir):
-        if 'evaluations' in file_name and not file_name.endswith('base'):
+        # if 'evaluations' in file_name and not file_name.endswith('base'):
+        #     eval_files.append(file_name)
+        if file_name == 'manual.evaluations.0912.csv':  
             eval_files.append(file_name)
     for file_name in sorted(eval_files):
         manual_judgement_path = os.path.join(data_dir, file_name)
-        print(manual_judgement_path)
         with open(manual_judgement_path) as f:
             if verbose:
                 print('reading cached evaluations from {}'.format(
@@ -599,15 +606,14 @@ def load_ground_truths_from_manual_evaluation(data_dir, verbose=False):
             for row in reader:
                 if row['description']:
                     current_nl = row['description']
-                    nl = normalize_nl_ground_truth(current_nl)
                 pred_cmd = row['prediction']
-                temp = row['template']
+                pred_temp = row['template']
                 structure_eval = row['correct template']
                 command_eval = row['correct command']
                 if structure_eval == 'y':
-                    template_translations[nl].append(temp)
+                    template_translations[current_nl].add(pred_temp)
                 if command_eval == 'y':
-                    command_translations[nl].append(pred_cmd)
+                    command_translations[current_nl].add(pred_cmd)
     print('{} template translations loaded'.format(len(template_translations)))
     print('{} command translations loaded'.format(len(command_translations)))
     return template_translations, command_translations
@@ -910,7 +916,6 @@ def normalize_judgement_file(judgement_file):
     file_name = os.path.basename(judgement_file)
     if not os.path.exists(os.path.join(data_dir, file_name + '.base')):
         shutil.move(judgement_file, os.path.join(data_dir, file_name + '.base'))
-
     with open(judgement_file, 'w') as o_f:
         o_f.write('description,prediction,template,correct template,correct command\n')
         with open(os.path.join(data_dir, file_name + '.base')) as f:
