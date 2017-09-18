@@ -225,7 +225,7 @@ def eval_set(model_dir, decode_sig, dataset, top_k, FLAGS, manual=True,
     return M
 
 
-def gen_manual_evaluation_table(dataset, FLAGS, interactive=False):
+def gen_manual_evaluation_table(dataset, FLAGS, interactive=True):
     """
     Generate a table of manual evaluation results on 100 FIXED dev set examples.
     Prompt the user to enter judgement interactively.
@@ -273,7 +273,7 @@ def gen_manual_evaluation_table(dataset, FLAGS, interactive=False):
             for i in xrange(min(3, len(predictions))):
                 pred_cmd = predictions[i]
                 cmd = normalize_cm_ground_truth(pred_cmd)
-                tree = cmd_parser(pred_cmd)
+                tree = cmd_parser(cmd)
                 temp_match = tree_dist.one_match(
                     template_gt_asts, tree, ignore_arg_value=True)
                 str_match = tree_dist.one_match(
@@ -281,7 +281,7 @@ def gen_manual_evaluation_table(dataset, FLAGS, interactive=False):
                 # Match ground truths & exisitng judgements
                 command_example_sig = '{}<NL_PREDICTION>{}'.format(sc_temp, cmd)
                 structure_example_sig = '{}<NL_PREDICTION>{}'.format(
-                    sc_temp, data_tools.cmd2template(cmd, loose_constraints=True))
+                    sc_temp, data_tools.ast2template(tree, loose_constraints=True))
                 command_eval, structure_eval = '', ''
                 if str_match:
                     command_eval = 'y'
@@ -298,11 +298,10 @@ def gen_manual_evaluation_table(dataset, FLAGS, interactive=False):
                 if command_eval != 'y':
                     if structure_eval == 'y':
                         if not command_eval and interactive:
-                            print(model_name)
                             print('# {}'.format(sc_txt))
                             print('> {}'.format(pred_cmd))
                             command_eval = input(
-                                'Is the command correct? [y/reason] ')
+                                'CORRECT COMMAND? [y/reason] ')
                             add_new_judgements(FLAGS.data_dir, sc_txt, pred_cmd,
                                                structure_eval, command_eval)
                             print()
@@ -311,12 +310,11 @@ def gen_manual_evaluation_table(dataset, FLAGS, interactive=False):
                             print('# {}'.format(sc_txt))
                             print('> {}'.format(pred_cmd))
                             structure_eval = input(
-                                'Does the command have correct structure? [y/reason] ')
+                                'CORRECT COMMAND? [y/reason] ')
                             if structure_eval == 'y':
                                 command_eval = input(
-                                    'Is the command correct? [y/reason] ')
-                            print(structure_eval, command_eval)
-                            add_new_judgements(FLAGS.data_dir, sc_temp, cmd,
+                                    'CORRECT STRUCTURE? [y/reason] ')
+                            add_new_judgements(FLAGS.data_dir, sc_txt, pred_cmd,
                                                structure_eval, command_eval)
                             print()
                 if structure_eval == 'y':
@@ -552,7 +550,7 @@ def load_predictions(model_dir, decode_sig, top_k):
     return prediction_list
 
 
-def load_cached_evaluation_results(model_dir, verbose=False):
+def load_cached_evaluation_results(model_dir, verbose=True):
     """
     Load cached evaluation results from disk.
 
@@ -644,15 +642,17 @@ def add_new_judgements(data_dir, nl, command, correct_template='',
             o_f.write(
                 'description,prediction,template,correct template,correct command\n')
     with open(manual_judgement_path, 'a') as o_f:
-        temp = data_tools.cmd2template(
-            normalize_cm_ground_truth(command), loose_constraints=True)
+        nl = normalize_nl_ground_truth(nl)
+        command = normalize_cm_ground_truth(command)
+        temp = data_tools.cmd2template(command, loose_constraints=True)
         if not correct_template:
             correct_template = 'n'
         if not correct_command:
             correct_command = 'n'
-        o_f.write('"{}","{}","{}",{},{}\n'.format(
+        o_f.write('"{}","{}","{}","{}","{}"\n'.format(
             nl.replace('"', '""'), command.replace('"', '""'), 
-            temp.replace('"', '""'), correct_template, correct_command))
+            temp.replace('"', '""'), correct_template.replace('"', '""'), 
+            correct_command.replace('"', '""')))
     print('new judgement added to {}'.format(manual_judgement_path))
 
 
