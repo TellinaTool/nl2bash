@@ -289,8 +289,13 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
             bucket_ids = [b for b in xrange(len(buckets))
                           if buckets[b][0] > len(data_point.sc_ids) and
                           buckets[b][1] > len(data_point.tg_ids)]
-            bucket_id = min(bucket_ids) if bucket_ids else (len(buckets)-1)
-            dataset2[bucket_id].append(data_point)
+            if bucket_ids:
+                bucket_id = min(bucket_ids)
+                dataset2[bucket_id].append(data_point)
+            else:
+                if split != 'train':
+                    bucket_id = len(buckets) - 1
+                    dataset2[bucket_id].append(data_point)
         dataset = dataset2
         assert(len(functools.reduce(lambda x, y: x + y, dataset)) == data_size)
       
