@@ -168,7 +168,6 @@ def eval_set(model_dir, decode_sig, dataset, top_k, FLAGS, manual=True,
         if verbose:
             print()
 
-        data_id += 1
     M = {}
     M["top1_temp_ms"] = np.sum(top_k_temp_correct[:, 0]) / num_eval
     M["top3_temp_ms"] = -1
