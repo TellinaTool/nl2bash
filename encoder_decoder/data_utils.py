@@ -271,6 +271,8 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
             sorted_dataset = sorted(dataset, key=lambda x:len(x.sc_ids), reverse=False)
             max_tg_len_so_far = 0
             for i, dp in enumerate(sorted_dataset):
+                if len(dp.sc_ids) > max_sc_length:
+                    break
                 if len(dp.tg_ids) > max_tg_len_so_far:
                     max_tg_len_so_far = len(dp.tg_ids)
                 if i > 0 and i % bucket_capacity == 0:
