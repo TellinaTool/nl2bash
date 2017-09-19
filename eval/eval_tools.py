@@ -310,13 +310,15 @@ def gen_manual_evaluation_table(dataset, FLAGS, interactive=True):
                             print('# {}'.format(sc_txt))
                             print('> {}'.format(pred_cmd))
                             structure_eval = input(
-                                'CORRECT COMMAND? [y/reason] ')
+                                'CORRECT STRUCTURE? [y/reason] ')
                             if structure_eval == 'y':
                                 command_eval = input(
-                                    'CORRECT STRUCTURE? [y/reason] ')
+                                    'CORRECT COMMAND? [y/reason] ')
                             add_new_judgements(FLAGS.data_dir, sc_txt, pred_cmd,
                                                structure_eval, command_eval)
                             print()
+                    structure_eval_cache[structure_example_sig] = structure_eval
+                    command_eval_cache[command_example_sig] = command_eval
                 if structure_eval == 'y':
                     num_s_correct[model_name] += 1
                 if command_eval == 'y':
