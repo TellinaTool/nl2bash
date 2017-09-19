@@ -268,17 +268,16 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
             print('max_target_length after filtering = {}'.format(max_tg_length))
             # Determine thresholds for buckets of equal capacity
             buckets = []
-            sorted_dataset = sorted(dataset, key=lambda x:max(len(x.sc_ids), len(x.tg_ids)),
-                                    reverse=False)
+            sorted_dataset = sorted(dataset, key=lambda x:len(x.sc_ids), reverse=False)
+            max_tg_len_so_far = 0
             for i, dp in enumerate(sorted_dataset):
-                max_seq_len = max((len(dp.sc_ids), len(dp.tg_ids)))
-                if max_seq_len > max(max_sc_length, max_tg_length):
-                    continue
+                if len(dp.tg_ids) > max_tg_len_so_far:
+                    max_tg_len_so_far = len(dp.tg_ids)
                 if i > 0 and i % bucket_capacity == 0:
-                    buckets.append((max_seq_len, max_seq_len))
+                    buckets.append((len(dp.sc_ids), min(max_tg_len_so_far, max_tg_length)))
             if len(buckets) == 0 or buckets[-1][0] < max(max_sc_length, max_tg_length):
-                buckets.append((max(max_sc_length, max_tg_length),
-                                max(max_sc_length, max_tg_length)))
+                buckets.append((max_sc_length,
+                                min(max_tg_len_so_far, max_tg_length)))
         else:
             num_buckets = len(buckets)
             assert(num_buckets >= 1)
