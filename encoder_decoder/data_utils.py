@@ -299,7 +299,8 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
                     bucket_id = len(buckets) - 1
                     dataset2[bucket_id].append(data_point)
         dataset = dataset2
-        assert(len(functools.reduce(lambda x, y: x + y, dataset)) == data_size)
+        if split != 'train':
+            assert(len(functools.reduce(lambda x, y: x + y, dataset)) == data_size)
       
     D = DataSet()
     D.data_points = dataset

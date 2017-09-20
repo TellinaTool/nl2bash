@@ -320,6 +320,8 @@ def gen_manual_evaluation_table(dataset, FLAGS, interactive=True):
                     structure_eval_cache[structure_example_sig] = structure_eval
                     command_eval_cache[command_example_sig] = command_eval
                 if structure_eval == 'y':
+                    # if i == 0 and model_name == 'tellina':
+                    #     o_f.write('{}\n'.format(sc_txt))
                     num_s_correct[model_name] += 1
                 if command_eval == 'y':
                     num_f_correct[model_name] += 1
