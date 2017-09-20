@@ -112,7 +112,6 @@ def eval_set(model_dir, decode_sig, dataset, top_k, FLAGS, manual=True,
         for i in xrange(len(predictions)):
             pred_cmd = predictions[i]
             tree = cmd_parser(pred_cmd)
-            unprocessed_pred_cmd = regexDFAEquals.unprocess_regex(pred_cmd)
             # evaluation ignoring flag orders
             if eval_bash:
                 temp_match = tree_dist.one_match(
@@ -121,42 +120,18 @@ def eval_set(model_dir, decode_sig, dataset, top_k, FLAGS, manual=True,
                     command_gt_asts, tree, ignore_arg_value=False)
             else:
                 if eval_regex:
-                    str_match = False
-                    for cmd_str in command_gts:
-                        unprocessed_cmd_str = regexDFAEquals.unprocess_regex(cmd_str)
-                        if regexDFAEquals.regex_equiv_from_raw(cmd_str, pred_cmd):
-                            str_match = True
-                            # Debugging
-                            if verbose:
-                                if cmd_str != pred_cmd:
-                                    print("----------------------------------")
-                                    print("1) {} ({})".format(cmd_str, unprocessed_cmd_str))
-                                    print("2) {} ({})".format(pred_cmd, unprocessed_pred_cmd))
-                                    print("----------------------------------")
-                                else:
-                                    print("----------------------------------")
-                                    print("i) {} ({})".format(cmd_str, unprocessed_cmd_str))
-                                    print("ii) {} ({})".format(pred_cmd, unprocessed_pred_cmd))
-                                    print("----------------------------------")
-                            break
-                        else:
-                            if verbose:
-                                print("----------------------------------")
-                                print("A) {} ({})".format(cmd_str, unprocessed_cmd_str))
-                                print("B) {} ({})".format(pred_cmd, unprocessed_pred_cmd))
-                                print("----------------------------------")
+                    eval_regex_with_semantic_equivalence(
+                        pred_cmd, command_gts, verbose=verbose)
                 else:
                     str_match = pred_cmd in command_gts
                 temp_match = str_match
-
-            cms = token_based.command_match_score(template_gt_asts, tree) \
-                if eval_bash else -1
 
             if temp_match:
                 top_k_temp_correct[data_id, i] = 1 if eval_bash else num_gts
             if str_match:
                 top_k_str_correct[data_id, i] = 1 if eval_bash else num_gts
             if eval_bash:
+                cms = token_based.command_match_score(template_gt_asts, tree)
                 top_k_cms[data_id, i] = cms
                 if verbose:
                     print("Prediction {}: {} ({})".format(
@@ -222,6 +197,32 @@ def eval_set(model_dir, decode_sig, dataset, top_k, FLAGS, manual=True,
     print()
 
     return M
+
+
+def eval_regex_with_semantic_equivalence(pred_cmd, ground_truths, verbose=False):
+    unprocessed_pred_cmd = regexDFAEquals.unprocess_regex(pred_cmd)
+    str_match = False
+    for gt_str in ground_truths:
+        unprocessed_gt_str = regexDFAEquals.unprocess_regex(gt_str)
+        if regexDFAEquals.regex_equiv_from_raw(gt_str, pred_cmd):
+            str_match = True
+            # Debugging
+            if verbose:
+                if gt_str != pred_cmd:
+                    print("1) {} ({})".format(gt_str, unprocessed_gt_str))
+                    print("2) {} ({})".format(pred_cmd, unprocessed_pred_cmd))
+                    print()
+                else:
+                    print("i) {} ({})".format(gt_str, unprocessed_gt_str))
+                    print("ii) {} ({})".format(pred_cmd, unprocessed_pred_cmd))
+                    print()
+            break
+        else:
+            if verbose:
+                print("A) {} ({})".format(gt_str, unprocessed_gt_str))
+                print("B) {} ({})".format(pred_cmd, unprocessed_pred_cmd))
+                print()
+    return str_match, str_match
 
 
 def gen_manual_evaluation_table(dataset, FLAGS, interactive=True):
