@@ -513,8 +513,8 @@ def prepare_channel(data_dir, nl_list, cm_list, split, channel,
     save_channel_features_to_file(data_dir, split, 'copy.{}'.format(channel),
         nl_copy_tokens, cm_copy_tokens, feature_separator=TOKEN_SEPARATOR)
     alignments = compute_alignments(data_dir, nl_tokens, cm_tokens, split, channel)
-    with open(os.path.join(data_dir, '{}.{}.align'.format(split, channel)), 'wb') as f:
-        pickle.dump(alignments, f)
+    with open(os.path.join(data_dir, '{}.{}.align'.format(split, channel)), 'wb') as o_f:
+        pickle.dump(alignments, o_f)
 
 
 def save_channel_features_to_file(data_dir, split, channel, nl_features,

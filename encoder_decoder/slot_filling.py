@@ -114,9 +114,9 @@ def gen_slot_filling_training_data(sess, FLAGS, model, dataset, output_file):
                     #     print(encoder_outputs[0])
                     #     print(decoder_outputs[0])
 
-            if len(X) > 0 and len(X) % 1000 == 0:
-                print('{} examples gathered for generating slot filling '
-                      'features...'.format(len(X)))
+                    if len(X) > 0 and len(X) % 1000 == 0:
+                        print('{} examples gathered for generating slot filling '
+                            'features...'.format(len(X)))
 
     assert(len(X) == len(Y))
     X = np.concatenate(X, axis=0)

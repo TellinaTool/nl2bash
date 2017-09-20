@@ -117,6 +117,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
             self.sequence_logits = []
             self.losses = []
             self.attn_alignments = []
+            self.encoder_hidden_states = []
+            self.decoder_hidden_states = []
             if self.tg_char:
                 self.char_output_symbols = []
                 self.char_sequence_logits = []
@@ -140,9 +142,15 @@ class EncoderDecoderModel(graph_utils.NNModel):
                     self.sequence_logits.append(encode_decode_outputs['sequence_logits'])
                     self.losses.append(encode_decode_outputs['losses'])
                     self.attn_alignments.append(encode_decode_outputs['attn_alignments'])
+                    self.encoder_hidden_states.append(
+                        encode_decode_outputs['encoder_hidden_states'])
+                    self.decoder_hidden_states.append(
+                        encode_decode_outputs['decoder_hidden_states'])
                     if self.forward_only and self.tg_char:
-                         bucket_char_output_symbols = encode_decode_outputs['char_output_symbols']
-                         bucket_char_sequence_logits =  encode_decode_outputs['char_sequence_logits']
+                         bucket_char_output_symbols = \
+                             encode_decode_outputs['char_output_symbols']
+                         bucket_char_sequence_logits =  \
+                             encode_decode_outputs['char_sequence_logits']
                          self.char_output_symbols.append(
                              tf.reshape(bucket_char_output_symbols,
                                         [self.max_target_length,
@@ -167,6 +175,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
             self.sequence_logits = encode_decode_outputs['sequence_logits']
             self.losses = encode_decode_outputs['losses']
             self.attn_alignments = encode_decode_outputs['attn_alignments']
+            self.encoder_hidden_states = encode_decode_outputs['encoder_hidden_states']
+            self.decoder_hidden_states = encode_decode_outputs['decoder_hidden_states']
             if self.tg_char:
                 char_output_symbols = encode_decode_outputs['char_output_symbols']
                 char_sequence_logits = encode_decode_outputs['char_sequence_logits']
@@ -230,9 +240,9 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
         # --- Decode Step --- #
         if self.tg_token_use_attention:
-            top_states = [tf.reshape(m, [-1, 1, self.encoder.output_dim])
-                          for m in encoder_outputs]
-            attention_states = tf.concat(axis=1, values=top_states)
+            attention_states = tf.concat(
+                [tf.reshape(m, [-1, 1, self.encoder.output_dim])
+                 for m in encoder_outputs], axis=1)
         else:
             attention_states = None
         num_heads = 2 if (self.tg_token_use_attention and self.copynet) else 1
@@ -306,9 +316,9 @@ class EncoderDecoderModel(graph_utils.NNModel):
             losses = tf.zeros_like(decoder_inputs[0])
 
         # --- Store encoder/decoder output states --- #
-        self.encoder_hidden_states = tf.concat(axis=1,
-            values=[tf.reshape(e_o, [-1, 1, self.encoder.output_dim])
-                    for e_o in encoder_outputs])
+        encoder_hidden_states = tf.concat(
+            axis=1, values=[tf.reshape(e_o, [-1, 1, self.encoder.output_dim])
+                            for e_o in encoder_outputs])
         
         top_states = []
         if self.rnn_cell == 'gru':
@@ -320,7 +330,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
                     top_states.append(state[-1][1])
                 else:
                     top_states.append(state[1])
-        self.decoder_hidden_states = tf.concat(axis=1,
+        decoder_hidden_states = tf.concat(axis=1,
             values=[tf.reshape(d_o, [-1, 1, self.decoder.dim])
                     for d_o in top_states])
 
@@ -329,6 +339,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
         O['sequence_logits'] = sequence_logits
         O['losses'] = losses
         O['attn_alignments'] = attn_alignments
+        O['encoder_hidden_states'] = encoder_hidden_states
+        O['decoder_hidden_states'] = decoder_hidden_states
         if self.tg_char:
             O['char_output_symbols'] = char_output_symbols
             O['char_sequence_logits'] = char_sequence_logits
@@ -601,8 +613,16 @@ class EncoderDecoderModel(graph_utils.NNModel):
             else:
                 output_feed['attn_alignments'] = self.attn_alignments[bucket_id]
 
-        output_feed['encoder_hidden_states'] = self.encoder_hidden_states
-        output_feed['decoder_hidden_states'] = self.decoder_hidden_states
+        if bucket_id != -1:
+            assert(isinstance(self.encoder_hidden_states, list))
+            assert(isinstance(self.decoder_hidden_states, list))
+            output_feed['encoder_hidden_states'] = \
+                self.encoder_hidden_states[bucket_id]
+            output_feed['decoder_hidden_states'] = \
+                self.decoder_hidden_states[bucket_id]
+        else:
+            output_feed['encoder_hidden_states'] = self.encoder_hidden_states
+            output_feed['decoder_hidden_states'] = self.decoder_hidden_states
 
         if self.use_copy:
             output_feed['pointers'] = self.pointers
