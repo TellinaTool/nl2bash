@@ -88,7 +88,6 @@ def ast2tokens(node, loose_constraints=False, ignore_flag_order=False,
         return []
 
     lc = loose_constraints
-    ifo = ignore_flag_order
 
     def to_tokens_fun(node):
         tokens = []
@@ -134,7 +133,7 @@ def ast2tokens(node, loose_constraints=False, ignore_flag_order=False,
                 token = node.prefix + token
             tokens.append(token)
             children = sorted(node.children, key=lambda x:x.value) \
-                if ifo else node.children
+                if ignore_flag_order else node.children
             for child in children:
                 tokens += to_tokens_fun(child)
         elif node.is_option():
@@ -267,7 +266,8 @@ def cmd2template(cmd, recover_quotation=True, arg_type_only=True,
     and argument types flags are alphabetically ordered.
     """
     tree = lint.normalize_ast(cmd, recover_quotation, verbose=verbose)
-    return ast2template(tree, loose_constraints, arg_type_only)
+    return ast2template(tree, loose_constraints=loose_constraints, 
+                        arg_type_only=arg_type_only)
 
 
 def pretty_print(node, depth=0):
