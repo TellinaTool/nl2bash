@@ -224,6 +224,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 self.decoder.beam_decoder, targets)
             encoder_copy_inputs = graph_utils.wrap_inputs(
                 self.decoder.beam_decoder, encoder_copy_inputs)
+        print(encoder_channel_inputs)
         encoder_outputs, encoder_states = \
             self.encoder.define_graph(encoder_channel_inputs)
 
