@@ -34,7 +34,8 @@ hyperparam_range = {
     'num_layers': [1, 2],
     'num_samples': [1024, 512],
     'beta': [0.8,0.9,1.0,1.1,1.2],
-    'min_vocab_frequency': [4, 6, 8, 10]
+    'min_vocab_frequency': [4, 6, 8, 10],
+    'num_buckets': [1, 2, 3, 4]
 }
 
 
