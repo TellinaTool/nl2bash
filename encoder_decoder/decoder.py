@@ -223,19 +223,15 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
                 # Apply attention masks
                 # [batch_size x attn_length]
                 s = s - (1 - self.encoder_attn_masks) * 1e12
-                alignment = tf.nn.softmax(s)
                 if a == 0:
+                    alignment = tf.nn.softmax(s)
                     alignments.append(alignment)
-                else:
-                    alignments.append(s)
-
-                # Now calculate the attention-weighted vector d.
-                if a == 0:
                     # Soft attention read
                     d = tf.reduce_sum(
                         tf.reshape(alignment, [-1, self.attn_length, 1])
                             * self.hidden_features[a], [1])
                 else:
+                    alignments.append(s)
                     # Hard selective read
                     selective_indices = \
                         tf.expand_dims(tf.one_hot(tf.argmax(s, 1), self.attn_length), 1)

@@ -161,7 +161,7 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
                 source_ids.append(UNK_ID)
         return source_ids
 
-    def get_target_ids(s):
+    def get_target_input_ids(s):
         target_ids = []
         for token in s.split(TOKEN_SEPARATOR):
             if token in vocab.tg_vocab:
@@ -206,7 +206,7 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
         if len(data_point.sc_ids) > max_sc_length:
             max_sc_length = len(data_point.sc_ids)
         data_point.tg_ids = \
-            get_target_ids(tg_token_file.readline().strip())
+            get_target_input_ids(tg_token_file.readline().strip())
         data_point.alignments = alignments[i]
         if len(data_point.tg_ids) > max_tg_length:
             max_tg_length = len(data_point.tg_ids)
@@ -234,8 +234,10 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
         for i, data_point in enumerate(dataset):
             sc_tokens = sc_token_file.readline().strip().split(TOKEN_SEPARATOR)
             tg_tokens = tg_token_file.readline().strip().split(TOKEN_SEPARATOR)
-            sc_copy_tokens = sc_copy_token_file.readline().strip().split(TOKEN_SEPARATOR)
-            tg_copy_tokens = tg_copy_token_file.readline().strip().split(TOKEN_SEPARATOR)
+            sc_copy_tokens = \
+                sc_copy_token_file.readline().strip().split(TOKEN_SEPARATOR)
+            tg_copy_tokens = \
+                tg_copy_token_file.readline().strip().split(TOKEN_SEPARATOR)
             data_point.csc_ids, data_point.ctg_ids = \
                 compute_copy_indices(sc_tokens, tg_tokens,
                     sc_copy_tokens, tg_copy_tokens, vocab.tg_vocab, token_ext)
@@ -513,7 +515,8 @@ def prepare_channel(data_dir, nl_list, cm_list, split, channel,
     save_channel_features_to_file(data_dir, split, 'copy.{}'.format(channel),
         nl_copy_tokens, cm_copy_tokens, feature_separator=TOKEN_SEPARATOR)
     alignments = compute_alignments(data_dir, nl_tokens, cm_tokens, split, channel)
-    with open(os.path.join(data_dir, '{}.{}.align'.format(split, channel)), 'wb') as o_f:
+    with open(os.path.join(data_dir, '{}.{}.align'.format(split, channel)),
+              'wb') as o_f:
         pickle.dump(alignments, o_f)
 
 
@@ -525,13 +528,15 @@ def save_channel_features_to_file(data_dir, split, channel, nl_features,
     with open(nl_feature_path, 'w') as o_f:
         for data_point in nl_features:
             if convert_to_str:
-                o_f.write('{}\n'.format(feature_separator.join([str(x) for x in data_point])))
+                o_f.write('{}\n'.format(feature_separator.join(
+                    [str(x) for x in data_point])))
             else:
                 o_f.write('{}\n'.format(feature_separator.join(data_point)))
     with open(cm_feature_path, 'w') as o_f:
         for data_point in cm_features:
             if convert_to_str:
-                o_f.write('{}\n'.format(feature_separator.join([str(x) for x in data_point])))
+                o_f.write('{}\n'.format(feature_separator.join(
+                    [str(x) for x in data_point])))
             else:
                 o_f.write('{}\n'.format(feature_separator.join(data_point)))
 
@@ -726,7 +731,7 @@ def tokens_to_ids(tokens, vocabulary):
 
 
 def compute_copy_indices(sc_tokens, tg_tokens, sc_copy_tokens, tg_copy_tokens,
-                         tg_vocab, channel):
+                         tg_vocab, channel, ):
     assert(len(sc_tokens) == len(sc_copy_tokens))
     assert(len(tg_tokens) == len(tg_copy_tokens))
     csc_ids, ctg_ids = [], []
@@ -748,12 +753,18 @@ def compute_copy_indices(sc_tokens, tg_tokens, sc_copy_tokens, tg_copy_tokens,
                     ctg_ids.append(CUNK_ID)
                 else:
                     ctg_ids.append(UNK_ID)
+    # Append EOS symbol
+    if channel == 'char':
+        ctg_ids.append(CEOS_ID)
+    else:
+        ctg_ids.append(EOS_ID)
     return csc_ids, ctg_ids
 
 
 def compute_alignments(data_dir, nl_list, cm_list, split, channel):
     alignments = []
-    with open(os.path.join(data_dir, '{}.{}.align.readable'.format(split, channel)), 'w') as o_f:
+    output_path = os.path.join(data_dir, '{}.{}.align.readable'.format(split, channel))
+    with open(output_path, 'w') as o_f:
         for nl_tokens, cm_tokens in zip(nl_list, cm_list):
             alignments.append(compute_pair_alignment(nl_tokens, cm_tokens, o_f))
     return alignments
