@@ -50,8 +50,6 @@ def define_input_flags():
                                 'Set to True to decode and evaluate on the test set.')
     tf.app.flags.DEFINE_boolean('demo', False,
                                 'Set to True for interactive demo.')
-    tf.app.flags.DEFINE_boolean('bucket_selection', False,
-                                'Run a bucket_selection if this is set to True.')
     tf.app.flags.DEFINE_boolean('self_test', False,
                                 'Run a self-test if this is set to True.')
 
@@ -80,6 +78,7 @@ def define_input_flags():
 
     tf.app.flags.DEFINE_integer('min_vocab_frequency', 1,
                                 'Minimum frequency of token in the dataset that are not considered UNK.')
+    tf.app.flags.DEFINE_integer('num_buckets', 2, 'Number of buckets to use.')
 
     # training hyperparameters
     tf.app.flags.DEFINE_string('model_root_dir', 'model', 'Directory to save trained models.')
