@@ -747,7 +747,8 @@ def compute_copy_indices(sc_tokens, tg_tokens, sc_copy_tokens, tg_copy_tokens,
             ctg_ids.append(tg_vocab[tg_token])
         else:
             if tg_copy_token in sc_copy_tokens:
-                ctg_ids.append(len(tg_vocab) + sc_copy_tokens.index(tg_copy_token))
+                ctg_ids.append(
+                    len(tg_vocab) + sc_copy_tokens.index(tg_copy_token))
             else:
                 if channel == 'char':
                     ctg_ids.append(CUNK_ID)
