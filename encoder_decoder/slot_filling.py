@@ -75,9 +75,9 @@ def gen_slot_filling_training_data(sess, FLAGS, model, dataset, output_file):
                 mappings = list(zip(list(source_inds), list(target_inds)))
                 encoder_channel_inputs = [[dp.sc_ids]]
                 decoder_channel_inputs = [[dp.tg_ids]]
-                print(bucket_id)
-                print(encoder_channel_inputs)
-                print(decoder_channel_inputs)
+                # print(bucket_id)
+                # print(encoder_channel_inputs)
+                # print(decoder_channel_inputs)
                 if FLAGS.use_copy:
                     encoder_channel_inputs.append([dp.csc_ids])
                     decoder_channel_inputs.append([dp.ctg_ids])
@@ -88,7 +88,6 @@ def gen_slot_filling_training_data(sess, FLAGS, model, dataset, output_file):
                     sess, formatted_example, bucket_id, forward_only=True)
                 encoder_outputs = model_outputs.encoder_hidden_states
                 decoder_outputs = model_outputs.decoder_hidden_states
-                print(encoder_outputs.shape, decoder_outputs.shape)
                 # add positive examples
                 for f, s in mappings:
                     # use reversed index for the encoder embedding matrix

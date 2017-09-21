@@ -255,7 +255,7 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
         print('Group data points into buckets...')
         if split == 'train':
             # Determine bucket sizes based on the characteristics of the dataset
-            num_buckets = 4
+            num_buckets = FLAGS.num_buckets
             bucket_capacity = int(len(dataset) / num_buckets)
             assert(bucket_capacity > 0)
             # Excluding outliers (very long sequences)
