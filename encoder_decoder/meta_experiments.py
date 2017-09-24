@@ -115,7 +115,8 @@ def grid_search(train_fun, decode_fun, eval_fun, train_set, dev_set, FLAGS):
         # Try different random seed if tuning initialization
         num_trials = 5 if FLAGS.initialization else 1
 
-        if 'min_vocab_frequency' in hyperparameters:
+        if 'min_vocab_frequency' in hyperparameters or \
+                'num_buckets' in hyperparameters:
             # Read train and dev sets from disk
             train_set, dev_set, test_set = \
                 data_utils.load_data(FLAGS, use_buckets=True, load_mappings=False)
