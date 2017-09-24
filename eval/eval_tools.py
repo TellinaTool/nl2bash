@@ -438,14 +438,26 @@ def gen_manual_evaluation_csv(dataset, FLAGS):
     print('Manual evaluation results saved to {}'.format(output_path))
 
 
-def load_multiple_model_predictions(grouped_dataset, FLAGS):
+def load_multiple_model_predictions(grouped_dataset, FLAGS,
+                                    token_seq2seq=False,
+                                    tellina=False,
+                                    token_copynet=False,
+                                    partial_token_seq2seq=False,
+                                    partial_token_copynet=False):
     """
     Load predictions of multiple models.
 
     :param dataset: The dataset over which the predictions are generated.
     :param FLAGS: Experiment hyperparametrs.
+    :param token_seq2seq,
+           tellina,
+           token_copynet,
+           partial_token_seq2seq,
+           partial_token_copynet:
+           Binary variables indicating whether a model is to be included in the
+           test results or not.
     :return model_names: List of model names.
-    :return model_predictions:
+    :return model_predictions: List of model predictions.
     """
     def load_model_predictions():
         model_subdir, decode_sig = graph_utils.get_decode_signature(FLAGS)
@@ -470,32 +482,37 @@ def load_multiple_model_predictions(grouped_dataset, FLAGS):
         FLAGS.normalized = False
         FLAGS.use_copy = False
         # --- Seq2Seq
-        model_names.append('token-seq2seq')
-        model_predictions.append(load_model_predictions())
+        if token_seq2seq:
+            model_names.append('token-seq2seq')
+            model_predictions.append(load_model_predictions())
         # --- Tellina
-        FLAGS.normalized = True
-        FLAGS.fill_argument_slots = True
-        model_names.append('tellina')
-        model_predictions.append(load_model_predictions())
+        if tellina:
+            FLAGS.normalized = True
+            FLAGS.fill_argument_slots = True
+            model_names.append('tellina')
+            model_predictions.append(load_model_predictions())
         # --- CopyNet
-        FLAGS.normalized = False
-        FLAGS.fill_argument_slots = False
-        FLAGS.use_copy = True
-        FLAGS.copy_fun = 'copynet'
-        model_names.append('token-copynet')
-        model_predictions.append(load_model_predictions())
+        if token_copynet:
+            FLAGS.normalized = False
+            FLAGS.fill_argument_slots = False
+            FLAGS.use_copy = True
+            FLAGS.copy_fun = 'copynet'
+            model_names.append('token-copynet')
+            model_predictions.append(load_model_predictions())
         # -- Parital token
         FLAGS.normalized = False
         FLAGS.use_copy = False
         FLAGS.channel = 'partial.token'
         # --- Seq2Seq
-        model_names.append('partial.token-seq2seq')
-        model_predictions.append(load_model_predictions())
+        if partial_token_seq2seq:
+            model_names.append('partial.token-seq2seq')
+            model_predictions.append(load_model_predictions())
         # --- CopyNet
-        FLAGS.use_copy = True
-        FLAGS.copy_fun = 'copynet'
-        model_names.append('partial.token-copynet')
-        model_predictions.append(load_model_predictions())
+        if partial_token_copynet:
+            FLAGS.use_copy = True
+            FLAGS.copy_fun = 'copynet'
+            model_names.append('partial.token-copynet')
+            model_predictions.append(load_model_predictions())
 
     # LSTMs
     if include_lstm:
