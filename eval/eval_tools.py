@@ -83,6 +83,7 @@ def eval_set(model_dir, decode_sig, dataset, top_k, FLAGS, manual=True,
     if eval_bash:
         top_k_cms = np.zeros([len(grouped_dataset), top_k])
 
+    o_f = open('debug.partial', 'w')
     for data_id in xrange(len(grouped_dataset)):
         _, data_group = grouped_dataset[data_id]
         sc_str = data_group[0].sc_txt.strip()
@@ -129,6 +130,8 @@ def eval_set(model_dir, decode_sig, dataset, top_k, FLAGS, manual=True,
             if temp_match:
                 top_k_temp_correct[data_id, i] = 1 if eval_bash else num_gts
             if str_match:
+                if i == 0:
+                    o_f.write('{}\n'.format(sc_str))
                 top_k_str_correct[data_id, i] = 1 if eval_bash else num_gts
             if eval_bash:
                 cms = token_based.command_match_score(template_gt_asts, tree)
