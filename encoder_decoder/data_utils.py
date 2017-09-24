@@ -286,7 +286,7 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
             num_buckets = len(buckets)
             assert(num_buckets >= 1)
 
-        dataset2 = [[] for b in xrange(num_buckets)]
+        dataset2 = [[] for _ in buckets]
         for i in range(len(dataset)):
             data_point = dataset[i]
             # Compute bucket id
