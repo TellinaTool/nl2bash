@@ -278,10 +278,10 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
                 if len(dp.tg_ids) > max_tg_len_so_far:
                     max_tg_len_so_far = len(dp.tg_ids)
                 if i > 0 and i % bucket_capacity == 0:
-                    buckets.append((len(dp.sc_ids), min(max_tg_len_so_far, max_tg_length)))
+                    buckets.append((len(dp.sc_ids)+1, min(max_tg_len_so_far, max_tg_length)+1))
             if len(buckets) == 0 or buckets[-1][0] < max(max_sc_length, max_tg_length):
-                buckets.append((max_sc_length,
-                                min(max_tg_len_so_far, max_tg_length)))
+                buckets.append((max_sc_length+1,
+                                min(max_tg_len_so_far, max_tg_length)+1))
         else:
             num_buckets = len(buckets)
             assert(num_buckets >= 1)

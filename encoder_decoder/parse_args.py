@@ -78,7 +78,7 @@ def define_input_flags():
 
     tf.app.flags.DEFINE_integer('min_vocab_frequency', 1,
                                 'Minimum frequency of token in the dataset that are not considered UNK.')
-    tf.app.flags.DEFINE_integer('num_buckets', 2, 'Number of buckets to use.')
+    tf.app.flags.DEFINE_integer('num_buckets', 3, 'Number of buckets to use.')
 
     # training hyperparameters
     tf.app.flags.DEFINE_string('model_root_dir', 'model', 'Directory to save trained models.')
