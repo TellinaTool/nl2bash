@@ -21,6 +21,35 @@ def get_u_hist_from_file(input_file):
                     continue
                 u_hist[u] += 1
     return u_hist
+
+
+def u_hist_to_radar_chart(hist):
+    long_tail = 0
+    top_utilities = []
+    for i, (u, freq) in enumerate(
+            sorted(hist.items(), key=lambda x:x[1], reverse=True)):
+        if i < 50:
+            print('{{axis:"{}",value:{:.2f}}},'.format(u, np.log(freq)))
+            top_utilities.append(u)
+        else:
+            long_tail += freq
+    print('{{axis:"{}",value:{:.2f}}}'.format('OTHER', np.log(long_tail)))
+    print()
+
+
+def u_hist_flag_num(hist):
+    long_tail = 0
+    output = []
+    for i, (u, freq) in enumerate(
+            sorted(hist.items(), key=lambda x:x[1], reverse=True)):
+        if i < 50:
+            output.append('{{axis:"{}",value:{}}},'.format(
+                u, data_tools.get_utility_statistics(u)))
+        else:
+            long_tail += data_tools.get_utility_statistics(u)
+    output.append('{{axis:"{}",value:{}}}'.format('OTHER', long_tail))
+    for i in range(len(output)-1, -1, -1):
+        print(output[i])
    
 
 def get_flag_statistics(top_utilities, input_file):
@@ -51,31 +80,14 @@ def get_flag_statistics(top_utilities, input_file):
 
 
 if __name__ == '__main__':
-    input_path = sys.argv[1]
-    hist = get_u_hist_from_file(input_path)
-    long_tail = 0
-    top_utilities = []
-    for i, (u, freq) in enumerate(
-            sorted(hist.items(), key=lambda x:x[1], reverse=True)):
-        if i < 50:
-            print('{{axis:"{}",value:{:.2f}}},'.format(u, np.log(freq)))
-            top_utilities.append(u)
-        else:
-            long_tail += freq
-    print('{{axis:"{}",value:{:.2f}}}'.format('OTHER', np.log(long_tail)))
-    print()
+    all_path = sys.argv[1]
+    train_path = sys.argv[2]
+    dev_path = sys.argv[3]
 
-    long_tail = 0
-    output = []
-    for i, (u, freq) in enumerate(
-            sorted(hist.items(), key=lambda x:x[1], reverse=True)):
-        if i < 50:
-            output.append('{{axis:"{}",value:{}}},'.format(
-                u, data_tools.get_utility_statistics(u)))
-        else:
-            long_tail += data_tools.get_utility_statistics(u)
-    output.append('{{axis:"{}",value:{}}}'.format('OTHER', long_tail))
-    for i in range(len(output)-1, -1, -1):
-        print(output[i])
+    all_hist = get_u_hist_from_file(all_path)
+    train_hist = get_u_hist_from_file(train_path)
+    dev_hist = get_u_hist_from_file(dev_path)
 
-    get_flag_statistics(top_utilities, input_path)
+    for i, (u, freq) in enumerate(
+            sorted(all_hist.items(), key=lambda x:x[1], reverse=True)):
+        print('{},{},{},{}'.format(i, u, train_hist[u], dev_hist[u]))
