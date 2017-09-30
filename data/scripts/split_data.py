@@ -6,6 +6,7 @@ Usage: python3 split_data.py [data_directory]
 """
 
 import collections
+import numpy as np
 import random
 import re
 import os, sys
@@ -19,9 +20,7 @@ html_rel2abs = re.compile('"/[^\s<>]*/*http')
 hypothes_header = re.compile(
     '\<\!\-\- WB Insert \-\-\>.*\<\!\-\- End WB Insert \-\-\>', re.DOTALL)
 
-# minimum number of edits two natural language descriptions have to differ to 
-# not be considered as duplicates
-EDITDIST_THRESH = 8
+RANDOM_SEED = 100
 
 
 def split_data(data_dir):
@@ -60,9 +59,12 @@ def split_data(data_dir):
     num_test = 0
 
     # randomly split data according to ratio
+    np.random.seed(RANDOM_SEED)
+    random_indices = np.random.randint(num_folds, size=len(pairs))
     train_commands = set()
+    count = 0
     for nl_temp in pairs:
-        ind = random.randrange(num_folds)
+        ind = random_indices[count]
         if ind < num_folds - 2:
             num_train += 1
             for nl, cm in pairs[nl_temp]:
@@ -79,6 +81,7 @@ def split_data(data_dir):
             for nl, cm in pairs[nl_temp]:
                 test_nl_list.append(nl)
                 test_cm_list.append(cm)
+        count += 1
 
     # move dev/test examples whose command has appeared in the train set to 
     # train
@@ -112,6 +115,7 @@ def split_data(data_dir):
     dev_nl_list_reorg = []
     dev_cm_list_reorg = []
     indices = list(range(len(dev_nl_list_cleaned)))
+    random.seed(RANDOM_SEED)
     random.shuffle(indices)
     for i in indices[:100]:
         dev_nl_list_reorg.append(dev_nl_list_cleaned[i])
