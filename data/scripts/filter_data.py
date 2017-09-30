@@ -47,7 +47,7 @@ def filter_by_most_frequent_utilities(data_dir, num_utilities):
 
     cm_path = os.path.join(data_dir, 'all.cm')
     top_utilities = compute_top_utilities(cm_path, num_utilities)
-    for split in data_splits:
+    for split in ['all']:
         nl_file_path = os.path.join(data_dir, split + '.nl')
         cm_file_path = os.path.join(data_dir, split + '.cm')
         with open(nl_file_path) as f:

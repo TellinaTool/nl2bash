@@ -13,6 +13,7 @@ def import_repairs(import_dir):
     repairs, errors, new_annotations = {}, {}, {}
     new_annotation = False
     for file_name in os.listdir(import_dir):
+        print('reading {}...'.format(file_name))
         if file_name.endswith('.csv'):
             with open(os.path.join(import_dir, file_name)) as f:
                 reader = csv.DictReader(f) 
@@ -20,18 +21,22 @@ def import_repairs(import_dir):
                     if i % 2 == 0:
                         command = row['Command'].strip()
                         old_description = row['Description'].strip()
+                        print(command)
+                        print(old_description)
+                        print()
                         new_annotation = (old_description == '--')
                         example_sig = '{}<NL_Command>{}'.format(
                             old_description, command)
                     else:
-                        description = row['Description']
+                        description = row['Description'].strip()
                         if description == '<Type a new description here>':
                             continue
                         elif description == 'ERROR':
                             errors[example_sig] = None
                         else:
                             if new_annotation:
-                                new_annotations[example_sig] = None
+                                new_annotations[
+                                    '{}<NL_Command>{}'.format(description, command)] = None
                             else:
                                 repairs[example_sig] = description
     print('{} repairs, {} errors and {} new annotations loaded'.format(
@@ -60,21 +65,21 @@ def repair_data(nl_path, cm_path, repairs, errors, new_annotations):
 
     # Add new annotations
     for example_sig in new_annotations:
-        repaired_data.append(example_sig.split('<NL_Command>'))
+        repaired_data.append(tuple(example_sig.split('<NL_Command>')))
 
-    print('{} repaired data points in total'.format(len(repaired_data)))
     repaired_data = sorted(list(set(repaired_data)))
+    print('{} repaired data points in total'.format(len(repaired_data)))
 
     # Save repaired data to disk
     nl_out_path = nl_path + '.repaired'
     cm_out_path = cm_path + '.repaired'
-    with open(nl_out_path, 'w') as o_f:
-        for nl, _ in repaired_data:
-            o_f.write('{}\n'.format(nl))
-    with open(cm_out_path, 'w') as o_f:
-        for _, cm in repaired_data:
-            o_f.write('{}\n'.format(cm))
-
+    nl_out = open(nl_out_path, 'w')
+    cm_out = open(cm_out_path, 'w')
+    for nl, cm in repaired_data:
+        nl_out.write('{}\n'.format(nl))
+        cm_out.write('{}\n'.format(cm))
+    nl_out.close()
+    cm_out.close()
 
 if __name__ == '__main__':
     data_dir = sys.argv[1]
