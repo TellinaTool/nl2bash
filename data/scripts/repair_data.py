@@ -81,6 +81,7 @@ def repair_data(nl_path, cm_path, repairs, errors, new_annotations):
     nl_out.close()
     cm_out.close()
 
+
 if __name__ == '__main__':
     data_dir = sys.argv[1]
     repairs, errors, new_annotations = \
