@@ -57,6 +57,9 @@ def define_input_flags():
                                 'Set to True to generate error analysis spreadsheet.')
     tf.app.flags.DEFINE_boolean('gen_manual_evaluation_sheet', False,
                                 'Set to True to generate manual evaluation spreadsheet.')
+    tf.app.flags.DEFINE_boolean('gen_manual_evaluation_sheet_single_model', False,
+                                'Set to True to generate manual evaluation spreadsheet for '
+                                'a particular model.')
     tf.app.flags.DEFINE_boolean('gen_manual_evaluation_table', False,
                                 'Set to True to open manual evaluation commandline interface')
 
