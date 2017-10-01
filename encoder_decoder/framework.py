@@ -536,7 +536,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
             for l in xrange(encoder_size):
                 input_feed[self.encoder_copy_inputs[l].name] = \
                     E.encoder_copy_inputs[l]
-            for l in xrange(decoder_size):
+            for l in xrange(decoder_size-1):
                 input_feed[self.targets[l].name] = E.copy_targets[l]
 
         # Apply dummy values to encoder and decoder inputs
