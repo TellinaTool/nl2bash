@@ -241,7 +241,7 @@ def gen_manual_evaluation_csv_single_model(dataset, FLAGS):
     # Load model predictions
     model_subdir, decode_sig = graph_utils.get_decode_signature(FLAGS)
     model_dir = os.path.join(FLAGS.model_root_dir, model_subdir)
-    prediction_list = load_predictions(model_dir, decode_sig, 1)
+    prediction_list = load_predictions(model_dir, decode_sig, top_k=3)
     if len(grouped_dataset) != len(prediction_list):
         raise ValueError("ground truth list and prediction list length must "
             "be equal: {} vs. {}".format(len(grouped_dataset),
@@ -260,10 +260,10 @@ def gen_manual_evaluation_csv_single_model(dataset, FLAGS):
     cmd_parser = data_tools.bash_parser if eval_bash \
         else data_tools.paren_parser
 
-    output_path = os.path.join(model_dir, 'manual.evaluation.single.model')
+    output_path = os.path.join(model_dir, 'manual.evaluations.single.model')
     with open(output_path, 'w') as o_f:
         # write spreadsheet header
-        o_f.write('id,description,command,correct template,correct command')
+        o_f.write('id,description,command,correct template,correct command\n')
         for example_id in range(len(grouped_dataset)):
             data_group = grouped_dataset[example_id][1]
             sc_txt = data_group[0].sc_txt.strip()
@@ -273,7 +273,10 @@ def gen_manual_evaluation_csv_single_model(dataset, FLAGS):
                 sc_temp, command_gts, command_translations,
                 template_translations)
             predictions = prediction_list[example_id]
-            for i in xrange(min(3, len(predictions))):
+            for i in xrange(3):
+                if i >= len(predictions):
+                    o_f.write(',,,n,n\n')
+                    continue
                 pred_cmd = predictions[i]
                 cmd = normalize_cm_ground_truth(pred_cmd)
                 tree = cmd_parser(cmd)
@@ -298,11 +301,12 @@ def gen_manual_evaluation_csv_single_model(dataset, FLAGS):
                         structure_example_sig in structure_eval_cache:
                     structure_eval = structure_eval_cache[structure_example_sig]
                 if i == 0:
-                    o_f.write('{},{},{},{},{}'.format(
-                        i, sc_txt, pred_cmd, structure_eval, command_eval))
+                    o_f.write('{},"{}","{}",{},{}\n'.format(
+                        example_id, sc_txt.replace('"', '""'), pred_cmd.replace('"', '""'), 
+                        structure_eval, command_eval))
                 else:
-                    o_f.write(',,{},{},{}'.format(
-                        pred_cmd, structure_eval, command_eval))
+                    o_f.write(',,"{}",{},{}\n'.format(
+                        pred_cmd.replace('"', '""'), structure_eval, command_eval))
     print('manual evaluation spreadsheet saved to {}'.format(output_path))
     
 
@@ -522,7 +526,7 @@ def gen_manual_evaluation_csv(dataset, FLAGS):
 
 def load_multiple_model_predictions(grouped_dataset, FLAGS,
                                     tellina=True,
-                                    token_seq2seq=False,
+                                    token_seq2seq=True,
                                     token_copynet=True,
                                     char_seq2seq=False,
                                     char_copynet=False,
@@ -738,16 +742,6 @@ def load_ground_truths_from_manual_evaluation(data_dir, verbose=False):
                     command_translations[current_nl].add(pred_cmd)
     print('{} template translations loaded'.format(len(template_translations)))
     print('{} command translations loaded'.format(len(command_translations)))
-
-    count = 0
-    for nl, translations in sorted(command_translations.items(), key=lambda x:len(x[1]),
-            reverse=True):
-        print(nl)
-        for command in translations:
-            print('- {}'.format(command))
-        count += 1
-        if count == 20:
-            break
 
     return template_translations, command_translations
 
