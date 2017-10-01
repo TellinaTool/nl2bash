@@ -1,7 +1,9 @@
 """
 Gazetteers for bash.
 """
-utility_stats = """1,find,103,5457,566
+
+utility_stats = """
+1,find,103,5457,566
 2,xargs,32,981,90
 3,grep,82,871,90
 4,rm,17,519,40
@@ -72,7 +74,8 @@ utility_stats = """1,find,103,5457,566
 69,pstree,30,25,3
 70,uname,20,24,4
 71,env,8,24,6
-72,kill,9,21,1"""
+72,kill,9,21,1
+"""
 
 top_100_utilities = {
     'echo',
@@ -228,7 +231,8 @@ BLACK_LIST = {
     'screen',
     'brew',
     'yum',
-    'apt-get'
+    'apt-get',
+    'tmux'
 }
 
 # Flow controls
@@ -237,11 +241,13 @@ GREY_LIST = {
     'unalias',
     'set',
     'unset',
+    'source',
     'export',
     'shift',
-    'exit',
-    'logout',
-    'yes'
+    'true',
+    'false',
+    'pushd',
+    'popd'
 }
 
 # --- Linux Utility by Category --- #
