@@ -718,7 +718,7 @@ def print_error_analysis_csv(grouped_dataset, prediction_list, FLAGS,
     if group_by_utility:
         utility_index = {}
         for line in bash.utility_stats.split('\n'):
-            ind, utility, _, _, _ = line.split(',')
+            ind, utility, _, _ = line.split(',')
             utility_index[utility] = ind
 
     grammar_errors = collections.defaultdict(list) if group_by_utility else []
