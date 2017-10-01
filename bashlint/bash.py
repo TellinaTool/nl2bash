@@ -1,7 +1,6 @@
 """
 Gazetteers for bash.
 """
-
 utility_stats = """
 1,find,103,5457,566
 2,xargs,32,981,90
