@@ -112,9 +112,8 @@ def gen_slot_filling_training_data(sess, FLAGS, model, dataset, output_file):
                     #     print(ff)
                     #     print(encoder_outputs[0])
                     #     print(decoder_outputs[0])
-
                     if len(X) > 0 and len(X) % 1000 == 0:
-                        print('{} examples gathered for generating slot filling '
+                        print('{} examples gathered:q: for generating slot filling '
                             'features...'.format(len(X)))
 
     assert(len(X) == len(Y))
