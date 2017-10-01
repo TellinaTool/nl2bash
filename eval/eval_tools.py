@@ -228,6 +228,84 @@ def eval_regex_with_semantic_equivalence(pred_cmd, ground_truths, verbose=False)
     return str_match, str_match
 
 
+def gen_manual_evaluation_csv_single_model(dataset, FLAGS):
+    """
+    Generate .csv spreadsheet for manual evaluation on dev/test set
+    examples for a specific model.
+    """
+    # Group dataset
+    tokenizer_selector = "cm" if FLAGS.explain else "nl"
+    grouped_dataset = data_utils.group_parallel_data(
+        dataset, use_bucket=True, tokenizer_selector=tokenizer_selector)
+
+    # Load model predictions
+    model_subdir, decode_sig = graph_utils.get_decode_signature(FLAGS)
+    model_dir = os.path.join(FLAGS.model_root_dir, model_subdir)
+    prediction_list = load_predictions(model_dir, decode_sig, 1)
+    if len(grouped_dataset) != len(prediction_list):
+        raise ValueError("ground truth list and prediction list length must "
+            "be equal: {} vs. {}".format(len(grouped_dataset),
+            len(prediction_list)))
+
+    # Load additional ground truths
+    template_translations, command_translations = \
+        load_ground_truths_from_manual_evaluation(FLAGS.data_dir)
+
+    # Load cached evaluation results
+    structure_eval_cache, command_eval_cache = \
+        load_cached_evaluation_results(
+            os.path.join(FLAGS.data_dir, 'manual_judgements'))
+
+    eval_bash = FLAGS.dataset.startswith("bash")
+    cmd_parser = data_tools.bash_parser if eval_bash \
+        else data_tools.paren_parser
+
+    output_path = os.path.join(model_dir, 'manual.evaluation.single.model')
+    with open(output_path, 'w') as o_f:
+        # write spreadsheet header
+        o_f.write('id,description,command,correct template,correct command')
+        for example_id in range(len(grouped_dataset)):
+            data_group = grouped_dataset[example_id][1]
+            sc_txt = data_group[0].sc_txt.strip()
+            sc_temp = normalize_nl_ground_truth(sc_txt)
+            command_gts = [dp.tg_txt for dp in data_group]
+            command_gt_asts, template_gt_asts = extend_ground_truths(
+                sc_temp, command_gts, command_translations,
+                template_translations)
+            predictions = prediction_list[example_id]
+            for i in xrange(min(3, len(predictions))):
+                pred_cmd = predictions[i]
+                cmd = normalize_cm_ground_truth(pred_cmd)
+                tree = cmd_parser(cmd)
+                temp_match = tree_dist.one_match(
+                    template_gt_asts, tree, ignore_arg_value=True)
+                str_match = tree_dist.one_match(
+                    command_gt_asts, tree, ignore_arg_value=False)
+                # Match ground truths & exisitng judgements
+                command_example_sig = '{}<NL_PREDICTION>{}'.format(sc_temp, cmd)
+                structure_example_sig = '{}<NL_PREDICTION>{}'.format(
+                    sc_temp, data_tools.ast2template(tree, loose_constraints=True))
+                command_eval, structure_eval = '', ''
+                if str_match:
+                    command_eval = 'y'
+                    structure_eval = 'y'
+                elif temp_match:
+                    structure_eval = 'y'
+                if command_eval_cache and \
+                        command_example_sig in command_eval_cache:
+                    command_eval = command_eval_cache[command_example_sig]
+                if structure_eval_cache and \
+                        structure_example_sig in structure_eval_cache:
+                    structure_eval = structure_eval_cache[structure_example_sig]
+                if i == 0:
+                    o_f.write('{},{},{},{},{}'.format(
+                        i, sc_txt, pred_cmd, structure_eval, command_eval))
+                else:
+                    o_f.write(',,{},{},{}'.format(
+                        pred_cmd, structure_eval, command_eval))
+    print('manual evaluation spreadsheet saved to {}'.format(output_path))
+    
+
 def gen_manual_evaluation_table(dataset, FLAGS, interactive=True):
     """
     Generate a table of manual evaluation results on 100 FIXED dev set examples.
@@ -263,7 +341,7 @@ def gen_manual_evaluation_table(dataset, FLAGS, interactive=True):
     # Interactive manual evaluation interface
     num_s_correct = collections.defaultdict(int)
     num_f_correct = collections.defaultdict(int)
-    for example_id in sample_ids:
+    for exam_id, example_id in enumerate(sample_ids):
         data_group = grouped_dataset[example_id][1]
         sc_txt = data_group[0].sc_txt.strip()
         sc_temp = normalize_nl_ground_truth(sc_txt)
@@ -301,7 +379,9 @@ def gen_manual_evaluation_table(dataset, FLAGS, interactive=True):
                 if command_eval != 'y':
                     if structure_eval == 'y':
                         if not command_eval and interactive:
-                            print('# {}'.format(sc_txt))
+                            print('#{}. {}'.format(exam_id, sc_txt))
+                            for j, gt in enumerate(command_gts):
+                                print('- GT{}: {}'.format(j, gt)) 
                             print('> {}'.format(pred_cmd))
                             command_eval = input(
                                 'CORRECT COMMAND? [y/reason] ')
@@ -310,7 +390,9 @@ def gen_manual_evaluation_table(dataset, FLAGS, interactive=True):
                             print()
                     else:
                         if not structure_eval and interactive:
-                            print('# {}'.format(sc_txt))
+                            print('#{}. {}'.format(exam_id, sc_txt))
+                            for j, gt in enumerate(command_gts):
+                                print('- GT{}: {}'.format(j, gt))
                             print('> {}'.format(pred_cmd))
                             structure_eval = input(
                                 'CORRECT STRUCTURE? [y/reason] ')
@@ -351,8 +433,8 @@ def padding_spaces(s, max_len):
 
 def gen_manual_evaluation_csv(dataset, FLAGS):
     """
-    Generate .csv spreadsheet for manual evaluation of model performance on 100
-    FIXED dev set examples, predictions of different models are listed side-by-side.
+    Generate .csv spreadsheet for manual evaluation on 100 FIXED dev set
+    examples, predictions of different models are listed side-by-side.
     """
     # Group dataset
     tokenizer_selector = "cm" if FLAGS.explain else "nl"
@@ -439,11 +521,13 @@ def gen_manual_evaluation_csv(dataset, FLAGS):
 
 
 def load_multiple_model_predictions(grouped_dataset, FLAGS,
+                                    tellina=True,
                                     token_seq2seq=False,
-                                    tellina=False,
-                                    token_copynet=False,
-                                    partial_token_seq2seq=False,
-                                    partial_token_copynet=False):
+                                    token_copynet=True,
+                                    char_seq2seq=False,
+                                    char_copynet=False,
+                                    partial_token_seq2seq=True,
+                                    partial_token_copynet=True):
     """
     Load predictions of multiple models.
 
@@ -464,8 +548,9 @@ def load_multiple_model_predictions(grouped_dataset, FLAGS,
         model_dir = os.path.join(FLAGS.model_root_dir, model_subdir)
         prediction_list = load_predictions(model_dir, decode_sig, 1)
         if len(grouped_dataset) != len(prediction_list):
-            raise ValueError("ground truth and predictions length must be equal: "
-                "{} vs. {}".format(len(grouped_dataset), len(prediction_list)))
+            raise ValueError("ground truth list and prediction list length must "
+                "be equal: {} vs. {}".format(len(grouped_dataset), 
+                len(prediction_list)))
         return prediction_list
 
     # Load model predictions
@@ -491,10 +576,10 @@ def load_multiple_model_predictions(grouped_dataset, FLAGS,
             FLAGS.fill_argument_slots = True
             model_names.append('tellina')
             model_predictions.append(load_model_predictions())
-        # --- CopyNet
-        if token_copynet:
             FLAGS.normalized = False
             FLAGS.fill_argument_slots = False
+        # --- CopyNet
+        if token_copynet:
             FLAGS.use_copy = True
             FLAGS.copy_fun = 'copynet'
             model_names.append('token-copynet')
@@ -555,7 +640,7 @@ def extend_ground_truths(sc_temp, tg_strs, command_translations,
     return command_gt_asts, template_gt_asts
 
 
-def load_predictions(model_dir, decode_sig, top_k):
+def load_predictions(model_dir, decode_sig, top_k, verbose=True):
     """
     Load model predictions (top_k per example) from disk.
 
@@ -565,12 +650,15 @@ def load_predictions(model_dir, decode_sig, top_k):
     :param top_k: Maximum number of predictions to read per example.
     :return: List of top k predictions.
     """
-    with open(os.path.join(model_dir,
-            'predictions.{}.latest'.format(decode_sig))) as f:
+    prediction_path = os.path.join(model_dir, 'predictions.{}.latest'.format(decode_sig))
+    with open(prediction_path) as f:
         prediction_list = []
         for line in f:
             predictions = line.split('|||')
             prediction_list.append(predictions[:top_k])
+    if verbose:
+        print('{} predictions loaded from {}'.format(
+            len(prediction_list), prediction_path))
     return prediction_list
 
 
@@ -650,6 +738,17 @@ def load_ground_truths_from_manual_evaluation(data_dir, verbose=False):
                     command_translations[current_nl].add(pred_cmd)
     print('{} template translations loaded'.format(len(template_translations)))
     print('{} command translations loaded'.format(len(command_translations)))
+
+    count = 0
+    for nl, translations in sorted(command_translations.items(), key=lambda x:len(x[1]),
+            reverse=True):
+        print(nl)
+        for command in translations:
+            print('- {}'.format(command))
+        count += 1
+        if count == 20:
+            break
+
     return template_translations, command_translations
 
 

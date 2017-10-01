@@ -2,78 +2,78 @@
 Gazetteers for bash.
 """
 utility_stats = """
-    0,find,5162,561
-    1,xargs,851,88
-    2,grep,745,68
-    3,rm,479,50
-    4,ls,324,39
-    5,chmod,288,28
-    6,echo,278,34
-    7,sort,250,19
-    8,wc,188,18
-    9,chown,142,22
-    10,mv,144,18
-    11,cut,145,20
-    12,cp,128,11
-    13,mkdir,130,8
-    14,head,144,16
-    15,cat,141,7
-    16,tail,102,10
-    17,dirname,112,9
-    18,split,78,6
-    19,tar,80,7
-    20,ln,68,12
-    21,rsync,64,11
-    22,read,72,6
-    23,readlink,71,6
-    24,basename,71,8
-    25,tr,75,9
-    26,which,65,10
-    27,uniq,66,7
-    28,tee,73,7
-    29,ssh,57,8
-    30,mount,59,0
-    31,file,50,6
-    32,du,50,5
-    33,shopt,43,11
-    34,rename,43,8
-    35,pwd,50,4
-    36,mktemp,44,4
-    37,cd,45,3
-    38,comm,41,4
-    39,date,33,8
-    40,md5sum,36,3
-    41,diff,27,12
-    42,rmdir,33,3
-    43,od,31,4
-    44,hostname,33,1
-    45,cpio,27,7
-    46,df,30,5
-    47,chgrp,30,4
-    48,seq,28,4
-    49,touch,30,2
-    50,gzip,31,4
-    51,dig,27,2
-    52,whoami,27,5
-    53,bzip2,27,3
-    54,nl,24,8
-    55,rev,28,1
-    56,paste,27,2
-    57,tree,24,2
-    58,ifconfig,25,4
-    59,zcat,26,2
-    60,uname,23,3
-    61,env,24,1
-    62,join,24,2
-    63,column,21,3
-    64,fold,22,0
-    65,history,20,0
-    66,ping,19,3
-    67,pstree,18,1
-    68,cal,14,0
-    69,who,13,2
-    70,tac,9,1
-    71,kill,15,2
+1,find,103,5457,566
+2,xargs,32,981,90
+3,grep,82,871,90
+4,rm,17,519,40
+5,ls,84,351,40
+6,echo,5,325,30
+7,sort,50,317,30
+8,chmod,14,274,38
+9,wc,13,221,19
+10,cut,15,197,16
+11,head,12,163,18
+12,chown,15,156,17
+13,cat,19,154,13
+14,mv,20,143,21
+15,cp,49,140,10
+16,mkdir,10,132,17
+17,tail,20,119,18
+18,dirname,4,99,15
+19,tr,11,92,17
+20,uniq,20,91,8
+21,split,21,89,12
+22,tar,50,82,12
+23,readlink,18,80,6
+24,tee,6,76,7
+25,basename,8,74,5
+26,ln,29,74,7
+27,read,11,70,8
+28,rsync,172,68,10
+29,which,13,67,14
+30,mount,14,65,5
+31,ssh,43,58,5
+32,file,25,57,8
+33,pwd,6,54,4
+34,du,43,53,8
+35,md5sum,14,52,4
+36,ifconfig,12,50,5
+37,shopt,5,48,5
+38,od,33,46,6
+39,cd,3,46,4
+40,comm,9,45,4
+41,diff,71,44,3
+42,hostname,26,44,4
+43,df,27,43,4
+44,rename,12,42,5
+45,mktemp,12,42,7
+46,date,18,40,5
+47,nl,24,40,5
+48,column,6,39,7
+49,dig,13,39,1
+50,paste,6,38,2
+51,history,8,37,6
+52,rev,4,36,2
+53,zcat,10,36,8
+54,touch,15,35,1
+55,cal,7,34,1
+56,chgrp,15,34,4
+57,whoami,2,33,4
+58,ping,28,33,7
+59,gzip,34,32,4
+60,rmdir,7,32,5
+61,seq,8,31,10
+62,tree,37,29,2
+63,tac,8,28,6
+64,bzip2,34,28,2
+65,fold,10,28,3
+66,join,15,28,4
+67,cpio,54,27,4
+68,who,32,26,6
+69,pstree,30,25,3
+70,uname,20,24,4
+71,env,8,24,6
+72,kill,9,21,1
 """
 
 top_100_utilities = {
@@ -230,7 +230,8 @@ BLACK_LIST = {
     'screen',
     'brew',
     'yum',
-    'apt-get'
+    'apt-get',
+    'tmux'
 }
 
 # Flow controls
@@ -239,11 +240,13 @@ GREY_LIST = {
     'unalias',
     'set',
     'unset',
+    'source',
     'export',
     'shift',
-    'exit',
-    'logout',
-    'yes'
+    'true',
+    'false',
+    'pushd',
+    'popd'
 }
 
 # --- Linux Utility by Category --- #

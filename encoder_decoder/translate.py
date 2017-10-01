@@ -298,6 +298,8 @@ def main(_):
             gen_error_analysis_sheets(dataset, group_by_utility=True)
         elif FLAGS.gen_manual_evaluation_sheet:
             eval_tools.gen_manual_evaluation_csv(dataset, FLAGS)
+        elif FLAGS.gen_manual_evaluation_sheet_single_model:
+            eval_tools.gen_manual_evaluation_csv_single_model(dataset, FLAGS)
         elif FLAGS.gen_manual_evaluation_table:
             eval_tools.gen_manual_evaluation_table(dataset, FLAGS)
 
