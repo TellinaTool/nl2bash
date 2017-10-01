@@ -149,11 +149,15 @@ def stable_slot_filling(template_tokens, sc_fillers, tg_slots, pointer_targets,
     # Step a): prepare (binary) type alignment matrix based on type info
     M = np.zeros([len(encoder_outputs), len(decoder_outputs)], dtype=np.int32)
     for f in sc_fillers:
-        assert(f <= len(encoder_outputs))
+        if f >= len(encoder_outputs):
+            print(template_tokens, f, len(encoder_outputs))
+            continue
         surface, filler_type = sc_fillers[f]
         matched = False
         for s in tg_slots:
-            assert(s <= len(decoder_outputs))
+            if s >= len(decoder_outputs):
+                print(tg_slots, s, len(decoder_outputs))
+                continue
             slot_value, slot_type = tg_slots[s]
             if slot_filler_type_match(slot_type, filler_type):
                 M[f, s] = 1

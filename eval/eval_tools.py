@@ -263,7 +263,7 @@ def gen_manual_evaluation_table(dataset, FLAGS, interactive=True):
     # Interactive manual evaluation interface
     num_s_correct = collections.defaultdict(int)
     num_f_correct = collections.defaultdict(int)
-    for example_id in sample_ids:
+    for exam_id, example_id in enumerate(sample_ids):
         data_group = grouped_dataset[example_id][1]
         sc_txt = data_group[0].sc_txt.strip()
         sc_temp = normalize_nl_ground_truth(sc_txt)
@@ -301,7 +301,9 @@ def gen_manual_evaluation_table(dataset, FLAGS, interactive=True):
                 if command_eval != 'y':
                     if structure_eval == 'y':
                         if not command_eval and interactive:
-                            print('# {}'.format(sc_txt))
+                            print('#{}. {}'.format(exam_id, sc_txt))
+                            for j, gt in enumerate(command_gts):
+                                print('- GT{}: {}'.format(j, gt)) 
                             print('> {}'.format(pred_cmd))
                             command_eval = input(
                                 'CORRECT COMMAND? [y/reason] ')
@@ -310,7 +312,9 @@ def gen_manual_evaluation_table(dataset, FLAGS, interactive=True):
                             print()
                     else:
                         if not structure_eval and interactive:
-                            print('# {}'.format(sc_txt))
+                            print('#{}. {}'.format(exam_id, sc_txt))
+                            for j, gt in enumerate(command_gts):
+                                print('- GT{}: {}'.format(j, gt))
                             print('> {}'.format(pred_cmd))
                             structure_eval = input(
                                 'CORRECT STRUCTURE? [y/reason] ')
@@ -439,11 +443,13 @@ def gen_manual_evaluation_csv(dataset, FLAGS):
 
 
 def load_multiple_model_predictions(grouped_dataset, FLAGS,
+                                    tellina=True,
                                     token_seq2seq=False,
-                                    tellina=False,
-                                    token_copynet=False,
-                                    partial_token_seq2seq=False,
-                                    partial_token_copynet=False):
+                                    token_copynet=True,
+                                    char_seq2seq=False,
+                                    char_copynet=False,
+                                    partial_token_seq2seq=True,
+                                    partial_token_copynet=True):
     """
     Load predictions of multiple models.
 
@@ -464,8 +470,9 @@ def load_multiple_model_predictions(grouped_dataset, FLAGS,
         model_dir = os.path.join(FLAGS.model_root_dir, model_subdir)
         prediction_list = load_predictions(model_dir, decode_sig, 1)
         if len(grouped_dataset) != len(prediction_list):
-            raise ValueError("ground truth and predictions length must be equal: "
-                "{} vs. {}".format(len(grouped_dataset), len(prediction_list)))
+            raise ValueError("ground truth list and prediction list length must "
+                "be equal: {} vs. {}".format(len(grouped_dataset), 
+                len(prediction_list)))
         return prediction_list
 
     # Load model predictions
@@ -491,10 +498,10 @@ def load_multiple_model_predictions(grouped_dataset, FLAGS,
             FLAGS.fill_argument_slots = True
             model_names.append('tellina')
             model_predictions.append(load_model_predictions())
-        # --- CopyNet
-        if token_copynet:
             FLAGS.normalized = False
             FLAGS.fill_argument_slots = False
+        # --- CopyNet
+        if token_copynet:
             FLAGS.use_copy = True
             FLAGS.copy_fun = 'copynet'
             model_names.append('token-copynet')
@@ -555,7 +562,7 @@ def extend_ground_truths(sc_temp, tg_strs, command_translations,
     return command_gt_asts, template_gt_asts
 
 
-def load_predictions(model_dir, decode_sig, top_k):
+def load_predictions(model_dir, decode_sig, top_k, verbose=True):
     """
     Load model predictions (top_k per example) from disk.
 
@@ -565,12 +572,15 @@ def load_predictions(model_dir, decode_sig, top_k):
     :param top_k: Maximum number of predictions to read per example.
     :return: List of top k predictions.
     """
-    with open(os.path.join(model_dir,
-            'predictions.{}.latest'.format(decode_sig))) as f:
+    prediction_path = os.path.join(model_dir, 'predictions.{}.latest'.format(decode_sig))
+    with open(prediction_path) as f:
         prediction_list = []
         for line in f:
             predictions = line.split('|||')
             prediction_list.append(predictions[:top_k])
+    if verbose:
+        print('{} predictions loaded from {}'.format(
+            len(prediction_list), prediction_path))
     return prediction_list
 
 
@@ -650,6 +660,17 @@ def load_ground_truths_from_manual_evaluation(data_dir, verbose=False):
                     command_translations[current_nl].add(pred_cmd)
     print('{} template translations loaded'.format(len(template_translations)))
     print('{} command translations loaded'.format(len(command_translations)))
+
+    count = 0
+    for nl, translations in sorted(command_translations.items(), key=lambda x:len(x[1]),
+            reverse=True):
+        print(nl)
+        for command in translations:
+            print('- {}'.format(command))
+        count += 1
+        if count == 20:
+            break
+
     return template_translations, command_translations
 
 
