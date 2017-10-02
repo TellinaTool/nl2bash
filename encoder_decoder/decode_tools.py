@@ -375,10 +375,10 @@ def decode_set(sess, model, dataset, top_k, FLAGS, verbose=False):
                         pred_cmd = top_k_pred_cmd
                     pred_file.write('{}|||'.format(pred_cmd))
                     eval_row += '"{}",'.format(pred_cmd.replace('"', '""'))
-                    temp_match = tree_dist.one_match(tg_asts, top_k_pred_tree,
-                                                     ignore_arg_value=True)
-                    str_match = tree_dist.one_match(tg_asts, top_k_pred_tree,
-                                                    ignore_arg_value=False)
+                    temp_match = tree_dist.one_match(
+                        tg_asts, top_k_pred_tree, ignore_arg_value=True)
+                    str_match = tree_dist.one_match(
+                        tg_asts, top_k_pred_tree, ignore_arg_value=False)
                     if temp_match:
                         eval_row += 'y,'
                     if str_match:
