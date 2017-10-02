@@ -734,7 +734,7 @@ def tokens_to_ids(tokens, vocabulary):
 
 
 def compute_copy_indices(sc_tokens, tg_tokens, sc_copy_tokens, tg_copy_tokens,
-                         tg_vocab, channel, ):
+                         tg_vocab, channel):
     assert(len(sc_tokens) == len(sc_copy_tokens))
     assert(len(tg_tokens) == len(tg_copy_tokens))
     csc_ids, ctg_ids = [], []
