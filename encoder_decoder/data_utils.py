@@ -241,6 +241,9 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
             data_point.csc_ids, data_point.ctg_ids = \
                 compute_copy_indices(sc_tokens, tg_tokens,
                     sc_copy_tokens, tg_copy_tokens, vocab.tg_vocab, token_ext)
+            print(data_point.tg_ids)
+            print(data_point.ctg_ids)
+            print()
         sc_token_file.close()
         tg_token_file.close()
         sc_copy_token_file.close()
