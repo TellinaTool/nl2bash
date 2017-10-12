@@ -321,7 +321,7 @@ def gen_manual_evaluation_table(dataset, FLAGS, interactive=True):
         dataset, use_bucket=True, tokenizer_selector=tokenizer_selector)
 
     model_names, model_predictions = load_multiple_model_predictions(
-        grouped_dataset, FLAGS)
+        grouped_dataset, FLAGS, top_k=3)
 
     # Get FIXED dev set samples
     random.seed(100)
@@ -345,6 +345,8 @@ def gen_manual_evaluation_table(dataset, FLAGS, interactive=True):
     # Interactive manual evaluation interface
     num_s_correct = collections.defaultdict(int)
     num_f_correct = collections.defaultdict(int)
+    num_s_top_3_correct = collections.defaultdict(int)
+    num_f_top_3_correct = collections.defaultdict(int)
     for exam_id, example_id in enumerate(sample_ids):
         data_group = grouped_dataset[example_id][1]
         sc_txt = data_group[0].sc_txt.strip()
@@ -355,6 +357,8 @@ def gen_manual_evaluation_table(dataset, FLAGS, interactive=True):
             template_translations)
         for model_id, model_name in enumerate(model_names):
             predictions = model_predictions[model_id][example_id]
+            top_3_s_correct_marked = False
+            top_3_f_correct_marked = False
             for i in xrange(min(3, len(predictions))):
                 pred_cmd = predictions[i]
                 cmd = normalize_cm_ground_truth(pred_cmd)
@@ -409,25 +413,33 @@ def gen_manual_evaluation_table(dataset, FLAGS, interactive=True):
                     structure_eval_cache[structure_example_sig] = structure_eval
                     command_eval_cache[command_example_sig] = command_eval
                 if structure_eval == 'y':
-                    # if i == 0 and model_name == 'tellina':
-                    #     o_f.write('{}\n'.format(sc_txt))
-                    num_s_correct[model_name] += 1
+                    if i == 0 :
+                        num_s_correct[model_name] += 1 
+                    if not top_3_s_correct_marked:
+                        num_s_top_3_correct[model_name] += 1
+                        top_3_s_correct_marked = True
                 if command_eval == 'y':
-                    num_f_correct[model_name] += 1
-
+                    if i == 0:
+                        num_f_correct[model_name] += 1
+                    if not top_3_f_correct_marked:
+                        num_f_top_3_correct[model_name] += 1
+                        top_3_f_correct_marked = True
+                        
     # print evaluation table
     # compute model name length offset
     max_len = len(max(model_names, key=len))
     max_len_with_offset = (int(max_len / 4) + 1) * 4
-    first_line = '{}Acc_F    Acc_T'.format(
+    first_line = '{}Acc_F_1    Acc_F_3    Acc_T_1    Acc_T_3'.format(
         padding_spaces('Model', max_len_with_offset))
     print(first_line)
     print('-' * len(first_line))
     for i, model_name in enumerate(model_names):    
-        print('{}{:.2f}    {:.2f}'.format(
+        print('{}{:.2f}    {:.2f}    {:.2f}    {:.2f}'.format(
             padding_spaces(model_name, max_len_with_offset),
             num_f_correct[model_name] / len(sample_ids),
-            num_s_correct[model_name] / len(sample_ids)))
+            num_f_top_3_correct[model_name] / len(sample_ids),
+            num_s_correct[model_name] / len(sample_ids),
+            num_s_top_3_correct[model_name] / len(sample_ids)))
     print('-' * len(first_line))
 
 
@@ -524,12 +536,12 @@ def gen_manual_evaluation_csv(dataset, FLAGS):
     print('Manual evaluation results saved to {}'.format(output_path))
 
 
-def load_multiple_model_predictions(grouped_dataset, FLAGS,
+def load_multiple_model_predictions(grouped_dataset, FLAGS, top_k=1,
                                     tellina=True,
                                     token_seq2seq=True,
                                     token_copynet=True,
-                                    char_seq2seq=False,
-                                    char_copynet=False,
+                                    char_seq2seq=True,
+                                    char_copynet=True,
                                     partial_token_seq2seq=True,
                                     partial_token_copynet=True):
     """
@@ -550,7 +562,7 @@ def load_multiple_model_predictions(grouped_dataset, FLAGS,
     def load_model_predictions():
         model_subdir, decode_sig = graph_utils.get_decode_signature(FLAGS)
         model_dir = os.path.join(FLAGS.model_root_dir, model_subdir)
-        prediction_list = load_predictions(model_dir, decode_sig, 1)
+        prediction_list = load_predictions(model_dir, decode_sig, top_k)
         if len(grouped_dataset) != len(prediction_list):
             raise ValueError("ground truth list and prediction list length must "
                 "be equal: {} vs. {}".format(len(grouped_dataset), 
@@ -569,6 +581,7 @@ def load_multiple_model_predictions(grouped_dataset, FLAGS,
         # -- Token
         FLAGS.channel = 'token'
         FLAGS.normalized = False
+        FLAGS.fill_argument_slots = False
         FLAGS.use_copy = False
         # --- Seq2Seq
         if token_seq2seq:
@@ -588,9 +601,8 @@ def load_multiple_model_predictions(grouped_dataset, FLAGS,
             FLAGS.copy_fun = 'copynet'
             model_names.append('token-copynet')
             model_predictions.append(load_model_predictions())
+            FLAGS.use_copy = False
         # -- Parital token
-        FLAGS.normalized = False
-        FLAGS.use_copy = False
         FLAGS.channel = 'partial.token'
         # --- Seq2Seq
         if partial_token_seq2seq:
@@ -602,7 +614,23 @@ def load_multiple_model_predictions(grouped_dataset, FLAGS,
             FLAGS.copy_fun = 'copynet'
             model_names.append('partial.token-copynet')
             model_predictions.append(load_model_predictions())
-
+            FLAGS.use_copy = False
+        # -- Character
+        FLAGS.channel = 'char'
+        FLAGS.batch_size = 32
+        FLAGS.min_vocab_frequency = 1
+        # --- Seq2Seq
+        if char_seq2seq:
+            model_names.append('char-seq2seq')
+            model_predictions.append(load_model_predictions())
+        # --= CopyNet
+        if char_copynet:
+            FLAGS.use_copy = True
+            FLAGS.copy_fun = 'copynet'
+            model_names.append('char-copynet')
+            model_predictions.append(load_model_predictions())
+            FLAGS.use_copy = False
+            
     # LSTMs
     if include_lstm:
         FLAGS.rnn_cell = 'lstm'
