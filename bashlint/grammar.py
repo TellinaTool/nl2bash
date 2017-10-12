@@ -389,10 +389,8 @@ class BashGrammar(object):
             elif reading_synopsis:
                 self.make_utility(line)
 
-        print('Bashlint: {} utilities'.format(len(self.grammar)))
-        # for utility in bash.top_100_utilities:
-        #     if not utility in self.grammar:
-        #         print(utility)
+        print('Bashlint grammar set up ({} utilities)'.format(len(self.grammar)))
+        print()
 
     def make_utility(self, line):
         line = line.strip()
