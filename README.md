@@ -9,13 +9,15 @@ This repository consists of the following components:
 3. A set of simple natural language processing tools for processing the input natural language, including the regex-based sentence tokenizer and named entity recognizer.
 4. A set of tools used to extract bash utility grammars from man pages.
 
+## Experiment Setup
+
 ### Install TensorFlow
 
 The Tensorflow library is required to reproduce our experiments. The experiments can be reproduced on normal CPU machines.
 
 Please follow the instructions on the [official website](https://www.tensorflow.org/versions/r0.9/get_started/os_setup.html) to install the library.
 
-### Set up experiment environment
+### Environment Variables & Dependencies
 
 Type `make` to set up the experiment environment. This sets the Python path and the tools which the main experiment would depend on.
 
