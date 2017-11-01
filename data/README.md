@@ -2,7 +2,7 @@
 
 ## Content
 
-NL2Bash contains 12k one-line Linux shell commands used in practice and their natural language descriptions provided by experts. The dataset includes 100+ commonly used shell utilities, providing a rich test bed for translating natural language into command lines.
+NL2Bash contains 12k one-line Linux shell commands used in practice and their natural language descriptions provided by experts. The dataset includes 100+ commonly used shell utilities, providing a rich training and test bed for automatically translating natural language into command lines.
 
 The parallel data are stored with a source file `bash/\*.nl` and a target file `bash/\*.cm`.
 The entire corpus `bash/all.nl, bash/all.cm` are randomly splited into train, dev, and test set with a ratio of `10:1:1`.
