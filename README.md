@@ -2,19 +2,31 @@
 
 This repository consists of the following components:
 
-1. A Tensorflow implementation of a sequence-to-sequence model which we augmented with argument filling and other enhancements.
-2. An improved version of the [bashlex](https://github.com/idank/bashlex) parser which we augmented with in-command structures between utilities, flags and arguments.
-3. A set of simple natural language processing tools for processing the input natural language, including the regex-based sentence tokenizer and named entity recognizer.
-4. A set of tools used to extract bash utility grammars from man pages.
+1. Tensorflow implementations of the sequence-to-sequence neural machine translation model and its variations.
+2. A bash command parser which parses a bash command into an abstractive syntax tree, developed on top of  [bashlex](https://github.com/idank/bashlex).
+3. A set of domain-specific natural language processing tools, including a regex-based sentence tokenizer and a bash-domain named entity recognizer.
 
 ### Install TensorFlow
 
-The Tensorflow library is required to reproduce our experiments. The experiments can be reproduced on normal CPU machines.
+The Tensorflow library is required to reproduce our experiments. The experiment results can be reproduced on machines with or without GPUs.
 
-Please follow the instructions on the [official website](https://www.tensorflow.org/versions/r0.9/get_started/os_setup.html) to install the library.
+Please follow the instructions on the [official website](https://www.tensorflow.org/install/) to install the library.
 
-### Set up experiment environment
+The following pip installation command has been tested on Mac OS 10.10.5.
+```
+sudo pip3 install --upgrade \
+ https://storage.googleapis.com/tensorflow/mac/cpu/tensorflow-1.3.0-py3-none-any.whl 
+```
 
-Type `make` to set up the experiment environment. This sets the Python path and the tools which the main experiment would depend on.
+### Run Experiments
 
-Afterwards please follow the instructions in the [experiment folder](https://github.com/TellinaTool/learning_module/tree/master/experiments) to reproduce our experiment results.
+First of all, run `make` in the root directory of the repo. Run `sudo make` if you encounter permission error in this step.
+```
+(sudo) make
+```
+This sets up the Python path and other tools on which the main experiment depends.
+
+Then change to the [experiments](/experiments) folder and follow the instructions there to reproduce our results.
+```
+cd experiments
+```

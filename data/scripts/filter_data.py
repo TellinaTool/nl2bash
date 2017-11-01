@@ -1,10 +1,15 @@
+"""
+Filter data pairs and retain only grammatical and frequently used commands.
+
+Usage: python3 filter_data.py data_dir
+"""
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
 import collections
 import os, sys
-sys.path.append('/home/xilin/Projects/tellina/learning_module/')
+sys.path.append('../../')  # for bashlint
 
 from bashlint import bash, data_tools
 
@@ -69,9 +74,9 @@ def filter_by_most_frequent_utilities(data_dir, num_utilities):
                             
 
 def gen_non_specific_description_check_csv(data_dir):
-    with open(os.path.join(data_dir, 'nl.txt')) as f:
+    with open(os.path.join(data_dir, 'all.nl')) as f:
         nl_list = [nl.strip() for nl in f.readlines()]
-    with open(os.path.join(data_dir, 'cm.txt')) as f:
+    with open(os.path.join(data_dir, 'all.cm')) as f:
         cm_list = [cm.strip() for cm in f.readlines()]
     assert(len(nl_list) == len(cm_list))
 
@@ -89,5 +94,7 @@ def gen_non_specific_description_check_csv(data_dir):
 
 
 if __name__ == '__main__':
-    data_dir = sys.argv[1]
+    dataset = sys.argv[1]
+    data_dir = os.path.join(os.path.dirname(os.path.dirname(
+        os.path.realpath(__file__))), dataset)
     filter_by_most_frequent_utilities(data_dir, NUM_UTILITIES)
