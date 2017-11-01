@@ -1,8 +1,8 @@
+nltk==3.2.5
 tqdm>=4.9.0
 nose>=1.1.2
 numpy>=1.7
 scipy>0.13.3
 six>=1.8
-# nltk
 # bs4
 # matplotlib
