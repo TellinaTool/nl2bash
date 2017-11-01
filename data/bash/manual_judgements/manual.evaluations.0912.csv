@@ -1,0 +1,803 @@
+description,prediction,template,correct template,correct command
+"display all file in current folder exclud those that are present in sub directori aa and display those file that start with word ""file""","find . -name __SP__UNK -prune -or ","find Path -name Regex -prune -or",wrong flag,
+"","find . ! -name ""file"" -prune","find Path ! -name Regex -prune",logic error,
+"","find . -name __SP__UNK -prune -or -name file ","find Path -name Regex -prune -or -name Regex",wrong flag,
+"","find . ! -name 'file' -prune -or ","find Path ! -name Regex -prune -or",wrong flag,
+"","find . -name aa -prune -or ","find Path -name Regex -prune -or",wrong flag,
+"","find . -wholename './src/emacs' -prune -or ","find Path -wholename Regex -prune -or",missing flag,
+"","find . -name ""file"" -prune -or ","find Path -name Regex -prune -or",wrong flag,
+"","find . -name 'file*' ! -name 'file*' ! -name 'file*'","find Path -name Regex ! -name Regex ! -name Regex",logic error,
+"split ""/usr/bin/gcc"" into 100000 file of about equal size","split -n 10000 __SP__UNK","split -n Quantity File",y,
+"","split -n 100000 ""/usr/bin/gcc""","split -n Quantity File",y,y
+"","split -n 100000 ""/usr/bin/gcc""","split -n Quantity File",y,y
+"","split -n 10000 /usr/bin/gcc","split -n Quantity File",y,
+"","split -n 100000 /usr/bin/gcc","split -n Quantity File",y,y
+"","split -n 10000 __SP__UNK","split -n Quantity File",y,
+"","split -n 100000 ""/usr/bin/gcc""","split -n Quantity File",y,y
+"","split -n 10000 /usr/bin/gcc","split -n Quantity File",y,y
+"chang group of all file in file system which belong to group with gid 999","find / -group __SP__UNK -exec chown __SP__UNK {} \;","find Path -group Regex -exec chown Regex {} \;",wrong utility,
+"","find . -group 999 -exec chmod gid {} \;","find Path -group Regex -exec chmod Permission {} \;",wrong utility,
+"","find / -group 2000 -exec chgrp gid {} \;","find Path -group Regex -exec chgrp Regex {} \;",y,
+"","find / -group __SP__UNK -exec chown __SP__UNK {} \;","find Path -group Regex -exec chown Regex {} \;",wrong utility,
+"","find / -group 999 -exec chgrp -h 999 {} \;","find Path -group Regex -exec chgrp -h Regex {} \;",extra flag,
+"","find / -group __SP__UNK -exec chown __SP__UNK {} \;","find Path -group Regex -exec chown Regex {} \;",wrong utility,
+"","find . -group 999 -exec chmod gid {} \;","find Path -group Regex -exec chmod Permission {} \;",wrong utility,
+"","find / -group __SP__UNK -exec chown __SP__UNK {} \;","find Path -group Regex -exec chown Regex {} \;",wrong utility,
+"go to first directori specifi in path which contain command 'oracle'","cd $(dirname __SP__UNK)","cd $( dirname Regex )",missing utiltiy,
+"","cd $(ls -d [file] | grep ""oracle"")","cd $( ls -d File | grep Regex )",extra utility,
+"","cd $(ls -d */ | grep 'oracle')","cd $( ls -d File | grep Regex )",wrong utility,
+"","cd $(which oracle | xargs -I {} dirname {})","cd $( which Regex | xargs -I {} dirname {} )",y,y
+"","cd $(which oracle | xargs -I {} dirname {})","cd $( which Regex | xargs -I {} dirname {} )",y,y
+"","cd $(ls -d */ | grep __SP__UNK)","cd $( ls -d File | grep Regex )",wrong utility,
+"","cd $(which ""oracle"" | xargs -I {} dirname {})","cd $( which Regex | xargs -I {} dirname {} )",y,y
+"","cd $(which oracle | xargs -I {} dirname {})","cd $( which Regex | xargs -I {} dirname {} )",y,y
+"find .java file in current directori tree that contain 'TODO' and print name","find . -name ""*.java"" -exec grep -i -l __SP__UNK {} \;","find Path -name Regex -exec grep -i -l Regex {} \;",y,
+"","find . -name ""*.java"" -exec grep -l -i ""TODO"" {} \;","find Path -name Regex -exec grep -l -i Regex {} \;",y,y
+"","find . -name ""*.java"" -exec grep -i -l __SP__UNK {} \;","find Path -name Regex -exec grep -i -l Regex {} \;",y,
+"","find . -name '*.java' -exec grep -l __SP__UNK {} \;","find Path -name Regex -exec grep -l Regex {} \;",y,
+"","find . -name ""*.java"" -exec grep -l TODO {} +","find Path -name Regex -exec grep -l Regex {} +",y,y
+"","find . -name '*.[ch]' | xargs -I {} grep -l thing {}","find Path -name Regex | xargs -I {} grep -l Regex {}",y,
+"","find . -name ""*.java"" | xargs -I {} grep -l ""TODO"" {}","find Path -name Regex | xargs -I {} grep -l Regex {}",y,y
+"","find . -name '*.java' | xargs -I {} grep -L '__SP__UNK' {}","find Path -name Regex | xargs -I {} grep -L Regex {}",y,
+"search for word ""foo"" in all regular file in directori ""/path/to/dir""","find __SP__UNK -type f -exec grep -H foo {} +","find Path -type f -exec grep -H Regex {} +",y,
+"","find ""/path/to/dir"" -type f | xargs -I {} grep ""foo"" {}","find Path -type f | xargs -I {} grep Regex {}",y,y
+"","find ""/path/to/dir"" -type f -exec grep ""foo"" {} \;","find Path -type f -exec grep Regex {} \;",y,y
+"","find /path/to/dir -type f -exec grep foo {} +","find Path -type f -exec grep Regex {} +",y,y
+"","find /path/to/dir -type f -exec grep ""foo"" {} \; ","find Path -type f -exec grep Regex {} \;",y,y
+"","find ~/mail -type f | xargs -I {} grep ""Linux"" {}","find Path -type f | xargs -I {} grep Regex {}",y,
+"","find ""/path/to/dir"" -type f | xargs -I {} grep ""foo"" {}","find Path -type f | xargs -I {} grep Regex {}",y,y
+"","find /path/to/dir -type f | xargs -0 -I {} grep foo {}","find Path -type f | xargs -0 -I {} grep Regex {}",y,y
+"find all file that are readabl and writabl by owner","find . -perm __SP__UNK ","find Path -perm Permission",y,
+"","find . -perm [permission]","find Path -perm Permission",y,
+"","find . -perm __SP__UNK","find Path -perm Permission",y,
+"","find . -perm /u+w,g+w","find Path -perm Permission",y,
+"","find . -perm +600 ","find Path -perm +Permission",y,y
+"","find . -perm __SP__UNK ","find Path -perm Permission",y,
+"","find . -perm [permission]","find Path -perm Permission",y,
+"","find . -perm +600 ","find Path -perm +Permission",y,y
+"display all file in a folder exclud those that are present in a specif path","find A ! -path __SP__UNK -and ! -path __SP__UNK","find Path ! -path Regex -and ! -path Regex",counting error,
+"","find . ! -path Regex -and ! -path Regex","find Path ! -path Regex -and ! -path Regex",counting error,
+"","find A ! -path __SP__UNK -and ! -path __SP__UNK","find Path ! -path Regex -and ! -path Regex",counting error,
+"","find /target/ -path '*/\.*' -prune -or ","find Path -path Regex -prune -or",y,y
+"","find . -path './src/emacs' -prune -or ","find Path -path Regex -prune -or",y,y
+"","find A ! -path __SP__UNK -and ! -path __SP__UNK","find Path ! -path Regex -and ! -path Regex",counting error,
+"","find . ! -path [regex] -and ! -path [regex]","find Path ! -path Regex -and ! -path Regex",counting error,
+"","find A ! -path ""A/a/*"" -and ! -path ""A/a""","find Path ! -path Regex -and ! -path Regex",counting error,
+"display 5 largest file in current directori and it sub-directori","find . -type f -printf '%s %p\n' | sort -r -n | head -n 5","find Path -type f -printf '%s %p\n' | sort -r -n | head -n Quantity",y,y
+"","find . -type f -printf __SP__UNK | sort -n | tail - 5 | cut -f [number] -d Regex","find Path -type f -printf __SP__UNK | sort -n | tail - Quantity | cut -f Number -d Regex",y,
+"","find . -type f -printf ""%s %p\n"" | sort -r -n | head -n 5","find Path -type f -printf ""%s %p\n"" | sort -r -n | head -n Quantity",y,y
+"","find . -type f -printf ""%s %p\n"" | sort -n | head -n 5","find Path -type f -printf ""%s %p\n"" | sort -n | head -n Quantity",missing flag,
+"","find . -exec du -S -h {} + | sort -r -h | head -n 5","find Path -exec du -S -h {} + | sort -r -h | head -n Quantity",y,y
+"","find . -type f -printf __SP__UNK","find Path -type f -printf __SP__UNK",missing utiltiy,
+"","find . -type f -printf __SP__UNK | sort -n | head -n 5","find Path -type f -printf __SP__UNK | sort -n | head -n Quantity",missing flag,
+"","find . -type f -printf '%s %p\n' | sort -n -r | head - 5","find Path -type f -printf '%s %p\n' | sort -n -r | head - Quantity",y,y
+"chang permiss of all file end with ""fits"" in folder ""/store/01""","find __SP__UNK -name __SP__UNK -exec chmod 755 {} \;","find Path -name Regex -exec chmod Permission {} \;",y,
+"","find ""/store/01"" -name ""fits"" -exec chmod [permission] {} \;","find Path -name Regex -exec chmod Permission {} \;",y,
+"","find ""/store/01"" -name __SP__UNK -exec chmod 644 {} \;","find Path -name Regex -exec chmod Permission {} \;",y,
+"","find /__SP__UNK/01 -type f -name ""*__SP__UNK*"" -exec chmod 644 {} \;","find Path -type f -name Regex -exec chmod Permission {} \;",y,
+"","find /store/01 -name ""*fits*"" -exec chmod 755 {} \;","find Path -name Regex -exec chmod Permission {} \;",y,extra string in argument
+"","find __SP__UNK -name '*.mp3' -exec chmod __SP__UNK {} \;","find Path -name Regex -exec chmod Permission {} \;",y,
+"","find ""/store/01"" -name ""fits"" -exec chmod [permission] {} \;","find Path -name Regex -exec chmod Permission {} \;",y,
+"","find /__SP__UNK/01 -type f -name '*.__SP__UNK' -exec chmod 755 {} \;","find Path -type f -name Regex -exec chmod Permission {} \;",y,
+"find file under current directori call ""foo"" or ""bar""","find . -type f \( -name '*.txt' -or -name '*.mpg' -or -name __SP__UNK \)","find Path -type f \( -name Regex -or -name Regex -or -name Regex \)",counting error,
+"","find ""foo"" \( -name ""*"" -or -name ""bar"" \) ","find Path \( -name Regex -or -name Regex \)",y,
+"","find . -regextype posix-egrep -type f -regex __SP__UNK","find Path -regextype posix-egrep -type f -regex Regex",y,
+"","find . -path '*bar*' ","find Path -path Regex",counting error,
+"","find . -path ./bar ","find Path -path Regex",counting error,
+"","find . -iname foo","find Path -iname Regex",logic error,
+"","find . \( -name ""foo"" -or -name ""bar"" \) ","find Path \( -name Regex -or -name Regex \)",y,y
+"","find . -name ""foo*"" ","find Path -name Regex",logic error,
+"search in current directori and all sub-directori except ./D and ani further sub-directori also name d for file name hi.dat","find . -path __SP__UNK -prune -or -name __SP__UNK ","find Path -path Regex -prune -or -name Regex",y,
+"","find . \( -iname ""./D"" -or -iname ""hi.dat"" \) ","find Path \( -iname Regex -or -iname Regex \)",logic error,
+"","find . \( -name ./D -or -name __SP__UNK \) ","find Path \( -name Regex -or -name Regex \)",logic error,
+"","find . -path ./D -prune -or -name hi.dat ","find Path -path Regex -prune -or -name Regex",y,regex error
+"","find . -path ./D -prune -or -name hi.dat ","find Path -path Regex -prune -or -name Regex",y,regex error
+"","find . \( -name __SP__UNK -or -name __SP__UNK \) -prune -or -name __SP__UNK ","find Path \( -name Regex -or -name Regex \) -prune -or -name Regex",logic error,
+"","find . \( -name ""./D"" -or -name ""*"" \) -prune -or -name ""hi.dat"" ","find Path \( -name Regex -or -name Regex \) -prune -or -name Regex",logic error,
+"","find . \( -name D -prune \) -or -name hi.dat","find Path \( -name Regex -prune \) -or -name Regex",y,y
+"renam .jpg file to .jpeg in all level 2 subdirectori of current directori","find . -mindepth 2 -maxdepth 2 -name __SP__UNK | xargs -I {} mv {} __SP__UNK","find Path -mindepth Quantity -maxdepth Quantity -name Regex | xargs -I {} mv {} File",wrong utility,
+"","find "".jpeg"" -mindepth [quantity] -maxdepth 2 -type d | rename ""*.jpg""","find Path -mindepth Quantity -maxdepth Quantity -type d | rename Regex",missing utility,
+"","rename __SP__UNK __SP__UNK","rename Regex Regex",missing flag,
+"","find . -maxdepth 2 -name '*.jpg' -exec rename 's/\.jpg$/.jpeg/' { \;","find Path -maxdepth Quantity -name Regex -exec rename Regex Regex \;",missing flag,
+"","find . -maxdepth 2 -name '*.jpg' | xargs -0 -I {} mv {} .jpeg","find Path -maxdepth Quantity -name Regex | xargs -0 -I {} mv {} File",wrong utility,
+"","rename __SP__UNK __SP__UNK","rename Regex Regex",missing flag,
+"","find . -maxdepth 2 -type f -name ""*.jpeg"" -exec rename ""*.jpg"" {} \;","find Path -maxdepth Quantity -type f -name Regex -exec rename Regex {} \;",missing flag,
+"","find . -mindepth 2 -name '*.jpg' -exec rename 's/\.jpg$/.jpeg/' { \;","find Path -mindepth Quantity -name Regex -exec rename Regex Regex \;",missing flag,
+"print top 10 largest file and directori","find . -type f -printf ""%C@ %p\n"" | sort -r -n | head -n 10","find Path -type f -printf ""%C@ %p\n"" | sort -r -n | head -n Quantity",y,
+"","find . -type f -printf __SP__UNK | sort -n | tail - 10 | cut -f [number] -d Regex","find Path -type f -printf __SP__UNK | sort -n | tail - Quantity | cut -f Number -d Regex",y,
+"","find . -type f -printf ""%C@ %p\n"" | sort -r -n | head -n 10","find Path -type f -printf ""%C@ %p\n"" | sort -r -n | head -n Quantity",y,
+"","du -s -h * | sort -n -r","du -s -h File | sort -n -r",missing utility,
+"","find | head","find | head",wrong utility,
+"","du -s -x -b | sort -n -r | head -n 10","du -s -x -b | sort -n -r | head -n Quantity",y,y
+"","ls -1 | head -n 10","ls -1 | head -n Quantity",wrong utility,
+"","du -h -s | sort -n -r","du -h -s | sort -n -r",missing utility,
+"find all file in current folder which been modifi between 2 specif date","find . -type f -newermt __SP__UNK ! -newermt __SP__UNK","find Path -type f -newermt Regex ! -newermt Regex",y,y
+"","find . -newermt 2 ! -newermt Regex ","find Path -newermt Regex ! -newermt Regex",y,
+"","find . -type f -newermt __SP__UNK ! -newermt __SP__UNK","find Path -type f -newermt Regex ! -newermt Regex",y,y
+"","find . -newermt ""__SP__UNK __SP__UNK __SP__UNK"" ! -newermt ""__SP__UNK __SP__UNK"" ! -newermt ""__SP__UNK __SP__UNK""","find Path -newermt Regex ! -newermt Regex ! -newermt Regex",extra argument,
+"","find . -newermt ""__SP__UNK __SP__UNK __SP__UNK"" ! -newermt ""__SP__UNK 10 __SP__UNK""","find Path -newermt Regex ! -newermt Regex",y,
+"","find . -newermt __SP__UNK -and ! -newermt __SP__UNK","find Path -newermt Regex -and ! -newermt Regex",y,
+"","find . -newermt [regex] ! -newermt 2","find Path -newermt Regex ! -newermt Regex",y,
+"","find . -newermt ""__SP__UNK __SP__UNK __SP__UNK"" ! -newermt ""2013-06-01""","find Path -newermt Regex ! -newermt Regex",y,
+"generat spanish alphabet and number each charact","echo -e __SP__UNK | nl","echo -e Regex | nl",y,
+"","echo -e Regex | nl","echo -e Regex | nl",y,
+"","cat __SP__UNK | tr -d __SP__UNK","cat File | tr -d Regex",rare utility,
+"","echo ""${__SP__UNK[@]}"" | tr -c -d '[[:digit:]]' | tr","echo Regex | tr -c -d Regex | tr",rare utility,
+"","echo ""$__SP__UNK"" | wc -c","echo Regex | wc -c",rare utility,
+"","echo __SP__UNK | nl","echo Regex | nl",y,
+"","echo [regex] | nl","echo Regex | nl",y,
+"","echo ""${__SP__UNK[@]}"" | tr -c -d '[:digit:]]'","echo Regex | tr -c -d Regex",wrong utility,
+"display all file in folder mydir1 mydir2 which are bigger than 2kb and not been access in last 30*24 hour","find __SP__UNK -size +10M -atime +30 ","find Path -size +Size -atime +Timespan",counting error,
+"","find ""mydir1"" ""mydir2"" -size +2k -atime +30h ","find Path Path -size +Size -atime +Timespan",y,y
+"","find mydir1 -size __SP__UNK -atime +30 ","find Path -size Size -atime +Timespan",counting error,
+"","find /mydir2 -size +30 -atime +30 ","find Path -size +Size -atime +Timespan",counting error,
+"","find mydir1 mydir1 mydir2 -size +30k -and -atime +30 ","find Path Path Path -size +Size -and -atime +Timespan",counting error,
+"","find __SP__UNK -type f -size __SP__UNK -atime +30 ","find Path -type f -size Size -atime +Timespan",counting error,
+"","find ""mydir1"" -size +2k \( -iname ""mydir2"" -or -atime +30h \) ","find Path -size +Size \( -iname Regex -or -atime +Timespan \)",counting error,
+"","find /mydir -atime +30 -and -atime +30","find Path -atime +Timespan -and -atime +Timespan",counting error,
+"write out entir directori hierarchi from current directori","find . -type d","find Path -type d",extra flag,
+"","find . -type d | xargs -0 -I {} ls -d -r -t {} | tail -n [quantity]","find Path -type d | xargs -0 -I {} ls -d -r -t {} | tail -n Quantity",extra flag,
+"","find . -type d -exec ls -d -l -r -t {} \; | head","find Path -type d -exec ls -d -l -r -t {} \; | head",extra flag,
+"","find . -type d","find Path -type d",extra flag,
+"","find . -type d","find Path -type d",extra flag,
+"","find . -type d | xargs -I {} mkdir __SP__UNK","find Path -type d | xargs -I {} mkdir Directory",extra flag,
+"","find . -type d | xargs -I {} rmdir {}","find Path -type d | xargs -I {} rmdir {}",extra flag,
+"","find . -type d","find Path -type d",extra flag,
+"creat temporari file in tmpdir folder or /tmp/ if tmpdir is not defin name by templat ${tempname}.XXXXXX and save path to new file in a TMPPS_PREFIX variabl","mktemp -p /tmp","mktemp -p Directory",complex description,
+"","find ""TMPPS_PREFIX"" ! -path ""${tempname}.XXXXXX"" | xargs -0 -n [quantity] -P [quantity] -I {} dirname {} | xargs -I {} tar -c -z -f [file] -C ""/tmp/"" {}","find Path ! -path Regex | xargs -0 -n Quantity -P Quantity -I {} dirname {} | xargs -I {} tar -c -z -f File -C Directory {}",extra utility,
+"","mktemp","mktemp",complex description,
+"","mkdir -p /tmp/test/ {}","mkdir -p Directory {}",complex description,
+"","mktemp -d /tmp/if}.XXXXXX","mktemp -d Regex",complex description,
+"","mktemp -u","mktemp -u",complex description,
+"","find ""/tmp/"" -type f | xargs -0 -I {} grep -I -i -l ""${tempname}.XXXXXX"" {} | xargs -0 -I {} mv {} ""TMPPS_PREFIX""","find Path -type f | xargs -0 -I {} grep -I -i -l Regex {} | xargs -0 -I {} mv {} File",complex description,
+"","find /tmp/ -maxdepth 1 -type f | xargs -0 -I {} mv {} {}.__SP__UNK","find Path -maxdepth Quantity -type f | xargs -0 -I {} mv {} File",complex description,
+"display a long list of all directori in current folder","find . -type d ","find Path -type d",y,y
+"","find . -type d ","find Path -type d",y,y
+"","find . -type d ","find Path -type d",y,y
+"","find . -type d ","find Path -type d",y,y
+"","find . -type d -exec ls -l -d {} \;","find Path -type d -exec ls -l -d {} \;",y,y
+"","find . -type d ","find Path -type d",y,y
+"","find . -type d ","find Path -type d",y,y
+"","find . -type d ","find Path -type d",y,y
+"find all regular file in current folder whose name word photo or pictur and which been modifi in last 30 minut","find . -type f -name __SP__UNK -mmin -30","find Path -type f -name Regex -mmin -Quantity",logic error,
+"","find . -name ""*"" -type f -mtime -30m","find Path -name Regex -type f -mtime -Timespan",logic error,
+"","find . -type f -name __SP__UNK -mtime -30","find Path -type f -name Regex -mtime -Timespan",logic error,
+"","find . -type f -name ""__SP__UNK*"" -mmin -30","find Path -type f -name Regex -mmin -Quantity",logic error,
+"","find . -type f -name 'photo*' -mtime -30 ","find Path -type f -name Regex -mtime -Timespan",logic error,
+"","find __SP__UNK -type f -iregex __SP__UNK -mmin -30","find Path -type f -iregex Regex -mmin -Quantity",logic error,
+"","find . -name ""*"" -type f -mtime -30m","find Path -name Regex -type f -mtime -Timespan",logic error,
+"","find . -type f -name '__SP__UNK*' -mmin -30","find Path -type f -name Regex -mmin -Quantity",logic error,
+"find all file and directori with space in name under ~/Library directori","find __SP__UNK -name '* *'","find Path -name Regex",y,
+"","find ""~/Library"" -name ""*""","find Path -name Regex",y,missing string in argument
+"","find ~/Library -name '* *'","find Path -name Regex",y,y
+"","find ~/Library -name '* *'","find Path -name Regex",y,y
+"","find ~/Library -name '* *'","find Path -name Regex",y,y
+"","find __SP__UNK -name '* *'","find Path -name Regex",y,
+"","find . -name ""~/Library""","find Path -name Regex",y,
+"","find ~/Library -name '* *'","find Path -name Regex",y,y
+"list file with absolut path use find","find . -path __SP__UNK","find Path -path Regex",wrong utility,
+"","find . -type f -printf '%T@ %p\n' | sort -n | tail - [quantity] | cut -f [number] -d Regex","find Path -type f -printf '%T@ %p\n' | sort -n | tail - Quantity | cut -f Number -d Regex",wrong utility,
+"","find . ! -newermt __SP__UNK ","find Path ! -newermt Regex",extra flag,
+"","find . -iname ""*.pl"" -exec ls -l -d {} \;","find Path -iname Regex -exec ls -l -d {} \;",wrong flag,
+"","ls $(pwd)","ls $( pwd )",wrong utility,
+"","find . -type f -exec ls -s {} \; | sort -n -r | head - 10","find Path -type f -exec ls -s {} \; | sort -n -r | head - Quantity",wrong utility,
+"","find . -path [regex]","find Path -path Regex",wrong utility,
+"","find . -exec ls -l {} \;","find Path -exec ls -l {} \;",wrong utility,
+"recurs chang owner of directori testproject and all file into it to user ftpuser","chown -R __SP__UNK __SP__UNK","chown -R Regex File",y,
+"","chown -R Regex [file]","chown -R Regex File",y,
+"","chown -R ftpuser testproject","chown -R Regex File",y,
+"","chown -R __SP__UNK andrewr/andrewr","chown -R Regex File",y,
+"","chown ftpuser testproject upload_directory","chown Regex File File",extra argument,
+"","chown -R __SP__UNK __SP__UNK","chown -R Regex File",y,
+"","chown -R [regex] [file]","chown -R Regex File",y,
+"","chown -R __SP__UNK upload_directory","chown -R Regex File",y,
+"make directori and parent as need for directori name of file ""$f""","mkdir -p $(dirname __SP__UNK)","mkdir -p $( dirname Regex )",y,
+"","mkdir -p $(dirname ""$f"")","mkdir -p $( dirname Regex )",y,y
+"","mkdir -p __SP__UNK","mkdir -p Directory",missing utility,
+"","mkdir -p ""$f""","mkdir -p Directory",missing utility,
+"","mkdir -p $f","mkdir -p Directory",missing utility,
+"","mkdir -p __SP__UNK","mkdir -p Directory",missing utility,
+"","mkdir -p $(dirname ""$f"")","mkdir -p $( dirname Regex )",y,y
+"","mkdir -p $(dirname $f)","mkdir -p $( dirname Regex )",y,y
+"search for ""foo"" in everi file in current directori and number output","find . -name foo | xargs -I {} wc -l {}","find Path -name Regex | xargs -I {} wc -l {}",wrong utility,
+"","find . -name ""*"" | xargs -n [quantity] -I {} grep -n ""foo"" {}","find Path -name Regex | xargs -n Quantity -I {} grep -n Regex {}",wrong utility,
+"","find . -name foo -type f -exec file {} \;","find Path -name Regex -type f -exec file {} \;",wrong utility,
+"","find . -name foo | xargs -I {} grep ""foo"" {}","find Path -name Regex | xargs -I {} grep Regex {}",wrong utility,
+"","find . -exec grep foo {} + | wc -l","find Path -exec grep Regex {} + | wc -l",wrong utility,
+"","find . -type f | xargs -I {} grep __SP__UNK {}","find Path -type f | xargs -I {} grep Regex {}",wrong utility,
+"","find . -name ""foo"" | xargs -I {} grep '.*' {}","find Path -name Regex | xargs -I {} grep Regex {}",wrong utility,
+"","find . -name foo | xargs -I {} wc -l {}","find Path -name Regex | xargs -I {} wc -l {}",wrong utility,
+"find all file that been modifi in last 7 day","find . -mtime -7","find Path -mtime -Timespan",y,y
+"","find . -mtime -7","find Path -mtime -Timespan",y,y
+"","find ./ -daystart -mtime -7","find Path -daystart -mtime -Timespan",y,y
+"","find . -mtime -7","find Path -mtime -Timespan",y,y
+"","find . -mtime -7 -daystart","find Path -mtime -Timespan -daystart",y,y
+"","find . -mtime -7","find Path -mtime -Timespan",y,y
+"","find . -mtime -7","find Path -mtime -Timespan",y,y
+"","find . -mtime -7","find Path -mtime -Timespan",y,y
+"creat intermedi directori ""full"" ""path"" as requir and directori ""to""","mkdir -p __SP__UNK","mkdir -p Directory",poor description,
+"","tar -p ""path"" ""to"" [file] [file] [file] | xargs -I {} tar -c -v -f ""full"" [file] {}","tar -p File File File File File | xargs -I {} tar -c -v -f File File {}",wrong utility,
+"","mkdir -p __SP__UNK","mkdir -p Directory",poor description,
+"","mkdir -p $path","mkdir -p Directory",poor description,
+"","mkdir -p full/path","mkdir -p Directory",poor description,
+"","mkdir -p __SP__UNK __SP__UNK","mkdir -p Directory Directory",poor description,
+"","mkdir -p ""to"" | xargs -I {} tar -c -v -f $(readlink -f ""full"" \) ""path"")","mkdir -p Directory | xargs -I {} tar -c -v -f $( readlink -f File File File )",wrong utility,
+"","mkdir -p path/to/folder","mkdir -p Directory",poor description,
+"find all sgid bit file whose permiss set to 644","find / -perm __SP__UNK","find Path -perm Permission",y,
+"","find . -perm 644 -type f -exec chmod sgid bit {} \;","find Path -perm Permission -type f -exec chmod Permission File {} \;",extra utility,
+"","find / -perm __SP__UNK","find Path -perm Permission",y,
+"","find / -perm __SP__UNK","find Path -perm Permission",y,
+"","find / -perm 644","find Path -perm Permission",y,
+"","find / -perm __SP__UNK","find Path -perm Permission",y,
+"","find . -perm 644 -type f -exec chmod sgid bit {} \;","find Path -perm Permission -type f -exec chmod Permission File {} \;",extra utility,
+"","find / -perm 644","find Path -perm Permission",y,
+"renam all ""thumbs"" directori to ""thumb"" in current directori tree","find . -name __SP__UNK -exec rename __SP__UNK {} \;","find Path -name Regex -exec rename Regex {} \;",missing flag,
+"","find ""thumbs"" -type d -exec mv {} ""thumb"" \;","find Path -type d -exec mv {} File \;",missing flag,
+"","find . -name __SP__UNK -exec rename __SP__UNK {} \;","find Path -name Regex -exec rename Regex {} \;",missing flag,
+"","find . -name __SP__UNK -exec mv {} __SP__UNK \;","find Path -name Regex -exec mv {} File \;",missing flag,
+"","mv $(tree -f thumbs)","mv $( tree -f Directory )",wrong utility,
+"","find . -name __SP__UNK -exec rename __SP__UNK {} \;","find Path -name Regex -exec rename Regex {} \;",missing flag,
+"","mv ""thumbs"" ""thumb""","mv File File",missing flag,
+"","mv $(find . -name __SP__UNK -type d)","mv $( find Path -name Regex -type d )",missing argument,
+"find imag file and move them to pictur directori","find . -name __SP__UNK | xargs -0 -I {} mv {} __SP__UNK","find Path -name Regex | xargs -0 -I {} mv {} File",y,
+"","find . -name ""*"" -exec mv {} [file] \;","find Path -name Regex -exec mv {} File \;",y,
+"","find . -name __SP__UNK -exec mv {} pictures \;","find Path -name Regex -exec mv {} File \;",y,
+"","find . -iname ""MyCProgram.jpg"" -exec mv {} __SP__UNK \;","find Path -iname Regex -exec mv {} File \;",y,
+"","find . -name pictures -exec mv {} pictures \;","find Path -name Regex -exec mv {} File \;",y,
+"","find . -name ""*.old"" -exec mv {} __SP__UNK \;","find Path -name Regex -exec mv {} File \;",y,
+"","find . -name ""*"" -exec mv {} [file] \;","find Path -name Regex -exec mv {} File \;",y,
+"","find . -name ""*.jpg"" -exec mv {} __SP__UNK {} +","find Path -name Regex -exec mv {} File {} +",y,
+"chang permiss of all regular file to 644 in folder /home/nobody/public_html","find __SP__UNK -type f -exec chmod 644 {} \;","find Path -type f -exec chmod Permission {} \;",y,
+"","find ""/home/nobody/public_html"" -type f -exec chmod 644 {} \;","find Path -type f -exec chmod Permission {} \;",y,y
+"","find /home/nobody/public_html -type f -exec chmod 644 {} \;","find Path -type f -exec chmod Permission {} \;",y,y
+"","find /home/nobody/public_html -type f -exec chmod 644 {} \;","find Path -type f -exec chmod Permission {} \;",y,y
+"","find /home/nobody/public_html -type f -exec chmod 644 {} +","find Path -type f -exec chmod Permission {} +",y,y
+"","find __SP__UNK -type f -exec chmod 644 {} \;","find Path -type f -exec chmod Permission {} \;",y,
+"","find ""/home/nobody/public_html"" -type f -exec chmod 644 {} \;","find Path -type f -exec chmod Permission {} \;",y,y
+"","find /home/nobody/public_html -type f -exec chmod 644 {} +","find Path -type f -exec chmod Permission {} +",y,y
+"show all "".acc"" file in folder /home","find /home -type f -name __SP__UNK","find Path -type f -name Regex",y,
+"","find ""/home"" -type f -name "".acc""","find Path -type f -name Regex",y,missing string in argument
+"","find /home -type f -name '*.mp3'","find Path -type f -name Regex",y,
+"","find /home -name ""*.__SP__UNK""","find Path -name Regex",y,
+"","find /home -type f -name '*.acc'","find Path -type f -name Regex",y,y
+"","find /home -type f -name __SP__UNK","find Path -type f -name Regex",y,
+"","find "".acc"" -type f -name ""/home""","find Path -type f -name Regex",y,
+"","find /home -name ""*.__SP__UNK""","find Path -name Regex",y,
+"delet all directori found in $LOGDIR that are more than a work-week old","find __SP__UNK -type d -size +1000 -exec rm -r -f {} \;","find Path -type d -size +Size -exec rm -r -f {} \;",wrong flag,
+"","find ""$LOGDIR"" -type d -mtime [timespan] -exec rm -f {} \;","find Path -type d -mtime Timespan -exec rm -f {} \;",missing flag,
+"","find $LOGDIR -type d -mtime +2 -exec rm -f {} \;","find Path -type d -mtime +Timespan -exec rm -f {} \;",missing flag,
+"","find $__SP__UNK -type d -mtime +7 -delete","find Path -type d -mtime +Timespan -delete",y,
+"","find ""$LOGDIR"" -type d -mtime +a -exec rm {} \;","find Path -type d -mtime +Timespan -exec rm {} \;",missing flag,quantity convertion error
+"","find __SP__UNK -type d -name __SP__UNK | xargs -0 -I {} rm -r -f {}","find Path -type d -name Regex | xargs -0 -I {} rm -r -f {}",,
+"","find ""$LOGDIR"" -type d -mtime [timespan] -delete","find Path -type d -mtime Timespan -delete",y,
+"","find $__SP__UNK -type d -mtime +0 -exec rm -f {} \;","find Path -type d -mtime +Timespan -exec rm -f {} \;",missing flag,
+"search for all *.conf file in entir file system","find / -name __SP__UNK","find Path -name Regex",y,
+"","find . -name ""*.conf""","find Path -name Regex",y,y
+"","find / -name *.conf ","find Path -name Regex",y,
+"","find / -name ""*.conf""","find Path -name Regex",y,y
+"","find / -name ""*.conf""","find Path -name Regex",y,y
+"","find / -name __SP__UNK ","find Path -name Regex",y,
+"","find . -name ""*.conf""","find Path -name Regex",y,y
+"","find / -name ""*.conf""","find Path -name Regex",y,y
+"make directori name in variabl ""archive"" with "".tar*"" strip from end","mkdir __SP__UNK","mkdir Directory",y,
+"","mkdir $(cat "".tar*"" | rev | cut -d Regex -f [number] | rev | cut -d Regex -f [number] | rev | cut -d ""archive"" -f [number])","mkdir $( cat File | rev | cut -d Regex -f Number | rev | cut -d Regex -f Number | rev | cut -d Regex -f Number )",extra utility,
+"","mkdir __SP__UNK","mkdir Directory",y,
+"","mkdir -p ""$__SP__UNK""","mkdir -p Directory",y,
+"","mkdir -p $archive","mkdir -p Directory",y,
+"","mkdir __SP__UNK","mkdir Directory",y,
+"","mkdir -p $(find "".tar*"" -type d -name ""archive"")","mkdir -p $( find Path -type d -name Regex )",wrong utility,
+"","mkdir -p .tar/","mkdir -p Directory",y,
+"display standard input as a tabl with ""${tab}"" separ","column -s : -t","column -s Regex -t",y,
+"","column -s ""${tab}"" -t","column -s Regex -t",y,y
+"","column -s :","column -s Regex",y,
+"","column -t | column -t","column -t | column -t",missing flag,
+"","column -s ${tab} ${tab}","column -s Regex File",rare utility,
+"","column -s :","column -s Regex",y,
+"","column -s ""${tab}""","column -s Regex",y,
+"","column -s ""${line}""","column -s Regex",y,
+"find all file under var/ directori and chang permiss to 600","find __SP__UNK -type f -exec chmod 600 {} \;","find Path -type f -exec chmod Permission {} \;",y,
+"","find ""var/"" -type f -exec chmod 600 {} \;","find Path -type f -exec chmod Permission {} \;",y,y
+"","find var/ -type f -exec chmod 600 {} \;","find Path -type f -exec chmod Permission {} \;",y,y
+"","find var/ -type f -exec chmod 600 {} \;","find Path -type f -exec chmod Permission {} \;",y,y
+"","find var/ -type f -exec chmod 600 {} \;","find Path -type f -exec chmod Permission {} \;",y,y
+"","find __SP__UNK -type f -exec chmod 600 {} \;","find Path -type f -exec chmod Permission {} \;",y,
+"","find ""var/"" -type f -exec chmod 600 {} \;","find Path -type f -exec chmod Permission {} \;",y,y
+"","find var/ -type f -exec chmod 600 {} \;","find Path -type f -exec chmod Permission {} \;",y,y
+"search for file onli that end with .php and look for string $test insid those file","find . -name '*.[ch]' | xargs -I {} grep -E 'expr' {}","find Path -name Regex | xargs -I {} grep -E Regex {}",y,
+"","find . -name ""*.php"" -exec grep -H -n ""$test"" {} \;","find Path -name Regex -exec grep -H -n Regex {} \;",y,y
+"","find . -name ""*.java"" -exec grep __SP__UNK {} \;","find Path -name Regex -exec grep Regex {} \;",y,
+"","find . -type f -name ""*.php"" -exec grep -H -n ""$test"" {} \;","find Path -type f -name Regex -exec grep -H -n Regex {} \;",y,y
+"","find . -type f -name ""*.php"" -exec grep -H -n ""$test"" {} \;","find Path -type f -name Regex -exec grep -H -n Regex {} \;",y,y
+"","find . -name '*.[ch]' | xargs -I {} grep -E __SP__UNK {}","find Path -name Regex | xargs -I {} grep -E Regex {}",y,
+"","find "".php"" -name ""$test"" -type f ","find Path -name Regex -type f",missing utility,
+"","find . -name ""*.php"" | xargs -0 -I {} grep -l ""test"" {}","find Path -name Regex | xargs -0 -I {} grep -l Regex {}",y,y
+"display all file which been modifi between 2 date in current folder","find . -type f -newermt __SP__UNK ! -newermt __SP__UNK","find Path -type f -newermt Regex ! -newermt Regex",y,
+"","find . -type f -newermt Regex ! -newermt 2 ! -newermt Regex","find Path -type f -newermt Regex ! -newermt Regex ! -newermt Regex",extra flag,
+"","find . -newermt __SP__UNK -and ! -newermt __SP__UNK","find Path -newermt Regex -and ! -newermt Regex",y,
+"","find . -type f -newermt ""__SP__UNK __SP__UNK __SP__UNK"" ! -newermt 2013-__SP__UNK-__SP__UNK ! -newermt __SP__UNK-__SP__UNK-","find Path -type f -newermt Regex ! -newermt Regex ! -newermt Regex",extra flag,
+"","find . -newermt ""__SP__UNK __SP__UNK __SP__UNK"" ! -newermt ""__SP__UNK 10 __SP__UNK""","find Path -newermt Regex ! -newermt Regex",y,
+"","find . -newermt __SP__UNK -and ! -newermt __SP__UNK","find Path -newermt Regex -and ! -newermt Regex",y,
+"","find . -newermt [regex] -and ! -newermt 2","find Path -newermt Regex -and ! -newermt Regex",y,
+"","find . -newermt ""__SP__UNK 1 __SP__UNK"" -and ! -newermt ""__SP__UNK __SP__UNK""","find Path -newermt Regex -and ! -newermt Regex",y,
+"chang owner of file process to user root","chown root __SP__UNK","chown Regex File",y,
+"","chown Regex [file]","chown Regex File",y,
+"","chown root root","chown Regex File",y,
+"","chown root process","chown Regex File",y,y
+"","chown root process","chown Regex File",y,y
+"","chown root __SP__UNK","chown Regex File",y,
+"","chown [regex] [file]","chown Regex File",y,
+"","chown root","chown Regex",missing argument,
+"find all file with name ""MyProgram.c"" in current directori and all of it 's sub-directori","find . -name __SP__UNK","find Path -name Regex",y,
+"","find . -name ""MyProgram.c""","find Path -name Regex",y,y
+"","find . -name __SP__UNK","find Path -name Regex",y,
+"","find . -name ""__SP__UNK.c""","find Path -name Regex",y,
+"","find . -name MyProgram.c","find Path -name Regex",y,y
+"","find . -name __SP__UNK","find Path -name Regex",y,
+"","find . -name ""MyProgram.c""","find Path -name Regex",y,y
+"","find . -name __SP__UNK.c","find Path -name Regex",y,
+"find all file under current directori filter output through a regular express to find ani line that contain word foo or bar","find . -type f | xargs -0 -I {} grep -i -l __SP__UNK {}","find Path -type f | xargs -0 -I {} grep -i -l Regex {}",extra utility,
+"","find . -type f | grep -P '.*'","find Path -type f | grep -P Regex",y,
+"","find . -type f | xargs -0 -I {} grep foo {}","find Path -type f | xargs -0 -I {} grep Regex {}",extra utility,
+"","find . -type f -exec grep -i -l ""foo"" {} \;","find Path -type f -exec grep -i -l Regex {} \;",extra utility,
+"","find . -type f -exec grep -H foo {} +","find Path -type f -exec grep -H Regex {} +",extra utility,
+"","find . -type f | xargs -0 -I {} grep -i -l __SP__UNK {}","find Path -type f | xargs -0 -I {} grep -i -l Regex {}",extra utility,
+"","find . -type f | xargs -0 -I {} grep -i -l '.*' {}","find Path -type f | xargs -0 -I {} grep -i -l Regex {}",extra utility,
+"","find . -type f -exec grep -i ""foo"" {} \;","find Path -type f -exec grep -i Regex {} \;",extra utility,
+"chang owner of ""$JBOSS_CONSOLE_LOG"" to ""$JBOSS_USER""","chown __SP__UNK __SP__UNK","chown Regex File",y,
+"","chown ""$JBOSS_USER"" ""$JBOSS_CONSOLE_LOG""","chown Regex File",y,y
+"","chown __SP__UNK __SP__UNK","chown Regex File",y,
+"","chown $JBOSS_AS_USER:$JBOSS_USER $JBOSS_AS_USER","chown Regex File",y,
+"","chown $JBOSS_CONSOLE_LOG $JBOSS_USER_LOG","chown Regex File",y,
+"","chown __SP__UNK __SP__UNK","chown Regex File",y,
+"","chown ""$JBOSS_CONSOLE_LOG"" ""$JBOSS_USER""","chown Regex File",y,
+"","chown $JBOSS_AS_USER $JBOSS_AS_USER","chown Regex File",y,
+"find all file that been modifi exact 24 hour ago","find . -mtime 1","find Path -mtime Timespan",y,y
+"","find . -mtime 24h","find Path -mtime Timespan",y,y
+"","find . -mtime 1","find Path -mtime Timespan",y,y
+"","find . -mtime 1","find Path -mtime Timespan",y,y
+"","find . -mtime 1","find Path -mtime Timespan",y,y
+"","find . -mtime 1","find Path -mtime Timespan",y,y
+"","find . -mtime 24h","find Path -mtime Timespan",y,y
+"","find . -mtime 1","find Path -mtime Timespan",y,y
+"search system for file and directori own by group 'managers'","find / -group __SP__UNK","find Path -group Regex",y,
+"","find ""managers"" -group Regex","find Path -group Regex",y,
+"","find / -group __SP__UNK","find Path -group Regex",y,
+"","find / -group __SP__UNK","find Path -group Regex",y,
+"","find / -group managers","find Path -group Regex",y,y
+"","find / -group __SP__UNK","find Path -group Regex",y,
+"","find . -group ""managers""","find Path -group Regex",y,y
+"","find / -group __SP__UNK","find Path -group Regex",y,
+"creat a symbol link name "".bashrc"" to file "".bash_profile""","ln -s __SP__UNK __SP__UNK","ln -s File Regex",y,
+"","ln -s "".bashrc"" "".bash_profile""","ln -s File Regex",y,y
+"","ln -s __SP__UNK __SP__UNK","ln -s File Regex",y,
+"","ln -s .bash_profile .bash","ln -s File Regex",y,
+"","ln -s .bash_profile","ln -s File",missing argument,
+"","ln -s __SP__UNK __SP__UNK","ln -s File Regex",y,
+"","ln -s "".bashrc"" "".bash_profile""","ln -s File Regex",y,y
+"","ln -s .bash_profile __SP__UNK","ln -s File Regex",y,
+"find all directori under current directori and make them read write and execut for owner & group and remov read-write-execut permiss for other","find . -type d -exec chmod __SP__UNK {} \;","find Path -type d -exec chmod Permission {} \;",y,
+"","find ""&"" -type d -exec chmod [permission] {} \;","find Path -type d -exec chmod Permission {} \;",y,
+"","find . -type d | xargs -0 -I {} chmod __SP__UNK {}","find Path -type d | xargs -0 -I {} chmod Permission {}",y,
+"","find . -type d -exec chmod ug=rwx,o= {} \;","find Path -type d -exec chmod Permission {} \;",y,y
+"","find . -type d -exec chmod ug=rwx,o= {} \;","find Path -type d -exec chmod Permission {} \;",y,y
+"","find . -type d -exec chmod __SP__UNK {} \;","find Path -type d -exec chmod Permission {} \;",y,
+"","find ""&"" -type d -exec chmod [permission] {} \;","find Path -type d -exec chmod Permission {} \;",y,
+"","find . -type d -exec chmod u=rwx,g=rx,o= {} \;","find Path -type d -exec chmod Permission {} \;",y,
+"recurs chang group ownership of everyth within a current directori to 'repogroup'","chgrp -R git ./","chgrp -R Regex File",y,
+"","chgrp -R ""repogroup"" [file]","chgrp -R Regex File",y,
+"","chgrp -R git ./","chgrp -R Regex File",y,
+"","chgrp -R __SP__UNK */","chgrp -R Regex File",y,
+"","chgrp -R repogroup .","chgrp -R Regex File",y,y
+"","chgrp -R __SP__UNK *","chgrp -R Regex File",y,
+"","chgrp -R [regex] ""repogroup""","chgrp -R Regex File",y,
+"","chgrp -R git ./","chgrp -R Regex File",y,
+"search in current directori downward all file whose size is 10 block","find . -size __SP__UNK ","find Path -size Size",y,
+"","find . -size +10c ","find Path -size +Size",y,y
+"","find . -size __SP__UNK ","find Path -size Size",y,
+"","find . -size +10M ","find Path -size +Size",y,
+"","find . -size +10M ","find Path -size +Size",y,
+"","find . -size __SP__UNK ","find Path -size Size",y,
+"","find . -size -10c ","find Path -size -Size",y,n
+"","find . -size 10c ","find Path -size Size",y,y
+"chang permiss to 644 for all regular file under and below /path/to/someDirectory/","find /home/user/demo -type f | xargs -I {} chmod 644 {}","find Path -type f | xargs -I {} chmod Permission {}",y,
+"","find ""/path/to/someDirectory/"" -type f -exec chmod 644 {} \;","find Path -type f -exec chmod Permission {} \;",y,y
+"","find /path/to/someDirectory/ -type f -exec chmod 644 {} \;","find Path -type f -exec chmod Permission {} \;",y,y
+"","find /path/to/__SP__UNK/ -type f | xargs -0 -I {} chmod 644 {}","find Path -type f | xargs -0 -I {} chmod Permission {}",y,
+"","find /path/to/someDirectory/ -type f | xargs -0 -I {} chmod 644 {}","find Path -type f | xargs -0 -I {} chmod Permission {}",y,y
+"","find /home/user/demo -type f | xargs -0 -I {} chmod 644 {}","find Path -type f | xargs -0 -I {} chmod Permission {}",y,
+"","find ""/path/to/someDirectory/"" -type f -exec chmod 644 {} \;","find Path -type f -exec chmod Permission {} \;",y,y
+"","find /path/to/__SP__UNK/ -type f -exec chmod 644 {} +","find Path -type f -exec chmod Permission {} +",y,
+"split ""date.csv"" into file with at most 100 line each","split -l 100 __SP__UNK","split -l Quantity File",y,
+"","split -l 100 ""date.csv""","split -l Quantity File",y,y
+"","split -l 100 __SP__UNK","split -l Quantity File",y,
+"","split -l 100 date.csv","split -l Quantity File",y,y
+"","split -l 100 date.csv","split -l Quantity File",y,y
+"","split -l 100 __SP__UNK","split -l Quantity File",y,
+"","split -l 100 ""date.csv""","split -l Quantity File",y,y
+"","split -l 100 date.csv","split -l Quantity File",y,y
+"display list of all regular file in home folder which are bigger than 512 kb","find ~ -size __SP__UNK -type f ","find Path -size Size -type f",y,
+"","find . -type f -size +512k -exec ls -l {} \;","find Path -type f -size +Size -exec ls -l {} \;",y,y
+"","find ~ -size __SP__UNK ","find Path -size Size",y,
+"","find ~ -size +__SP__UNKk","find Path -size +Size",y,
+"","find ~ -type f -size +__SP__UNKk -exec ls -l {} \;","find Path -type f -size +Size -exec ls -l {} \;",y,
+"","find ~ -type f -size __SP__UNK | xargs -I {} ls -l {}","find Path -type f -size Size | xargs -I {} ls -l {}",y,
+"","find . -type f -size +512k -exec ls -l {} \;","find Path -type f -size +Size -exec ls -l {} \;",y,y
+"","find /home -type f -size +__SP__UNKk ","find Path -type f -size +Size",y,
+"display first 10 line of byte hex dump with no file offset data for ""/bin/ls""","od -c __SP__UNK | head - 2","od -c File | head - Quantity",wrong flag,
+"","head - [quantity] [file] | cut -f [number] -d ""/bin/ls"" | head - 10","head - Quantity File | cut -f Number -d Regex | head - Quantity",wrong utility,
+"","od -a 10 | cut -c __SP__UNK","od -a File | cut -c Number",wrong flag,
+"","cut -d ' ' -f 1 /bin/ | head -n 10","cut -d Regex -f Number File | head -n Quantity",wrong flag,
+"","find . -name '*.[ch]' | head -n 10","find Path -name Regex | head -n Quantity",wrong utility,
+"","od -c foo | head - 1","od -c File | head - Quantity",wrong flag,
+"","head -c 10 ""/bin/ls""","head -c Quantity File",wrong utility,
+"","od -a /bin/of | head -n 1","od -a File | head -n Quantity",wrong flag,
+"print file content of command ""f""","cat $(which __SP__UNK)","cat $( which Regex )",y,
+"","cat $(which ""f"")","cat $( which Regex )",y,y
+"","cat __SP__UNK","cat File",missing utility,
+"","cat f*","cat File",missing utility,
+"","cat f","cat File",missing utility,
+"","cat $(which c++)","cat $( which Regex )",y,
+"","cat $(which ""f"")","cat $( which Regex )",y,y
+"","cat $(which f)","cat $( which Regex )",y,y
+"replac ani occur of '*favicon.ico*' in ani subfold with file '/root/favicon.ico'","echo __SP__UNK | grep -E -o __SP__UNK","echo Regex | grep -E -o Regex",wrong utility,
+"","rename ""*favicon.ico*"" ""/root/favicon.ico""","rename Regex Regex",wrong utility,
+"","echo '*favicon.ico*' | grep -E -o __SP__UNK","echo Regex | grep -E -o Regex",wrong utility,
+"","find /root/Maildir/__SP__UNK/__SP__UNK -name '*__SP__UNK.__SP__UNK*' | xargs -0 -I {}","find Path -name Regex | xargs -0 -I {}",wrong utility,
+"","ls /root/favicon.ico /root/favicon.ico","ls File File",wrong utility,
+"","grep __SP__UNK __SP__UNK | cut -d : -f 2 | sort | uniq","grep Regex File | cut -d Regex -f Number | sort | uniq",wrong utility,
+"","find . -maxdepth [quantity] -name ""*favicon.ico*"" | xargs -0 -I {} grep -L ""/root/favicon.ico"" {}","find Path -maxdepth Quantity -name Regex | xargs -0 -I {} grep -L Regex {}",wrong utility,
+"","grep -v '^__SP__UNK.__SP__UNK' */root/__SP__UNK.__SP__UNK","grep -v Regex File",wrong utility,
+"read a line from standard input into variabl ""YESNO"" ignor backslash escap and use prompt ""$ ? [y/N] ""","read -r -p __SP__UNK response","read -r -p Regex Regex",y,
+"","read -r -p ""[y/N]"" ""YESNO""","read -r -p Regex Regex",y,
+"","read -r -p ""$ ? [y/N] "" response","read -r -p Regex Regex",y,
+"","read -p ""$Are you sure? [y/N] "" __SP__UNK","read -p Regex Regex",missing flag,
+"","read -r -p ""$ ? [y/N] "" YESNO","read -r -p Regex Regex",y,
+"","read -r -p __SP__UNK response","read -r -p Regex Regex",y,
+"","read -r -p ""YESNO"" ""[y/N]""","read -r -p Regex Regex",y,
+"","read -p ""$Are you sure? [y/N] "" response","read -p Regex Regex",y,
+"resolv symbol link of file ""/foo/bar/baz""","readlink $(which __SP__UNK)","readlink $( which Regex )",extra utility,
+"","find -L ""/foo/bar/baz"" -samefile Regex","find -L Path -samefile Regex",wrong utility,
+"","readlink -f ""/foo/bar/baz""","readlink -f File",wrong flag,
+"","readlink -f /foo/bar/baz","readlink -f File",wrong flag,
+"","readlink -f /foo/bar/baz","readlink -f File",wrong flag,
+"","readlink $(which __SP__UNK)","readlink $( which Regex )",extra utility,
+"","readlink $(which ""/foo/bar/baz"")","readlink $( which Regex )",extra utility,
+"","readlink -f /foo/bar/baz","readlink -f File",wrong flag,
+"find all file in current directori tree whose size is greater than 1mb and move them to ""files"" folder with confirm","find . -size +1M -ok mv {} files __SP__UNK \;","find Path -size +Size -ok mv {} File File \;",extra argument,
+"","find . -size +1M -exec mv {} ""files"" \;","find Path -size +Size -exec mv {} File \;",rare flag,
+"","find . -size +1M | xargs -0 -I {} mv {} files","find Path -size +Size | xargs -0 -I {} mv {} File",rare flag,
+"","find . -size +1M -exec mv {} files +","find Path -size +Size -exec mv {} File +",rare flag,
+"","find . -size +1M -exec mv {} files +","find Path -size +Size -exec mv {} File +",rare flag,
+"","find . -size +1M -ok mv {} files __SP__UNK \;","find Path -size +Size -ok mv {} File File \;",extra argument,
+"","find . -size +1M | xargs -0 -I {} mv {} ""files""","find Path -size +Size | xargs -0 -I {} mv {} File",rare flag,
+"","find . -size +1M -exec mv {} files +","find Path -size +Size -exec mv {} File +",rare flag,
+"search everywher for directori name 'root'","find __SP__UNK -name __SP__UNK -type d","find Path -name Regex -type d",y,
+"","find . -type d -name ""root""","find Path -type d -name Regex",y,y
+"","find everywhere -type d -name __SP__UNK","find Path -type d -name Regex",y,
+"","find __SP__UNK -name root","find Path -name Regex",missing flag,
+"","find / -name root","find Path -name Regex",missing flag,
+"","find __SP__UNK -name __SP__UNK -type d","find Path -name Regex -type d",y,
+"","find . -name ""root"" -type d","find Path -name Regex -type d",y,y
+"","find / -name root","find Path -name Regex",missing flag,
+"creat temporari folder within a $mnt_dir folder and save path to it in a 'rsync_src' variabl","mktemp -d __SP__UNK","mktemp -d Regex",missing flag,
+"","mktemp -d | xargs -I {} dirname {} | sort -R | cut -d ""rsync_src"" -f [number] | xargs -I {} dirname {} | sort --unique | tee ""$mnt_dir""","mktemp -d | xargs -I {} dirname {} | sort -R | cut -d Regex -f Number | xargs -I {} dirname {} | sort --unique | tee File",extra utility,
+"","mktemp -d __SP__UNK","mktemp -d Regex",missing flag,
+"","mktemp -d $(dirname ""$mnt_dir"")","mktemp -d $( dirname Regex )",missing flag,
+"","mktemp -d $mnt_dir","mktemp -d Regex",missing flag,
+"","mktemp -d --tmpdir=/tmp","mktemp -d --tmpdir Directory",missing flag,
+"","
+","",,
+"","mktemp -d -t $(dirname ""$__SP__UNK_dir"")","mktemp -d -t $( dirname Regex )",rare flag,
+"copi ${FILE} to collect folder with uniqu name format like 'job_XXXXXXXXX'","cp -f __SP__UNK __SP__UNK","cp -f File File",y,
+"","cp -n ""${FILE}"" ""job_XXXXXXXXX""","cp -n File File",y,
+"","rsync __SP__UNK __SP__UNK","rsync File File",y,
+"","cp ${__SP__UNK}/${__SP__UNK} __SP__UNK___SP__UNK","cp File File",y,
+"","cp -r ${FILE} job_XXXXXXXXX job_XXXXXXXXX","cp -r File File File",extra argument,
+"","rsync -r -v --dry-run __SP__UNK __SP__UNK","rsync -r -v --dry-run File File",y,
+"","cp ""${FILE}"" ""job_XXXXXXXXX""","cp File File",y,
+"","cp -p ${__SP__UNK___SP__UNK}","cp -p File",missing argument,
+"print work directori separ by newlin instead of forward slash","find . -maxdepth 1 -mindepth 1 -type d -printf '%f\n'","find Path -maxdepth Quantity -mindepth Quantity -type d -printf '%f\n'",rare utility,
+"","pwd -P","pwd -P",missing utility,
+"","echo slashes | cut -d '/' -f 3","echo Regex | cut -d Regex -f Number",rare utility,
+"","dirname $(readlink -f ""$0"")","dirname $( readlink -f File )",rare utility,
+"","echo $(pwd)","echo $( pwd )",missing utility,
+"","echo $(pwd)","echo $( pwd )",missing utility,
+"","echo $(readlink -e [file])","echo $( readlink -e File )",wrong utility,
+"","echo ""$FILE"" | cut -d '.' -f 2-","echo Regex | cut -d Regex -f Number",rare utility,
+"creat directori aaa/bbb","mkdir __SP__UNK","mkdir Directory",y,
+"","mkdir ""aaa/bbb""","mkdir Directory",y,y
+"","mkdir aaa/bbb","mkdir Directory",y,y
+"","mkdir aaa/__SP__UNK","mkdir Directory",y,
+"","mkdir aaa/bbb","mkdir Directory",y,y
+"","mkdir __SP__UNK","mkdir Directory",y,
+"","mkdir ""aaa/bbb""","mkdir Directory",y,y
+"","mkdir aaa/__SP__UNK","mkdir Directory",y,
+"print number from 1 to 100","seq 1 10 | xargs -I {} echo {}","seq Number Number | xargs -I {} echo {}",y,
+"","seq 100 | xargs -P 1 -I {} echo {}","seq Number | xargs -P Quantity -I {} echo {}",missing argument,
+"","seq 100 100 | xargs -I {} echo {}","seq Number Number | xargs -I {} echo {}",y,
+"","seq -w 1","seq -w Number",wrong flag,
+"","seq 100 100","seq Number Number",y,cross copy
+"","seq -w 1","seq -w Number",wrong flag,
+"","seq 1 | xargs -n 100 -I {} echo {}","seq Number | xargs -n Quantity -I {} echo {}",missing argument,
+"","seq -w 1","seq -w Number",wrong flag,
+"find all regular file recurs in current directori","find . -type f","find Path -type f",y,y
+"","find . -type f","find Path -type f",y,y
+"","find . -type f","find Path -type f",y,y
+"","find . -type f","find Path -type f",y,y
+"","find . -type f","find Path -type f",y,y
+"","find . -type f","find Path -type f",y,y
+"","find . -type f","find Path -type f",y,y
+"","find . -type f","find Path -type f",y,y
+"make a symbol link between /Applications/Sublime Text.app/Contents/SharedSupport/bin/subl and ~/bin/subl","ln -s __SP__UNK __SP__UNK","ln -s File Regex",y,
+"","gzip -d -c ""Text.app/Contents/SharedSupport/bin/subl"" | grep -P '.*' | grep -P ""~/bin/subl"" | cut -d Regex -f [number] | grep -E -o ""/Applications/Sublime"" | cut -d Regex -f [number]","gzip -d -c Regex | grep -P Regex | grep -P Regex | cut -d Regex -f Number | grep -E -o Regex | cut -d Regex -f Number",extra argument,
+"","ln -s __SP__UNK ~/bin/subl","ln -s File Regex",y,
+"","ln -s /Applications/Sublime\ Text.app/Contents/SharedSupport/bin/subl ~/bin/subl","ln -s File Regex",y,
+"","ln -s /Applications/SublimeText.app/Contents/SharedSupport/bin/subl ~/bin/subl","ln -s File Regex",y,
+"","ln -s __SP__UNK __SP__UNK","ln -s File Regex",y,
+"","ping ""Text.app/Contents/SharedSupport/bin/subl"" ln -s ""/Applications/Sublime"" ""~/bin/subl""","ping Regex Regex -s Quantity Regex",extra argument,
+"","ln -s /Applications/Sublime\ Text.app/Contents/SharedSupport/bin/subl ~/bin/subl","ln -s File Regex",y,
+"search for directori ""mysql"" in /etc folder","find /etc -type d ","find Path -type d",y,
+"","find ""/etc"" -type d -name ""mysql""","find Path -type d -name Regex",y,y
+"","find /etc -type d -name ""mysql""","find Path -type d -name Regex",y,y
+"","find /etc -name ""*.conf"" | xargs -I {} grep ""Linux"" {}","find Path -name Regex | xargs -I {} grep Regex {}",missing flag,
+"","find /etc -type d -name mysql ","find Path -type d -name Regex",y,y
+"","find /etc -type d -name __SP__UNK ","find Path -type d -name Regex",y,
+"","find ""mysql"" -name ""/etc"" -type d","find Path -name Regex -type d",y,y
+"","find /etc -name '*.conf'","find Path -name Regex",missing flag,
+"display all regular file in current folder that are bigger than 10kb","find . -type f -size +10k","find Path -type f -size +Size",y,y
+"","find . -type f -size +10k","find Path -type f -size +Size",y,y
+"","find . -type f -size +10k","find Path -type f -size +Size",y,y
+"","find . -type f -size +10k","find Path -type f -size +Size",y,y
+"","find . -type f -size +10k","find Path -type f -size +Size",y,y
+"","find . -type f -size +10k","find Path -type f -size +Size",y,y
+"","find . -type f -size +10k","find Path -type f -size +Size",y,y
+"","find . -type f -size +10k","find Path -type f -size +Size",y,y
+"find all read onli file in /home directori","find /home -type f -perm 0777 ","find Path -type f -perm Permission",y,
+"","find ""/home"" -perm [permission]","find Path -perm Permission",y,
+"","find /home -name ""*.gz""","find Path -name Regex",missing flag,
+"","find /home -type f -perm 0777 ","find Path -type f -perm Permission",y,
+"","find /home -perm /u=r","find Path -perm Permission",y,y
+"","find /home -type f -perm /a=x","find Path -type f -perm Permission",y,
+"","find . -type f -name ""/home""","find Path -type f -name Regex",missing flag,
+"","find /home -type f -perm /u=r","find Path -type f -perm Permission",y,y
+"list subdirectori in current directori","ls -d -- */","ls -d -- File",y,y
+"","ls -d -- [file]","ls -d -- File",y,n
+"","ls -d -- */","ls -d -- File",y,y
+"","ls -d -- */","ls -d -- File",y,y
+"","ls -d -- */","ls -d -- File",y,y
+"","ls -d -- */","ls -d -- File",y,y
+"","ls -d -- [file]","ls -d -- File",wrong utility,
+"","find . -mindepth 1 -maxdepth 1 -type d -printf ""%P\n""","find Path -mindepth Quantity -maxdepth Quantity -type d -printf ""%P\n""",exta flag,
+"display all file in current folder which are bigger than 1 mb","find . -size __SP__UNK ","find Path -size Size",y,
+"","find . -size +1M","find Path -size +Size",y,y
+"","find . -size __SP__UNK","find Path -size Size",y,
+"","find . -size +1000k ","find Path -size +Size",y,y
+"","find . -size +1000k ","find Path -size +Size",y,y
+"","find . -size __SP__UNK","find Path -size Size",y,
+"","find . -size +1M","find Path -size +Size",y,y
+"","find . -size +1000k ","find Path -size +Size",y,y
+"find all html file in current folder which been modifi in last 7 day","find . -mtime -7 -name ""*.html"" ","find Path -mtime -Timespan -name Regex",y,y
+"","find . -mtime -7 -name ""*.html"" ","find Path -mtime -Timespan -name Regex",y,y
+"","find . -mtime -7 -name ""*.html"" ","find Path -mtime -Timespan -name Regex",y,y
+"","find . -mtime -7 -name ""*.html"" ","find Path -mtime -Timespan -name Regex",y,y
+"","find . -mtime -7 -name ""*.html"" ","find Path -mtime -Timespan -name Regex",y,y
+"","find . -mtime -7 -name ""*.html"" ","find Path -mtime -Timespan -name Regex",y,y
+"","find . -mtime -7 -name ""*.html""","find Path -mtime -Timespan -name Regex",y,y
+"","find . -mtime -7 -name ""*.html"" ","find Path -mtime -Timespan -name Regex",y,y
+"search for a pattern in all java file in current folder and display onli match file name","find . -name '*.java' -exec grep __SP__UNK {} \; ","find Path -name Regex -exec grep Regex {} \;",y,y
+"","find . -name ""*.java"" -exec grep -l '.*' {} \;","find Path -name Regex -exec grep -l Regex {} \;",y,y
+"","find . -name '*.java' -exec grep -l __SP__UNK {} \;","find Path -name Regex -exec grep -l Regex {} \;",y,y
+"","find . -name '*.java' -exec grep -i -l 'foo' {} \;","find Path -name Regex -exec grep -i -l Regex {} \;",y,y
+"","find . -name ""*.java"" -exec grep -l string {} \;","find Path -name Regex -exec grep -l Regex {} \;",y,y
+"","find . -name '*.pl' | xargs -I {} grep -l thing {}","find Path -name Regex | xargs -I {} grep -l Regex {}",y,
+"","find . -name ""*.java"" -exec grep -l '.*' {} \;","find Path -name Regex -exec grep -l Regex {} \;",y,y
+"","find . -name ""*.java"" -exec grep -i -l string {} \;","find Path -name Regex -exec grep -i -l Regex {} \;",y,
+"search for "" 840"" in histori","history | grep __SP__UNK","history | grep Regex",y,
+"","history | grep "" 840""","history | grep Regex",y,y
+"","history | grep "" 840""","history | grep Regex",y,y
+"","history | grep __SP__UNK","history | grep Regex",y,
+"","history | grep 840","history | grep Regex",y,y
+"","history | grep __SP__UNK","history | grep Regex",y,
+"","history | grep "" 840""","history | grep Regex",y,y
+"","history | grep __SP__UNK","history | grep Regex",y,
+"print newlin word and byte count for all .h .c .cpp .php and .cc file under current directori tree and also show total count","find . -name '*.[ch]' | xargs -I {} wc -l {}","find Path -name Regex | xargs -I {} wc -l {}",extra flag,
+"","find . -name "".cc"" | tr "".cpp"" ""*.php"" | xargs -0 -I {} echo ""*.c"" ""*.h"" {}","find Path -name Regex | tr Regex Regex | xargs -0 -I {} echo Regex Regex {}",wrong utility,
+"","find . -name '*.[ch]' | xargs -I {} grep -E 'expr' {}","find Path -name Regex | xargs -I {} grep -E Regex {}",missing utility,
+"","find . -name \*.php -type f | xargs -0 -I {} wc -l {}","find Path -name Regex -type f | xargs -0 -I {} wc -l {}",extra flag,
+"","find . -name '*.h' -exec echo {} \; | wc -l","find Path -name Regex -exec echo {} \; | wc -l",extra flag,
+"","find . -name ""*.rb"" | xargs -I {} wc -l {}","find Path -name Regex | xargs -I {} wc -l {}",extra flag,
+"","
+","",,
+"","find . -name '*.[ch]' | xargs -I {} wc -l {}","find Path -name Regex | xargs -I {} wc -l {}",extra flag,
+"find all file end with ""mkv"" in current folder","find . -name __SP__UNK","find Path -name Regex",y,
+"","find . -name ""*.mkv""","find Path -name Regex",y,y
+"","find . -name __SP__UNK","find Path -name Regex",y,
+"","find . -name ""*.mkv""","find Path -name Regex",y,y
+"","find . -name ""*mkv*""","find Path -name Regex",y,
+"","find . -type f -name __SP__UNK","find Path -type f -name Regex",y,
+"","find . -name ""*.mkv""","find Path -name Regex",y,y
+"","find . -name '*__SP__UNK'","find Path -name Regex",y,
+"find all regular file with specif name in current folder which exclud hidden file","find . -type f -name __SP__UNK ! -path __SP__UNK","find Path -type f -name Regex ! -path Regex",y,
+"","find . -type f -name ""*"" ! -path Regex ! -path Regex","find Path -type f -name Regex ! -path Regex ! -path Regex",counting error,
+"","find . -type f -name __SP__UNK ! -path __SP__UNK ! -path __SP__UNK","find Path -type f -name Regex ! -path Regex ! -path Regex",counting error,
+"","find . -type f -name ""*.!"" -not -path ""./.*""","find Path -type f -name Regex -not -path Regex",y,y
+"","find . -type f -not -path '*/\.*'","find Path -type f -not -path Regex",missing flag,
+"","find . -name __SP__UNK -prune -or -type f ","find Path -name Regex -prune -or -type f",y,
+"","find . -name ""*"" -prune -or -type f ","find Path -name Regex -prune -or -type f",y,
+"","find . -type f -not -path '*/\.*'","find Path -type f -not -path Regex",missing flag,
+"find all file and directori under $dir directori","find /var/log","find Path",y,
+"","find ""$dir""","find Path",y,y
+"","find $dir","find Path",y,y
+"","find $dir","find Path",y,y
+"","find $dir","find Path",y,y
+"","find $dir","find Path",y,y
+"","find ""$dir""","find Path",y,y
+"","find $dir","find Path",y,y
+"send an audibl ping to ""10.100.3.104""","ping -c 1 __SP__UNK | grep __SP__UNK","ping -c Quantity Regex | grep Regex",extra utility,
+"","ping -c [quantity] ""10.100.3.104""","ping -c Quantity Regex",wrong flag,
+"","ping -c __SP__UNK __SP__UNK","ping -c Quantity Regex",rare flag,
+"","ping -c 10 10.3.4","ping -c Quantity Regex",rare flag,
+"","ping -c audible 10.100.3.104.104","ping -c Quantity Regex",rare flag,
+"","ping -c 1 __SP__UNK","ping -c Quantity Regex",rare flag,
+"","ping -c [quantity] ""10.100.3.104""","ping -c Quantity Regex",wrong flag,
+"","ping -c 5 10... | cut -d ' ' -f 1","ping -c Quantity Regex | cut -d Regex -f Number",rare flag,
+"find all file in current folder which are modifi after a specif file is modifi","find . -newer __SP__UNK","find Path -newer File",y,y
+"","find . -newer [file]","find Path -newer File",y,y
+"","find . -newer __SP__UNK","find Path -newer File",y,y
+"","find . -newer file","find Path -newer File",y,y
+"","find . -newer __SP__UNK ","find Path -newer File",y,y
+"","find . -newer __SP__UNK","find Path -newer File",y,y
+"","find . -newer [file]","find Path -newer File",y,y
+"","find . -newer file","find Path -newer File",y,y
+"delet all directori empti directori in current folder","find . -type d -empty -exec rmdir {} \;","find Path -type d -empty -exec rmdir {} \;",y,y
+"","find . -type d -empty -exec rmdir {} \;","find Path -type d -empty -exec rmdir {} \;",y,y
+"","find . -type d -empty -exec rmdir {} \;","find Path -type d -empty -exec rmdir {} \;",y,y
+"","find . -type d -empty -exec rmdir {} \;","find Path -type d -empty -exec rmdir {} \;",y,y
+"","find . -type d -empty -exec rmdir -v -p --ignore-fail-on-non-empty {} +","find Path -type d -empty -exec rmdir -v -p --ignore-fail-on-non-empty {} +",y,y
+"","find . -type d -empty -exec rmdir -v -p --ignore-fail-on-non-empty {} +","find Path -type d -empty -exec rmdir -v -p --ignore-fail-on-non-empty {} +",y,y
+"","find . -type d -empty -delete","find Path -type d -empty -delete",y,y
+"","find . -type d -empty -exec rmdir {} \;","find Path -type d -empty -exec rmdir {} \;",y,y
+"display hardwar platform ie x86_64 even if current kernel use 32-bit address","uname -m","uname -m",y,y
+"","ifconfig ""32-bit"" | grep ""x86_64"" | cut -d Regex -f [number] | grep -E -o '.*' | grep -E -o '.*'","ifconfig Regex | grep Regex | cut -d Regex -f Number | grep -E -o Regex | grep -E -o Regex",wrong utility,
+"","uname -s -r -v -m","uname -s -r -v -m",y,y
+"","uname -m | grep -o -P '[[:digit:]]{1,2}'","uname -m | grep -o -P Regex",extra utility,
+"","uname -m","uname -m",y,y
+"","uname -m | grep __SP__UNK","uname -m | grep Regex",extra utility,
+"","echo ""32-bit"" | rev | cut -d ""x86_64"" -f [number] | rev","echo Regex | rev | cut -d Regex -f Number | rev",wrong utility,
+"","uname -m -r","uname -m -r",y,y
+"find all *.mp4 file under /working","find __SP__UNK -type f -name __SP__UNK","find Path -type f -name Regex",y,
+"","find ""/working"" -name ""*.mp4""","find Path -name Regex",y,y
+"","find /working -type f -name '*.mp3'","find Path -type f -name Regex",y,
+"","find /__SP__UNK -name *.mp4","find Path -name Regex",y,
+"","find /working -type f -name ""*.mp4"" ","find Path -type f -name Regex",y,y
+"","find __SP__UNK -type f -name __SP__UNK","find Path -type f -name Regex",y,
+"","find ""*.mp4"" -name ""/working""","find Path -name Regex",y,
+"","find /__SP__UNK -type f -name ""*.mp4"" ","find Path -type f -name Regex",y,
+"show all valu of variabl whose name or valu contain ""VARIABLE_NAME""","env | grep __SP__UNK","env | grep Regex",y,
+"","env | grep ""VARIABLE_NAME""","env | grep Regex",y,y
+"","env | grep __SP__UNK","env | grep Regex",y,
+"","env | grep ""__SP__UNK_NAME"" | grep ""__SP__UNK_NAME""","env | grep Regex | grep Regex",extra utility,
+"","env | grep VARIABLE_NAME","env | grep Regex",y,y
+"","env | grep __SP__UNK","env | grep Regex",y,
+"","env | grep ""VARIABLE_NAME""","env | grep Regex",y,y
+"","env | grep '^__SP__UNK_line'","env | grep Regex",y,
+"find all file start from current directori which are smaller than 100mb","find . -size +100M","find Path -size +Size",y,
+"","find . -size -100M","find Path -size -Size",y,y
+"","find . -size __SP__UNK","find Path -size Size",y,
+"","find . -size -100M","find Path -size -Size",y,y
+"","find . -size -100M","find Path -size -Size",y,y
+"","find . -size __SP__UNK","find Path -size Size",y,
+"","find . -size -100M","find Path -size -Size",y,y
+"","find . -size -100M","find Path -size -Size",y,y
+"print a hex dump of ""$DIREC"" as charact","od -t __SP__UNK __SP__UNK","od -t __SP__UNK File",y,
+"","od -t c ""$DIREC""","od -t c File",y,y
+"","od -t __SP__UNK __SP__UNK","od -t __SP__UNK File",y,
+"","od -t $__SP__UNK","od -t $__SP__UNK",y,
+"","echo $DIREC | od -t x1 -t c","echo Regex | od -t x1 -t c",extra flag,
+"","od -t __SP__UNK __SP__UNK","od -t __SP__UNK File",y,
+"","od -t c ""$DIREC""","od -t c File",y,y
+"","echo ""$__SP__UNK"" | od -t x1","echo Regex | od -t x1",wrong option,
+"search for file specifi maximum depth of search","find . -mindepth __SP__UNK -name __SP__UNK","find Path -mindepth Quantity -name Regex",wrong flag,
+"","find . -mindepth [quantity] -maxdepth [quantity] -name ""*""","find Path -mindepth Quantity -maxdepth Quantity -name Regex",extra flag,
+"","find / -name __SP__UNK","find Path -name Regex",wrong flag,
+"","find . -mindepth __SP__UNK -name query","find Path -mindepth Quantity -name Regex",wrong flag,
+"","find . -mindepth __SP__UNK -name query","find Path -mindepth Quantity -name Regex",wrong flag,
+"","find . -mindepth __SP__UNK -name __SP__UNK","find Path -mindepth Quantity -name Regex",wrong flag,
+"","find . -mindepth [quantity] -name ""*""","find Path -mindepth Quantity -name Regex",wrong flag,
+"","find . -mindepth __SP__UNK -name query","find Path -mindepth Quantity -name Regex",wrong flag,
+"forc decompress of all file into ""/etc""","find | xargs -I {} tar -c -v -f __SP__UNK {}","find | xargs -I {} tar -c -v -f File {}",wrong utility,
+"","find ""/etc"" | xargs -I {} tar -c -v -f [file] {}","find Path | xargs -I {} tar -c -v -f File {}",wrong utility,
+"","zcat __SP__UNK","zcat Regex",wrong utility,
+"","find /etc | xargs -0 -I {} mv {} /etc","find Path | xargs -0 -I {} mv {} File",wrong utility,
+"","find /etc | xargs -0 -I {} tar -c -v -f /etc/etc {}","find Path | xargs -0 -I {} tar -c -v -f File {}",wrong utility,
+"","find . -name __SP__UNK | xargs -I {} rm {}","find Path -name Regex | xargs -I {} rm {}",wrong utility,
+"","gzip -d -c ""/etc"" | md5sum","gzip -d -c Regex | md5sum",wrong utility,
+"","find /etc | xargs -0 -I {} file {}","find Path | xargs -0 -I {} file {}",wrong utility,
+"renam file ""edited_blah.tmp"" to ""/etc/blah""","find ~/junk -name __SP__UNK -exec mv {} __SP__UNK \;","find Path -name Regex -exec mv {} File \;",y,
+"","find ""edited_blah.tmp"" -name ""*"" -exec mv {} ""/etc/blah"" \;","find Path -name Regex -exec mv {} File \;",y,
+"","mv __SP__UNK __SP__UNK","mv File File",y,
+"","mv __SP__UNK_test.tmp /etc/blah","mv File File",y,
+"","mv edited_blah.tmp /etc/blah","mv File File",y,y
+"","mv __SP__UNK __SP__UNK","mv File File",y,
+"","mv ""/etc/blah"" ""edited_blah.tmp""","mv File File",y,
+"","mv __SP__UNK_file.tmp /etc/blah/blah","mv File File",y,
+"find file 'Chapter1' on system","find / -name __SP__UNK","find Path -name Regex",y,
+"","find . -name ""Chapter1""","find Path -name Regex",y,y
+"","find / -name 'Chapter1'","find Path -name Regex",y,y
+"","find / -name __SP__UNK1","find Path -name Regex",y,
+"","find / -name Chapter1 -type f","find Path -name Regex -type f",y,y
+"","find / -name __SP__UNK","find Path -name Regex",y,
+"","find . -name ""Chapter1""","find Path -name Regex",y,y
+"","find / -name __SP__UNK1","find Path -name Regex",y,
+"search for all jpg imag on system and archiv them","find / -type f -iname '*.jpg' | xargs -0 -I {} tar -c -v -f __SP__UNK {}","find Path -type f -iname Regex | xargs -0 -I {} tar -c -v -f File {}",y,y
+"","find . -name ""*.jpg"" | xargs -I {} tar -c -v -f [file] {}","find Path -name Regex | xargs -I {} tar -c -v -f File {}",y,y
+"","find / -type f -iname ""*.jpg"" -exec tar -r -v -f __SP__UNK {} \;","find Path -type f -iname Regex -exec tar -r -v -f File {} \;",y,y
+"","find / -type f -iname ""*.jpg"" | xargs -I {} tar -c -v -f music.tar {","find Path -type f -iname Regex | xargs -I {} tar -c -v -f File File",y,y
+"","find / -type f -iname ""*.jpg"" -exec tar -c -v -f __SP__UNK.tar {} \;","find Path -type f -iname Regex -exec tar -c -v -f File {} \;",y,y
+"","find / -type f -iname *.mp3 -exec tar -c -v -f __SP__UNK {} \;","find Path -type f -iname Regex -exec tar -c -v -f File {} \;",y,
+"","find . -name ""*"" | xargs -0 -I {} tar -r -v -f ""*.jpg"" {}","find Path -name Regex | xargs -0 -I {} tar -r -v -f File {}",y,
+"","find / -iname '*.jpg' -exec tar -c -v -f __SP__UNK.jpg {} +","find Path -iname Regex -exec tar -c -v -f File {} +",y,y
+"find all file with pattern '*.mp3' and send output into nameoffiletoprintto file","find . -name __SP__UNK | xargs -0 -I {} grep __SP__UNK {}","find Path -name Regex | xargs -0 -I {} grep Regex {}",missing flag,
+"","find ""*.mp3"" -type f \( -iname Regex -or -iname Regex \)","find Path -type f \( -iname Regex -or -iname Regex \)",missing flag,
+"","find . -type f -name '*.mp3' -exec ls -l {} \;","find Path -type f -name Regex -exec ls -l {} \;",missing flag,
+"","find / -name *.mp3 | xargs -0 -I {} rm {}","find Path -name Regex | xargs -0 -I {} rm {}",extra utility,
+"","find / -name *.mp3 -maxdepth 1 | xargs -0 -I {} ls -l {}","find Path -name Regex -maxdepth Quantity | xargs -0 -I {} ls -l {}",missing flag,
+"","find . -name __SP__UNK | xargs -n 1 -I {} echo __SP__UNK {}","find Path -name Regex | xargs -n Quantity -I {} echo Regex {}",missing flag,
+"","find . -type f -name ""*.mp3"" -exec grep -l '.*' {} \;","find Path -type f -name Regex -exec grep -l Regex {} \;",missing flag,
+"","find / -type f -name *.mp3 | xargs -0 -n 1 -I {} echo {}","find Path -type f -name Regex | xargs -0 -n Quantity -I {} echo {}",missing flag,
+"recurs find string like ""texthere"" in all ""*.txt"" file of a current folder","grep -R __SP__UNK *","grep -R Regex File",y,
+"","grep ""texthere"" ""*.txt""","grep Regex File",y,extra quotes
+"","grep -r ""texthere"" .","grep -r Regex File",missing argument,
+"","grep -R ""texthere"" *","grep -R Regex File",missing argument,
+"","grep -r ""texthere.txt"" .","grep -r Regex File",missing argument,
+"","grep __SP__UNK __SP__UNK","grep Regex File",y,
+"","grep ""*.txt"" ""texthere""","grep Regex File",y,
+"","grep -R ""texthere"" *","grep -R Regex File",missing argument,
+"archiv ""_vimrc"" to ""~/.vimrc"" suppress non-error messag and compress data dure transmiss","rsync -a -q -z __SP__UNK __SP__UNK","rsync -a -q -z File File",y,
+"","rsync -a -v -z ""~/.vimrc"" ""_vimrc""","rsync -a -v -z File File",y,
+"","rsync -a -q -z __SP__UNK __SP__UNK","rsync -a -q -z File File",y,
+"","rsync -a -v -z ___SP__UNK ~/.__SP__UNK ~/.__SP__UNK","rsync -a -v -z File File File",extra argument,
+"","rsync -a -v -z _vimrc ~/.vimrc","rsync -a -v -z File File",y,y
+"","rsync -a -q -z __SP__UNK __SP__UNK","rsync -a -q -z File File",y,
+"","rsync -a -v -z ""_vimrc"" ""~/.vimrc""","rsync -a -v -z File File",y,y
+"","rsync -a -v -z ssh___SP__UNK/.__SP__UNK ~/.__SP__UNK","rsync -a -v -z File File",y,
+"find all file in current folder and display ad quotat to each file","find . -exec echo {} \;","find Path -exec echo {} \;",y,missing string in argument
+"","find . -exec echo {} \;","find Path -exec echo {} \;",y,missing string in argument
+"","find . -exec echo {} \;","find Path -exec echo {} \;",y,missing string in argument
+"","find . -exec echo {} \;","find Path -exec echo {} \;",y,missing string in argument
+"","find . -exec echo {} +","find Path -exec echo {} +",y,missing string in argument
+"","find . | xargs -n 1 -I {} echo {}","find Path | xargs -n Quantity -I {} echo {}",y,missing string in argument
+"","find . -exec echo {} \;","find Path -exec echo {} \;",y,missing string in argument
+"","find ./ | xargs -0 -L 1 -I {} echo {}","find Path | xargs -0 -L Quantity -I {} echo {}",y,missing string in argument
+"print path to folder that contain file ""/path/to/vm.vmwarevm/vm.vmx""","dirname $(readlink -f __SP__UNK)","dirname $( readlink -f File )",y,
+"","$(dirname ""/path/to/vm.vmwarevm/vm.vmx"")","$( dirname Regex )",y,y
+"","dirname __SP__UNK","dirname Regex",y,
+"","dirname /path/to/__SP__UNK.__SP__UNK","dirname Regex",y,
+"","dirname $(dirname /path/to/vm.vmwarevm/vm.vmx)","dirname $( dirname Regex )",extra utility,
+"","dirname $(readlink -f __SP__UNK)","dirname $( readlink -f File )",y,
+"","dirname $(which ""/path/to/vm.vmwarevm/vm.vmx"")","dirname $( which Regex )",extra utility,
+"","dirname $(dirname /path/to/__SP__UNK/__SP__UNK.__SP__UNK.__SP__UNK)","dirname $( dirname Regex )",extra utility,
+"search for all .o file in current directori which permiss 664 and print them","find . -perm __SP__UNK -type f -exec ls -l {} \;","find Path -perm Permission -type f -exec ls -l {} \;",missing flag,
+"","find . -type f -name ""*.o"" -perm 664 -exec ls -l {} \;","find Path -type f -name Regex -perm Permission -exec ls -l {} \;",y,y
+"","find . -perm __SP__UNK","find Path -perm Permission",missing flag,
+"","find . -perm 664 -name ""*.o"" | xargs -0 -I {} chmod 664 {}","find Path -perm Permission -name Regex | xargs -0 -I {} chmod Permission {}",extra utility,
+"","find . -perm -644 | xargs -I {} chmod 664 {}","find Path -perm -Permission | xargs -I {} chmod Permission {}",extra utility,
+"","find . -perm 755 -exec ls -l {} \;","find Path -perm Permission -exec ls -l {} \;",missing flag,
+"","find . -name ""*.o"" -perm 664 ","find Path -name Regex -perm Permission",y,y
+"","find . -perm 664 -name '*.o' -exec chmod 644 {} \;","find Path -perm Permission -name Regex -exec chmod Permission {} \;",extra utility,
+"find all png file in current folder which begin with word imag","find . -name '*.png' | grep __SP__UNK","find Path -name Regex | grep Regex",extra utility,
+"","find . -name ""*.png""","find Path -name Regex",y,
+"","find . -name '*.png'","find Path -name Regex",y,
+"","find . -name '*.png'","find Path -name Regex",y,
+"","find . -name '*image'","find Path -name Regex",y,missing string in argument
+"","find . -name __SP__UNK","find Path -name Regex",y,
+"","find ""png"" -name ""*""","find Path -name Regex",y,
+"","find . -name '__SP__UNK*'","find Path -name Regex",y,
+"search directori given as argument to bash script for file whose name is not ""ss""","find /home ! -name __SP__UNK","find Path ! -name Regex",y,
+"","find . ! -name ""ss""","find Path ! -name Regex",y,
+"","find __SP__UNK ! -name ""ss"" ","find Path ! -name Regex",y,
+"","find $1 -type f ! -name '__SP__UNK*'","find Path -type f ! -name Regex",y,
+"","find . -name ss -prune -or ","find Path -name Regex -prune -or",y,
+"","find $1 -maxdepth 1 -name __SP__UNK","find Path -maxdepth Quantity -name Regex",logic error,
+"","find . ! -name ""ss"" -type d","find Path ! -name Regex -type d",extra flag,
+"","find / -type f ! -name ""__SP__UNK""","find Path -type f ! -name Regex",complex description,

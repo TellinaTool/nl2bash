@@ -1,0 +1,204 @@
+description,prediction,template,correct template,correct command
+"search /tmp/ directori recurs for regular file","find /tmp/ -type f","find Path -type f",y,y
+"","find /tmp/ -type f","find Path -type f",y,y
+"","find /tmp/ -type f","find Path -type f",y,y
+"renam ""original.filename"" to ""new.original.filename""","mv original.filename.filename new.original.filename.filename","mv File File",y,extra string in argument
+"","mv original.filename new.original.filename.filename","mv File File",y,extra string in argument
+"","mv original.filename new.original.filename.filename","mv File File",y,extra string in argument
+"find file ""myfile.txt"" in folder /home/user/myusername/","find /home/user/myusername/myusername/ -name myfile.txt ","find Path -name Regex",y,extra string in argument
+"","find /home/user/myusername/myusername/ -name myfile.txt ","find Path -name Regex",y,extra string in argument
+"","find /home/user/myusername/myusername/ -name myfile.txt ","find Path -name Regex",y,extra string in argument
+"find all regular file in a folder which not been modifi in last 60week and delet them","find $DIR -type f -mtime +60 -exec rm {} \;","find Path -type f -mtime +Timespan -exec rm {} \;",y,missing string in argument
+"","find ""$DIR"" -type f -mtime +60 -exec rm {} \;","find Path -type f -mtime +Timespan -exec rm {} \;",y,missing string in argument
+"","find ""$DIR"" -type f -mtime +60 -exec rm {} \;","find Path -type f -mtime +Timespan -exec rm {} \;",y,missing string in argument
+"find all 2*.data file and directori under jcho directori","find jcho -name 2*","find Path -name Regex",y,missing string in argument
+"","find jcho -name 2*.data","find Path -name Regex",,missing string in argument
+"","find jcho -name 2*.data","find Path -name Regex",,missing string in argument
+"find all directori with name ""uploads"" in current folder","find . -type d -name uploads","find Path -type d -name Regex",y,missing quotes
+"","find . -type d -name uploads","find Path -type d -name Regex",y,missing quotes
+"","find . -type d -name uploads","find Path -type d -name Regex",y,missing quotes
+"delet all mp4 file in folder /home which are bigger than 10mb","find /home -type f -name '*.mp4' -size +10M -exec rm {} \;","find Path -type f -name Regex -size +Size -exec rm {} \;",y,y
+"","find /home -name '*.mp4' -size +10M -exec rm {} \;","find Path -name Regex -size +Size -exec rm {} \;",y,y
+"","find /home -xdev -name ""*.mp4"" -size +10M -exec rm {} \;","find Path -xdev -name Regex -size +Size -exec rm {} \;",,
+"find all regular file in current folder which start with a ""some text""","find . -type f -name ""some text*""","find Path -type f -name Regex",y,error in ground truth
+"","find . -type f -and -name 'some text*'","find Path -type f -and -name Regex",,error in ground truth
+"","find . -type f -name 'some text*' ","find Path -type f -name Regex",,error in ground truth
+"renam file ""edited_blah.tmp"" to ""/etc/blah""","mv edited_blah.tmp.tmp /etc/blah","mv File File",y,extra string in argument
+"","mv edited_blah.tmp.tmp /etc/blah","mv File File",y,extra string in argument
+"","mv edited_blah.tmp.tmp /etc/blah","mv File File",y,extra string in argument
+"find all directori under $x directori and set read-write-execut permiss for owner and group and no permiss for other for those directori","find $x -type d -exec chmod ug=rwx,o= {} \;","find Path -type d -exec chmod Permission {} \;",y,y
+"","find $x -type d -exec chmod ug=rwx,o= {} \;","find Path -type d -exec chmod Permission {} \;",y,y
+"","find $x -type d -exec chmod ug=rwx,o= {} \;","find Path -type d -exec chmod Permission {} \;",y,y
+"look for all file whose name match pattern 'my*'","find / -name my*","find Path -name Regex",y,missing quotes
+"","find / -name my*","find Path -name Regex",y,missing quotes
+"","find / -name my*","find Path -name Regex",y,missing quotes
+"find all regular file in a directori which are atleast n level deep","find n -mindepth 1 -type f","find Path -mindepth Quantity -type f",y,uncommon argument value
+"","find n -mindepth 1 -type f","find Path -mindepth Quantity -type f",y,uncommon argument value
+"","find n -mindepth 1 -type f","find Path -mindepth Quantity -type f",y,uncommon argument value
+"search for all text file in folder /home","find /home -name ""*.txt""","find Path -name Regex",y,error in ground truth
+"","find /home -name ""*.txt""","find Path -name Regex",y,error in ground truth
+"","find /home -name ""*.txt""","find Path -name Regex",y,error in ground truth
+"remov all *.txt file in home directori tree with confirm","find $HOME -name '*.txt' -ok rm {} \;","find Path -name Regex -ok rm {} \;",y,y
+"","find ~ -name '*.txt' -ok rm {} \;","find Path -name Regex -ok rm {} \;",y,y
+"","find ~/ -name '*.txt' -ok rm {} \;","find Path -name Regex -ok rm {} \;",y,y
+"search /dir directori tree for file whose name match regular express '.*2015.*\'","find /dir -regex '.*2015.*'","find Path -regex Regex",y,missing string in argument
+"","find /dir -regex '.*2015.*'","find Path -regex Regex",y,missing string in argument
+"","find /dir -regex '.*2015.*'","find Path -regex Regex",y,missing string in argument
+"find all file under $dir directori","find $dir -type f","find Path -type f",y,y
+"","find $dir -type f","find Path -type f",y,y
+"","find $dir -type f","find Path -type f",y,y
+"find all file and directori under $dir directori","find $dir","find Path",y,y
+"","find $dir","find Path",y,y
+"","find $dir","find Path",y,y
+"display all regular file in current folder that are exact 10kb","find . -type f -size 10","find Path -type f -size Size",y,missing string in argument
+"","find . -type f -size 10k","find Path -type f -size Size",,y
+"","find . -type f -size 10","find Path -type f -size Size",y,missing string in argument
+"find all *.py file and directori under current directori","find . -name '*.py'","find Path -name Regex",y,y
+"","find . -name '*.py'","find Path -name Regex",y,y
+"","find . -name '*.py'","find Path -name Regex",y,y
+"print content of ""$FILE"" start from line 2","tail -n +2 $FILE","tail -n +Quantity File",y,missing quotes
+"","tail -n +2 $FILE","tail -n +Quantity File",y,missing quotes
+"","tail -n +2 $FILE","tail -n +Quantity File",y,missing quotes
+"find all directori under current directori and set read-write-execut permiss for owner and group and no permiss for other for those directori","find . -type d -exec chmod u=rwx,g=rx,o= {} \;","find Path -type d -exec chmod Permission {} \;",y,missing string in argument
+"","find . -type d -exec chmod ug=rwx,o= {} \;","find Path -type d -exec chmod Permission {} \;",y,y
+"","find . -type d -exec chmod ug=rwx,o= {} \;","find Path -type d -exec chmod Permission {} \;",y,y
+"remov empti folder and skip error messag if one is not empti","rmdir --ignore-fail-on-non-empty $__SP__UNK/__SP__UNK/__SP__UNK","rmdir --ignore-fail-on-non-empty Directory",y,y
+"","rmdir --ignore-fail-on-non-empty $__SP__UNK/__SP__UNK/__SP__UNK","rmdir --ignore-fail-on-non-empty Directory",y,y
+"","rmdir --ignore-fail-on-non-empty $__SP__UNK/__SP__UNK/__SP__UNK","rmdir --ignore-fail-on-non-empty Directory",y,y
+"find all zip file in current folder","find . -type f -name ""*.zip""","find Path -type f -name Regex",y,y
+"","find . -type f -name ""*.zip""","find Path -type f -name Regex",y,y
+"","find . -type f -name ""*.zip""","find Path -type f -name Regex",y,y
+"read a line from standard input into variabl ""i"" with prompt "" Again? Y/n ""","read -p "" Again? Again Y (y/n) "" i","read -p Regex Regex",y,extra string in argument
+"","read -p "" Again? Again Y (y/n) "" i","read -p Regex Regex",y,extra string in argument
+"","read -p "" Again? Again Y (y/n) "" i","read -p Regex Regex",y,extra string in argument
+"split ""$ORIGINAL_FILE"" into file of at most ""$MAX_LINES_PER_CHUNK"" line each with a prefix ""$CHUNK_FILE_PREFIX""","split -l FILE $MAX_FILE_PER_CHUNK $CHUNK_FILE_PER","split -l Quantity File Regex",y,cross copy
+"","split -l FILE $MAX_LINES_PER_CHUNK $CHUNK_FILE_PER","split -l Quantity File Regex",y,cross copy
+"","split -l FILE $MAX_FILE_PER_CHUNK $CHUNK_LINES_CHUNK","split -l Quantity File Regex",y,cross copy
+"search system for file whose name begin with letter 'a' 'b' or 'c'","find / -name b","find Path -name Regex",y,missing string in argument
+"","find / -name b","find Path -name Regex",y,missing string in argument
+"","find / -name b","find Path -name Regex",y,missing string in argument
+"add execut permiss to ""java_ee_sdk-6u2-jdk-linux-x64.sh""","chmod +x java_ee_sdk-linux-linux64.sh","chmod +Permission File",y,missing string in argument
+"","chmod +x java_ee_sdk-linux-linux64.sh","chmod +Permission File",y,missing string in argument
+"","chmod +x java_ee_sdk-6-linux64.sh","chmod +Permission File",y,missing string in argument
+"search current directori tree for file whose name begin with 'my'","find . -name my*","find Path -name Regex",y,missing quotes
+"","find . -name my*","find Path -name Regex",y,missing quotes
+"","find . -name my*","find Path -name Regex",y,missing quotes
+"format space separ field in ""filename"" as a tabl","column -t -s $'\t' filename","column -t -s Regex File",y,uncommon argument value
+"","column -t -s $'\t' filename","column -t -s Regex File",y,uncommon argument value
+"","column -t -s $'\t' filename","column -t -s Regex File",y,uncommon argument value
+"find all *.ini file","find / -name ""*.ini""","find Path -name Regex",y,y
+"","find / -name ""*.ini""","find Path -name Regex",y,y
+"","find / -name ""*.ini""","find Path -name Regex",y,y
+"chang owner of ""$JBOSS_CONSOLE_LOG"" to ""$JBOSS_USER""","chown $JBOSS_CONSOLE_LOG $JBOSS_USER","chown Regex File",y,cross copy
+"","chown -v $JBOSS_CONSOLE_LOG $JBOSS_USER","chown -v Regex File",,cross copy
+"","chown $JBOSS_USER:$JBOSS_USER $JBOSS_CONSOLE_LOG","chown Regex File",y,cross copy
+"search system for file ""testfile.txt""","find / -name testfile.txt","find Path -name Regex",y,missing quotes
+"","find / -name testfile.txt","find Path -name Regex",y,missing quotes
+"","find / -name testfile.txt","find Path -name Regex",y,missing quotes
+"display all file in home folder which read permiss to user","find ~ -perm 777","find Path -perm Permission",y,uncommon argument value
+"","find ~ -perm 777","find Path -perm Permission",y,uncommon argument value
+"","find ~ -perm 777","find Path -perm Permission",y,uncommon argument value
+"find all regular file in folder ""myfiles"" which read and write permiss to other user","find /myfiles -type f -perm -other","find Path -type f -perm -Permission",y,uncommon argument value
+"","find /myfiles -type f -perm -other","find Path -type f -perm -Permission",y,uncommon argument value
+"","find /myfiles -type f -perm -u+rwx","find Path -type f -perm -Permission",y,uncommon argument value
+"creat a symbol link name "".bashrc"" to file "".bash_profile""","ln -s .bash_profile .bash_profile","ln -s File Regex",y,cross copy
+"","ln -s .bash_profile .bash_profile","ln -s File Regex",y,cross copy
+"","ln -s .bash_profile .bash_profile","ln -s File Regex",y,cross copy
+"display all regular file in a directori","find ""$dir"" -type f","find Path -type f",y,y
+"","find ""$dir"" -type f","find Path -type f",y,y
+"","find $dir -type f","find Path -type f",y,y
+"move all directori in current directori tree that been modifi in last day to ""/path/to/target-dir""","find . -type d -mtime -1 -exec mv -t /path/to/target-dir {} +","find Path -type d -mtime -Timespan -exec mv -t Directory {} +",y,uncommon argument value
+"","find . -type d -mtime -0 -exec mv -t /path/to/target-dir {} +","find Path -type d -mtime -Timespan -exec mv -t Directory {} +",,uncommon argument value
+"","find . -type d -mtime -1 -exec mv -t /path/to/target-dir {} +","find Path -type d -mtime -Timespan -exec mv -t Directory {} +",y,uncommon argument value
+"bring down network interfac eth0","ifconfig eth0 __SP__UNK","ifconfig Regex Regex",y,failed to copy
+"","ifconfig eth0 __SP__UNK","ifconfig Regex Regex",y,failed to copy
+"","ifconfig eth0 __SP__UNK","ifconfig Regex Regex",y,failed to copy
+"chang group ownership of 'target_directory' to 'target_group'","chgrp target_directory target_group","chgrp Regex File",y,cross copy
+"","chgrp target_directory target_group","chgrp Regex File",y,cross copy
+"","chgrp target_directory target_directory","chgrp Regex File",y,cross copy
+"find all sticki bit file whose permiss are 551","find / -perm __SP__UNK","find Path -perm Permission",y,failed to copy
+"","find / -perm __SP__UNK","find Path -perm Permission",y,failed to copy
+"","find / -perm __SP__UNK","find Path -perm Permission",y,failed to copy
+"recurs chang owner of directori /tmp to current user","chown -R $USER /tmp","chown -R Regex File",y,y
+"","chown -R $USER /tmp","chown -R Regex File",y,y
+"","chown -R $USER /tmp","chown -R Regex File",y,y
+"find all .less file in current directori tree","find . -name ""*.less""","find Path -name Regex",y,y
+"","find . -name '*.less'","find Path -name Regex",y,y
+"","find . -name '*.less'","find Path -name Regex",y,y
+"display all file in a folder","find /usr/share/doc ","find Path",y,y
+"","find /usr/share/doc -name README","find Path -name Regex",,
+"","find /usr/share/doc ","find Path",y,y
+"chang ownership to user daili for all directori under current directori that are own by harri","find . -type d -user harry -exec chown __SP__UNK {} \;","find Path -type d -user Regex -exec chown Regex {} \;",y,failed to copy
+"","find . -type d -user harry -exec chown harry {} \;","find Path -type d -user Regex -exec chown Regex {} \;",y,failed to copy
+"","find . -type d -user __SP__UNK -exec chown __SP__UNK {} \;","find Path -type d -user Regex -exec chown Regex {} \;",y,failed to copy
+"find all file in file system which belong to group user and have word ""filename"" in name","find / -group user -iname ""filename""","find Path -group Regex -iname Regex",y,lemmatization error
+"","find / -group user -iname ""filename""","find Path -group Regex -iname Regex",y,lemmatization error
+"","find / -group filename -iname ""filename""","find Path -group Regex -iname Regex",y,lemmatization error
+"print a list of all file and directori in /var/log directori tree","find /var/log","find Path",y,y
+"","find /var/log","find Path",y,y
+"","find /var/log","find Path",y,y
+"file all sticki bit set file whose permiss are 551","find / -perm __SP__UNK","find Path -perm Permission",y,failed to copy
+"","find / -perm __SP__UNK","find Path -perm Permission",y,failed to copy
+"","find / -perm __SP__UNK","find Path -perm Permission",y,failed to copy
+"print full path to file with dot in name in a current folder","ls -d -1 $PWD/**/*","ls -d -1 File",y,missing string in argument
+"","ls -d -1 $(pwd)","ls -d -1 $( pwd )",,missing string in argument
+"","ls -d -1 $PWD/**/*","ls -d -1 File",y,missing string in argument
+"display all variabl with name start with ""derby"" in a window 's command line","set __SP__UNK","set Regex",y,failed to copy
+"","set __SP__UNK","set Regex",y,failed to copy
+"","set __SP__UNK","set Regex",y,failed to copy
+"find all directori whose name is tecmint in / directori","find / -type d -name tecmint","find Path -type d -name Regex",y,lemmatization error
+"","find / -type d -name tecmint","find Path -type d -name Regex",y,lemmatization error
+"","find / -type d -name tecmint","find Path -type d -name Regex",y,lemmatization error
+"list all file in /var directori tree whose size is greater than 10 megabyt","find /var -size +10M ","find Path -size +Size",y,y
+"","find /var -size +10M ","find Path -size +Size",y,y
+"","find /var -size +10M -exec ls -s -h {} \;","find Path -size +Size -exec ls -s -h {} \;",,y
+"print number from 1 to 100","seq 100 100","seq Number Number",y,cross copy
+"","seq 100 100","seq Number Number",y,cross copy
+"","seq -w 1 100","seq -w Number Number",,extra string in argument
+"read a line from standard input into variabl ""yn"" with prompt ""Do you wish to install this program?""","read -p ""Do you wish to program?"" yn","read -p Regex Regex",y,missing string in argument
+"","read -p ""Do you wish to program?"" yn","read -p Regex Regex",y,missing string in argument
+"","read -p ""Do you wish to install?"" yn","read -p Regex Regex",y,missing string in argument
+"chang owner to ""root"" and group to ""wheel"" of ""com.xxxx.adbind.plist""","chown root:wheel.xxxx.plist com.xxxx.adbind.plist","chown Regex File",y,extra string in argument
+"","chown root:wheel.xxxx.adbind.plist com.xxxx.adbind.plist","chown Regex File",y,extra string in argument
+"","chown root:wheel com.xxxx.adbind.plist","chown Regex File",y,y
+"search /path directori tree for file have permiss 777","find /path -perm 777","find Path -perm Permission",y,y
+"","find /path -perm 777","find Path -perm Permission",y,y
+"","find /path -perm 777","find Path -perm Permission",y,y
+"find all sgid bit file whose permiss set to 644","find / -perm __SP__UNK","find Path -perm Permission",y,failed to copy
+"","find / -perm __SP__UNK","find Path -perm Permission",y,failed to copy
+"","find / -perm __SP__UNK","find Path -perm Permission",y,failed to copy
+"find all file in a folder which been modifi from start of day","find /tmp/test/* -daystart -mtime -1","find Path -daystart -mtime -Timespan",y,uncommon argument value
+"","find /tmp/test/* -daystart -mtime -1","find Path -daystart -mtime -Timespan",y,uncommon argument value
+"","find /tmp/test/* -daystart -mtime -1","find Path -daystart -mtime -Timespan",y,uncommon argument value
+"search through onli /usr and /home directori for ani file name Chapter1.txt","find /usr /home -name Chapter1 -type f","find Path Path -name Regex -type f",y,missing string in argument
+"","find /usr /home -name Chapter1 -type f ","find Path Path -name Regex -type f",,missing string in argument
+"","find /usr /home -name Chapter1 -type f ","find Path Path -name Regex -type f",,missing string in argument
+"find all instanc of a file in entir file system that belong to a specif user","find / -user username -name ""my.txt""","find Path -user Regex -name Regex",y,y
+"","find / -user username -iname ""my.txt""","find Path -user Regex -iname Regex",y,y
+"","find / -user username -name ""my.txt""","find Path -user Regex -name Regex",y,y
+"display all .sh script in folder /usr","find /usr -name ""*.sh""","find Path -name Regex",y,y
+"","find /usr -name ""*.sh""","find Path -name Regex",y,y
+"","find /usr -name ""*.sh""","find Path -name Regex",y,y
+"find all file start from current directori which are own by user tommi","find . -user tommy","find Path -user Regex",y,lemmatization error
+"","find . -user tommy","find Path -user Regex",y,lemmatization error
+"","find . -user tommy","find Path -user Regex",y,lemmatization error
+"make a symbol link between /Applications/Sublime Text.app/Contents/SharedSupport/bin/subl and ~/bin/subl","ln -s /Applications/SublimeTextText.app/Contents/SharedSupport/bin/subl ~/bin/subl","ln -s File Regex",y,extra string in argument
+"","ln -s ""/Applications/Sublime Text app/Contents/SharedSupport/bin/subl"" ~/bin/subl","ln -s File Regex",y,extra string in argument
+"","ln -s ""/Applications/Sublime Text app app/Contents/SharedSupport/bin/subl"" ~/bin/subl","ln -s File Regex",y,extra string in argument
+"synchron ""/path/to/dir_b"" with file in ""/path/to/dir_a/"" if file are newer","rsync -r -t -u -v /path/to/dir_a/ /path/to/dir_a/","rsync -r -t -u -v File File",y,cross copy
+"","rsync -r -t -u -v /path/to/dir_a/ /path/to/dir_b/","rsync -r -t -u -v File File",y,missing string in argument
+"","rsync -r -t -u -v /path/to/dir_a/* /path/to/dir_a/","rsync -r -t -u -v File File",y,cross copy
+"find all ""jpg"" file in a folder","find /home/pat -iname ""*.jpg""","find Path -iname Regex",y,y
+"","find /volume1/uploads -name ""*.jpg""","find Path -name Regex",,y
+"","find /home/pat -iname ""*.jpg""","find Path -iname Regex",y,y
+"","","",,
+"","","",,
+"","extra string in argument","",18,0.09
+"","missing string in argument","",28,0.15
+"","missing quotes","",15,0.08
+"","uncommon argument value","",18,0.09
+"","cross copy","",16,0.08
+"","failed to copy","",18,0.09
+"","lemmatization error","",9,0.05
+"","error in ground truth","",6,0.03
+"","y","",62,0.32

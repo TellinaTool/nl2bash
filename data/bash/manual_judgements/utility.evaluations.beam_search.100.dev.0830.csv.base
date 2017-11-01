@@ -1,0 +1,699 @@
+cd ,example_id,description,groundtruth,prediction,correct template,correct command
+find,368,Find writable regular files in the current directory,find -type f -maxdepth 1 -writable,find . -type f,rare flag,
+find,,,find .  -maxdepth 1 -type f -writable,find . -writable -type f,y,y
+find,,,,"find . -type f | xargs -I {} grep ""writable"" {}",rare flag,
+find,321,Find all SUID files in entire file system,find / -perm +4000,find / -perm /u=s,y,y
+find,,,find / -perm +u=s,find / -perm +u=s,y,y
+find,,,,find / -perm +4000,y,y
+find,365,find the regular js files which path does not contains '*/test/*'  and name does not contains '*-min-*' or '*console*',"find . ! -path ""*/test/*"" -type f -name ""*.js"" ! -name ""*-min-*"" ! -name ""*console*""",grep -F -f *-min-* *-min-*,logic error,
+find,,,,find . -path '*/test/*' -prune -or -name '*console*' -print | xargs -I {},logic error,
+find,,,,find . -path '*/test/*' -exec grep -q '*console*' {} \;,logic error,
+find,279,Find all files under current directory and append a null character at the end of each of their paths,find -type f -print0,find . -print0,y,y
+find,,,,find . -type f -print0,y,y
+find,,,,find . -type f -print0,y,y
+find,327,find all the zip files in the current folder,find . -type f -name '*.zip',"find . -name ""*.zip"" -print",y,y
+find,,,,find . -name '*.zip',y,y
+find,,,,find . -name '*.zip' -print,y,y
+xargs,219,Find all files/directories under current directory and print them with newline as the delimiter,find -print | xargs -d'\n',find . -print0 | xargs -0 -I {} echo {},rare flag,
+xargs,,,,find . -print0,rare flag,
+xargs,,,,find . -print0,rare flag,
+xargs,432,Print all file/directory names without white space safety under the /proc directory,find /proc | xargs,find /proc -print0 | xargs -0,rare usage,
+xargs,,,,find /proc -print0 | xargs -0,rare usage,
+xargs,,,,find /proc -print0 | xargs -0,rare usage,
+xargs,561,Search the current directory tree for *bash* files printing them on a single line,"find . -name ""*bash*"" | xargs","find . -name ""*bash*"" -print0 | xargs -0 -I {} echo {}",rare usage,
+xargs,,,,"find . -name ""*bash*"" -print0 | xargs -0 -n 1 -I {} echo {}",rare usage,
+xargs,,,,"find . -type f -name ""*bash*"" -print0 | xargs -0 -n 1 -I {} echo {}",rare usage,
+grep,38,check if there any files from the .git folder after excluding it using the prune command,find . -path ./.git -prune -o -print -a \( -type f -o -type l -o -type d \) | grep '.git',find . -name .git -prune -or -name '*.git' -print,poor description,
+grep,,,,find . -path './.git' -prune -or -name '*.git' -print,poor description,
+grep,,,,find .,poor description,
+grep,163,"Find all *.mp3, *.aif*, *.m4p, *.wav, *.flac files under $musicdir directory","find ""$musicdir"" -type f -print | egrep -i '\.(mp3|aif*|m4p|wav|flac)$'",find $musicdir -type f -name '*.mp3' -exec echo {} \;,counting error,
+grep,,,,find $musicdir -type f -name '*.mp3',counting error,
+grep,,,,find $musicdir -name '*.mp3' -type f -or -name '*.mp4' -print,counting error,
+grep,610,search for the word bananas in the all the regular/normal files in the entire file system,find / -type f -exec grep bananas {} \; -print,find / -type f -exec grep -H banana {} \;,y,y
+grep,,,,find / -type f -exec grep -H banana {} \;,y,y
+grep,,,,find / -type f -exec grep banana {} \; -print,y,y
+grep,581,search for a word in all the shell scripts in the current folder and display the matched files.,"find . -type f -name ""*.sh"" -exec grep -l landoflinux {} \;","find . -name ""*.sh"" -exec grep -H -n ""joomla"" {} \;",y,y
+grep,,,"find . -type f -name ""*.sh"" -exec grep -il landoflinux {} \;","find . -name ""*.sh"" -exec grep -H -n ""string"" {} \;",y,y
+grep,,,,"find . -name ""*.sh"" -exec grep -H -n ""pattern"" {} \;",y,y
+grep,359,find for a word in all the regular files in the current directory,find . -type f -print | xargs grep -li 'bin/ksh',find . -type f -print0 | xargs -0 -I {} grep -F 'example' {},y,y
+grep,,,find . -type f -exec grep -li '/bin/ksh' {} \;,find . -type f | xargs -I {} grep -F 'example' {},y,y
+grep,,,,"find . -type f | xargs -I {} grep ""example"" {}",y,y
+rm,71,Delete all 1US* (case insensitive) files under current directory,"find . -iname ""1US*"" -exec rm {} \;","find . -name ""*1*"" -exec rm -f {} \;",y,failed to copy
+rm,,,,"find . -name ""11*"" -exec rm -f {} \;",y,failed to copy
+rm,,,,"find . -name ""11*"" -exec rm {} \;",y,failed to copy
+rm,501,Remove all *.txt files in the home directory tree with confirmation,find $HOME/. -name *.txt -ok rm {} \;,find ~/ -name '*.txt' -ok rm {} \;,y,y
+rm,,,,find ~/ -name '*.txt' -ok rm {} \;,y,y
+rm,,,,find ~/ -name '*.txt' -ok rm {} \;,y,y
+rm,328,Find and remove multiple *.mp3 files,"find . -type f -name ""*.mp3"" -exec rm -f {} \;","find . -type f -name ""*.mp3"" -exec rm -f {} \;",y,y
+rm,,,,"find . -name ""*.mp3"" -exec rm -f {} \;",y,y
+rm,,,,"find . -maxdepth 1 -name ""*.mp3"" -exec rm -f {} \;",extra flag,
+rm,499,"Remove all ""work"" directories residing in /usr/ports and below",find /usr/ports/ -name work -type d -print -exec rm -rf {} \;,find /usr/ports/ -name work -type d -print0 | xargs -0 -I {} rm {},missing flag,
+rm,,,,find /usr/ports/ -name work -type d -print -exec rm -r -f {} \;,y,missing quotes
+rm,,,,find /usr/ports/ -name work -type d -exec rm -r -f {} \;,y,missing quotes
+rm,287,find all the files with a specific name in the current folder and delete them,find . -name “find name” -exec rm {}\ ;,"find . -name ""photo*.jpg"" -delete",y,y
+rm,,,,"find . -iname ""photo.jpg"" | xargs -I {} rm {}",y,y
+rm,,,,"find . -name ""photo*.jpg"" -delete",y,y
+ls,150,find *.gif files under the currently directory and sub-directories and list them using the ls command,find . -name *.gif -exec ls {} \;,"find . -name ""*.gif"" -exec ls -l -d {} \;",extra flag,
+ls,,,,find . -name \*.gif -print0 | xargs -0 -I {} ls -l {},y,missing quotes
+ls,,,,find . -name '*.gif' -print0 | xargs -0 -I {} ls -l {},y,y
+ls,90,display a long listing of all the directories in the entire file system,find / -print0 -type d | xargs -0 ls -al,find / -type d -ls,y,y
+ls,,,,find / -type d -exec ls -l {} \;,y,y
+ls,,,,find / -type d -exec ls -l {} \;,y,y
+ls,390,List all symlinks under current directory and search for targetfile.txt in this list,find . -type l | xargs -I % ls -l % | grep targetfile.txt,"find . -type l -exec grep ""targetfile.txt"" {} \; -print",extra utility,
+ls,,,,find . -type l -exec echo {} \;,missing utility,
+ls,,,,"find . -type l -name ""targetfile.txt"" -exec ls -l {} \;",y,y
+ls,396,List subdirectories in the current directory,"find . -maxdepth 1 -type d -exec ls -ld ""{}"" \;",ls -d */,wrong flag,
+ls,,,find . -maxdepth 1 -type d -print0 | xargs -0 ls -d,ls -d ./*/,wrong flag,
+ls,,,,ls -d ./,wrong flag,
+ls,89,display a long listing of all the directories in the current folder,find . -type d -exec ls -algd {} \;,find . -type d -ls,y,y
+ls,,,,find . -type d -ls,y,y
+ls,,,,find . -type d -ls,y,y
+chmod,169,Find all *.rb (regular) files under current directory and change their mode to 600,"find . -name ""*.rb"" -type f -exec chmod 600 {} \;",cd $(find . -name *.rb),wrong utility,
+chmod,,,,chmod 600 $(find . -name *.rb),missing flag,
+chmod,,,,"find . -name ""*.rb"" -type f -exec chmod 600 {} \;",y,y
+chmod,494,"Recursively set all permissions under ""/opt/lampp/htdocs"" to 755",sudo chmod 755 -R /opt/lampp/htdocs,chmod 755 /opt/lampp/htdocs,missing flag,
+chmod,,,,chmod 755 /opt/lampp/htdocs /opt/lampp/htdocs,extra argument,
+chmod,,,,chmod -R 755 /opt/lampp/htdocs,y,y
+chmod,34,Change permissions to 644 for all regular files under and below /path/to/someDirectory/,find /path/to/someDirectory -type f -print0 | xargs -0 sudo chmod 644,find /path/to/someDirectory/ -type f -print0 | xargs -0 -I {} chmod 644 {},y,y
+chmod,,,,find /path/to/someDirectory -type f -print0 | xargs -0 -I {} chmod 644 {},y,y
+chmod,,,,find /path/to/someDirectory/ -type f -exec chmod 644 {} +,y,y
+chmod,33,Change permissions to 0755 for all directories in the /path directory tree,find /path -type d | xargs chmod 0755,find /path -type d -exec chmod 0755 {} \;,y,y
+chmod,,,"find /path -type d -exec chmod 0755 ""{}"" \;",find /path -type d -exec chmod 0755 {} \;,y,y
+chmod,,,find /path -type d -exec chmod 0755 {} \;,find /path -type d -exec chmod 0755 {} \;,y,y
+chmod,197,Find all directories under /path/to/dir and change their permission to 755,find /path/to/dir -type d -exec chmod 755 {} +,chmod 755 $(find /path/to/dir -type d),y,y
+chmod,,,,chmod 755 $(find /path/to/dir -type d),y,y
+chmod,,,,chmod 755 $(find /path/to/dir -type d),y,y
+echo,235,find all the files in the current folder (handles files which contain newlines or only spaces in their names),"find . -print0 | xargs -0 -l -i echo ""{}"";",find .,y,y
+echo,,,,find . -print,y,y
+echo,,,,find .,y,y
+echo,39,Check if the directory tree whose name is given as variable $somedir contains no regular files,"find ""$somedir"" -type f -exec echo Found unexpected file {} \;","find . -type f -name ""$somedir""",rare usage,
+echo,,,,"find $somedir -type f -name ""$somedir""",rare usage,
+echo,,,,"find $somedir -type f -name ""*"" -exec echo {} \;",rare usage,
+echo,144,Execute the 'echo' command on each file from the current directory tree individually,find . -exec echo {} \;,find . | xargs -I {} echo {},y,y
+echo,,,,find . | xargs -n 1 -I {} echo {},y,y
+echo,,,,find . | xargs -n 1 -I {} echo {},y,y
+echo,330,"Find command will list of all files & directories from current directory , before listing echo command will display ' List of files & Directory '",find . -exec echo ' List of files & Direcoty'   {} \;,find . -print | xargs -I {} ls -l {},poor description,
+echo,,,,find . -print | xargs -I {} ls -l {},poor description,
+echo,,,,find . -print | xargs -I {} ls -l {},poor description,
+echo,131,display the change owner command for all the regular files in the current folder.,find . -type f -exec echo chown username {} \;,find . -type f -print0 | xargs -0 -I {} chown username {},rare usage,
+echo,,,,find . -type f -exec chown username {} \;,rare usage,
+echo,,,,find . -type f -exec chown __SP__UNK {} \;,rare usage,
+sort,220,Find all files/directories under current directory and sort them,find | sort,find . | sort,y,y
+sort,,,,find . | sort,y,y
+sort,,,,find . | sort,y,y
+sort,431,"Print a sorted list of directories from the ~/Music tree containing files whose names begin with ""cover.""",find ~/Music/ -iname 'cover.*' -printf '%h\n' | sort -u,find ~/Music/ -name cover.* -printf '%h\n' | sort | uniq -c,poor description,
+sort,,,,find ~/Music/ -name cover.* | sort,poor description,
+sort,,,,find ~/Music/ -type f -name 'cover.*' -printf '%h\n' | sort | uniq,poor description,
+sort,463,Prints only unique strings of those stored in variables $COMMANDS and $ALIASES.,"echo ""$COMMANDS""$'\n'""$ALIASES"" | sort -u",echo $COMMANDS | cut -d ' ' -f 1,rare usage,
+sort,,,,echo $COMMANDS | cut -d '.' -f 1,rare usage,
+sort,,,,echo $COMMANDS | wc -c,extra utility,
+wc,160,"find all the "".jpg"" files in current folder and display their count",find ./ -name '*.jpg' -type f | wc -l,find . -name \*.jpg | wc -l,y,missing quotes
+wc,,,,"find . -iname ""*.jpg"" | wc -l",y,y
+wc,,,,"find ./ -name ""*.jpg"" | wc -l",y,y
+wc,47,"Counts lines in each *.cpp, *.c, *.h file.","wc -l `find . -type f \( -name ""*.cpp"" -o -name ""*.c"" -o -name ""*.h"" \) -print`",wc -l *.cpp*,counting error,
+wc,,,,cat *.cpp* | wc -l,counting error,
+wc,,,,wc -l *.cpp.c,counting error,
+wc,460,"Print newline, word and byte count for all .h, .c, .cpp, .php and .cc files under current directory tree and also show the total counts",wc `find . -name '*.[h|c|cpp|php|cc]'`,"find . -name ""*.h"" -exec wc -l {} + | wc -l",counting error,
+wc,,,,"find . -name ""*.h"" -print0 | xargs -0 -I {} wc -l {}",counting error,
+wc,,,,find . -name '*.h' -exec wc -c {} + | wc -l,counting error,
+wc,133,display the count of all the files which have a specific extension in the current folder,find . -name “*.old” -print | wc -l,"find . -name ""*.old"" | wc -l",y,y
+wc,,,,"find . -name ""*.old"" -exec wc -l {} \; | wc -l",extra utility,
+wc,,,,"find . -name ""*.old"" -exec wc -l {} + | wc -l",extra utility,
+wc,331,find the count of all the regular files in a directory,find /usr -type f | wc -l,find ./ -type f -print | wc -l,y,y
+wc,,,,find . -type f | wc -l,y,y
+wc,,,,find . -type f | wc -l,y,y
+chown,20,change owner of the file process to user root,sudo chown root process,chown root process,y,y
+chown,,,,chown root process,y,y
+chown,,,,chown root process,y,y
+chown,17,"Change the owner of ""$JBOSS_CONSOLE_LOG"" to ""$JBOSS_USER""",chown $JBOSS_USER $JBOSS_CONSOLE_LOG,chown $ $JBOSS_CONSOLE_LOG $JBOSS_USER_LOG,extra argument,
+chown,,,,chown $ $JBOSS_CONSOLE_LOG $JBOSS_CONSOLE_LOG,extra argument,
+chown,,,,chown -v $JBOSS_CONSOLE_LOG $JBOSS_USER_LOG,y,cross copy
+chown,19,change the owner of all the files in the file system which belong to a specific user,find -x / -user george -print0 | xargs -0 chown eva,find / -user edwarda -exec chown username {} \;,y,y
+chown,,,,find / -user edwarda -exec chown username {} \;,y,y
+chown,,,,find / -user edwarda -exec chown username {} \;,y,y
+chown,13,"Change file owner and group of ""/path/to/yourapp"" to root and print a diagnostic",chown -v root:root /path/to/yourapp,chown root:root /path/to/yourapp,missing flag,
+chown,,,,chown root:root /path/to/yourapp,missing flag,
+chown,,,,chown root:root /path/to/yourapp,missing flag,
+chown,21,"Change owner to ""root"" and group to ""dockerroot"" of ""/var/run/docker.sock""",sudo chown root:dockerroot /var/run/docker.sock,chown root:dockerroot /var/run/docker.sock,y,y
+chown,,,,chown root:dockerroot /var/run/docker.sock.sock,y,
+chown,,,,chown root:dockerroot /var/run/docker.sock,y,y
+cut,147,Extract protocol part from URL.,"echo ""$url"" | cut -d':' -f1","echo ""__SP__UNK"" | cut -d '/' -f 4-",y,wrong numerical value
+cut,,,,"echo ""__SP__UNK"" | head -n protocol",missing utility,
+cut,,,,"echo ""__SP__UNK"" | cut -d '/' -f 4-",y,wrong numerical value
+mv,523,"Rename file ""edited_blah.tmp"" to ""/etc/blah""",sudo mv edited_blah.tmp /etc/blah,mv edited_blah.tmp /etc/blah,y,y
+mv,,,,mv edited_blah.tmp /etc/blah,y,y
+mv,,,,mv edited_blah.tmp /etc/blah.tmp,y,cross copy
+mv,417,"Move all directories in the current directory tree that have been modified in the last day to ""/path/to/target-dir""",find . -type d -mtime -0 -exec mv -t /path/to/target-dir {} +,find . -type d -mtime -day -exec mv -t /path/to/target-dir {} +,y,world knowledge
+mv,,,find . -depth -type d -mtime 0 -exec mv -t /path/to/target-dir {} +,find . -type d -mtime -last -exec mv -t /path/to/target-dir {} +,y,world knowledge
+mv,,,find . -type d -mtime -0 -print0 | xargs -0 mv -t /path/to/target-dir,find . -type d -mtime -0 -exec mv -t /path/to/target-dir {} +,y,y
+mv,419,move all the html files from current folder to another folder and if a symbolic link is found copy the original referenced file and not the link,find . -follow -iname '*.htm' -print0 | xargs -i -0 mv '{}' ~/webhome,mv $(find . -name \*.html),missing argument,
+mv,,,,find . -name '*.html' -exec mv -t referenced {} +,y,y
+mv,,,,"find . -name ""*.html"" -exec mv -t referenced {} +",y,y
+mv,232,"Find all files in the current directory tree whose size is greater than 1MB, and move them to the ""files"" folder with confirmation",find . -size +1M -ok mv {} files \+,find . -size +1M -print0 | xargs -0 -I {} mv {} files,rare flag,
+mv,,,,find . -size +1M -exec mv {} files +,rare flag,
+mv,,,,find . -size +1M -print0 | xargs -0 -I {} mv {} files,rare flag,
+mv,589,search for all the mp3 files in the file system and move them to the folder /mnt/mp3,"find / -iname ""*.mp3"" -exec mv {} /mnt/mp3 \;",find / -iname '*.mp3' -print0 | xargs -0 -I {} mv {} /mnt/mp,y,cross copy
+mv,,,,find / -iname '*.mp3' -exec mv {} /mnt/mp3 \;,y,y
+mv,,,,find / -iname '*.mp3' -exec mv -t /mnt/mp3 {} +,y,y
+cp,323,find all the text files in the current directory which have been modified in the last 4 days and not today and copy them to another folder,"find . -name ""*.txt"" -type f -daystart -mtime -4 -mtime +0|xargs -i cp {} /home/ozuma/tmp",find . -name \*.txt -mtime +4 -exec cp {} ./.* \;,logic error,
+cp,,,,"find . -name ""*.txt"" -mtime 4 -exec cp {} ./.* \;",logic error,
+cp,,,,"find . -name ""*.txt"" -mtime 4 -exec cp {} ./.X \;",logic error,
+cp,43,"Copy all files below the current directory whose names contain ""FooBar"" to directory foo/bar/ in user's home directory.",find . | grep FooBar | xargs -I{} cp {} ~/foo/bar,"find . -name ""*FooBar*"" -exec cp {} ~/foo/bar \;",y,y
+cp,,,find -name '*FooBar*' -print0 | xargs -0 cp -t ~/foo/bar,"find . -name ""*FooBar*"" -exec cp {} ~/bar/bar \;",y,cross copy
+cp,,,,"find . -name ""*FooBar*"" -exec cp {} foo/bar/in \;",y,cross copy
+cp,525,Replaces any occurences of '*favicon.ico*' in any subfolder with file '/root/favicon.ico'.,find . | grep favicon\.ico | xargs -n 1 cp -f /root/favicon.ico,"grep ""*favicon.ico*"" /root/favicon.ico*",missing utility,
+cp,,,,grep -v '*favicon.ico*' /root/favicon.ico*,missing utility,
+cp,,,,grep -v '*favicon.ico*' /root/favicon.ico,missing utility,
+cp,607,"search for text files in the directory ""/home/user1"" and copy them to the directory /home/backup",find /home/user1 -name '*.txt' | xargs cp -av --target-directory=/home/backup/ --parents,"find /home/user1 -name ""*.txt"" -exec cp -a {} /home/backup/backup \;",y,cross copy
+cp,,,,find /home/user1 -name '*.txt' | xargs -I {} cp -a --target-directory=/home/,y,cross copy
+cp,,,,"find /home/user1 -name ""*.txt"" -execdir cp {} /home/backup1/__SP__UNK \;",y,cross copy
+cp,11,Backup all PHP files under the current directory tree,"find -name ""*.php"" –exec cp {} {}.bak \;","find . -name ""*.php"" -exec cp {} {}.php \;",poor description,
+cp,,,,"find . -name ""*.php"" -exec echo {} +",poor description,
+cp,,,,"find . -name ""*.php"" -print",poor description,
+head,87,Display the 5 largest files in the current directory and its sub-directories.,find . -type f -exec ls -s {} \; | sort -n -r | head -5,find . -type f -printf '%s %p\n' | sort -n | head - 5,missing flag,
+head,,,,find . -type f -exec ls -s {} \; | sort -n -r | head - 5,y,y
+head,,,,find . -printf '%s %p\n' | sort -n | head - 5,missing flag,
+head,448,Print the first 10 files or directories found in the current directory tree by `find',find | head,find | head,y,y
+head,,,,find | head,y,y
+head,,,,find | head,y,y
+head,425,"Prints $m latest modified files within the $d folder, using $f format for printing timestamp.","find ""$d"" -type f -printf ""%T@ :$f %p\n"" | sort -nr | cut -d: -f2- | head -n""$m""","find $d -type f -printf ""%T@ %p\n"" | sort -n -r | head -n $f",complex task,
+head,,,,"find $d -type f -printf ""%T@ %p\n"" | sort -n | tail -n $f",complex task,
+head,,,,"find $d -type f -printf ""%T@ %p\n"" | sort -n -r | tail -n +$",complex task,
+head,298,find all the mp4 and flv files in a folder and display the first 500 files in the sorted order of their name,"find /storage -name ""*.mp4"" -o -name ""*.flv"" -type f | sort | head -n500",find /usr/local -name '*.mp4' | sort | uniq,missing utility,
+head,,,,find /home/backups -name '*.mp4' -printf '%s %p\n' | sort,missing utility,
+head,,,,find /usr/local -name '*.mp4' -printf '%s %p\n' | sort,missing utility,
+head,230,Find all the files in the current directory recursively whose permissions are not 777,find . -type f ! -perm 777 | head,find . -type f -perm 0777 -print,logic error,
+head,,,,find . -perm 777 -print,logic error,
+head,,,,find . -type f -perm 0777 -print,logic error,
+mkdir,409,"Make directory ""dir1""",mkdir dir1,mkdir dir1,y,y
+mkdir,,,,mkdir dir1,y,y
+mkdir,,,,mkdir dir1,y,y
+mkdir,410,"Make directory ""dirname"" with permissions set to 777",mkdir -m 777 dirname,mkdir -m dirname,missing argument,
+mkdir,,,,mkdir dirname dirname,extra argument,
+mkdir,,,,mkdir -m 777 dirname,y,y
+mkdir,58,Create all directories in the path specified by variable $javaUsrLib as super user,sudo mkdir -p $javaUsrLib,mkdir -p $javaUsrLib,y,y
+mkdir,,,,mkdir $javaUsrLib,missing flag,
+mkdir,,,,mkdir -p $javaUsrLib,y,y
+mkdir,407,"Make directories ""3/foo"", ""3/bar"", and ""3/baz""",mkdir 3/foo 3/bar 3/baz,mkdir 3/foo/bar 3/baz,counting error,
+mkdir,,,,mkdir 3/foo/bar 3/baz,counting error,
+mkdir,,,,mkdir 3/foo/bar 3/baz,counting error,
+mkdir,62,create directory dir1,mkdir dir1,mkdir dir1,y,y
+mkdir,,,,mkdir dir1,y,y
+mkdir,,,,mkdir dir1,y,y
+cat,51,"Count the number of lines in ""/etc/fstab""",cat /etc/fstab | wc -l,cat /etc/fstab | wc -l,y,y
+cat,,,,cat /etc/fstab | wc -l,y,y
+cat,,,,cat /etc/fstab | wc -l,y,y
+cat,132,display the contents of all the text files in the current directory,find . -name  '*.txt' -exec cat {} \;,cat *.txt | xargs -I {} cat {} | cat,extra utility,
+cat,,,,"find . -name ""*.txt"" -print0 | xargs -0 -I {} cat {} | cat",extra utility,
+cat,,,,cat *.txt | wc -l,extra utility,
+cat,438,Print the command line of the current shell,echo $(cat /proc/$$/cmdline),set | head,poor description,
+cat,,,,set | tail,poor description,
+cat,,,,set | cut -c 8-,poor description,
+cat,442,"Print the contents of ""filename""",cat filename,cat filename,y,y
+cat,,,,cat filename,y,y
+cat,,,,cat filename,y,y
+dirname,54,create a directory `dirname /path/to/copy/file/to/is/very/deep/there` and show no errors if it exists,mkdir -p `dirname /path/to/copy/file/to/is/very/deep/there` \,mkdir -p dirname/path/to/copy/file/to/is/very/file/there,y,cross copy
+dirname,,,,mkdir -p dirname/path/to/copy/file/to/is/very/file,y,cross copy
+dirname,,,,mkdir -p dirname/path/to/copy/file/to/is/very/deep/file,y,cross copy
+dirname,63,"Create intermediate directories ""full"", ""path"" as required and directory ""to""",mkdir -p `dirname /full/path/to/file.txt`,mkdir -p full/path,poor description,
+dirname,,,,mkdir -p full/full,poor description,
+dirname,,,,mkdir -p full/path,poor description,
+dirname,412,"Make directory and parents as needed for the directory name of file ""$f""","mkdir -p -- ""$(dirname -- ""$f"")""",mkdir -p $f,missing utility,
+dirname,,,,"mkdir -p ""$f""",missing utility,
+dirname,,,,mkdir -p $f,missing utility,
+dirname,464,"Prints path to folder that contains file ""/path/to/vm.vmwarevm/vm.vmx"".","dirname ""/path/to/vm.vmwarevm/vm.vmx""",dirname $(readlink -f /path/to/vm.vmwarevm/vm.vmwarevm),y,cross copy
+dirname,,,echo /path/to/vm.vmwarevm/vm.vmx | xargs dirname,dirname $(readlink -f /path/to/vm.vmwarevm/vm.vmx),y,y
+dirname,,,,dirname $(readlink -f /path/to/vm.vmwarevm/vm.vmwarevm/vm/),y,cross copy
+dirname,584,"search for all the files ending with "".todo"" in some folder and display the parent directory name","find ""$STORAGEFOLDER"" -name .todo -printf '%h\n'","find ""$STORAGEFOLDER"" -name .todo -printf '%h\n' | sort | uniq | uniq -d",extra utility,
+dirname,,,"find ""$STORAGEFOLDER"" -name .todo  -exec dirname {} \;",find $STORAGEFOLDER -name .todo -printf '%h\n' | sort | uniq | uniq -d,extra utility,
+dirname,,,,"find ""$STORAGEFOLDER"" -name .todo -printf '%h\n' | sort | uniq | sort -n",extra utility,
+tail,149,Find *.conf files/directories only upto 2 levels down under /etc directory and show a few lines of output from the end,"find /etc -maxdepth 2 -name ""*.conf"" | tail","find /etc -maxdepth 2 -name ""*.conf"" | head",wrong utility,
+tail,,,,"find /etc -maxdepth 2 -name ""*.conf"" | tail",y,y
+tail,,,,"find /etc -maxdepth 2 -name ""*.conf"" | tail",y,y
+tail,185,find all the configuration files in a folder and do not search in the sub folder and display the last ten files.,"find /etc -maxdepth 1 -name ""*.conf"" | tail",find /home/user/ -maxdepth 1 -cmin +10 -print | head,wrong utility,
+tail,,,,"find /home/pat -iname ""*.conf"" | head",wrong utility,
+tail,,,,"find /home/pat -maxdepth 1 -name ""*.conf"" | tail",y,y
+tail,440,"Print the contents of ""$FILE"" starting from line 2","tail -n +2 ""$FILE""",cat $FILE,wrong utility,
+tail,,,,cat $FILE | tr -s ' ' | cut -d ' ' -f 2,wrong utility,
+tail,,,,cat $FILE | sort | uniq,wrong utility,
+tail,459,Print the newest *.txt file under current directory with timestamp and path,"find . -name ""*.txt"" -printf ""%T@ %p\n"" | sort | tail -1","find . -name ""*.txt"" -printf ""%T@ %p\n"" | sort -n | tail - 1",y,
+tail,,,,"find . -name ""*.txt"" -print0 | xargs -0 -I {} echo {}",missing flag,
+tail,,,,find . \( -name *.txt -or -name *.txt \) -print,missing flag,
+tail,171,"Find all *.txt files under current directory with their timestamps and paths, sort them and print the last entry only","find . -name ""*.txt"" -printf ""%T+ %p\n"" | sort | tail -1","find . -name ""*.txt"" -printf ""%T+ %p\n"" | sort -n -r",missing utility,
+tail,,,,find . -name '*.txt' -printf '%T+ %p\n' | sort -n | head - entry,wrong utility,
+tail,,,,"find . -name \*.txt -printf ""%T+ %p\n"" | sort -n -r | head - entry",wrong utility,
+split,640,"Split ""/tmp/files"" into files of at most 1000 lines each",split /tmp/files,split -l 1000 /tmp/files,y,y
+split,,,,split -n 1000 /tmp/files,wrong flag,
+split,,,,split -n 1000 /tmp/files,wrong flag,
+split,637,"Split ""$ORIGINAL_FILE"" into files of at most ""$MAX_LINES_PER_CHUNK"" lines each with a prefix ""$CHUNK_FILE_PREFIX""",split -l $MAX_LINES_PER_CHUNK $ORIGINAL_FILE $CHUNK_FILE_PREFIX,"split -l FILE ""$MAX_LINES_PER_CHUNK"" ""$CHUNK_FILE_PER""",y,cross copy
+split,,,,"split -l FILE ""$CHUNK_LINES_PER_CHUNK"" ""$CHUNK_FILE_PER""",y,cross copy
+split,,,,"split -l FILE ""$MAX_FILE_PER_CHUNK"" ""$CHUNK_FILE_PER""",y,cross copy
+split,646,Split standard input into files with at most 75 lines each,split --lines=75,split -l 75,y,y
+split,,,,split -l 75,y,y
+split,,,,split -l 75,y,y
+split,643,"Split ""date.csv"" into files with at most 100 lines each",split -l 100 date.csv,split -l 100 date.csv,y,y
+split,,,,split -l 100 date.csv,y,y
+split,,,,split -l 100 date.csv,y,y
+split,641,"Split ""/usr/bin/gcc"" into 100000 files of about equal size",split -n 100000 /usr/bin/gcc,split -n 100000 /usr/bin/gcc,y,y
+split,,,,split -n 100000 /usr/bin/gcc,y,y
+split,,,,split -n 100000 /usr/bin/gcc,y,y
+tar,9,archive all files in a current directory modified in the last 30 days,tar czvf mytarfile.tgz `find . -mtime -30`,find . -mtime -30 -print,missing utility,
+tar,,,,find . -mtime -30 -print,missing utility,
+tar,,,,find . -mtime -30 -print,missing utility,
+tar,588,Search for all jpg images on the system and archive them,find / -name *.jpg -type f -print | xargs tar -cvzf images.tar.gz,find / -type f -iname '*.jpg' -exec tar -c -v -f {}.jpg \;,y,cross copy
+tar,,,,find / -type f -name '*.jpg' -exec tar -c -v -f {}.jpg \;,y,cross copy
+tar,,,,"find / -type f -iname ""*.jpg"" -exec tar -r -v -f "".jpg"" {} \;",y,cross copy
+tar,57,create a tar ball of all the jpg and png images in the current folder,"find . \( -iname ""*.png"" -o -iname ""*.jpg"" \) -print -exec tar -rf images.tar {} \;","find . \( -iname ""*.jpg"" -or -iname ""*.jpg"" \) -exec tar -r \;",missing flag,
+tar,,,,"find . \( -iname ""*.jpg"" -or -name ""*.jpg"" \) -exec tar -r \;",missing flag,
+tar,,,,"find . \( -name ""*.jpg"" -or -name ""*.jpg"" \) -exec tar -r \;",missing flag,
+tar,146,extract archive stored in $1,tar -zxvf $1,tar -x -z -f $1,y,y
+tar,,,,"echo ""$1"" | tar -x -f -",extra utility,
+tar,,,,tar -x -f - $1 | tar -x,extra flag,
+tar,597,Search for files/directories with the case insensitive pattern anaconda.* in /var/log directory and create an archive (file.tar) of the last file found,find /var/log/ -iname anaconda.* -exec tar -cvf file.tar {} \;,find /var/log/ -iname anaconda.* -exec tar -c -v -f anaconda.tar {} \;,y,cross copy
+tar,,,,find /var/log/ -iname anaconda.* | xargs -I {} tar -c -v -f anaconda.tar,y,cross copy
+tar,,,,find /var/log -iname anaconda.* -exec tar -c -v -f anaconda.tar {} \;,y,cross copy
+readlink,445,Print the directory of the full path to the current script,echo $(dirname $(readlink -m $BASH_SOURCE)),dirname $(readlink -f $0),y,world knowledge
+readlink,,,,"dirname $(readlink -f ""$0"")",y,world knowledge
+readlink,,,,dirname $(readlink $0),y,world knowledge
+readlink,453,"Print the full real path of ""/dev/disk/by-uuid/$1"" followed by ""is mounted""",echo $(readlink -f /dev/disk/by-uuid/$1) is mounted,readlink -e /dev/disk/by-uuid/$1,missing utility,
+readlink,,,,readlink /dev/disk/by-uuid/$1,missing utility,
+readlink,,,,echo $(readlink -e /dev/disk/by-uuid/$$),missing argument,
+readlink,534,"Save absolute path of the script filename in variable ""MY_PATH""","MY_PATH=$(readlink -f ""$0"")","readlink --canonicalize-existing ""MY_PATH""",wrong flag,
+readlink,,,,"readlink --canonicalize-existing ""$0_PATH""",wrong flag,
+readlink,,,,readlink --canonicalize-existing MY_PATH,wrong flag,
+readlink,533,"Save the absolute path of the directory of the current script to variable ""DIR""","DIR=$(dirname ""$(readlink -f \""$0\"")"")","readlink -f ""${BASH_SOURCE[0]}""",missing utility,
+readlink,,,,readlink /proc/$$/fd/255,missing utility,
+readlink,,,,dirname $(readlink -f $0),y,
+readlink,529,"Resolve symbolic link of file ""/foo/bar/baz""",readlink -e /foo/bar/baz,readlink -m /foo/bar/baz,wrong flag,
+readlink,,,,readlink -f /foo/bar/baz,wrong flag,
+readlink,,,,readlink -m /foo/bar/baz,wrong flag,
+ln,55,"create a symbolic link named ""-pdf-kundendienst"" to ""local--pdf-kundendienst"" file",ln -s -- ./local--pdf-kundendienst -pdf-kundendienst,ln -s local--pdf-kundendienst local--pdf-kundendienst,y,cross copy
+ln,,,,ln -s local--pdf-kundendienst local-pdf-kundendienst,y,cross copy
+ln,,,,ln -s -- local--pdf-kundendienst,missing argument,
+ln,403,make a symbolic link between /Applications/Sublime Text.app/Contents/SharedSupport/bin/subl and ~/bin/subl,"ln -s ""/Applications/Sublime Text.app/Contents/SharedSupport/bin/subl"" ~/bin/subl",ln -s /Applications/SublimeTextText.app/Contents/SharedSupport/bin/subl ~/bin/subl,y,extra string in argument
+ln,,,,ln -s /Applications/SublimeText.app/Contents/SharedSupport/bin/subl ~/bin/subl,poor description,
+ln,,,,ln -s ~/ApplicationsTextText.app/Contents/SharedSupport/bin/subl ~/bin/subl,y,
+ln,65,create symbolic link for ../config/environments,"ln -s ""../config/environments""","ln -s ""../config/environments""",y,y
+ln,,,,ln -s .../config/environments,y,
+ln,,,,ln -s ../config/environments,y,
+ln,66,"create symbolic links in current directory to all files except of with filename ""CONFIGFILE"" located in ""/your/project""","find /your/project -maxdepth 1 ! -name ""CONFIGFILE"" -exec ln -s \{\} ./ \;","ln -s ""/your/project"" CONFIGFILE",poor description,
+ln,,,,find /your/project -name 'CONFIGFILE*' -exec ln -s {} /your/project \;,poor description,
+ln,,,,find /your/project -name 'CONFIGFILE*' -exec ln -s {} /your/project/ \;,poor description,
+ln,56,"create a symbolic link named "".bashrc"" to file "".bash_profile""",ln -s .bashrc .bash_profile,ln -s .bash_profile .bash_profile,y,cross copy
+ln,,,,ln -s .bash_profile .bashrc_profile,y,
+ln,,,,ln -s .bash .bash_profile,y,
+basename,129,"display the base name(name without extension) of all the "".NEF"" files in the current folder","find . -name ""*.NEF"" -exec basename \{\} .NEF \;","find . -name ""*.NEF"" -exec basename {} \; | wc -l",extra utility,
+basename,,,,"find . -name ""*.NEF"" | xargs -I {} basename {}",y,y
+basename,,,,"find . -name ""*.NEF"" -print0 | xargs -0 -I {} basename {}",y,y
+basename,151,"Find .java files in the current directory tree that contain 'TODO', and print their names","find . -name ""*.java"" -exec grep -Hin TODO {} + | basename `cut -d "":"" -f 1`",find . -name '*.java' | xargs -I {} grep -l TODO {},poor description,
+basename,,,,"find . -name ""*.java"" -exec grep -l TODO {} \;",poor description,
+basename,,,,find . -name '*.java' | xargs -I {} grep -E TODO {},poor description,
+basename,420,"Output the base name of first argument to script or function, that is the part following the last slash.","echo $(basename ""$1"")","basename ""$1""",y,y
+basename,,,,basename $1,y,missing quotes
+basename,,,,"basename ""$1""",y,y
+basename,515,Removes first and last parts of path 'test/90_2a5/Windows' and prints the result.,echo 'test/90_2a5/Windows' | xargs dirname | xargs basename,basename -- test/90/90_2/Windows,missing utility,
+basename,,,,basename test/90/90_2/Windows,missing utility,
+basename,,,,basename test/90/90_2/Windows/Windows,missing utility,
+basename,649,"Strips last section from the path $pathname, and prints basename of the rest part.",echo $(basename $(dirname $pathname)),echo $pathname | wc -c,missing utility,
+basename,,,,basename $pathname $(dirname $pathname \)),extra argument,
+basename,,,,echo $pathname | uniq -c,missing utility,
+read,475,"Read a line of standard input with prompt ""Enter your choice: "" in an interactive shell and save the response to variable ""choice""","read -e -p ""Enter your choice: "" choice","read -e -p ""Enter your choice: "" choice",y,y
+read,,,,"read -e -p ""Enter your choice choice: "" choice",y,
+read,,,,"read -e -p ""Enter your choice choice:"" choice",y,
+read,473,"Read a line from standard input into variable ""i"" with the prompt "" Again? Y/n ""","read -p "" Again? Y/n "" i","read -p "" Again? Y Y: "" i",y,
+read,,,,"read -p "" Again? (y/n)Y "" i",y,
+read,,,,"read -p "" Again? Y Y (y/n)Y "" i",y,
+read,472,"Read a line from standard input into variable ""YESNO"" ignoring backslash escapes and using the prompt ""$(echo $@) ? [y/N] ""","read -r -p ""$(echo $@) ? [y/N] "" YESNO","read -r -p ""$ ? [y/N] "" YESNO",complex task,
+read,,,,"read -r YESNO -p ""$ ? [y/N] "" YESNO",complex task,
+read,,,,"read -r -p ""$ ? [y/N]] "" YESNO",complex task,
+read,636,"Silently read a single character from standard input into variable ""REPLY"" without backslash escapes, with a timeout of 5 seconds, and using the prompt $'Press any key or wait 5 seconds to continue...\n'",read -rsp $'Press any key or wait 5 seconds to continue...\n' -n 1 -t 5,"echo -n -e ""$'Press"" | tee -a continuePress...\nn",complex task,
+read,,,,"echo ""$'Press"" | read -t 5",complex task,
+read,,,,"echo ""$Press"" | read -t 5",complex task,
+read,474,"Read a line from standard input into the variable ""yn"" with the prompt ""Do you wish to install this program?""","read -p ""Do you wish to install this program?"" yn","read -p ""Do you wish to this? "" yn",y,
+read,,,,"read -p ""Do you wish to program?"" yn",y,missing string in argument
+read,,,,"read -p ""Do you wish to install?"" yn",y,missing string in argument
+rsync,8,"Archive ""myfile"" to ""/foo/bar/"" and create directory ""/foo/bar/"" if ""/foo/"" exists",rsync -a myfile /foo/bar/,rsync -a -v -z /foo/bar/ /foo/bar/ /foo/bar/,extra argument,
+rsync,,,,rsync -a -v -z /foo/bar/ /foo/bar/,extra flag,
+rsync,,,,rsync -a -v -z /foo/bar/ /foo/bar/ /foo/bar/,extra argument,
+rsync,487,"Recursively copy directory ""/path/to/data/myappdata"" to ""user@host:/remote/path/to/data/myappdata""",rsync -rvv /path/to/data/myappdata user@host:/remote/path/to/data/myappdata,rsync -r -v -v /path/to/data/myappdata/myappdata user@host:/remote/path/to/data/,y,
+rsync,,,,rsync -r -v -v --recursive /path/to/data/myappdata/myappdata user@host:/remote/path/to/data,y,cross copy
+rsync,,,,rsync -r -v --recursive /path/to/data/myappdata/myappdata user@host:/remote/path/to/data/,y,cross copy
+rsync,6,"Archive ""blanktest/"" to ""test/"" deleting any files in the destination not found in the source",rsync -a --delete blanktest/ test/,rsync -a -v -z blanktest/ blanktest/,missing flag,
+rsync,,,,rsync -a -v -z blanktest/ blanktest/,missing flag,
+rsync,,,,rsync -a -v -z blanktest/ blanktest/,missing flag,
+rsync,44,"Copy the entire ""/lib"" and ""/usr"" directory including symlinks from ""pi@192.168.1.PI"" to ""$HOME/raspberrypi/rootfs"" and delete files after the transfer","rsync -rl --delete-after --safe-links pi@192.168.1.PI:/{lib,usr} $HOME/raspberrypi/rootfs","rsync -a -v -z ""$HOME@192.168.1.1.PI.PI.PI.PI"" $HOME/",missing flag,
+rsync,,,,"rsync -a -v -z ""$HOME@192.168.1.1.1.PI.PI.PI"" $HOME/",missing flag,
+rsync,,,,"rsync -a -q -z ""$HOME@192.168.1.1.PI.PI.PI.PI"" $HOME/",missing flag,
+rsync,60,"Create directories ""/tmp/x/y/z/"" on remote host before copying ""$source"" to ""user@remote:/tmp/x/y/z/""","rsync -a --rsync-path=""mkdir -p /tmp/x/y/z/ && rsync"" $source user@remote:/tmp/x/y/z/",rsync -r -v -v /z/z/x/y/z/ user@remote:/tmp/x/y/z,rare flag,
+rsync,,,,rsync -a -v /z/z/x/y/z/ user@remote:/tmp/x/y/z/,rare flag,
+rsync,,,,rsync -r -v -v /z/z/x/y/y/z/ user@remote:/tmp/x/y,rare flag,
+tee,53,create a backup of all the files in the current folder to the floppy and save the file list in the file /tmp/BACKUP.LOG,find . -cpio /dev/fd0 -print | tee /tmp/BACKUP.LOG,find . -type f -exec ln -s {} /tmp/BACKUP.LOG \;,poor description,
+tee,,,,find . -type f -exec cp {} /tmp/BACKUP.LOG \;,poor description,
+tee,,,,find . -type f -exec ln -s {} /tmp/BACKUP.LOG \;,poor description,
+tee,423,"Print ""deb http://ppa.launchpad.net/webupd8team/java/ubuntu precise main"" and append to file ""/etc/apt/sources.list""","echo ""deb http://ppa.launchpad.net/webupd8team/java/ubuntu precise main"" | tee -a /etc/apt/sources.list",tee -a /etc/apt/sources.list /etc/apt/sources.list /etc/apt/sources.,rare utility,
+tee,,,,tee -a /etc/apt/sources.list /etc/apt/sources.list,rare utility,
+tee,,,,tee -a -v /etc/apt/sources.list /etc/apt/sources.list /etc/apt/sources,rare utility,
+tee,424,"Print ""on"" to standard output and to files matching ""/sys/bus/usb/devices/usb*/power/level""","echo ""on"" | tee /sys/bus/usb/devices/usb*/power/level",echo on | tee /sys/bus/usb/devices/usb*/power*,y,
+tee,,,,echo on | tee /sys/bus/usb/devices/usb*/power/level,y,
+tee,,,,echo on | tee /sys/bus/usb/devices/usb*/power/level*,y,
+tee,539,"Save standard input to variable ""myVar""",myVar=$(tee),read,y,y
+tee,,,,tee,y,y
+tee,,,,nl,wrong utility,
+tr,389,Lists all subdirectories in the current directory with the trailing slash removed,"ls -d1 */ | tr -d ""/""",ls -d ./*/,missing utility,
+tr,,,,ls -d ./*/,missing utility,
+tr,,,,ls -d */ | cut -f 1 -d '/',missing utility,
+tr,477,Read standard input and replace any repeated characters except spaces with a single instance,tr -cs '[:space:]',read -r -n 1,wrong utility,
+tr,,,,read -r -n 1,wrong utility,
+tr,,,,read -r -n 1,wrong utility,
+tr,504,"Remove all characters except "";"" and digits from standard input","tr -cd "";0-9""",nl | grep \; | cut -d ' ' -f 2 | xargs -I {} rm {},wrong utility,
+tr,,,,nl | cut -d ' ' -f 2 | xargs -I {} rm {},wrong utility,
+tr,,,,"echo "";"" | cut -d '/' -f 2- | xargs -I {} rm {}",wrong utility,
+tr,557,Search the current directory recursively for the largest files,find . -type f -printf '%20s %p\n' | sort -n | cut -b22- | tr '\n' '\000' | xargs -0 ls -laSr,"find . -type f | xargs -I {} grep ""Linux"" {}",missing flag,
+tr,,,,"find . -type f -exec grep -n "".svn"" {} \; -print",missing flag,
+tr,,,,"find . -type f -exec grep -n ""ERROR"" {} \; -print",missing flag,
+set,128,"Display all variables with names starting with ""derby"" in a Window's command line",set derby,set | grep derby,poor description,
+set,,,set derby,cat derby | grep derby,poor description,
+set,,,,set -a,poor description,
+set,130,"Display bash function definition of ""foobar""",set | grep -A999 '^foobar ()' | grep -m1 -B999 '^}',readlink -f foobar,wrong utility,
+set,,,,cat foobar | tr -s ' ' | cut -d ' ' -f 1,wrong utility,
+set,,,,which foobar,wrong utility,
+set,659,Use the first non-zero exit code (if any) of a set of piped commands as the exit code of the full set of commands,set -o pipefail,set -o errexit,wrong option,
+set,,,,set -e,wrong flag,
+set,,,,set -o __SP__UNK,wrong option,
+set,661,Write to standard error a trace for each command after it expands the command and before it executes it,set -x,set -v,wrong flag,
+set,,,set -x,set $(which trace),wrong flag,
+set,,,,set -a,wrong flag,
+which,451,"Print full path of command ""python2.7""",which python2.7,which python2.7,y,y
+which,,,,which python2.7,y,y
+which,,,,which python2.7,y,y
+which,538,"Save the full path of command ""oracle"" to variable ""path""",path=`which oracle`,which oracle,y,y
+which,,,,which oracle,y,y
+which,,,,which oracle,y,y
+which,531,Run the find command with all shell positional arguments,"`which find` ""$@"" -print0;","find . -name ""*positional*""",poor description,
+which,,,,find . -name '*positional',poor description,
+which,,,,find . -name '*.positional',poor description,
+which,628,"Set permissions of command ""node"" to 755",sudo chmod 755 $(which node),chmod 755 node,poor description,
+which,,,,chmod 755 node,poor description,
+which,,,,chmod 755 node,poor description,
+which,446,"Print the file content of command ""f""","cat ""$(which f)""",cat f | xargs -I {} cat {},poor description,
+which,,,cat `which f`,cat f | grep f,poor description,
+which,,,,cat f | xargs -I {} cat {} | sort | uniq,poor description,
+ssh,630,"Set the setup connection timeout to 3 seconds for connecting to ""user@ip"" via ssh",ssh -o ConnectTimeout=3 user@ip,ping -c 3 user@ip,wrong utility,
+ssh,,,,ssh user@user@ip,missing flag,
+ssh,,,,ssh user@user@3 -X,missing flag,
+ssh,633,Set up a local SSH tunnel from port 80 to port 3000,ssh $USERNAME@localhost -L 80:localhost:3000 -N,ssh -R 3000 3000,rare utility,
+ssh,,,sudo ssh $USERNAME@localhost -L 80:localhost:3000 -N,ssh -R 3000 3000,rare utility,
+ssh,,,,ssh -R 3000 3000,rare utility,
+ssh,647,"SSH into ""myhost.com"" as user ""myname"" with a check every 60 seconds that the server is still alive",ssh -o ServerAliveInterval=60 myname@myhost.com,ssh myname@myhost.com,rare flag,
+ssh,,,,ssh -i myhost.com,rare flag,
+ssh,,,,ssh -i myhost.com,rare flag,
+ssh,648,"SSH into host ""$1"" using key file ""/path/to/ssh/secret/key"" and execute command ""$2""",ssh -i /path/to/ssh/secret/key $1 $2,ssh -i /path/to/ssh/secret/key $2/to/secret/key,missing argument,
+ssh,,,,ssh -i $1/to/ssh/secret $2/ssh/secret/key,missing argument,
+ssh,,,,ssh -i $1/to/ssh/secret $2/ssh/secret/key,missing argument,
+uniq,207,"Find all duplicate "".jar"" files in the current directory tree","find . -type f -printf ""%f\n"" -name ""*.jar"" | sort -f | uniq -i -d","find . -name ""*.jar""",poor description,
+uniq,,,,find . -name '*.jar',poor description,
+uniq,,,,"find . -type f -name ""*.jar""",poor description,
+uniq,429,Print a list of all duplicate case insensitive file paths in the current directory tree,find . | sort -f | uniq -i -d,find . -iname '*.case' -ls,poor description,
+uniq,,,,"find . -iname ""*.case"" -ls",poor description,
+uniq,,,,find . -iname '*.duplicate' -ls,poor description,
+uniq,465,Prints sorted uniq list of folders in compressed archive nginx-1.0.0.tar.gz.,tar tf nginx-1.0.0.tar.gz | xargs dirname | sort | uniq,cat nginx-1.0.0.gz | sort | uniq -c,wrong utility,
+uniq,,,,cat nginx-1.0.0.tar.gz | sort | uniq -c,wrong utility,
+uniq,,,,cat nginx-1.0.0.0.gz | sort | uniq -c,wrong utility,
+mount,387,List all mounted filesystems,mount,mount -l,y,y
+mount,,,,mount -l -t /mount/point,extra flag,
+mount,,,,mount -l -t /usr/local/,extra flag,
+mount,415,Mount a read only ntfs filesystem,mount -t ntfs,mount -o ntfs -o ntfs,wrong flag,
+mount,,,,mount -o ntfs,wrong flag,
+mount,,,,mount -o ntfs -o ntfs,wrong flag,
+mount,495,"Remount ""/"" with read and write permission","mount / -o remount,rw","mount -o rw,remount /"" /""",extra argument,
+mount,,,,"mount -o remount,rw /"" /""",extra argument,
+mount,,,,"mount -o remount,rw //",y,extra string in argument
+mount,496,"Remount ""/home/evgeny"" with the ""suid"" flag set","sudo mount -i -o remount,suid /home/evgeny","mount /home/evgeny -o remount,flag=flag",rare utility,
+mount,,,,"mount /home/evgeny -o remount,flag=suid",rare utility,
+mount,,,,mount /home/evgeny -o flag,rare utility,
+file,40,check the type of files in the folder /usr/bin,find /usr/bin | xargs file,find /usr/bin | xargs -I {} file {},y,y
+file,,,,find /usr/bin | wc -l,wrong utility,
+file,,,,find /usr/bin | xargs -I {} file {},y,y
+file,137,Display human-readable file type description of ascii.txt,file ascii.txt,file ascii.txt,y,y
+file,,,,file ascii.txt,y,y
+file,,,,file ascii.txt,y,y
+file,619,"Search my_folder recursively for text files containing ""needle text""","find my_folder -type f -exec grep -l ""needle text"" {} \; -exec file {} \; | grep text","find my_folder -type f | xargs -I {} grep -I ""needle text"" {}",missing flag,
+file,,,,"find my_folder -type f -print0 | xargs -0 -I {} grep -I ""needle text"" {}",missing flag,
+file,,,,"find my_folder -type f | xargs -I {} grep -I -l ""needle text"" {}",missing flag,
+file,145,"Execute the file utility for each file found under /etc or below that contains ""test"" in its pathname",find /etc -print0 | grep -azZ test | xargs -0 file,find /etc -print0 | xargs -0 -I {} grep test {},poor description,
+file,,,,find /etc -print0 | xargs -0 -I {} grep test 'test' {},poor description,
+file,,,,find /etc | grep test,poor description,
+file,447,"Print file type of the executable file of command ""file""",file `which file`,file $(which file),y,y
+file,,,which file | xargs file,file -L $(which file),,
+file,,,which file | file -f -,file $(which file),y,y
+shopt,142,Enables shell option 'expand_aliases'.,shopt -s expand_aliases,shopt -s expand_aliases,y,y
+shopt,,,,shopt -s expand_aliases,y,y
+shopt,,,,shopt -s expand_aliases,y,y
+shopt,143,Enables shell option 'nocaseglob'.,shopt -s nocaseglob,shopt -s nocaseglob,y,y
+shopt,,,shopt -s nocaseglob,shopt -s nocaseglob,y,y
+shopt,,,,shopt -s nocaseglob,y,y
+shopt,631,Sets shell options 'extglob' and 'nullglob'.,shopt -s nullglob extglob,shopt -s extglob nullglob,y,y
+shopt,,,,shopt -s extglob nullglob,y,y
+shopt,,,,shopt -s extglob nullglob,y,y
+shopt,632,"Sets shell options 'globstar', 'dotglob' and 'nullglob'.",shopt -s globstar nullglob dotglob,shopt -s globstar nullglob,missing argument,
+shopt,,,,shopt -s globstar nullglob,missing argument,
+shopt,,,,shopt -s globstar nullglob,missing argument,
+pwd,394,Lists files with their absolute path using find,find `pwd` -name .htaccess,ls $(pwd),wrong utility,
+pwd,,,,find . -ls,wrong flag,
+pwd,,,,ls -l $(pwd),wrong utility,
+pwd,469,Prints working directory separated by newlines instead of forward slashes,pwd | tr '/' '\n',echo $(pwd),poor description,
+pwd,,,,echo $(readlink -f $0),poor description,
+pwd,,,,echo $(basename $0),poor description,
+pwd,497,Remove `core' files whose status was changed more than 4 days ago,find `pwd` -name core -ctime +4 -execdir /bin/rm -f {} \;,find core -ctime +4 -exec rm -f {} \;,missing flag,
+pwd,,,,find core -ctime +4 -exec rm -f {} \;,missing flag,
+pwd,,,,find core -ctime +4 -exec rm -f {} \;,missing flag,
+du,141,Display summary of each specified file in human readable form,du -sh *,du -s -b $form | rev,poor description,
+du,,,,rev humanreadable | cut -d ' ' -f 1,poor description,
+du,,,,du -s -b /path | rev,poor description,
+du,152,Find the 5 largest regular files in the Downloads folder of tecmint's home directory.,find /home/tecmint/Downloads/ -type f -exec du -Sh {} + | sort -rh | head -n 5,find ~/tecmint -type f -exec du -S -h {} + | sort -r -h | head -n 5,y,missing string in argument
+du,,,,find ~/tecmint -type f -exec du -S -h {} + | sort -r -h | head - 5,y,missing string in argument
+du,,,,find ~/ -type f -exec du -S -h {} + | sort -r -h | head -n 5,y,missing string in argument
+du,170,Find all *.txt files under / and print their sizes and paths,find / -name '*.txt' -exec du -hc {} \;,"find /and -type f -name ""*.txt"" -exec du -b {} +",y,extra string in argument
+du,,,,"find /and -type f -name ""*.txt"" -exec du -b {} +",y,extra string in argument
+du,,,,"find /and -type f -name ""*.txt"" -printf ""%s %p\n""",y,extra string in argument
+du,434,print apparent size rather than disk usage,du -B1 --apparent-size /tmp/foo.txt,du -s -b $FILE,wrong flag,
+du,,,,du -s -h * | tail -n 1,wrong flag,
+du,,,,du -s -b $0,wrong flag,
+du,466,print top 10 largest files and directories,du -a . | sort -nr | head,head - 10 | head - 10 | sort | tail - 10 | cut -f 2- -d ' ',missing utility,
+du,,,,head - largest | tail - 10 | cut -f 2- -d ' ',missing utility,
+du,,,,head - largest | tail - 10 | cut -f 2- -d ' ',missing utility,
+rename,329,this find command Substitute space with underscore in the file name replaces space in all the *.mp3 files with _,find . -type f -iname '*.mp3' -exec rename '/ /_/'  {} \;,"find . -name ""*.mp3"" -print0 | xargs -0 -I {} rm {}",poor description,
+rename,,,,find . -name '*.mp3' -print0 | xargs -0 -I {} rm {},poor description,
+rename,,,,"find . -name ""*.mp3"" -exec rm -f {} \;",poor description,
+rename,339,Find files and directories in the /tmp/ tree that contain spaces in their names and replace those spaces with underscores,"find /tmp/ -depth -name ""* *"" -execdir rename 's/ /_/g' ""{}"" \;","find /tmp/tree -name ""* *"" -execdir rename 's/ /_/g' { \;",extra argument,
+rename,,,,find /tmp/tree -name '* *' -execdir rename 's/ /_/g' { \;,extra argument,
+rename,,,,"find /tmp -name ""* *"" -execdir rename 's/ /_/g' {} \;",y,missing string in argument
+rename,520,Rename .jpg files to .jpeg in all level 2 subdirectories of the current directory,find -maxdepth 3 -mindepth 3 -type f -iname '*.jpg' -exec rename -n 's/jpg$/jpeg/i' {} +,rename 's/\.jpg$/.jpg/' *.jpg,missing flag,
+rename,,,,rename 's/\.jpg/.jpg/' *.jpg,missing flag,
+rename,,,,rename 's/\.jpg$/.jpg/.jpg/' *.jpg,missing flag,
+rename,521,"Rename all ""thumbs"" directories to ""thumb"" in the current directory tree","find . -type d -exec rename 's/^thumbs$/thumb/' {} "";""",find . -name thumbs -prune -or -print,wrong utility,
+rename,,,,find . -name thumbs -prune -or -print,wrong utility,
+rename,,,,find . -name thumbs -prune -or -print,wrong utility,
+rename,522,Rename all *.html files under and below the current directory to *.var,find -name '*.html' -print0 | xargs -0 rename 's/\.html$/.var/',"find . -name ""*.html"" -exec mv {} *.var \;",string edit,
+rename,,,,find . -name '*.html' -exec mv {} *.var \;,string edit,
+rename,,,,"find . -name ""*.html"" -print0 | xargs -0 -I {} mv {} *.var",string edit,
+mktemp,374,Generates temporary file in a '/dev/shm' folder and saves path to it in a 'tFile' variable.,tFile=$(mktemp --tmpdir=/dev/shm),mktemp -u,wrong flag,
+mktemp,,,,mktemp -p /dev/shm,y,y
+mktemp,,,,mktemp -u -t /dev/shm,y,y
+mktemp,67,Creates temporary file in a TMPDIR folder with name like tmp.XXXXXXXXXX.,mktemp,mktemp tmp.XXXXXXXXXX,y,y
+mktemp,,,,mktemp -t tmp.XXXXXXXXXX,y,y
+mktemp,,,,mktemp -t,missing argument,
+mktemp,69,"Creates temporary folder in TMPDIR (if defined) or in '/tmp/', and stores path to created folder in 'tmpdir' variable.",tmpdir=$(mktemp -d),mktemp -d,y,y
+mktemp,,,,mktemp -d,y,y
+mktemp,,,,mktemp -d,y,y
+mktemp,68,"Creates temporary file in TMPDIR folder or /tmp/ if TMPDIR is not defined, named by template ${tempname}.XXXXXX, and saves path to new file in  a TMPPS_PREFIX variable.","TMPPS_PREFIX=$(mktemp ""${TMPDIR:-/tmp/}${tempname}.XXXXXX"")",mkdir -p /tmp/ifTMPDIRTMPDIR}.XXXXXX /tmp/if,complex description,
+mktemp,,,,mkdir -p /tmp/ifTMPDIRTMPDIR}.XXXXXX /tmp/if},complex description,
+mktemp,,,,mkdir -p /tmp/ifTMPDIRTMPDIR.XXXXXX /tmp/if,complex description,
+mktemp,42,Copies ${FILE} to COLLECT folder with unique name formatted like 'job_XXXXXXXXX'.,"cp ""${FILE}"" ""COLLECT/$(mktemp job_XXXXXXXXX)""",cp -r ${FILE}} ${FILE} job_XXXXXXXXX,poor description,
+mktemp,,,,cp -r ${FILE}} ${FILE} job_XXXXXXXXX,poor description,
+mktemp,,,,cp -r ${FILE} ${FILE} job_XXXXXXXXX,poor description,
+cd,36,Change to location of '$TARGET_FILE' file.,cd `dirname $TARGET_FILE`,cd $TARGET_FILE,y,y
+cd,,,,chown $TARGET $TARGET_FILE,wrong utility,
+cd,,,,"cd ""$TARGET_FILE""",y,y
+cd,377,Go to first directory specified in PATH which contains the command 'oracle',cd $(which oracle | xargs dirname),"cd $(dirname ""$0"")",poor description,
+cd,,,cd $(dirname $(which ls)),cd $(dirname -- oracle),poor description,
+cd,,,,"cd $(dirname ""$oracle"")",poor description,
+od,37,"Check if ""$file"" contains DOS line endings",od -t x2 -N 1000 $file | cut -c8- | egrep -m1 -q ' 0d| 0d|0d$',cat $file | sort | uniq -c,complex task,
+od,,,,sort $file | grep -q $file,complex task,
+od,,,,"echo ""$file"" | sort | uniq -c",complex task,
+od,88,Display a binary file as a sequence of hex codes,od -t x1 file|cut -c8-,od -t __SP__UNK,rare utility,
+od,,,,od -t __SP__UNK hex,rare utility,
+od,,,,od -c hex,rare utility,
+od,136,"Display the first 10 lines of the byte hex dump with no file offset data for ""/bin/ls""",od -t x1 -An /bin/ls | head,find /bin/ls | head - 10 | xargs -I {} du -c -s {} | head - 10,rare utility,
+od,,,,find /bin/ls | wc -l,rare utility,
+od,,,,find /bin/ls | sort -n | head -n 10,rare utility,
+od,427,"Print a hex dump of ""$DIREC"" as characters","echo ""$DIREC"" | od -c",od -t x1 $ DIREC,wrong flag,
+od,,,,od -c $DIREC | od -t x1 -t c,extra utility,
+od,,,,echo $DIREC | od -c,y,y
+od,441,"Print contents of ""file"" as space separated hexadecimal bytes on a single line",od -t x1 -An file |tr -d '\n ',cat file | paste -d ' ' - -,rare utility,
+od,,,,cat file | head -n 1,rare utility,
+od,,,,cat file | tr -s ' ' | cut -d ' ' -f 2,rare utility,
+md5sum,154,find the MyCProgram.c (case insensitive find) under the current directory and run the md5sum command against it,"find -iname ""MyCProgram.c"" -exec md5sum {} \;","find . -iname ""MyCProgram.c"" | xargs -I {} echo {}",dictated code,
+md5sum,,,,find . \( -name MyCProgram.c -or -name 'MyCProgram.c' \) -exec echo {} \;,dictated code,
+md5sum,,,,"find . -name ""MyCProgram.c"" | xargs -I {} echo {}",dictated code,
+diff,135,"Display differences between /destination/dir/1 and /destination/dir/2 excluding files with names ending with extensions '.foo', '.bar' and '.bar'.",diff -x '*.foo' -x '*.bar' -x '*.baz' /destination/dir/1 /destination/dir/2,grep dir.bar /destination/dir/2 .bar,wrong utility,
+diff,,,,grep dir:.bar /destination/dir/2 .bar,wrong utility,
+diff,,,,grep dir.bar /destination/dir/2 .bar,wrong utility,
+comm,439,"Print common lines in ""file1"" and ""file2""",comm -12 file1 file2,comm -2 -3 file1 file2,wrong flag,
+comm,,,,comm -1 -3 file1 file2,wrong flag,
+comm,,,,comm -1 -2 file1 file2,y,y
+comm,467,"Print unique lines in ""file1"" and ""file2"" when compared to each other",comm -3 <(sort file1) <(sort file2),sort -n file1 file2 | uniq -c,missing utility,
+comm,,,,sort file1 file2 | uniq -c,missing utility,
+comm,,,,sort file1 file1 file2 | uniq -c,missing utility,
+comm,468,"Print unique lines in ""fileA"" compared to the first word in ""fileB""",comm -23 <(sort fileA) <(cut -d' ' -f1 fileB | sort -u),comm -2 -3 fileA fileA | xargs -I {} cat {} | sort | uniq,complex task,
+comm,,,,sort fileA fileA | uniq -c,complex task,
+comm,,,,sort fileA | uniq -c,complex task,
+date,352,Find files that were modified less than 7 days ago and archive them,find . -type f -mtime -7 | xargs tar -cvf `date '+%d%m%Y'_archive.tar`,"find . -mtime -7 -type f -exec tar -r -f ""$7"" {} \;",poor description,
+date,,,,"find . -mtime -7 -type f -exec tar -r -v -f ""$7"" {} \;",poor description,
+date,,,,find . -mtime -7 -type f -exec tar -r -f {} \;,poor description,
+date,353,Find files that were modified more than 7 days ago and archive them,find . -type f -mtime +7 | xargs tar -cvf `date '+%d%m%Y'_archive.tar`,"find . -mtime +7 -type f -exec tar -r -f ""$7"" {} \;",poor description,
+date,,,,"find . -mtime +7 -exec tar -r -f ""$7"" {} \;",poor description,
+date,,,,"find . -mtime +7 -exec tar -r -f ""$7"" {} \;",poor description,
+date,443,Prints the day 1 day ago,date --date='1 days ago' '+%a',"date --date=""1 days ago"" +%Y",poor description,missing string in argument
+date,,,,"date --date=""1 days ago"" +",poor description,
+date,,,,"date --date=""1 days ago"" +""%Y""",poor description,
+rmdir,81,Deletes empty folder 'nonsense_dir'.,rmdir nonsense_dir,rm -d nonsense_dir nonsense_dir,wrong utility,
+rmdir,,,,rmdir nonsense_dir nonsense_dir,wrong utility,
+rmdir,,,,rmdir nonsense_dir -d nonsense_dir,wrong utility,
+rmdir,209,Find all empty directories recursively starting from the current one and delete them,find . -type d -empty -print0 | xargs -0 /bin/rmdir,find . -type d -empty -exec rm {} \;,y,y
+rmdir,,,find . -type d -empty -delete,find . -type d -empty -exec rm {} \;,y,y
+rmdir,,,,find . -type d -empty -exec rmdir {} \;,y,y
+rmdir,363,Finds recursively all folders named 'a' within current folder and removes only ones without files and another folders within.,find -type d -name a -exec rmdir {} \;,find . -type d -name a -exec rm -r -f {} \;,wrong utility,
+rmdir,,,"find . -name ""a"" -type d | xargs rmdir",find . -type d -name a -exec rm -r {} \;,wrong utility,
+rmdir,,,,find . -type d -name a -exec rm -r -f {} \;,wrong utility,
+rmdir,513,"Remove empty folder, and skip error message if one is not empty.",rmdir --ignore-fail-on-non-empty newBaseDir/Data/NewDataCopy,rmdir --ignore-fail-on-non-empty $__SP__UNK/__SP__UNK/__SP__UNK,poor description,
+rmdir,,,,rmdir --ignore-fail-on-non-empty $__SP__UNK/__SP__UNK,y,
+rmdir,,,,rmdir --ignore-fail-on-non-empty $__SP__UNK/__SP__UNK/*,y,
+hostname,421,Output the system host name and date to the console without a trailing newline,echo -n *Checking Partition Permission* Hostname=$(hostname) LastChecked=$(date),basename $0,string edit,
+hostname,,,,echo $(hostname),string edit,
+hostname,,,,basename $1,string edit,
+paste,383,"Lists all files in a current folder, separating names with comma.","ls | xargs -I {} echo {}, | xargs echo",ls -1 -b | tr '\n' ';',y,world knowledge
+paste,,,"ls | xargs -I {} echo {}, | xargs echo",ls -1 -b | tr '\n' ';',y,world knowledge
+paste,,,ls -m,ls -l -b,missing utility,
+chgrp,,,,find / -group gid -exec chown gid:999 {} \;,y,cross copy
+chgrp,,,,find / -group 999 -exec chown gid:999 {} \;,y,cross copy
+chgrp,15,Changes group ownership of 'target_directory' to 'target_group'.,chgrp target_group target_directory,chgrp target_directory target_group,y,cross copy
+chgrp,,,,chgrp target_group target_group,y,
+chgrp,,,,chgrp target_group target_directory,y,y
+chgrp,16,Change the group to `temp' for all files in the current directory tree that belong to group `root',find . -group root -print | xargs chgrp temp,find . -group root -exec chgrp root {} \;,y,cross copy
+chgrp,,,,find . -group root -exec chgrp root {} \;,y,cross copy
+chgrp,,,,find . -group root -print0 | xargs -0 -I {} chown root {},y,cross copy
+chgrp,480,Recursively changes group ownership of everything within a current directory to 'repogroup'.,chgrp -R repogroup .,chgrp -R repogroup ./,y,y
+chgrp,,,,chgrp -R repogroup .,y,y
+chgrp,,,,chgrp -R repogroup */,y,
+dig,536,Saves first IP address of domain 'google.com' in 'address' variable.,address=$(dig +short google.com | grep -E '^[0-9.]+$' | head -n 1),hostname google.com,complex task,
+dig,,,,hostname -I,complex task,
+dig,,,,hostname -I,complex task,
+whoami,24,"Change ownership of ""/vol"" to the current user",sudo chown `whoami` /vol,chown $vol whoami,y,cross copy
+whoami,,,,chown $vol /vol,rare utility,
+whoami,,,,chown $USER /vol whoami,y,cross copy
+whoami,540,"Save the user name in upper case of the current user in variable ""v""",v=$(whoami | tr 'a-z' 'A-Z'),whoami,rare utility,
+whoami,,,v=$(whoami | tr [:lower:] [:upper:]),whoami,rare utility,
+whoami,,,,whoami,rare utility,
+zcat,642,"Split ""biglogfile.gz"" into chunks of 500000 line gzipped compressed files",zcat biglogfile.gz | split -l500000 --filter='gzip > $FILE.gz',split -l 500000 biglogfile.gz,poor description,
+zcat,,,,split --lines=500000 biglogfile.gz,poor description,
+zcat,,,,split -l 500000 biglogfile.gz,poor description,
+zcat,654,"Unzip ""doc.gz"" and gzip every 1000 lines",zcat doc.gz | split -l 1000 --filter='gzip > $FILE.gz',zcat doc.gz,missing utility,
+zcat,,,,zcat doc.gz,missing utility,
+zcat,,,,zcat doc.gz,missing utility,
+zcat,655,"Unzip ""file.gz"" and list the count of lines matching regex  pattern '""searchstring"":""[^""]*""' by most frequent","zcat file.gz | grep -o '""searchstring"":""[^""]*""'| sort | uniq -c | sort -n",zcat file.gz | uniq -c | sort -n -r,complex task,
+zcat,,,,zcat file.gz | uniq -c | sort -n -r,complex task,
+zcat,,,,zcat file.gz | uniq -c | sort -n -r,complex task,
+zcat,656,"Unzip and untar ""file.tar.gz""",zcat file.tar.gz |tar x,zcat file.tar.gz | tar -x,y,y
+zcat,,,,zcat file.tar.gz | tar -x -f -,extra flag,
+zcat,,,,zcat file.tar.gz | tar -x,y,y
+df,527,Report file system containing path to /dir/inner_dir/ disk usage human-readable.,df -h /dir/inner_dir/,df -h /dir/inner_dir/,poor description,y
+df,,,,df -h /dir/inner_dir/disk,poor description,cross copy
+df,,,,df -h /dir/inner_dir/disk/,y,
+df,528,Report total file systems disk usage in 1T blocks.,df --total -BT | tail -n 1,df -B G,missing flag,
+df,,,,df -B G,missing flag,
+df,,,,df -B G,missing flag,
+rev,376,get second-to-last comma-separated field of each line in file.txt,"cat file.txt | rev | cut -d ',' -f 2 | rev","rev file.txt | cut -d , -f 1 | rev",y,
+rev,,,,rev file.txt | cut -d . -f 1 | rev,y,
+rev,,,,rev file.txt | cut -d . -f 2- | rev,y,
+rev,498,Remove adjascent duplicate lines from file 'input' comparing only first comma-separated field,rev input | uniq -f1 | rev,"paste -d , -s input",poor description,
+rev,,,,rm -r input input,poor description,
+rev,,,,"paste -s -d "","" input",poor description,
+gzip,41,"Compress all "".txt"" files in the current directory tree with gzip","find . -type f -name ""*.txt"" -exec gzip {} \;",gzip -k *.txt,mac version,mac version
+gzip,,,,gzip */*.txt,missing utility,
+gzip,,,,gzip -d *.txt,extra flag,
+gzip,370,"Force decompression of all the files into ""/etc""",gzip -d --force * /etc,find /etc -print0 | xargs -0 -I {} rm {},wrong utility,
+gzip,,,,find /etc -exec echo {} \; | wc -l,wrong utility,
+gzip,,,,find /etc | xargs -I {} rm -f {},wrong utility,
+gzip,653,"Unzip ""/file/address/file.tar.gz"" to standard output",gzip -dc /file/address/file.tar.gz,zcat /file/address.tar.gz,wrong utility,
+gzip,,,,zcat /file/address.tar.tar.gz,wrong utility,
+gzip,,,,zcat /file/address/file.tar.gz,wrong utility,
+yes,426,"Print 3 newline separated ""y""s",yes | head -3,yes y | cut -d ' ' -f 2-,rare usage,
+yes,,,,yes y | cut -d ' ' -f 3,rare usage,
+yes,,,,yes y | cut -d ' ' -f 4-,rare usage,
+nl,296,"Find all lines matching ""$USER"" in ""file"" and number the output",grep  $USER file |nl,"cat $USER | grep ""$USER"" | wc -l",rare utility,
+nl,,,,"cat $USER | grep ""$USER"" | nl | wc -l",rare utility,
+nl,,,,"cat $USER | grep ""$USER"" | nl | nl",rare utility,
+nl,373,Generate the Spanish alphabet and number each character,"echo -e {{a..n},ñ,{o..z}}""\n"" | nl","echo ""$__SP__UNK"" | wc -c",rare utility,
+nl,,,,echo ${Spanish[@]} | wc -c,rare utility,
+nl,,,,echo $(basename $0),rare utility,
+nl,526,"Replace each non-blank line in ""YOURFILE"" preceded with ""pX="" where ""X"" is the line number",grep -v '^$' YOURFILE | nl -s= -w99 | tr -s ' ' p,nl YOURFILE -w X pX,complex task,
+nl,,,,nl YOURFILE -w X X X,complex task,
+nl,,,,nl YOURFILE -w X X,complex task,
+nl,575,"Search for ""foo"" in every file in the current directory and number the output",grep foo * | nl,find . -name foo | xargs -I {} wc -l {},wrong utility,
+nl,,,,find . -name foo | xargs -I {} grep foo {},wrong utility,
+nl,,,,find . -name foo | nl | nl,wrong utility,
+nl,602,"Search for lines that have zero or more whitespace characters before ""http://"" and number the uniquely sorted output",grep '^[[:space:]]*http://' | sort -u | nl,nl -b a -n ln http:///* | nl,complex task,
+nl,,,,nl -b a -n ln http:////* | nl,complex task,
+nl,,,,grep -n 'http:///' http://// | nl,complex task,
+less,388,"List all php files below current directory whose full pathname name does not include ""libs"", ""tmp"", ""tests"", or ""vendor"", sorted by number of lines, letting the user page interactively through the output.","find . -name '*.php' -print0 | xargs -0 wc -l | sort -nr | egrep -v ""libs|tmp|tests|vendor"" | less",grep -F libs 'libs' tmp | cut -d ' ' -f 2 | sort | uniq -c | sort -n,complex task,
+less,,,,find . -regextype posix-extended -regex \( ! -name tmp -print0 | xargs -0 -I {} grep,complex task,
+less,,,,find . -regextype posix-extended -regex \( ! -name vendor -print0 | xargs -0 -I {} grep,complex task,
+less,658,Use 'less' to nicely display control characters from the outupt of 'grep'.,grep -b -o $'\x0c' filename | less,echo grep | cut -d . -f 1 | rev,dictated code,
+less,,,,echo grep | cut -d . -f 1,dictated code,
+less,,,,echo grep | rev | cut -d . -f 1 | rev,dictated code,
+ifconfig,12,Brings down network interface eth0.,ifconfig eth0 down,ifconfig eth0 __SP__UNK,y,failed to copy
+ifconfig,,,,ifconfig eth0 | grep __SP__UNK,extra utility,
+ifconfig,,,,ifconfig eth0 | grep __SP__UNK,extra utility,
+ifconfig,375,Gets MAC address of eth0 network interface.,ifconfig eth0 | grep HWaddr | cut -d ' ' -f 9,ifconfig eth0 | grep inet | grep -v inet6,rare utility,
+ifconfig,,,ifconfig | grep -i hwaddr | cut -d ' ' -f9,ifconfig eth0 | grep inet | cut -d : -f 1 | rev,rare utility,
+ifconfig,,,ifconfig eth0 | grep -Eoi [:0-9A-F:]{2}\(\:[:0-9A-F:]{2}\){5},ifconfig eth0 | grep inet | cut -d : -f 1 | cut -d ' ' -f 2,rare utility,
+seq,461,Print numbers from 1 to 100,seq 1 100,seq 100 | xargs -I {} echo {},missing argument,
+seq,,,,seq 100 | xargs -I {} echo {},missing argument,
+seq,,,,seq 100 | xargs -I {} echo {},missing argument,
+seq,462,Print numbers from 1 to 30 with a leading 0,seq -w 30,"seq -f ""%02g"" 30",rare flag,
+seq,,,,seq 30 | xargs -I {} echo {},missing flag,
+seq,,,,seq 30 30,missing flag,
+seq,428,Print a line of 3 '%' characters,seq -s % 4|tr -d '[:digit:]',seq -f % | tr -d '\n' | head -n 3,rare usage,
+seq,,,,seq -f 3,rare usage,
+seq,,,,seq -f % | head -n 3,rare usage,
+seq,449,"Print the first line of ""seq 1 10000""",seq 1 10000 | head -1,"echo ""seq 1 10000"" | head -n first",y,cross copy
+seq,,,,"echo ""seq 1 10000 10000"" | head -n first",extra argument,
+seq,,,,echo $1 | head -n 10000,missing utility,
+seq,454,"Print lines 10000 to 10010 from input ""seq 1 100000""",seq 1 100000 | tail -n +10000 | head -n 10,yes 10000 | head -n 10010 | tail -n 100000,wrong utility order ,
+seq,,,seq 1 100000 | tail -n +10000 | head -n 10,yes 10000 | head -n 100000,wrong utility order,
+seq,,,,echo 10000 $(yes 10000 | head -n 10010),missing utility,
+ping,626,"Send 4 ping packets of size 2 to ""www.google.com"" on a Solaris machine",ping -s www.google.com 2 4,ping -c 2 www.google.com,wrong command,
+ping,,,,ping -c 2 www.google.com,wrong command,
+ping,,,,ping -c 2 www.google.com,wrong command,
+ping,627,"Send an audible ping to ""10.100.3.104""",ping -a 10.100.3.104,ping -c audible 10.100.3.104,rare flag,
+ping,,,,ping -c audible 10.100.3.104.104,rare flag,
+ping,,,,ping -c audible 10.100.104.104,rare flag,
+history,2,"Append the date and command ran to ""/tmp/trace"" after every command","PROMPT_COMMAND='echo ""$(date +""%Y/%m/%d (%H:%M)"") $(history 1 |cut -c 7-)"" >> /tmp/trace'",set /tmp/trace,complex task,
+history,,,,"echo ""/tmp/trace"" | tee -a /tmp/trace",complex task,
+history,,,,set /tmp/trace,complex task,
+history,573,"Search for "" 840"" in history","history | grep "" 840""",history | grep ' 840',y,y
+history,,,,history | grep 840,y,y
+history,,,,history | grep 840,y,y
+history,612,"Search history for ""part_of_the_command_i_still_remember_here""",history | grep 'part_of_the_command_i_still_remember_here',history | grep part_of_the_command_here,y,failed to copy
+history,,,,history | grep part_of_the_here_,y,failed to copy
+history,,,,history | grep part_of_the_command_here_,y,failed to copy
+column,86,"Display ""/tmp/file"" as a table of width 30 with columns filled before rows",column -x -c 30 /tmp/file,mount /tmp/file /tmp/file,rare utility,
+column,,,,mount -o rows /tmp/file,rare utility,
+column,,,,mount /tmp/file,rare utility,
+column,140,"Display standard input as a table with ""${tab}"" separators","column -s""${tab}"" -t",od -c -v -A none ${tab},rare utility,
+column,,,,column -t -s $'\n',y,failed to copy
+column,,,,column -s ${tab}/$},y,cross copy
+column,372,"Format space separated fields in ""filename"" as a table",column -t -s' ' filename,column -t -s $'\t' filename,y,world knowledge
+column,,,,column -t -s $'\n' filename,y,
+column,,,,column -t -s '\t' filename,y,
