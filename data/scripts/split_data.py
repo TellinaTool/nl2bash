@@ -8,6 +8,7 @@ Usage: python3 split_data.py [data_directory]
 import collections
 import numpy as np
 import random
+from random import randint
 import re
 import os, sys
 sys.path.append("..")
@@ -64,12 +65,11 @@ def split_data(data_dir):
     num_test = 0
 
     # randomly split data according to ratio
-    np.random.seed(RANDOM_SEED)
-    random_indices = np.random.randint(num_folds, size=len(pairs))
+    random.seed(RANDOM_SEED)
     train_commands = set()
     count = 0
     for nl_temp in sorted(pairs.keys()):
-        ind = random_indices[count]
+        ind = randint(0, num_folds)
         if ind < num_folds - 2:
             num_train += 1
             for nl, cm in pairs[nl_temp]:
@@ -118,34 +118,34 @@ def split_data(data_dir):
     print('{} pairs moved from test to train'.format(num_moved))
 
     # select 100 examples as dev
-    dev_nl_list_reorg = []
-    dev_cm_list_reorg = []
-    indices = list(range(len(dev_nl_list_cleaned)))
-    random.seed(RANDOM_SEED)
-    random.shuffle(indices)
-    dev_nl_temps = set()
-    for count, dev_ind in enumerate(indices):
-        dev_nl_temps.add(get_nl_temp(dev_nl_list_cleaned[dev_ind]))
-        dev_nl_list_reorg.append(dev_nl_list_cleaned[dev_ind])
-        dev_cm_list_reorg.append(dev_cm_list_cleaned[dev_ind])
-        if len(dev_nl_temps) == 100:
-            break
-
-    test_nl_list_reorg = test_nl_list_cleaned
-    test_cm_list_reorg = test_cm_list_cleaned
-    for i in indices[count+1:]:
-        test_nl_list_reorg.append(dev_nl_list_cleaned[i])
-        test_cm_list_reorg.append(dev_cm_list_cleaned[i])
+    # dev_nl_list_reorg = []
+    # dev_cm_list_reorg = []
+    # indices = list(range(len(dev_nl_list_cleaned)))
+    # random.seed(RANDOM_SEED)
+    # random.shuffle(indices)
+    # dev_nl_temps = set()
+    # for count, dev_ind in enumerate(indices):
+    #     dev_nl_temps.add(get_nl_temp(dev_nl_list_cleaned[dev_ind]))
+    #     dev_nl_list_reorg.append(dev_nl_list_cleaned[dev_ind])
+    #     dev_cm_list_reorg.append(dev_cm_list_cleaned[dev_ind])
+    #     if len(dev_nl_temps) == 100:
+    #         break
+    # 
+    # test_nl_list_reorg = test_nl_list_cleaned
+    # test_cm_list_reorg = test_cm_list_cleaned
+    # for i in indices[count+1:]:
+    #     test_nl_list_reorg.append(dev_nl_list_cleaned[i])
+    #     test_cm_list_reorg.append(dev_cm_list_cleaned[i])
     
     train_path = os.path.join(data_dir, "train")
     dev_path = os.path.join(data_dir, "dev")
     test_path = os.path.join(data_dir, "test")
     write_data(train_path + '.' + nl_suffix, train_nl_list)
     write_data(train_path + '.' + cm_suffix, train_cm_list)
-    write_data(dev_path + '.' + nl_suffix, dev_nl_list_reorg)
-    write_data(dev_path + '.' + cm_suffix, dev_cm_list_reorg)
-    write_data(test_path + '.' + nl_suffix, test_nl_list_reorg)
-    write_data(test_path + '.' + cm_suffix, test_cm_list_reorg)
+    write_data(dev_path + '.' + nl_suffix, dev_nl_list_cleaned)
+    write_data(dev_path + '.' + cm_suffix, dev_cm_list_cleaned)
+    write_data(test_path + '.' + nl_suffix, test_nl_list_cleaned)
+    write_data(test_path + '.' + cm_suffix, test_cm_list_cleaned)
 
 
 if __name__ == '__main__':
