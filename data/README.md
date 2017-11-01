@@ -19,7 +19,7 @@ python3 scripts/filter_data.py bash
 ```
 
 ### Spliting
-Split the filtered parallel corpus into train, dev and test.
+Randomly split the filtered parallel corpus into train, dev and test (using fixed random seed).
 ```
 python3 scripts/split_data.py bash
 ```
