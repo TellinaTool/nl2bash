@@ -23,7 +23,7 @@ sudo pip3 install --upgrade \
 ```
 
 ### Environment Variables & Dependencies
-First of all, run `make` in the root directory of the repo. Run `sudo make` if you encounter permission error in this step.
+First of all, run `make` in the root directory of the repo.
 ```
 (sudo) make
 ```
