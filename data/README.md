@@ -2,7 +2,9 @@
 
 ## Content
 
-The parallel data are stored in a source file `bash/\*.nl` and a target file `bash/\*.cm`.
+NL2Bash contains 12k one-line Linux shell commands used in practice and their natural language descriptions provided by experts. The dataset includes 100+ commonly used shell utilities, providing a rich training and test bed for automatically translating natural language into command lines.
+
+The parallel data are stored with a source file `bash/\*.nl` and a target file `bash/\*.cm`.
 The entire corpus `bash/all.nl, bash/all.cm` are randomly splited into train, dev, and test set with a ratio of `10:1:1`.
 
 ### Manual Evaluations
@@ -10,7 +12,7 @@ The entire corpus `bash/all.nl, bash/all.cm` are randomly splited into train, de
 The manual evaluations of a subset of model predictions are stored in `bash/manual_judgments/` in `csv` format.
 
 
-## Data Processing
+## Random Split and Pre-processing
 
 ### Filtering
 Filtering the raw parallel corpus.
@@ -18,8 +20,8 @@ Filtering the raw parallel corpus.
 python3 scripts/filter_data.py bash
 ```
 
-### Spliting
-Split the filtered parallel corpus into train, dev and test.
+### Splitting
+Randomly split the filtered parallel corpus into train, dev and test (using fixed random seed).
 ```
 python3 scripts/split_data.py bash
 ```
