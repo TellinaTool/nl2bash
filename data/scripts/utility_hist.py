@@ -29,12 +29,13 @@ def u_hist_to_radar_chart(hist):
     for i, (u, freq) in enumerate(
             sorted(hist.items(), key=lambda x:x[1], reverse=True)):
         if i < 50:
-            print('{{axis:"{}",value:{:.2f}}},'.format(u, np.log(freq)))
+            print('{{axis:"{}",value:{:.2f}}},'.format(u, freq))
             top_utilities.append(u)
         else:
             long_tail += freq
-    print('{{axis:"{}",value:{:.2f}}}'.format('OTHER', np.log(long_tail)))
+    print('{{axis:"{}",value:{:.2f}}}'.format('OTHER', long_tail))
     print()
+    return top_utilities
 
 
 def u_hist_flag_num(hist):
@@ -72,22 +73,30 @@ def get_flag_statistics(top_utilities, input_file):
                     stack.extend(node.children)
             else:
                 print(cmd)
+    total_flag_count = 0
     for i in range(len(top_utilities)-1, -1, -1):
         u = top_utilities[i]
         print('{{axis:"{}",num_flags:{},num_flags_in_data:{}}},'
               .format(u, data_tools.get_utility_statistics(u), 
                       len(flag_counts[u])))
+        total_flag_count += len(flag_counts[u])
+    print('Total # distinct flags = {}'.format(total_flag_count))
 
 
 if __name__ == '__main__':
     all_path = sys.argv[1]
     train_path = sys.argv[2]
     dev_path = sys.argv[3]
+    test_path = sys.argv[4]
 
     all_hist = get_u_hist_from_file(all_path)
     train_hist = get_u_hist_from_file(train_path)
     dev_hist = get_u_hist_from_file(dev_path)
+    test_hist = get_u_hist_from_file(test_path)
+    # for i, (u, freq) in enumerate(
+    #         sorted(all_hist.items(), key=lambda x:x[1], reverse=True)):
+    #     print('{},{},{},{},{}'.format(i, u, train_hist[u], dev_hist[u], test_hist[u]))
 
-    for i, (u, freq) in enumerate(
-            sorted(all_hist.items(), key=lambda x:x[1], reverse=True)):
-        print('{},{},{},{}'.format(i, u, train_hist[u], dev_hist[u]))
+    top_utilities = u_hist_to_radar_chart(all_hist)
+    get_flag_statistics(top_utilities, all_path)
+

@@ -22,6 +22,11 @@ hypothes_header = re.compile(
 
 RANDOM_SEED = 100
 
+nl_suffix, cm_suffix = 'nl.filtered', 'cm.filtered'
+
+def get_nl_temp(nl):
+    return ' '.join(basic_tokenizer(nl)[0])
+
 
 def split_data(data_dir):
     def write_data(data_path, data):
@@ -30,8 +35,8 @@ def split_data(data_dir):
                 o_f.write(line + '\n')
             print('{} saved'.format(data_path))
 
-    nl_file_path = os.path.join(data_dir, 'all.nl.filtered')
-    cm_file_path = os.path.join(data_dir, 'all.cm.filtered')
+    nl_file_path = os.path.join(data_dir, 'all.{}'.format(nl_suffix))
+    cm_file_path = os.path.join(data_dir, 'all.{}'.format(cm_suffix))
 
     with open(nl_file_path) as f:
         nls = [line.strip() for line in f.readlines()]
@@ -43,7 +48,7 @@ def split_data(data_dir):
     pairs = collections.defaultdict(list)
 
     for nl, cm in zip(nls, cms):
-        nl_temp = ' '.join(basic_tokenizer(nl)[0])
+        nl_temp = get_nl_temp(nl)
         pairs[nl_temp].append((nl, cm))
 
     train_nl_list = []
@@ -63,7 +68,7 @@ def split_data(data_dir):
     random_indices = np.random.randint(num_folds, size=len(pairs))
     train_commands = set()
     count = 0
-    for nl_temp in pairs:
+    for nl_temp in sorted(pairs.keys()):
         ind = random_indices[count]
         if ind < num_folds - 2:
             num_train += 1
@@ -82,6 +87,7 @@ def split_data(data_dir):
                 test_nl_list.append(nl)
                 test_cm_list.append(cm)
         count += 1
+    print(len(train_nl_list), len(dev_nl_list), len(test_nl_list))
 
     # move dev/test examples whose command has appeared in the train set to 
     # train
@@ -117,27 +123,33 @@ def split_data(data_dir):
     indices = list(range(len(dev_nl_list_cleaned)))
     random.seed(RANDOM_SEED)
     random.shuffle(indices)
-    for i in indices[:100]:
-        dev_nl_list_reorg.append(dev_nl_list_cleaned[i])
-        dev_cm_list_reorg.append(dev_cm_list_cleaned[i])
+    dev_nl_temps = set()
+    for count, dev_ind in enumerate(indices):
+        dev_nl_temps.add(get_nl_temp(dev_nl_list_cleaned[dev_ind]))
+        dev_nl_list_reorg.append(dev_nl_list_cleaned[dev_ind])
+        dev_cm_list_reorg.append(dev_cm_list_cleaned[dev_ind])
+        if len(dev_nl_temps) == 100:
+            break
 
     test_nl_list_reorg = test_nl_list_cleaned
     test_cm_list_reorg = test_cm_list_cleaned
-    for i in indices[100:]:
+    for i in indices[count+1:]:
         test_nl_list_reorg.append(dev_nl_list_cleaned[i])
         test_cm_list_reorg.append(dev_cm_list_cleaned[i])
     
     train_path = os.path.join(data_dir, "train")
     dev_path = os.path.join(data_dir, "dev")
     test_path = os.path.join(data_dir, "test")
-    write_data(train_path + ".nl", train_nl_list)
-    write_data(train_path + ".cm", train_cm_list)
-    write_data(dev_path + ".nl", dev_nl_list_reorg)
-    write_data(dev_path + ".cm", dev_cm_list_reorg)
-    write_data(test_path + ".nl", test_nl_list_reorg)
-    write_data(test_path + ".cm", test_cm_list_reorg)
+    write_data(train_path + '.' + nl_suffix, train_nl_list)
+    write_data(train_path + '.' + cm_suffix, train_cm_list)
+    write_data(dev_path + '.' + nl_suffix, dev_nl_list_reorg)
+    write_data(dev_path + '.' + cm_suffix, dev_cm_list_reorg)
+    write_data(test_path + '.' + nl_suffix, test_nl_list_reorg)
+    write_data(test_path + '.' + cm_suffix, test_cm_list_reorg)
 
 
 if __name__ == '__main__':
-    data_dir = sys.argv[1]
+    dataset = sys.argv[1]
+    data_dir = os.path.join(os.path.dirname(
+        os.path.realpath(os.path.dirname(__file__))), dataset)
     split_data(data_dir)
