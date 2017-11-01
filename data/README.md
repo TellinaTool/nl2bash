@@ -1,4 +1,4 @@
-# NL2Bash Parallel Corpus
+# NL2Bash Parallel Data
 
 ## Content
 
