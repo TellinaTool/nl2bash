@@ -164,7 +164,8 @@ class RNNDecoder(decoder.Decoder):
                         if bs_decoding:
                             selective_reads = beam_decoder.wrap_input(selective_reads)
                     else:
-                        encoder_copy_inputs_2d = tf.concat(encoder_copy_inputs, axis=1)
+                        encoder_copy_inputs_2d = tf.concat(
+                            [tf.expand_dims(x, 1) for x in encoder_copy_inputs], axis=1)
                         if self.forward_only:
                             copy_input = tf.where(decoded_input >= self.target_vocab_size,
                                                   tf.one_hot(input-self.target_vocab_size, depth=attn_length)
@@ -173,17 +174,18 @@ class RNNDecoder(decoder.Decoder):
                         else:
                             copy_input = decoded_input
                         tiled_copy_input = tf.tile(input=tf.reshape(copy_input, [-1, 1]),
-                                                   multiples=[1, attn_length])
+                                                   multiples=np.array([1, attn_length]))
                         # [batch_size(*self.beam_size), max_source_length]
                         selective_mask = tf.cast(tf.equal(tiled_copy_input, encoder_copy_inputs_2d),
                                                  dtype=tf.float32)
                         # [batch_size(*self.beam_size), max_source_length]
                         weighted_selective_mask = tf.nn.softmax(selective_mask * alignments[1])
                         # [batch_size(*self.beam_size), max_source_length, attn_dim]
-                        weighted_selective_mask_3d = tf.tile(input=weighted_selective_mask, multiples=[1, 1, attn_dim])
+                        weighted_selective_mask_3d = tf.tile(input=tf.expand_dims(weighted_selective_mask, 2), 
+                                                             multiples=np.array([1, 1, attn_dim]))
                         # [batch_size(*self.beam_size), attn_dim]
                         selective_reads = tf.reduce_sum(weighted_selective_mask_3d * attention_states, axis=1)
-                    input_embeddings = tf.concat([input_embeddings, selective_reads], axis=1)
+                    input_embedding = tf.concat([input_embedding, selective_reads], axis=1)
 
                 if self.copynet:
                     output, state, alignments, attns = \
