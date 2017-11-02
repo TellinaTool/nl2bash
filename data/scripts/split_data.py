@@ -6,9 +6,7 @@ Usage: python3 split_data.py [data_directory]
 """
 
 import collections
-import numpy as np
 import random
-from random import randint
 import re
 import os, sys
 sys.path.append("..")
@@ -68,8 +66,13 @@ def split_data(data_dir):
     random.seed(RANDOM_SEED)
     train_commands = set()
     count = 0
-    for nl_temp in sorted(pairs.keys()):
-        ind = randint(0, num_folds)
+    random_tokens = [random.randint(0, num_folds-1) for i in range(len(pairs.keys()))] 
+    with open(os.path.join(data_dir, 'random_tokens.txt'), 'w') as o_f:
+        for r_token in random_tokens:
+            o_f.write('{}\n'.format(r_token))
+
+    for i, nl_temp in enumerate(sorted(pairs.keys())):
+        ind = random_tokens[i]
         if ind < num_folds - 2:
             num_train += 1
             for nl, cm in pairs[nl_temp]:
