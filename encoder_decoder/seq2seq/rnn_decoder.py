@@ -53,6 +53,8 @@ class RNNDecoder(decoder.Decoder):
         """
         if self.use_attention:
             assert(attention_states.get_shape()[1:2].is_fully_defined())
+        if encoder_copy_inputs:
+            assert(attention_states.get_shape()[1] == len(encoder_copy_inputs))
         bs_decoding = self.forward_only and \
                       self.decoding_algorithm == "beam_search"
 
@@ -145,6 +147,7 @@ class RNNDecoder(decoder.Decoder):
                     else:
                         step_output_symbol_and_logit(output)
                     if self.copynet:
+                        decoded_input = input
                         input = tf.where(input >= self.target_vocab_size,
                                          tf.ones_like(input)*data_utils.UNK_ID, input)
 
@@ -152,6 +155,7 @@ class RNNDecoder(decoder.Decoder):
 
                 # Appending selective read information for CopyNet
                 if self.copynet:
+                    attn_length = attention_states.get_shape()[1]
                     attn_dim = attention_states.get_shape()[2]
                     if i == 0:
                         # Append dummy zero vector to the <START> token
@@ -159,15 +163,25 @@ class RNNDecoder(decoder.Decoder):
                         if bs_decoding:
                             selective_reads = beam_decoder.wrap_input(selective_reads)
                     else:
-                        tiled_input = tf.tile(input=tf.reshape(input, [-1, 1]),
-                                              multiples=[1, len(encoder_copy_inputs)])
+                        encoder_copy_inputs_2d = tf.concat(encoder_copy_inputs, axis=1)
+                        if self.forward_only:
+                            copy_input = tf.where(decoded_input >= self.target_vocab_size,
+                                                  tf.one_hot(input-self.target_vocab_size, depth=attn_length)
+                                                    * encoder_copy_inputs_2d,
+                                                  decoded_input)
+                        else:
+                            copy_input = decoded_input
+                        tiled_copy_input = tf.tile(input=tf.reshape(copy_input, [-1, 1]),
+                                                   multiples=[1, attn_length])
                         # [batch_size(*self.beam_size), max_source_length]
-                        selective_mask = tf.cast(tf.equal(tiled_input, tf.concat(encoder_copy_inputs, axis=1)),
-                                                 dtype=tf.int32)
+                        selective_mask = tf.cast(tf.equal(tiled_copy_input, encoder_copy_inputs_2d),
+                                                 dtype=tf.float32)
+                        # [batch_size(*self.beam_size), max_source_length]
+                        weighted_selective_mask = tf.nn.softmax(selective_mask * alignments[1])
                         # [batch_size(*self.beam_size), max_source_length, attn_dim]
-                        selective_mask_3d = tf.tile(input=selective_mask, multiples=[1, 1, attn_dim])
+                        weighted_selective_mask_3d = tf.tile(input=weighted_selective_mask, multiples=[1, 1, attn_dim])
                         # [batch_size(*self.beam_size), attn_dim]
-                        selective_reads = tf.reduce_sum(selective_mask_3d * attention_states, axis=1)
+                        selective_reads = tf.reduce_sum(weighted_selective_mask_3d * attention_states, axis=1)
                     input_embeddings = tf.concat([input_embeddings, selective_reads], axis=1)
 
                 if self.copynet:
