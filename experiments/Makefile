@@ -36,4 +36,4 @@ train:
 	./bash-char
 	./bash-copy-char.sh
 
-print: decode gen_evaluation_table
+print: train decode gen_evaluation_table
