@@ -37,6 +37,14 @@ class RNNDecoder(decoder.Decoder):
                      attention_states=None, num_heads=1,
                      encoder_copy_inputs=None):
         """
+        :param encoder_state: Encoder state => initial decoder state.
+        :param decoder_inputs: Decoder training inputs ("<START>, ... <EOS>").
+        :param input_embeddings: Decoder vocabulary embedding.
+        :param encoder_attn_masks: Binary masks whose entries corresponding to non-padding tokens are 1.
+        :param attention_states: Encoder hidden states.
+        :param num_heads: Number of attention heads.
+        :param encoder_copy_inputs: Array of encoder copy inputs where the copied words are represented using target
+            vocab indices and place holding indices are used elsewhere.
         :return output_symbols: (batched) discrete output sequences
         :return output_logits: (batched) output sequence scores
         :return outputs: (batched) output states for all steps
@@ -142,8 +150,28 @@ class RNNDecoder(decoder.Decoder):
 
                 input_embedding = tf.nn.embedding_lookup(input_embeddings, input)
 
+                # Appending selective read information for CopyNet
                 if self.copynet:
-                    output, state, alignments, attns, read_copy_source = \
+                    attn_dim = attention_states.get_shape()[2]
+                    if i == 0:
+                        # Append dummy zero vector to the <START> token
+                        selective_reads = tf.zeros([self.batch_size, attn_dim])
+                        if bs_decoding:
+                            selective_reads = beam_decoder.wrap_input(selective_reads)
+                    else:
+                        tiled_input = tf.tile(input=tf.reshape(input, [-1, 1]),
+                                              multiples=[1, len(encoder_copy_inputs)])
+                        # [batch_size(*self.beam_size), max_source_length]
+                        selective_mask = tf.cast(tf.equal(tiled_input, tf.concat(encoder_copy_inputs, axis=1)),
+                                                 dtype=tf.int32)
+                        # [batch_size(*self.beam_size), max_source_length, attn_dim]
+                        selective_mask_3d = tf.tile(input=selective_mask, multiples=[1, 1, attn_dim])
+                        # [batch_size(*self.beam_size), attn_dim]
+                        selective_reads = tf.reduce_sum(selective_mask_3d * attention_states, axis=1)
+                    input_embeddings = tf.concat([input_embeddings, selective_reads], axis=1)
+
+                if self.copynet:
+                    output, state, alignments, attns = \
                         decoder_cell(input_embedding, state)
                     alignments_list.append(alignments)
                 elif self.use_attention:
@@ -240,7 +268,10 @@ class RNNDecoder(decoder.Decoder):
 
 
     def decoder_cell(self):
-        input_size = self.dim
+        if self.copynet:
+            input_size = self.dim * 2
+        else:
+            input_size = self.dim
         with tf.variable_scope(self.scope + "_decoder_cell") as scope:
             cell = rnn.create_multilayer_cell(
                 self.rnn_cell, scope, self.dim, self.num_layers,

@@ -168,7 +168,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
 
         past_cell_state = self.get_last_cell_state(past_cell_states)
         if self.use_copy and self.copy_fun == 'copynet':
-            cell_output, cell_state, alignments, attns, read_copy_source = \
+            cell_output, cell_state, alignments, attns = \
                 self.cell(cell_inputs, past_cell_state, scope)
         elif self.use_attention:
             cell_output, cell_state, alignments, attns = \
@@ -239,8 +239,6 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
                                                  tf.reshape(symbols, [-1, 1])])
         self.seq_len = tf.squeeze(tf.gather(seq_len, parent_refs), squeeze_dims=[1])
 
-        if self.use_copy and self.copy_fun == 'copynet':
-            ranked_read_copy_source = tf.gather(read_copy_source, parent_refs)
         if self.use_attention:
             ranked_alignments = nest_map(
                 lambda element: tf.gather(element, parent_refs), alignments)
@@ -280,7 +278,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
 
         if self.use_copy and self.copy_fun == 'copynet':
             return ranked_cell_output, compound_cell_state, ranked_alignments, \
-                   ranked_attns, ranked_read_copy_source
+                   ranked_attns
         elif self.use_attention:
             return ranked_cell_output, compound_cell_state, ranked_alignments, \
                    ranked_attns

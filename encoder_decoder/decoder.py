@@ -125,12 +125,7 @@ class CopyCellWrapper(tf.nn.rnn_cell.RNNCell):
         mix_prob = tf.concat([gen_prob, tf.zeros(tf.shape(copy_prob))], 1) + \
                    copy_vocab_prob
 
-        # selective reads
-        read_copy_source = tf.cast(
-            tf.reduce_max(gen_logit, [1], keep_dims=True) < \
-            tf.reduce_max(copy_logit, [1], keep_dims=True), tf.float32)
-
-        return mix_prob, state, alignments, attns, read_copy_source
+        return mix_prob, state, alignments, attns
 
 
 class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
@@ -178,13 +173,11 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
         self.attention_output_keep = attention_output_keep
 
         hidden_features = []
-        v = []
         with tf.variable_scope("attention_cell_wrapper"):
             for a in xrange(num_heads):
                 # [batch_size, attn_length, attn_dim]
                 hidden_features.append(attention_states)
         self.hidden_features = hidden_features
-        self.v = v
 
         self.use_copy = use_copy
 
@@ -224,19 +217,19 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
                 # [batch_size x attn_length]
                 s = s - (1 - self.encoder_attn_masks) * 1e12
                 if a == 0:
-                    alignment = tf.nn.softmax(s)
+                    alignment = tf.nn.softmax(s)    # normalized
                     alignments.append(alignment)
                     # Soft attention read
                     d = tf.reduce_sum(
                         tf.reshape(alignment, [-1, self.attn_length, 1])
                             * self.hidden_features[a], [1])
+                    # [batch_size, attn_dim]
+                    context = tf.reshape(d, [-1, self.attn_dim])
                 else:
-                    alignments.append(s)
-                    # Hard selective read
-                    selective_indices = \
-                        tf.expand_dims(tf.one_hot(tf.argmax(s, 1), self.attn_length), 1)
-                    d = tf.matmul(selective_indices, self.hidden_features[a])
-                context = tf.reshape(d, [-1, self.attn_dim])
+                    # Unnormalized
+                    alignments.append(s)    # unnormalized
+                    # [batch_size, attn_length, attn_dim]
+                    context = self.hidden_features[a]
                 ds.append(context)
 
         return ds, alignments
