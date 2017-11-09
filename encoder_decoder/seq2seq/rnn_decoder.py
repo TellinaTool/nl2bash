@@ -148,7 +148,7 @@ class RNNDecoder(decoder.Decoder):
                     else:
                         step_output_symbol_and_logit(output)
                     if self.copynet:
-                        decoded_input = input
+                        decoder_input = input
                         input = tf.where(input >= self.target_vocab_size,
                                          tf.ones_like(input)*data_utils.UNK_ID, input)
 
@@ -167,14 +167,15 @@ class RNNDecoder(decoder.Decoder):
                         encoder_copy_inputs_2d = tf.concat(
                             [tf.expand_dims(x, 1) for x in encoder_copy_inputs], axis=1)
                         if self.forward_only:
-                            copy_input = tf.where(decoded_input >= self.target_vocab_size,
+                            copy_input = tf.where(decoder_input >= self.target_vocab_size,
                                                   tf.reduce_sum(
-                                                    tf.one_hot(input-self.target_vocab_size, depth=attn_length, dtype=tf.int32)
+                                                    tf.one_hot(input-self.target_vocab_size, 
+                                                               depth=attn_length, dtype=tf.int32)
                                                     * encoder_copy_inputs_2d,
                                                     axis=1),
-                                                  decoded_input)
+                                                  decoder_input)
                         else:
-                            copy_input = decoded_input
+                            copy_input = decoder_input
                         tiled_copy_input = tf.tile(input=tf.reshape(copy_input, [-1, 1]),
                                                    multiples=np.array([1, attn_length]))
                         # [batch_size(*self.beam_size), max_source_length]
