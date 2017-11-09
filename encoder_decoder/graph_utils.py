@@ -110,8 +110,7 @@ def define_model(FLAGS, session, model_constructor, buckets, forward_only):
 
     # construct model directory
     model_subdir, decode_sig = get_decode_signature(FLAGS)
-    setattr(FLAGS, 'model_dir', os.path.join(FLAGS.model_root_dir,
-                                             model_subdir))
+    FLAGS.model_dir = os.path.join(FLAGS.model_root_dir, model_subdir)
     params["model_dir"] = FLAGS.model_dir
     params["decode_sig"] = decode_sig
     print("model_dir={}".format(FLAGS.model_dir))

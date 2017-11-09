@@ -72,13 +72,19 @@ def define_input_flags():
     tf.app.flags.DEFINE_string('dataset', 'bash', 'select dataset to use.')
     tf.app.flags.DEFINE_string('channel', '', 'translation feature channel.')
     tf.app.flags.DEFINE_string('data_dir', os.path.join(os.path.dirname(__file__), 'data'), 'Data directory')
+    tf.app.flags.DEFINE_string('model_dir', os.path.join(os.path.dirname(__file__), 'model'), 'Model directory')
     tf.app.flags.DEFINE_boolean('sample_train', False, 'Train on a subset of data if this is set to True.')
     tf.app.flags.DEFINE_integer('sample_size', 200, 'Training data sample size')
     tf.app.flags.DEFINE_boolean('normalized', False, 'Set to True for learning with normalized command.')
     tf.app.flags.DEFINE_boolean('canonical', False, 'Set to True for learning with normalized command with ' +
                                                     'canonical option order.')
     tf.app.flags.DEFINE_boolean('full', False, 'Set to True for learning with all tokens.')
-
+    tf.app.flags.DEFINE_integer('max_sc_length', 100, 'Maximum source sequence length.')
+    tf.app.flags.DEFINE_integer('max_tg_length', 100, 'Maximum target sequence length.')
+    tf.app.flags.DEFINE_integer('sc_vocab_size', 1000, 'Source vocabulary size.')
+    tf.app.flags.DEFINE_integer('tg_vocab_size', 1000, 'Target vocabulary size.')
+    tf.app.flags.DEFINE_integer('max_sc_token_size', 100, 'Maximum source token size.')
+    tf.app.flags.DEFINE_integer('max_tg_token_size', 100, 'Maximum target token size.')
     tf.app.flags.DEFINE_integer('min_vocab_frequency', 1,
                                 'Minimum frequency of token in the dataset that are not considered UNK.')
     tf.app.flags.DEFINE_integer('num_buckets', 3, 'Number of buckets to use.')

@@ -168,8 +168,10 @@ class RNNDecoder(decoder.Decoder):
                             [tf.expand_dims(x, 1) for x in encoder_copy_inputs], axis=1)
                         if self.forward_only:
                             copy_input = tf.where(decoded_input >= self.target_vocab_size,
-                                                  tf.one_hot(input-self.target_vocab_size, depth=attn_length)
+                                                  tf.reduce_sum(
+                                                    tf.one_hot(input-self.target_vocab_size, depth=attn_length, dtype=tf.int32)
                                                     * encoder_copy_inputs_2d,
+                                                    axis=1),
                                                   decoded_input)
                         else:
                             copy_input = decoded_input
