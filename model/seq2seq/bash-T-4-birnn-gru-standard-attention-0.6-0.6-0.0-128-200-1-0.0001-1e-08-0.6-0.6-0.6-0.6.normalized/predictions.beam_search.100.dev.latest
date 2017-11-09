@@ -1,0 +1,577 @@
+chmod +Permission File|||chmod +Permission $(which Regex)|||chmod +Permission File | xargs -I {} chmod +Permission {}|||
+chmod +Permission File|||find Path Path Path Path Path Path -type d | tee File | xargs -I {} chmod +Permission {}|||find Path Path Path Path Path -type d | tee File | xargs -I {} chmod +Permission {}|||
+find Path -perm Permission -exec chmod Permission {} \;|||find Path -perm Permission -print -exec chmod Permission {} \;|||find Path -type f -perm Permission -exec chmod Permission {} \;|||
+yes Regex | rm -r -i File File File|||yes Regex | rm -i -r File File File|||yes Regex | rm -r -f File File File File File File File|||
+echo Regex | rev | cut -d Regex -f Number | rev|||yes | grep Regex | cut -d Regex -f Number | xargs -I {} grep Regex {}|||yes Regex | grep Regex | xargs -I {} cp -a -v --target-directory=Directory {}|||
+date __SP__UNK | xargs -L Quantity -I {} date __SP__UNK|||date __SP__UNK | xargs -L Quantity -I {} echo Regex Regex {}|||date __SP__UNK | xargs -L Quantity -I {} echo Regex Regex Regex {}|||
+tail - Quantity | cut -d Regex -f Number | tail -n +Quantity | tr -s Regex | cut -d Regex -f Number|||tail - Quantity File|||tail - Quantity | tr -s Regex | cut -d Regex -f Number|||
+rsync -a -v -z File File|||rsync -a -H -v -z File File|||rsync -a -z -v File File|||
+rsync -a -v -z File File|||rsync -a -H -v -z File File|||rsync -a -v -z -P File File|||
+rsync -a -v --exclude=Regex File File|||rsync -a -v --progress File File File|||rsync -a -v -z --exclude=Regex File File|||
+rsync -a -v -z File File|||rsync -a -v -z --delete File File|||rsync -a -z --delete File File|||
+find Path -name Regex | xargs -I {} grep -E Regex {}|||find Path -name Regex -print0 | xargs -0 -I {} chmod Permission {}|||find Path -name Regex | xargs -I {} grep Regex {}|||
+echo Regex | grep Regex | cut -d Regex -f Number | xargs -I {} cp -t Directory {}|||echo Regex | grep Regex | xargs -I {} dirname {} | xargs -I {} cp -t Directory {}|||echo Regex | grep Regex | cut -d Regex -f Number | xargs -I {} dirname {} | xargs -I {} echo {}|||
+ifconfig Regex Regex|||ifconfig Regex|||echo Regex Regex Regex Regex Regex Regex Regex Regex Regex Regex Regex | grep -E -o Regex | cut -d Regex -f Number|||
+grep -a -r -e Regex Regex | md5sum | cut -c -Number|||find Path -type f -exec md5sum File \; -exec md5sum {} \;|||grep -a -r -e Regex Regex | md5sum | cut -d Regex -f -Number | md5sum|||
+find Path -type d -exec chmod Permission {} \;|||find Path -type d -exec chmod Permission {} +|||find Path -type d -print0 | xargs -0 -I {} chmod Permission {}|||
+find Path -type f -exec chmod Permission {} \;|||find Path -type f -exec chmod Permission {} +|||find Path -type f -print0 | xargs -0 -I {} chmod Permission {}|||
+chgrp Regex File|||chown Regex File|||chgrp Regex File File File|||
+echo Regex Regex Regex Regex Regex Regex Regex Regex Regex Regex Regex Regex Regex Regex Regex Regex Regex | chown -R Regex File|||echo Regex Regex Regex Regex Regex Regex Regex Regex Regex Regex Regex Regex Regex Regex Regex Regex Regex Regex | chown -R Regex File|||echo Regex Regex Regex Regex Regex Regex Regex Regex Regex Regex Regex Regex Regex Regex Regex Regex | chown -R Regex File|||
+chown Regex File -exec chown Regex File File File File File File File File File File|||chown Regex File -exec chown -R Regex File File File File File File File|||chown Regex File -exec chown Regex File File File File File File File File File|||
+find Path -exec chown Regex {} \;|||find Path -exec chown Regex {} +|||find Path -print0 | xargs -0 -I {} chown Regex {}|||
+find Path -type f -ok chown Regex {} \;|||find Path -type f -print0 | xargs -0 -I {} chown Regex {}|||find Path -type f -user Regex -exec chown Regex {} \;|||
+find Path -type d -exec chmod Permission {} \;|||find Path -type d -name Regex -exec chmod Permission {} \;|||find Path -type f -exec chmod Permission {} \;|||
+find Path -name Regex -exec chmod Permission {} \; -exec echo {} \; | xargs -I {} chmod Permission {}|||find Path -name Regex -exec chmod Permission {} \; -exec echo {} \;|||find Path -name Regex -exec chmod Permission {} \; -exec echo {} \; -exec echo {} \; | xargs -I {} chmod Permission {}|||
+find Path -type d -exec chmod Permission {} \;|||find Path -type d -print0 | xargs -0 -I {} chmod Permission {}|||find Path -type d -exec chmod Permission {} +|||
+cat File | grep -E Regex|||cat File | xargs -I {} grep -l Regex {}|||cat File | xargs -I {} grep -E Regex {}|||
+env | grep Regex|||df | grep Regex|||env | grep Regex | grep -i Regex|||
+cat File | tr -s Regex | cut -d Regex -f Number|||cat File | paste -s -d Regex|||cat File | paste -s -d File|||
+
+scp File File | comm -2 -3 File File|||scp File File | xargs -I {} cp File File {}|||rsync --exclude=Regex --exclude=Regex File File|||
+yes Regex | gunzip Regex|||yes Regex | head -n Quantity|||yes Regex | tr Regex Regex|||
+groups Regex | cut -d Regex -f Number|||yes Regex | xargs -I {} cp -a -v --target-directory=Directory {}|||yes Regex | cut -d Regex -f Number|||
+cat File | fold -w Quantity | head -n Quantity|||cat File | tr -d -c Regex | fold -w Quantity | head -n Quantity|||echo Regex | fold -w Quantity | head -n Quantity|||
+readlink -f $(readlink -f File)|||readlink -f $(readlink -e File)|||readlink -f $(which Regex)|||
+cp -f File File|||cp File File|||cp -n File File|||
+rsync -a -v -z --ignore-existing File File File|||find Path \( -newer File -or -user Regex \) -exec cp {} File \;|||rsync -a -v --ignore-existing File File File|||
+find Path -type f -name Regex -exec cp {} File \;|||find Path -type f -name Regex -exec cp -t Directory -- {} +|||find Path -type f -name Regex -print0 | xargs -0 -I {} cp -t Directory {}|||
+find Path | cpio -p -d -u -m -v Regex|||find Path | cpio -p -d -m -B Regex|||find Path | cpio -p -d -m -v Regex|||
+find Path Path Path Path | cpio -p -d -u -m -v Regex|||find Path Path Path | cpio -p -d -u -m -v Regex|||find Path Path Path Path Path | cpio -p -d -u -m -v Regex|||
+find Path Path | xargs -n Quantity -I {} cp File {}|||find Path Path | grep -v Regex | xargs -I {} cp File {}|||find Path | grep Regex | xargs -n Quantity -I {} cp File {}|||
+cp -f File File|||find Path -type l -exec cp -t Directory -- {} +|||find Path -type l -print0 | xargs -0 -I {} cp -t Directory -- {}|||
+find Path -type f | wc -l|||find Path -type f -exec ls -l {} \; | wc -l|||find Path -maxdepth Quantity -type f | wc -l|||
+find Path -type f -mtime +Timespan -exec ls -l {} \; | wc -l|||find Path -type f -mtime +Timespan | wc -l|||find Path -type f -mtime +Timespan | xargs -I {} wc -l {}|||
+find Path -name Regex -or -name Regex | xargs -I {} wc -l {}|||find Path -name Regex -type f -exec wc -l File \;|||find Path -type f -name Regex -exec wc -l File \;|||
+cat File | wc -l|||wc -l File|||find Path -name Regex -exec wc -l {} \; | wc -l|||
+find Path -name Regex | xargs -I {} wc -l {}|||find Path -name Regex -type f | xargs -I {} wc -l {}|||find Path -name Regex -type f | xargs -I {} cat {} | wc -l|||
+cat File | wc -l|||wc -l $(find Path -name Regex)|||wc -l $(find Path -type f)|||
+zcat Regex | grep -v Regex | wc -l|||cat File | grep -v Regex | wc -l|||diff File File | wc -l|||
+tar -c -z -f File File | split -b Size File Regex|||tar -c -z -f File File | tar -x -v -f File|||tar -z -c -f File File | split -b Size File Regex|||
+ln -s File Regex|||ln File -t Directory|||find Path -maxdepth Quantity -name Regex -type d -print0 | xargs -0 -I {} mkdir -p {}|||
+ln -s File Regex|||ln -s File $(echo -e Regex)|||ln -s File $(echo Regex)|||
+ln -s File Regex|||ln -s -- File Regex|||ln -s -T File Regex|||
+ln -s File Regex|||ln -s File $(echo -e Regex)|||ln -s File $(echo Regex)|||
+ln -s File Regex|||ln -s File $(echo Regex)|||ln -s File $(echo -e Regex)|||
+find Path -name Regex -print0 | xargs -0 -I {} tar -c -v -f File {}|||find Path -name Regex | xargs -I {} tar -c -v -f File {}|||find Path -iname Regex -exec tar -r -v -f File {} \;|||
+touch File|||echo -e Regex | ssh-keygen -t rsa|||touch -m File|||
+tar -c -z -f File File | split -b Size File Regex|||tar -c -z -c -f File File | split -b Size File Regex|||tar -c -z -z -f File File | split -b Size File Regex|||
+mkdir Directory|||find Path -maxdepth Quantity -type d -print0 | xargs -0 -I {} mkdir Directory|||find Path -mindepth Quantity -maxdepth Quantity -type d -print0 | xargs -0 -I {} mkdir Directory|||
+mkdir Directory|||mkdir $(echo Regex Regex Regex Regex Regex Regex Regex Regex | tr Regex Regex)|||mkdir $(echo Regex Regex Regex Regex Regex Regex Regex Regex Regex | tr Regex Regex)|||
+mkdir -p Directory|||find Path -maxdepth Quantity -type d -print0 | xargs -0 -I {} mkdir -p Directory|||find Path -mindepth Quantity -maxdepth Quantity -type d -print0 | xargs -0 -I {} mkdir -p Directory|||
+echo Regex | crontab File | tr -d Regex|||echo Regex | crontab File | cut -f Number -d Regex|||echo Regex | crontab File | cut -d Regex -f Number|||
+find Path -type f -name Regex -exec ln -s {} Regex \;|||find Path -name Regex -exec ln -s {} Regex \;|||find Path -type f -name Regex -execdir ln -s {} Regex \;|||
+$(dirname -- Regex)|||$(mktemp -t | tr -s Regex | cut -f Number -d Regex | tr Regex Regex)|||$(mktemp -t | tr -s Regex | cut -f Number -d Regex | tr Regex Regex | tr -d Regex)|||
+mktemp -p Directory Regex|||mktemp -t $(echo Regex | tr Regex Regex)|||mktemp --tmpdir=Directory Regex|||
+$(mktemp Regex | cut -d Regex -f Number)|||$(mktemp Regex | tr Regex Regex)|||$(mktemp Regex | cut -d Regex -f Number \) | xargs -I {} dirname {} | xargs -I {} dirname {})|||
+find Path \( -name Regex -or -name Regex \) -prune -or -name Regex -print|||find Path -depth -name Regex -type d -print0 | xargs -0 -I {} echo Regex Regex Regex {}|||find Path -depth -name Regex -type d -print0 | xargs -0 -n Quantity -I {} dirname {} | tr Regex Regex|||
+find Path -maxdepth Quantity -type d -printf __SP__UNK | xargs -0 -I {} rmdir {}|||find Path -maxdepth Quantity -type d -printf __SP__UNK | tr Regex Regex | xargs -0 -I {} rmdir {}|||find Path -type d -printf __SP__UNK | sort | uniq | xargs -I {} rmdir {}|||
+gzip -d -c Regex | sort -t Regex -k Number -k Number|||gzip -d -c Regex | sort -u -t Regex -k Number -k Number File|||gzip -d -c Regex | sort -t Regex -k Number|||
+find Path -type f -name Regex -exec rm -f {} \;|||find Path -type f -name Regex -exec rm {} \;|||find Path -type f -name Regex -delete|||
+echo Regex | tr -d -c Regex | tr -d Regex|||echo Regex | tr -c -d Regex | tr -d Regex|||echo Regex | tr -d Regex | tr -d Regex|||
+find Path -name Regex -exec rm {} \;|||find Path -name Regex | xargs -I {} rm {}|||find Path -type f -name Regex -exec rm -f {} \;|||
+find Path -name Regex -delete|||find Path -name Regex | xargs -I {} rm -r -f {}|||find Path -name Regex -exec rm -r -f {} \;|||
+find Path -type d -mtime +Timespan -delete|||find Path -type d -mtime +Timespan -exec rm -r -f {} \;|||find Path -type d -mtime +Timespan -exec rm -f {} \;|||
+find Path -type d -empty -delete|||find Path -type d -empty -exec rmdir {} \;|||find Path -type d -empty -exec rmdir -v -p --ignore-fail-on-non-empty {} +|||
+find Path -mtime +Timespan -delete|||find Path -mtime +Timespan -exec rm {} \;|||find Path -mtime +Timespan -exec rm -r -f {} \;|||
+find Path -user Regex -exec rm {} \;|||find Path -user Regex -delete|||find Path -nouser -exec rm {} \;|||
+find Path -name Regex -delete|||find Path -name Regex -exec rm {} \;|||find Path -name Regex | xargs -I {} rm {}|||
+find Path -atime +Timespan -delete|||find Path -atime +Timespan -exec rm {} \;|||find Path -type f -atime +Timespan -exec rm {} \;|||
+find Path -mtime +Timespan -delete|||find Path -mtime +Timespan -exec rm {} \;|||find Path -mtime +Timespan -exec rm -r -f {} \;|||
+find Path -depth -name Regex -execdir rm {} \;|||find Path -depth -name Regex -exec rm -r -f {} \;|||find Path -name Regex -print0 | xargs -0 -I {} rm {}|||
+find Path -type f -name Regex -delete|||find Path -type f -name Regex -exec rm {} \;|||find Path -type f -name Regex -exec rm -f {} \;|||
+find Path -type f -atime +Timespan -exec rm {} \;|||find Path -type f -atime +Timespan -exec rm -f {} \;|||find Path -mtime +Timespan -exec rm {} \;|||
+su -l Regex|||su -l Regex | grep Regex | cut -d Regex -f Number | tr Regex Regex|||who | grep Regex | cut -d Regex -f Number | tr Regex Regex|||
+find Path -type f -empty -exec ls -s {} \; | sort -n -r | head - Quantity|||find Path -size Size -print|||find Path -maxdepth Quantity -empty -exec echo {} \;|||
+find Path -type f -size +Size -exec ls -l {} \;|||find Path -type f -size +Size -exec ls -l -h {} \;|||find Path -type f -size +Size -ls|||
+find Path -empty -exec ls -l {} \;|||find Path -empty -exec ls {} \;|||find Path -size Size -exec ls -l {} \;|||
+find Path -name Regex -exec ls -l {} \;|||find Path -name Regex -exec ls -l -a {} \;|||find Path -name Regex -exec ls -a -l {} \;|||
+find Path -exec ls -l {} \;|||find Path -print | xargs -I {} ls -a -l {}|||find Path -print0 | xargs -0 -I {} ls -l {}|||
+find Path -mtime -Timespan -ls|||find Path -mmin -Quantity | xargs -I {} ls -l {}|||find Path -mtime -Timespan -print0 | xargs -0 -I {} ls -l {}|||
+find Path -type d|||find Path -type d -print|||find Path -type d -exec echo Regex {} \;|||
+find Path -type d|||find Path ! -name Regex|||find Path -print0 | xargs -0 -I {} echo {}|||
+find Path -path Regex -prune -or -print|||find Path -wholename Regex -prune -or -print|||find Path ! -path Regex|||
+find Path -name Regex -print|||find Path -name Regex|||find Path \( -name Regex -or -name Regex \) -print|||
+find Path -name Regex -printf __SP__UNK|||find Path -printf __SP__UNK|||find Path -type f -printf __SP__UNK|||
+find Path -maxdepth Quantity -type f|||find Path -maxdepth Quantity -name Regex|||find Path -maxdepth Quantity -print|||
+find Path -amin -Quantity|||find Path -atime -Timespan|||find Path -atime -Timespan -print|||
+find Path -print0|||find Path -print0 | xargs -0|||find Path -print0 | xargs -0 -I {} echo {}|||
+find Path -perm Permission -type f -mtime -Timespan|||find Path -perm Permission -type f -mtime -Timespan | xargs -I {} ls -l {}|||find Path -perm Permission -mtime -Timespan -print|||
+find Path -group Regex -print|||find Path -group Regex|||find Path -nogroup|||
+find Path -user Regex|||find Path -user Regex -print|||find Path -user Regex -perm -Permission -print|||
+find Path -cmin -Quantity|||find Path -ctime -Timespan|||find Path -ctime -Timespan -print|||
+find Path -name Regex|||find Path -name Regex -print|||find Path -iname Regex|||
+find Path -name Regex -maxdepth Quantity -print|||find Path -maxdepth Quantity -name Regex -prune -or -name Regex -print|||find Path -maxdepth Quantity -name Regex -maxdepth Quantity|||
+find Path -maxdepth Quantity -name Regex|||find Path -maxdepth Quantity -name Regex -type f|||find Path -maxdepth Quantity -name Regex -maxdepth Quantity|||
+find Path -name Regex -print0 | xargs -0 -I {} grep -l Regex {}|||find Path -type f -name Regex -exec grep -l Regex {} \;|||find Path -name Regex -exec grep -l Regex {} \;|||
+find Path -type f|||find Path -type f | sort|||find Path -type f -maxdepth Quantity|||
+find Path -type f -amin -Quantity|||find Path -amin -Quantity -type f|||find Path -type f -atime -Timespan|||
+find Path -type f ! -perm Permission|||find Path -type f ! -perm -Permission|||find Path -type f \( ! -perm -Permission \)|||
+find Path -type f|||find Path -type f -exec echo {} \;|||find Path -type f | xargs -I {} echo Regex {}|||
+find Path -type f -printf __SP__UNK|||find Path -type f -exec du -S -h {} + | sort -r -h | head -n Quantity|||find Path -type f -exec ls -s {} \; | sort -n -r | head - Quantity|||
+find Path -name Regex|||find Path -name Regex -print|||find Path -type f -name Regex|||
+ps -e -f | grep Regex|||ps -e -f | grep Regex | cut -d Regex -f Number | rev|||ps -e -f | grep Regex | cut -d Regex -f Number | rev | cut -d Regex -f Number | rev|||
+find Path -name Regex -exec basename {} \;|||find Path -name Regex -exec basename Regex Regex \;|||find Path -name Regex -print0 | xargs -0 -I {} basename {}|||
+diff File File | grep Regex|||diff File File -r -x Regex|||diff File File | grep -E Regex|||
+ssh-keygen -l File File -f File|||ssh-keygen -l File File File -f File|||ssh-keygen -l File File File|||
+find Path -size +Size -ls|||find Path -size +Size -exec ls -l {} \;|||find Path -type f -size +Size -exec ls -l {} \;|||
+uname -r|||uname -a|||echo Regex | rev | cut -f Number -d Regex | tail -n +Quantity | xargs -I {} ls -l {}|||
+find Path -size -Size -exec ls -l {} \;|||find Path -size +Size -exec ls -l {} \;|||find Path -size +Size -exec ls -l -h {} \;|||
+echo -e Regex | od -c|||echo -e Regex | od -a|||echo -e Regex | od -t x1|||
+find Path -type f -ctime +Timespan -exec basename {} \;|||find Path -type f -ctime +Timespan | xargs -I {} basename {}|||find Path -name Regex -ctime +Timespan -exec basename {} \;|||
+cat File | fold -w Quantity | head -n Quantity|||cat File | fold -w Quantity | head - Quantity|||cat File | fold -b -w Quantity | head -n Quantity|||
+tree -p|||find Path -print0 | xargs -0 -I {} chmod Permission {}|||find Path -exec chmod Permission {} \;|||
+tree -p -f|||find Path -type f -exec chmod Permission {} \;|||find Path -type f -print0 | xargs -0 -I {} chmod Permission {}|||
+find Path -name Regex | wc -l|||find Path -name Regex -exec wc -l {} \;|||find Path -name Regex | xargs -I {} wc -l {}|||
+who -s -l File|||diff -a -r -q File File|||diff -a -r File File|||
+od -x File|||od -t __SP__UNK File|||od -x File File|||
+echo Regex | od -c|||echo Regex | od -x|||echo Regex | od -t x1|||
+od -x -c File -t __SP__UNK File|||od -x -c File File|||od -x -c File | od -t x1 -w Size|||
+shopt -s __SP__UNK | xargs -n Quantity -I {} echo {}|||shopt -s __SP__UNK | grep -o -P Regex|||shopt -s __SP__UNK | xargs -n Quantity -I {} echo Regex Regex Regex {}|||
+shopt -s __SP__UNK | xargs -n Quantity -I {} echo {}|||shopt -s __SP__UNK | grep -o -P Regex|||shopt -s __SP__UNK | xargs -n Quantity -I {} echo Regex Regex Regex {}|||
+shopt -s __SP__UNK | xargs -n Quantity -I {} echo {}|||shopt -s __SP__UNK | grep -o -P Regex|||shopt -s __SP__UNK | xargs -n Quantity -I {} echo Regex Regex Regex {}|||
+shopt -s __SP__UNK | xargs -n Quantity -I {} echo {}|||shopt -s __SP__UNK | grep -o -P Regex|||shopt -s __SP__UNK | xargs -n Quantity -I {} echo Regex Regex Regex {}|||
+watch -n Quantity ps -C __SP__UNK -o __SP__UNK|||watch -n Quantity ls|||watch -n Quantity du -s File|||
+which Regex | xargs -I {} echo Regex Regex Regex {}|||which Regex | xargs -I {} echo Regex Regex {}|||groups Regex Regex Regex Regex Regex Regex Regex Regex Regex|||
+echo Regex | cut -d Regex -f Number|||echo Regex | rev | cut -d Regex -f Number | cut -d Regex -f Number | rev|||echo Regex | rev | cut -d Regex -f Number | cut -d Regex -f Number | cut -d Regex -f Number | rev|||
+find Path -type d -exec ls -a -l -d {} \;|||find Path -type d -exec ls -a -l {} \; | sort -n -r | head - Quantity|||find Path -type d -print0 | xargs -0 -I {} ls -l -d {}|||
+find Path -name Regex | xargs -I {} mv {} File|||find Path -name Regex | tee File | xargs -I {} mv {} File|||find Path -name Regex | xargs -I {} grep Regex {}|||
+find Path -type f -name Regex -exec mv {} File \;|||find Path -maxdepth Quantity -type f -name Regex -exec mv {} File \;|||find Path -maxdepth Quantity -type f -exec mv {} File \;|||
+find Path -name Regex -exec rm {} \;|||find Path -name Regex -exec rm -f {} \;|||find Path -name Regex -print0 | xargs -0 -I {} rm {}|||
+find Path -name Regex -exec grep -l Regex {} + | xargs -I {} grep -l Regex {}|||find Path -name Regex -print0 | xargs -0 -I {} grep -l Regex {}|||find Path -name Regex | xargs -I {} grep -l Regex {}|||
+grep Regex File | grep Regex|||grep Regex File | cut -d Regex -f Number | sort | uniq | xargs -I {} grep Regex {}|||grep Regex File | grep Regex | cut -d Regex -f Number | sort | uniq | xargs -I {} grep Regex {}|||
+find Path -name Regex|||find Path -type f -name Regex|||find Path -name Regex -print|||
+find Path -type d -empty|||find Path -type d -name Regex -ls|||find Path -type d -iname Regex -ls|||
+find Path -name Regex -type f -print0 | xargs -0 -n Quantity -I {} du -c -h {}|||find Path -type f -name Regex -print0 | xargs -0 -n Quantity -I {} du -c -h {}|||find Path -type f -name Regex -print0 | xargs -0 -I {} du -c -h {}|||
+find Path -name Regex|||find Path -type f -name Regex|||find Path -type f \( -name Regex -or -name Regex \)|||
+find Path -type d -name Regex|||find Path -name Regex|||find Path -type d -iname Regex|||
+find Path -name Regex | xargs -I {} grep Regex {}|||find Path -name Regex -exec grep -l Regex {} \;|||find Path -name Regex -exec grep -i -l Regex {} \;|||
+find Path -mtime -Timespan -name Regex|||find Path -name Regex -mtime -Timespan|||find Path -type f -mtime -Timespan -name Regex|||
+find Path -type f -name Regex -execdir sort -o File {} \;|||find Path -type f -name Regex -printf __SP__UNK | sort -n | tail - Quantity|||find Path -type f -name Regex -printf __SP__UNK | sort -n | tail -n Quantity|||
+find Path -name Regex -print0 | xargs -0 -I {} mv -t Directory {}|||find Path -name Regex -print0 | xargs -0 -I {} mv {} File|||find Path -name Regex -print0 | xargs -0 -I {} mv {} File|||
+find Path -name Regex|||find Path -name Regex -print|||find Path -name Regex | xargs -I {} grep Regex {}|||
+find Path -type f -name Regex|||find Path -name Regex|||find Path -type f -iname Regex|||
+find Path -name Regex|||find Path -name Regex -print|||find Path -name Regex | xargs -I {} grep Regex {}|||
+find Path -mtime +Timespan -name Regex|||find Path -mtime +Timespan -name Regex -print|||find Path -mtime +Timespan -and -mtime +Timespan|||
+find Path -name Regex | xargs -I {} grep Regex {}|||find Path -name Regex -print0 | xargs -0 -I {} grep Regex {}|||find Path -name Regex | xargs -I {} mv {} File|||
+find Path -type f -name Regex -exec du -s {} \; | wc -l|||find Path -name Regex -print0 | xargs -0 -I {} du -c -h {}|||find Path -name Regex -exec du -h -c {} +|||
+find Path -name Regex -print0|||find Path -name Regex|||find Path \( -name Regex -or -name Regex \)|||
+find Path -name Regex -not -name Regex|||find Path -name Regex ! -name Regex -print|||find Path -name Regex -not -path Regex|||
+find Path -type f \( -name Regex -or -name Regex \)|||find Path -type f \( -name Regex -or -name Regex -or -name Regex \)|||find Path -type f -name Regex -or -name Regex -or -name Regex|||
+find Path -name Regex|||find Path -iname Regex|||find Path -type f -name Regex|||
+find Path -type f -name Regex|||find Path -name Regex|||find Path -type f \( -name Regex -or -name Regex \)|||
+find Path -name Regex|||find Path -type f -name Regex|||find Path -iname Regex|||
+find Path -name Regex -exec rm {} \;|||find Path -name Regex -print0 | xargs -0 -I {} rm {}|||find Path -type f -name Regex -exec rm -f {} \;|||
+chmod Permission $(find Path -type f -perm Permission -print)|||find Path -type f -perm Permission -print -exec chmod Permission {} \;|||find Path -type f -perm Permission -exec chmod Permission {} \;|||
+find Path -type f -perm Permission -print|||find Path -type f -perm Permission -print0|||find Path -type f -perm Permission -print -print0|||
+find Path -perm Permission|||find Path -perm Permission -print|||find Path Path -perm Permission|||
+find Path -type f -name Regex|||find Path -name Regex|||find Path -type f -iname Regex|||
+find Path -name Regex|||find Path \( -name Regex -or -name Regex \) -print|||find Path \( -name Regex -or -name Regex \)|||
+find Path -type d -name Regex -execdir tar -c -v -f File File \;|||find Path -type d -name Regex -exec tar -c -v -f File {} \;|||find Path -type d -name Regex -exec tar -r -v -f File {} \;|||
+find Path -type d -name Regex -exec rm -r -f {} \;|||find Path -type d -name Regex -exec rm -r {} \;|||find Path -type d -name Regex -print0 | xargs -0 -I {} rm -r -f {}|||
+find Path -type d -name Regex|||find Path -name Regex -type d|||find Path -type d -name Regex -print|||
+find Path -type d -exec chmod Permission {} +|||find Path -type d -exec chmod Permission {} \;|||chmod Permission $(find Path -type d)|||
+find Path -type d -exec chmod Permission {} +|||find Path -type d -print0 | xargs -0 -I {} chmod Permission {}|||find Path -type d -exec chmod Permission {} \;|||
+find Path -type d -exec chmod Permission {} +|||find Path -type d -print0 | xargs -0 -I {} chmod Permission {}|||find Path -type d -exec chmod Permission {} \;|||
+find Path -type d -exec chmod Permission {} \;|||find Path -type d -print0 | xargs -0 -I {} chmod Permission {}|||find Path -type d -exec chmod Permission {} +|||
+find Path -type d -name Regex -prune -or -print|||find Path -type d -name Regex -prune -or -type d -print|||find Path -type d -name Regex -prune -or -name Regex -print|||
+find Path -type d -maxdepth Quantity -exec chmod Permission {} \;|||find Path -type d -maxdepth Quantity -print0 | xargs -0 -I {} chmod Permission {}|||find Path -type d -maxdepth Quantity -exec chmod Permission {} +|||
+find Path -mindepth Quantity -type d|||find Path -mindepth Quantity -maxdepth Quantity -type d|||find Path -mindepth Quantity -mindepth Quantity -type d|||
+find Path -maxdepth Quantity -type f -perm Permission|||find Path -maxdepth Quantity -type f \( -perm -Permission -or -perm -Permission \)|||find Path -maxdepth Quantity -type f -perm +Permission|||
+find Path -name Regex|||find Path -type f -name Regex|||find Path -name Regex -print|||
+find Path -perm Permission|||find Path -perm -Permission|||find Path -perm -Permission -print|||
+find Path -mindepth Quantity -print|||find Path -depth -print|||find Path -maxdepth Quantity -print|||
+find Path -mindepth Quantity -print|||find Path -mindepth Quantity -maxdepth Quantity|||find Path -mindepth Quantity -print0|||
+find Path -name Regex|||find Path -iname Regex|||find Path -name Regex -print|||
+find Path -name Regex|||find Path -iname Regex|||find Path -name Regex -print|||
+find Path -name Regex -exec echo {} \;|||find Path -name Regex -print0 | xargs -0 -I {} ls {}|||find Path -name Regex -exec ls -s {} \;|||
+find Path -not -name Regex|||find Path ! -name Regex|||find Path -not -iname Regex|||
+find Path -perm -Permission|||find Path -perm -Permission -exec chmod Permission {} \;|||find Path -perm -Permission -print0 | xargs -0 -I {} chmod Permission {}|||
+find Path -mtime -Timespan|||find Path -mmin -Quantity|||find Path -mtime -Timespan -print|||
+find Path -name Regex -mtime Timespan|||find Path -iname Regex -mtime Timespan|||find Path -name Regex -mmin Quantity|||
+find Path | grep -v Regex | tee -a File|||find Path -iregex Regex | tee File|||find Path | grep -E -v Regex | tee File|||
+find Path -mtime -Timespan ! -name Regex|||find Path -mmin -Quantity -not -name Regex|||find Path -mtime -Timespan ! -name Regex -print|||
+find Path -print0|||find Path -exec echo {} \;|||find Path -print0 | xargs -0|||
+find Path -iname Regex|||find Path -iregex Regex|||find Path -print0 | xargs -0 -I {} grep -i Regex {}|||
+find Path -user Regex|||find Path -uid Regex -print|||find Path -uid Regex|||
+find Path -name Regex -prune|||find Path -name Regex -prune -or -name Regex -print|||find Path -name Regex -prune -or -print|||
+find Path -iwholename Regex|||find | grep -E Regex|||find Path | grep -E Regex|||
+find Path -group Regex -iname Regex|||find Path -group Regex -name Regex|||find Path -group Regex -name Regex -print|||
+find Path -mindepth Quantity -name Regex|||find Path -name Regex|||find Path -mindepth Quantity -iname Regex|||
+find Path -name Regex|||find Path -iname Regex|||find Path -depth -name Regex|||
+find Path -user Regex|||find Path -gid Regex|||find Path -uid Regex|||
+find Path -name Regex -print|||find Path -type f -name Regex|||find Path -type f -name Regex -print|||
+find Path -name Regex -type f | wc -l|||find Path -type f -name Regex | wc -l|||find Path -name Regex -type f -exec wc -l File \;|||
+find Path -exec grep -i Regex {} \;|||find Path -exec grep Regex {} \;|||find Path -exec grep Regex {} \; -print|||
+find Path -name Regex -print|||find Path -type f -name Regex -print|||find Path -type f -name Regex|||
+find Path -size Size|||find Path -empty|||find Path -size Size -print|||
+find Path -name Regex -exec rm {} \;|||find Path -name Regex -exec rm -v {} \;|||find Path -name Regex -print0 | xargs -0 -I {} rm -r -f {}|||
+find Path -exec wc -l {} +|||find | xargs -I {} wc -l {}|||find Path | xargs -I {} wc -l {}|||
+find Path -exec grep -i Regex {} \;|||find Path | xargs -I {} grep Regex {}|||find Path -exec grep -i Regex {} +|||
+find Path -newer File|||find Path -newermt Regex|||find Path -newer File -print|||
+find Path -ctime +Timespan -print|||find Path -cmin +Quantity -print|||find Path -mtime +Timespan -print|||
+find Path \( -name Regex -or -name Regex \) -print|||find Path \( -name Regex -or -name Regex \)|||find Path -name Regex -print0 | xargs -0 -I {} grep -c Regex {}|||
+find Path -mmin -Quantity|||find Path -mtime -Timespan|||find Path -mtime -Timespan -print|||
+find Path -mmin -Quantity|||find Path -mtime -Timespan|||find Path -mtime -Timespan -print|||
+find Path -newer File|||find Path -newermt Regex|||find Path -newer File -print|||
+find Path -print0 | xargs -0|||find Path -print0|||find Path -exec echo {} \;|||
+find Path -size -Size|||find Path -size -Size -print|||find Path \( -size -Size -or -size -Size \) -print|||
+find Path -size -Size|||find Path -size -Size -print|||find Path -type f -size -Size|||
+find Path -mindepth Quantity -maxdepth Quantity -type f -regex Regex|||find Path -mindepth Quantity -maxdepth Quantity -type f -name Regex|||find Path -mindepth Quantity -maxdepth Quantity -name Regex|||
+find Path -name Regex|||find Path -name Regex -print|||find Path -name Regex -exec echo {} \;|||
+find Path -name Regex | grep -v Regex | wc -l|||find Path -name Regex | xargs -I {} grep -c Regex {} | wc -l|||find Path -name Regex | xargs -I {} grep -l Regex {} | wc -l|||
+find Path -maxdepth Quantity -ctime +Timespan -name Regex|||find Path -maxdepth Quantity -cmin +Quantity -name Regex|||find Path -maxdepth Quantity -cmin +Quantity -cmin +Quantity -name Regex|||
+find Path -group Regex|||find Path -group Regex -print|||find Path -group Regex -exec find {} -type f -group Regex {} \;|||
+find Path -daystart -mtime Timespan|||find Path -daystart -mtime +Timespan|||find Path -daystart -mtime -Timespan|||
+find Path -size +Size|||find Path -size +Size -print|||find Path -size Size|||
+find Path -name Regex|||find Path -iname Regex|||find Path -name Regex -print|||
+find Path -mtime -Timespan|||find Path -daystart -mtime -Timespan|||find Path -type f -mtime -Timespan|||
+find Path -group Regex|||find Path -group Regex -print|||find Path -group Regex -exec find {} -group Regex -print \;|||
+find Path -mtime +Timespan|||find Path -daystart -mtime +Timespan|||find Path -mtime +Timespan -print|||
+find Path -atime +Timespan|||find Path -atime +Timespan -print|||find Path -mtime +Timespan|||
+find Path -type f -not \( -name Regex -or -name Regex \) -exec echo {} \;|||find Path -type f -not \( -name Regex -or -name Regex -or -name Regex \) -exec echo {} \;|||find Path -type f ! -name Regex ! -name Regex -exec echo Regex {} \;|||
+find Path -type f|||find Path -type f -print|||find Path $(find Path -type f -print)|||
+find Path -type f -exec grep -l Regex {} +|||find Path -type f -exec grep -l Regex {} \;|||find Path -type f -print0 | xargs -0 -I {} grep -l -E Regex {}|||
+find Path -type f -print0 | xargs -0 -I {} grep -l Regex {}|||find Path -type f -print0 | xargs -0 -I {} grep Regex {}|||find Path -type f -exec echo Regex {} \;|||
+find Path -type f -exec chmod Permission {} +|||find Path -type f -exec chmod Permission {} \;|||find Path -type f -print0 | xargs -0 -I {} chmod Permission {}|||
+find Path -mindepth Quantity -type f|||find Path -mindepth Quantity -maxdepth Quantity -type f|||find Path -mindepth Quantity -type f -print|||
+find Path -type f -mtime -Timespan ! -name Regex|||find Path -mtime +Timespan -type f -print|||find Path -type f ! -mtime -Timespan ! -name Regex|||
+find Path -name Regex|||find Path -iname Regex|||find Path -name Regex -print|||
+find Path -name Regex|||find Path -type f -name Regex|||find Path -iname Regex|||
+find Path -name Regex|||find Path -type f -name Regex|||find Path -iname Regex|||
+find Path -name Regex -printf "%h\n"|||find Path -name Regex -exec dirname {} \;|||find Path -name Regex -print0 | xargs -0 -I {} dirname {} | xargs -I {} dirname {}|||
+find Path -samefile Regex|||find Path -L -samefile Regex|||find Path -type l -lname Regex|||
+find Path -name Regex|||find Path -name Regex -print|||find Path -name Regex -exec grep -l Regex {} + | xargs -I {} grep -l Regex {}|||
+find Path -name Regex -exec grep -m Quantity -i Regex {} \;|||find Path -name Regex -exec grep -i -l Regex {} \;|||find Path -name Regex -exec grep -H Regex {} \;|||
+find Path \( -name Regex -or -name Regex -or -name Regex \) -or -name Regex -or -name Regex -or -name Regex -or -name Regex|||find Path \( -name Regex -or -name Regex -or -name Regex \) -print|||find Path Path \( -name Regex -or -name Regex -or -name Regex \) -print|||
+find Path -type f -name Regex|||find Path -name Regex|||find Path -type f -iname Regex|||
+find Path -type f -name Regex|||find Path -name Regex|||find Path -type f -name Regex -exec grep -l Regex {} \;|||
+find Path -type f -not -name Regex|||find Path -type f -not -path Regex|||find Path -type f ! -name Regex -print|||
+find Path -type f -name Regex|||find Path -type f -wholename Regex|||find Path -type f \( -name Regex -or -name Regex \)|||
+find Path -maxdepth Quantity -type f|||find Path -maxdepth Quantity -type f -print0|||find Path -maxdepth Quantity -type f -print|||
+find Path -type f \( -name Regex -or -name Regex -or -name Regex \) -exec rm {} \;|||find Path -type f -name Regex -or -name Regex -or -name Regex -or -name Regex -or -name Regex -or -name Regex -or -name Regex|||find Path -type f \( -name Regex -or -name Regex \) -exec rm {} \;|||
+echo Regex | grep -E -o Regex | cut -d Regex -f Number | xargs -I {} grep -i Regex {}|||echo Regex | grep -E -o Regex | cut -d Regex -f Number | xargs -I {} grep -E Regex {}|||echo Regex | grep -E -o Regex | cut -d Regex -f Number | xargs -I {} grep -i -l Regex {}|||
+find Path -type f -exec chmod Permission {} \;|||find Path -type f -exec chmod Permission {} +|||find Path -type f -print0 | xargs -0 -I {} chmod Permission {}|||
+find Path -type f -size -Size|||find Path -type f -size -Size -print|||find Path -type f -and -size -Size|||
+find Path -type f -perm -Permission|||find Path -type f -perm -Permission -print|||find Path -type f -perm Permission -print|||
+find Path -type f -regex Regex|||find -E Path -type f -regex Regex|||find Path -type f -print0 | xargs -0 -I {} grep -l -E Regex {}|||
+find Path -type f -not -path Regex|||find Path -type f -not \( -path Regex -or -path Regex \) -prune -or -type f -print|||find Path -type f ! -path Regex ! -path Regex ! -path Regex|||
+find Path -type f -iname Regex -print0 | xargs -0 -I {} ls -l {}|||find Path -type f -iname Regex -exec ls -s {} \; | wc -l|||find Path -type f -iname Regex -ls|||
+find Path -perm Permission|||find Path -perm +Permission|||find Path \( -perm -Permission -or -perm -Permission \) -print|||
+dirname Regex | grep Regex | cut -d Regex -f Number | tr Regex Regex|||dirname $(grep Regex File | cut -f Number -d Regex | tr Regex Regex)|||dirname Regex | grep Regex | cut -d Regex -f Number | xargs -I {} dirname {} | tr Regex Regex|||
+find Path -type l -print0 | xargs -0 -I {} file {}|||find Path -type l -exec file {} \; | wc -l|||find Path -type l -printf __SP__UNK|||
+find Path -name Regex -maxdepth Quantity|||find Path -maxdepth Quantity -name Regex|||find Path -name Regex -maxdepth Quantity -print|||
+find Path -maxdepth Quantity -name Regex|||find Path -maxdepth Quantity -name Regex ! -name Regex|||find Path -maxdepth Quantity -name Regex -not -name Regex|||
+find Path -name Regex -mtime Timespan | xargs -I {} grep -l Regex {}|||find Path -type f -name Regex -mtime Timespan -exec grep -H -n Regex {} \; | wc -l|||find Path -name Regex -daystart -mtime +Timespan -mtime -Timespan | xargs -I {} wc -l {}|||
+find Path -type f -name Regex -exec cp {} File \;|||find Path -type f -name Regex ! -name Regex -exec cp {} File \;|||find Path -name Regex -type f -exec cp {} File \;|||
+find Path -name Regex -exec wc -l {} \;|||find Path -name Regex -print0 | xargs -0 -I {} wc -l {}|||find Path -name Regex -print0 | xargs -0 -n Quantity -I {} wc -l {}|||
+find Path -type f -exec du -S -h {} + | sort -r -h | head -n Quantity|||find Path -type f -exec du -S -h {} + | sort -r | head -n Quantity|||find Path -type f | xargs -I {} du -c -h {} | head -n Quantity|||
+find Path -size -Size|||find Path -size -Size -print|||find Path -size -Size | xargs -I {} du -s -h {}|||
+find Path -print | xargs -I {} ls -l {}|||find Path | xargs -I {} ls -l {}|||find Path -name Regex -print|||
+find Path -name Regex -exec rm -f {} \;|||find Path -name Regex -exec rm {} \;|||find Path -type f -name Regex -exec rm -f {} \;|||
+find Path -type d -mtime +Timespan -execdir compress File {} \;|||find Path -type d -mtime +Timespan -exec compress File {} \;|||find Path -mtime +Timespan -type d -mtime +Timespan -exec compress File {} \;|||
+find Path -type d -printf __SP__UNK|||find Path -type d -empty|||find Path -type d -print | xargs -I {} ls -t -c {} | tail -n Quantity|||
+find Path -type f -print0 | xargs -0 -I {} du -c -h {}|||find Path -type f -print0 | xargs -0 -I {} du -c -h {} | tail -n Quantity|||find Path -type f -exec du -h {} \;|||
+find Path -maxdepth Quantity -type f -print0 | xargs -0 -I {} du -c -h {}|||find Path -maxdepth Quantity -type d -print0 | xargs -0 -I {} du -c -h {}|||find Path -type d -name Regex|||
+find Path -name Regex|||find Path -type f -printf __SP__UNK | sort -n | tail -n Quantity|||find Path -type f -exec grep -H -n Regex {} \;|||
+find Path -name Regex|||find Path -name Regex -print|||find Path -iname Regex|||
+find Path -group Regex|||find Path -group Regex -print|||find Path -group Regex -perm -Permission -print|||
+find Path -exec echo {} \;|||find Path -print|||find Path -exec echo {} +|||
+find Path -name Regex -print|||find Path -name Regex|||find Path -type f -name Regex|||
+find Path -user Regex|||find Path -user Regex -print|||find Path -uid Regex -print|||
+find Path -type f -mtime +Timespan -exec echo {} \; | tr Regex Regex|||find Path -type f -mtime +Timespan -exec echo {} \;|||find Path -type f -newermt Regex ! -newermt Regex -exec echo {} \;|||
+find Path -name Regex|||find Path -name Regex -print|||find Path -maxdepth Quantity -name Regex|||
+find Path -size +Size|||find Path -size +Size -print|||find Path -type f -size +Size|||
+find Path -size +Size|||find Path -type f -size +Size|||find Path -size +Size -print|||
+find Path \( -name Regex -or -name Regex -or -name Regex \) -exec cp {} File \;|||find Path -maxdepth Quantity -not \( -name Regex -or -name Regex \) -exec cp {} File \;|||find Path -maxdepth Quantity -not -iname Regex -exec cp {} File \;|||
+find Path -mtime +Timespan|||find Path -mmin +Quantity|||find Path -mtime +Timespan -print|||
+find Path -iname Regex|||find Path -type f -iname Regex|||find Path \( -iname Regex -or -iname Regex \) -print|||
+find Path -type f -name Regex -or -name Regex -or -name Regex -or -name Regex -or -name Regex -or -name Regex -or -name Regex|||find Path -type f \( -name Regex -or -name Regex -or -name Regex \) -exec grep -H Regex {} \;|||find Path -type f \( -name Regex -or -name Regex -or -name Regex \) -exec grep -l Regex {} \;|||
+find Path -mtime +Timespan -type f -exec rm {} \;|||find Path -type f -mtime +Timespan -exec rm {} \;|||find Path -mtime +Timespan -type f -exec rm -f {} \;|||
+find Path -type f -perm -Permission -exec echo Regex {} \;|||find Path -type f -perm -Permission -exec grep -H Regex {} \;|||find Path -type f -perm -Permission -exec echo {} \;|||
+find Path -name Regex|||find Path -iname Regex|||find Path -name Regex -print|||
+find Path -name Regex|||find Path -name Regex -print|||find Path -iname Regex|||
+dirname $(mktemp -u -t Regex)|||dirname $(readlink -f File)|||$(mktemp -u -t Regex)|||
+find Path -type f -name Regex|||find Path -name Regex|||find Path -name Regex -type f|||
+find Path -type f -name Regex ! -perm Permission|||find Path -type f -name Regex ! -perm -Permission|||find Path -type f \( -iname Regex ! -perm -Permission \)|||
+find Path -type d | xargs -I {} du -c -h {}|||find Path -type d | xargs -I {} ls -l -t -r {} | tail - Quantity|||find Path -type d | xargs -I {} ls -l -t -r {} | tail -n Quantity|||
+find Path -type f -exec du -S -h {} + | sort -r -h | head -n Quantity|||find Path -type f -exec du -S -h {} + | sort -r -h | head - Quantity|||find Path -type f -exec du -S -h {} + | sort -n -r | head -n Quantity|||
+find Path -maxdepth Quantity -type f -mtime +Timespan -exec gzip {} \;|||find Path -mindepth Quantity -type f -mtime +Timespan -exec gzip {} \;|||find Path -type f -name Regex -mtime +Timespan -exec gzip {} \;|||
+find Path -mtime -Timespan -type f|||find Path -mtime -Timespan -type f -print|||find Path -mtime -Timespan -name Regex -print|||
+find Path -maxdepth Quantity -type f -printf __SP__UNK|||find Path -type f -printf __SP__UNK | sort -n | tail - Quantity|||find Path -type f -printf __SP__UNK | sort -n | head - Quantity|||
+find Path -type l -name Regex|||find Path -samefile Regex|||find Path -name Regex -type l|||
+find Path -type f -name Regex -exec grep -H Regex {} \;|||find Path -type f -name Regex -exec grep -i -l Regex {} \;|||find Path -type f -name Regex -exec grep -l Regex {} \;|||
+find Path -name Regex|||find Path -name Regex -exec grep -l Regex {} + | xargs -I {} grep Regex {}|||find Path -name Regex -exec grep -l Regex {} + | xargs -I {} grep -l Regex {}|||
+find Path -maxdepth Quantity -type f -perm Permission|||find Path -maxdepth Quantity -type f -perm +Permission|||find Path -maxdepth Quantity -type f|||
+find Path Path -type f -name Regex|||find Path Path Path Path -name Regex -type f|||find Path Path Path -name Regex -type f|||
+find Path Path -type f -iwholename Regex -exec grep -H Regex {} \;|||find Path -type f -iwholename Regex -exec grep -H Regex {} \;|||find Path Path -type f -iwholename Regex -exec rm {} \;|||
+
+
+
+find Path -maxdepth Quantity -name Regex -size -Size -exec rm {} \;|||find Path -maxdepth Quantity -name Regex -size -Size | xargs -I {} rm {}|||find Path -name Regex -size -Size -exec rm {} \;|||
+find Path -type f -exec rm -f {} \;|||find Path -type f -print0 | xargs -0 -I {} rm -f {}|||find Path -type f -print0 | xargs -0 -I {} rm -f -r {}|||
+column -s Regex -t File|||column -t -s Regex File|||cat File | column -c Quantity|||
+column -t -s Regex File|||column -s Regex -t File|||column -s Regex -t|||
+column -t -s Regex File|||column -s Regex -t File|||column -s Regex -t|||
+date --date=Regex | cut -d Regex -f Number | tr Regex Regex|||date -d Regex $(date -d Regex __SP__UNK)|||date --date=Regex | xargs -L Quantity -I {} date __SP__UNK|||
+
+find Path -size +Size -ls|||find Path -type f -size +Size -exec ls -a -l {} \;|||find Path -type f -size +Size -exec ls -l -h {} \;|||
+echo Regex | tee >(split -a Quantity -d -a Quantity File)|||echo Regex | tr -s Regex Regex | cut -d Regex -f Number|||echo Regex | od -t x1 -A n File | tee File|||
+kill $(jobs -p)|||jobs -p|||kill - Regex $(cat File)|||
+find Path -type f -name Regex -execdir cat {} \; | xargs -I {} tar -c -v -f File {}|||find Path -type f -name Regex -exec grep -s Regex {} \; -print|||find Path -type f -name Regex -exec cat {} \; | tr -c Regex Regex | grep Regex|||
+ifconfig Regex | grep -o -P Regex|||ifconfig Regex | grep -E -o Regex | cut -d Regex -f Number|||ifconfig Regex | grep -o -E Regex|||
+shopt extglob | cut -d Regex -f Number|||shopt globstar | cut -d Regex -f Number|||shopt extglob | cut -d Regex -f Number | cut -d Regex -f Number | tr Regex Regex|||
+find Path -name Regex|||find Path -type f -name Regex -exec ls -l {} \;|||find Path -name Regex -or -name Regex|||
+find Path -name Regex -exec ls -l {} \;|||find Path -name Regex -print | xargs -I {} ls -l {}|||find Path -name Regex | xargs -I {} ls -l {}|||
+find Path -name Regex -exec grep -l Regex {} \; | grep -v Regex|||find Path -name Regex -exec grep -l Regex {} + | grep -v Regex|||find Path -name Regex -exec grep -H Regex {} \;|||
+find Path -name Regex -exec ls -l {} \;|||find Path -name Regex -exec ls {} \;|||find Path -name Regex | xargs -I {} ls -l {}|||
+ls -d File|||find Path -type d -print0 | xargs -0 -I {} ls -l -d {}|||find Path -type d -print0 | xargs -0 -I {} ls -d {}|||
+find Path -mmin -Quantity | xargs -I {} ls -l {}|||find Path -mmin -Quantity | xargs -r -I {} ls -l {}|||find Path -mmin -Quantity | xargs -I {} ls -l -d {}|||
+find Path -ls|||find Path -print0 | xargs -0 -I {} ls {}|||find Path -print0 | xargs -0 -I {} ls -l {}|||
+find Path -type f -print | xargs -I {} ls -l {}|||find Path -type f -name Regex|||find Path -type f -print0 | xargs -0 -I {} ls -l {}|||
+find Path -type f -size +Size -exec ls -l {} \;|||find Path -type f -size +Size|||find Path -type f -size +Size -exec ls -l -h {} \;|||
+find Path \( -name Regex -or -name Regex \) -or -name Regex -or -name Regex|||find Path \( -name Regex -or -name Regex -or -name Regex \) -exec ls {} \;|||find Path \( -name Regex -or -name Regex \) -or -name Regex|||
+find Path -name Regex ! -path Regex ! -path Regex ! -path Regex|||find Path -type f -name Regex ! -path Regex ! -path Regex ! -path Regex|||find Path -name Regex -not -path Regex|||
+find Path -mmin -Quantity -type f -exec ls -l {} \;|||find Path -mmin -Quantity -type f | xargs -I {} ls -l {}|||find Path -type f -mtime -Timespan | xargs -I {} ls -l {}|||
+find Path -type f -cmin -Quantity -exec ls -l {} \;|||find Path -type f -ctime -Timespan|||find Path -type f -cmin -Quantity | xargs -I {} ls -l {}|||
+find Path -empty -exec ls {} \;|||find Path -empty -exec ls -l {} \;|||find Path -name Regex -exec ls -l {} \;|||
+ls -d File|||find Path -type d -maxdepth Quantity -exec ls -l -d {} \;|||find Path -maxdepth Quantity -type d -exec ls -d -l -r -t {} \;|||
+find Path -type f -name Regex -printf "%h\n" | sort -u|||find Path -type f -name Regex | sort -u|||find Path -type f -name Regex -exec ls -l -d {} \;|||
+ls File|||ls -l File|||ls -d File|||
+ls -l|||find Path -ls|||ls | xargs -I {} ls -l {}|||
+du -a --max-depth=Quantity | sort -n|||du -s -m -c File | sort -n|||du -h --max-depth=Quantity File | sort -n -r|||
+gzip -l Regex|||diff -q File File | cut -f Number -d Regex|||cat File | xargs -I {} ls -l {}|||
+jobs -l -p|||kill $(jobs -l -p)|||ls -l -b|||
+find Path -path Regex|||find Path \( -name Regex -or -name Regex \) -print|||find Path -name Regex -exec ls -l {} \;|||
+find Path ! -perm -Permission -prune -or -print|||find Path ! Path -prune -or -print|||find Path ! -perm -Permission -prune|||
+jobs -l -p | tr Regex Regex|||ps -e -f | grep Regex | tr -s Regex | cut -d Regex -f Number | tr Regex Regex|||ps -e -f | grep Regex | tr -s Regex | cut -d Regex -f Number|||
+find Path -type f -printf '%T@ %p\n' | sort -n | tail - Quantity | cut -f Number -d Regex|||find Path -type f -printf '%T@ %p\n' | sort -n | tail - Quantity | cut -d Regex -f Number|||find Path -type f -name Regex -printf '%T@ %p\n' | sort -n | tail - Quantity | cut -f Number -d Regex|||
+ls -d File | cut -f Number -d Regex|||find Path -name Regex -exec ls -l -d {} \;|||ls -d File | cut -d Regex -f Number|||
+find Path -type f -mtime +Timespan | xargs -I {} ls -l {}|||find Path -type f -mtime +Timespan -exec ls -l {} \;|||find Path -mtime +Timespan -type f -exec ls -l {} \;|||
+find Path \( -name Regex -or -name Regex \) -mtime +Timespan -print|||find Path \( -name Regex -or -name Regex \) -mtime +Timespan -exec ls {} \;|||find Path \( -name Regex -or -name Regex \) -mtime +Timespan -exec ls -l {} \;|||
+find Path -name Regex|||find Path -type f -name Regex|||find Path -name Regex | xargs -I {} grep Regex {}|||
+echo Regex | cut -d Regex -f Number|||echo Regex | grep Regex|||echo Regex | xargs -I {} echo {}|||
+find Path -path Regex -print|||find Path -name Regex -exec grep -l Regex {} \;|||find Path -name Regex -print | xargs -I {} grep Regex {}|||
+find Path -name Regex|||find Path -name Regex -exec grep Regex {} \;|||find Path -type d -print0 | xargs -0 -I {} grep -l Regex {}|||
+grep Regex File | xargs -I {} grep Regex {}|||grep Regex File|||grep Regex File | grep Regex|||
+cat File | xargs -n Quantity -I {} cp File {}|||find Path -type d -exec cp File {} \;|||find Path -type d -exec mkdir -p Directory \;|||
+mkdir Directory|||mkdir -p Directory|||find Path -maxdepth Quantity -type d -print0 | xargs -0 -I {} mkdir Directory|||
+mkdir Directory|||find Path -maxdepth Quantity -type d -print0 | xargs -0 -n Quantity -I {} mkdir Directory|||find Path -maxdepth Quantity -type d -print0 | xargs -0 -I {} mkdir Directory|||
+join -t Regex -j Regex File File|||join -t Regex File File|||cat File | join -t Regex File File|||
+paste -s -d Regex|||paste -d Regex -s|||column | paste -s -d Regex File|||
+mount Regex Regex|||mount Regex -t __SP__UNK|||mount -l -t __SP__UNK Regex|||
+mv File File|||mv File $(ls File | xargs -I {} mv {} File)|||mv $(ls -1 File | xargs -I {} mv {} File)|||
+mv File File|||find Path -not -path Regex -not -path Regex -print0 | xargs -0 -I {} mv {} File|||find Path -type f ! -path Regex ! -path Regex ! -path Regex -exec mv {} File \;|||
+find Path -maxdepth Quantity -type f -exec mv {} File \;|||find Path -type f -exec mv {} File \;|||find Path -maxdepth Quantity -not -name Regex -print0 | xargs -0 -I {} mv {} File|||
+find Path -maxdepth Quantity -name Regex -execdir rename Regex {} \;|||find Path -type d -name Regex -execdir mv File File \;|||find Path -maxdepth Quantity -type d -name Regex -execdir rename Regex {} \;|||
+find Path -mtime +Timespan -exec mv {} File \;|||mv File $(echo Regex | cut -d Regex -f Number)|||find Path -type f -mtime +Timespan -exec mv {} File \;|||
+info Regex Regex|||info -O Regex|||ping Regex | tac | tac | tac | tac | tac | tr -s Regex | cut -d Regex -f Number|||
+join -j Regex File File|||join -o __SP__UNK -t Regex File File|||join -1 Regex -2 Regex -o __SP__UNK File File|||
+basename Regex|||echo $(basename Regex)|||echo Regex | rev | cut -d Regex -f Number | rev|||
+find Path -iname Regex -print0 | xargs -0 -I {} grep -i Regex {}|||find Path -iname Regex -print0 | xargs -0 -I {} grep -i -l Regex {}|||find Path -iname Regex -exec grep -i -l Regex {} \;|||
+find Path -name Regex|||find Path -name Regex -print|||find Path -type f -name Regex|||
+echo Regex | fold -w Quantity | head - Quantity|||echo Regex | fold -w Quantity | head -n Quantity|||head -c Quantity File | column -t|||
+sort File | uniq -c|||sort File | uniq -c | sort -n -r|||sort | uniq -c | sort -n -r|||
+find Path -path Regex -prune -or -print|||find Path ! -path Regex -type f -exec ls -l {} \;|||find Path ! -path Regex -prune -or -type f -printf __SP__UNK|||
+find Path -type f -name Regex|||find Path -type f \( -name Regex -or -name Regex \)|||find Path -type f -name Regex -exec echo {} \;|||
+find Path -name Regex -printf '%h\n' | sort -u|||find Path -name Regex -printf '%h\n' | sort | uniq|||find Path -name Regex -printf '%h\n' | sort | uniq -c|||
+readlink -f File|||readlink -f $(readlink -f File)|||readlink -f $(readlink File)|||
+echo Regex | grep --line-buffered Regex | cut -d Regex -f Number|||echo Regex | grep --line-buffered Regex | cut -d Regex -f Number | tail -n +Quantity|||echo Regex | grep -E -o Regex | cut -d Regex -f Number|||
+basename $(pwd)|||pwd | xargs -I {} basename {}|||pwd | cut -d Regex -f Number | tr Regex Regex|||
+dig Regex Regex __SP__UNK __SP__UNK|||echo Regex | tr Regex Regex | tr Regex Regex|||echo Regex | tr Regex Regex | tr -d Regex|||
+cal DateTime DateTime|||ps | tail - Quantity | cut -d Regex -f Number | tail -n +Quantity | cut -f Number -d Regex|||ps -A | cut -d Regex -f Number | tail -n +Quantity | head -n Quantity|||
+find Path -mindepth Quantity -maxdepth Quantity -type d | xargs -I {} ls -l {}|||find Path -maxdepth Quantity -mindepth Quantity -type d | xargs -I {} ls -l {}|||find Path -mindepth Quantity -maxdepth Quantity -type d | xargs -I {} echo Regex {}|||
+grep -v Regex File | sort | uniq -c | sort -n|||cat File | sort | uniq -c|||grep -v Regex File | sort | uniq -c | sort -n -r|||
+diff -q -r File File | grep Regex|||diff -r -q -u Quantity File File | grep Regex|||diff -q -r File File | grep Regex | cut -d Regex -f Number | xargs -I {} grep Regex {}|||
+dirname $(readlink -f File)|||dirname $(readlink File)|||dirname $(readlink -n -f File)|||
+find Path -maxdepth Quantity -type d|||find Path -maxdepth Quantity|||find Path -maxdepth Quantity -mindepth Quantity -type d|||
+w | cut -d Regex -f Number|||echo Regex | cut -d Regex -f Number|||w | cut -d Regex -f Number | cut -d Regex -f Number | rev|||
+echo Regex | cut -d Regex -f Number|||echo Regex | rev | cut -d Regex -f Number | rev|||echo Regex | grep -o Regex | cut -d Regex -f Number|||
+cat File | paste -d Regex File File|||head -n Quantity File | tr -s Regex | cut -d Regex -f Number|||seq Number Number | paste -s -d File File|||
+find Path -print0 | xargs -0 -n Quantity -I {} echo {}|||find Path -type f -print0 | xargs -0 -n Quantity -I {} echo {}|||find Path -type f -exec split -l Quantity {} \;|||
+cut File -f Number File|||cut -d Regex -f Number File|||cat File | cut -f Number -d Regex|||
+echo Regex | cut -d Regex -f Number|||echo $(basename Regex)|||echo $(echo Regex | cut -d Regex -f Number)|||
+echo Regex $(dirname Regex)|||echo Regex $(readlink -f File)|||echo Regex $(readlink -e File)|||
+echo Regex | od -c|||echo Regex | od -x -c -b|||echo $(echo Regex | od -c)|||
+ps -e -f | grep Regex|||ps -e -f | tee File|||ps -e -f | tail -n Quantity|||
+echo $(seq Number Number)|||echo $(echo Regex | rev | cut -f Number -d Regex | tail - Quantity)|||echo Regex | cut -d Regex -f Number|||
+tail File | tee -a File|||tail File | tail -n +Quantity | tee -a File|||tail File | xargs -I {} echo Regex Regex Regex {}|||
+tail -n +Quantity File | head -n Quantity|||head -n Quantity File | tail - Quantity | cut -f Number -d Regex|||yes Regex | head - Quantity | tail - Quantity|||
+find Path -type f|||find Path -type f -print0 | xargs -0 -I {} ls -l {}|||find Path -type f -exec ls -l {} \;|||
+ls -l File | head - Quantity | cut -f Number -d Regex|||ls -l -d File | cat File File | cut -f Number -d Regex|||ls -l -d File | cut -f Number -d Regex|||
+find Path -type d -print0 | xargs -0 -I {} ls -c {} | tail -n Quantity|||find Path -type d -print0 | xargs -0 -n Quantity -I {} echo {}|||find Path -type d -exec ls -s {} \; | sort -n -r|||
+seq Number | tail -n +Quantity | head -n Quantity|||seq Number | xargs -L Quantity -I {} echo {}|||seq Number | xargs -I {} head -n Quantity {}|||
+dirname $(readlink -f File)|||
+readlink -f File|||readlink -f $(dirname Regex)|||echo Regex $(dirname Regex)|||
+tail $(which Regex)|||find Path -exec echo Regex \;|||find Path -exec echo Regex {} \;|||
+pstree | grep Regex|||pstree -s Regex|||pstree|||
+pstree -s Regex|||ps -e -f | grep Regex | cut -d Regex -f Number | tr -s Regex | cut -d Regex -f Number|||ps -e -f | grep Regex | tr -s Regex | cut -d Regex -f Number|||
+pstree -a Regex|||pstree -a|||pstree -s Regex|||
+rev File | cut -d Regex -f Number | rev|||cut -d Regex -f Number File | rev|||cut -d Regex -f Number File|||
+grep -v Regex File|||grep Regex File | xargs -I {} grep Regex {}|||grep -e Regex Regex | xargs -I {} grep Regex {}|||
+find Path | xargs -I {} echo Regex {}|||find Path | xargs -I {} echo Regex Regex {}|||find Path | xargs -I {} echo {}|||
+echo Regex | rev | cut -d Regex -f Number | rev|||head -c Quantity File | tail - Quantity | cut -d Regex -f Number|||du -s -x File | tail - Quantity | cut -d Regex -f Number | rev|||
+find Path -type d -exec ls -s {} \; | sort -n -r | head - Quantity|||ls -d -1 File | tr -d Regex|||ls -1 | xargs -I {} cp {} File|||
+find Path -maxdepth Quantity -type d -printf '%f\n'|||find Path -maxdepth Quantity -type d -printf "%P\n"|||find Path -maxdepth Quantity -type d -printf __SP__UNK|||
+ps -A | cut -d Regex -f Number | cut -d Regex -f Number | rev|||ps | cut -d Regex -f Number | rev|||ps -e -f | cut -d Regex -f Number | cut -d Regex -f Number | rev|||
+sort File File | uniq -u|||sort File File | comm -2 -3 File File|||comm File File|||
+echo Regex | fold -w Quantity|||echo Regex | fold -s -w Quantity|||echo Regex | fold -w Quantity | head - Quantity|||
+echo $(pwd)|||echo Regex $(dirname Regex)|||echo $(basename Regex)|||
+date --date=Regex __SP__UNK|||date __SP__UNK --date=Regex|||date __SP__UNK -d Regex|||
+find Path -maxdepth Quantity -print0 | xargs -0 -I {} gunzip {}|||find Path -maxdepth Quantity -print0 | xargs -0 -I {} ls {}|||find Path -maxdepth Quantity -print0 | xargs -0 -I {} file {}|||
+echo Regex | rev | cut -d Regex -f Number | rev|||finger | cut -d Regex -f Number | rev|||echo Regex | rev | cut -c Number | rev|||
+read|||read Regex|||read -s Regex|||
+read -p Regex Regex|||read -p Regex -p Regex|||read -p Regex -n Quantity|||
+read -p Regex Regex|||read -p Regex -p Regex|||read -p Regex -n Quantity|||
+read -r Regex|||read -p $(echo -n -e Regex)|||read -r -p Regex|||
+read Regex|||read Regex | xargs -n Quantity -I {} echo Regex Regex Regex {}|||read Regex | xargs -n Quantity -I {} echo Regex Regex {}|||
+read -r -p Regex Regex|||read -s -p Regex Regex|||read -p Regex -r Regex|||
+read -e -p Regex -i Regex Regex|||read -p Regex -i Regex Regex|||read -t Quantity -p Regex Regex|||
+read -p Regex Regex|||read -e -p Regex Regex|||read -p Regex -i Regex Regex|||
+read -r -n Quantity -p Regex Regex|||read -n Quantity -r -p Regex Regex|||read -r -p Regex -n Quantity -r|||
+read -r -p Regex Regex|||read -n Quantity -p Regex Regex|||read -n Quantity -r -p Regex Regex|||
+chown -R Regex File|||find Path -name Regex -exec chown -R Regex {} \;|||find Path -type f -exec chown Regex {} \;|||
+chown -R Regex File|||chown -R Regex File | xargs -I {} chown Regex {}|||chown Regex File -R|||
+chown -R Regex File File File File File File|||chown -R Regex File File File File File|||chown -R Regex File File File File File File File|||
+chown -R Regex File|||chown -R File $(whoami)|||
+rsync -r -v --exclude=Regex --exclude=Regex File File|||rsync -r --exclude=Regex --exclude=Regex File File|||rsync -r --verbose --exclude=Regex File File|||
+grep -n -i Regex File|||grep -i -n -r Regex File|||grep -n -r Regex File|||
+find Path -type f -name Regex -exec rm -f {} \;|||find Path -name Regex -exec rm -f {} \;|||find Path -name Regex -print0 | xargs -0 -I {} rm {}|||
+find Path -name Regex -exec grep -l Regex {} + | xargs -I {} dirname {} | xargs -I {} dirname {} | xargs|||find Path -name Regex -exec grep -l Regex {} + | xargs -I {} dirname {} | xargs -I {} dirname {}|||find Path -name Regex -exec grep -l Regex {} + | xargs -n Quantity -I {} dirname {} | xargs -I {} dirname {}|||
+find Path -type f -exec grep -H Regex {} \;|||find Path -type f -exec grep -H Regex {} +|||find Path -type f -exec grep Regex {} \; -print|||
+find Path -type f -name Regex -print0 | xargs -0 -I {} grep -l Regex {}|||find Path -type f -name Regex -print | xargs -I {} grep -l Regex {}|||find Path -type f -name Regex -print | xargs -I {} grep -l -i Regex {}|||
+ls -m|||ls -t -r | sort -n | tail -n Quantity|||ls -t -r | sort -n | tail - Quantity|||
+rm -r File|||rm File | xargs -I {} rm -r -f {}|||find Path -type d -exec rm -r -f {} \;|||
+find Path -name Regex | xargs -I {} rm {}|||find Path -name Regex | xargs -I {} rm -r -f {}|||find Path -type f -name Regex -exec rm -f {} \;|||
+rm -r -f File File File|||rm -r -f File File File File File|||find Path -type f -name Regex -exec rm -f {} \;|||
+find Path -name Regex -exec rm {} \;|||find Path -name Regex -print0 | xargs -0 -I {} rm {}|||find Path -name Regex | xargs -I {} rm {}|||
+chmod -R Permission File|||chmod Permission -R File|||chmod Permission $(find Path -type f -perm Permission -print)|||
+mount -o __SP__UNK -t yaffs2 Regex Regex|||mount -o __SP__UNK Regex Regex|||mount Regex -o __SP__UNK Regex|||
+mount -o remount,ro -t yaffs2 Regex Regex|||mount Regex -o remount,ro -t yaffs2 Regex|||mount -o remount,ro Regex -t yaffs2 Regex|||
+rm File|||rm --force File|||echo Regex | rev | cut -f Number -d Regex | rev | cut -f Number -d Regex | xargs -I {} rm {}|||
+cat File | rev | cut -d Regex -f Number | rev|||sort File | uniq | xargs -I {} rm {}|||cat File | rev | cut -d Regex -f Number | rev | cut -d Regex -f Number | rev|||
+find Path -type f -name Regex ! -name Regex -exec rm {} \;|||find Path -type f -name Regex ! -name Regex -exec rm -f {} \;|||find Path -maxdepth Quantity -type f -name Regex ! -name Regex -exec rm -f {} \;|||
+find Path -name Regex -mtime +Timespan -exec rm {} \;|||find Path -name Regex -mtime +Timespan | xargs -I {} rm {}|||find Path -name Regex -mtime +Timespan -print0 | xargs -0 -I {} rm {}|||
+find Path -name Regex -ok rm {} \;|||find Path -type f -name Regex -ok rm {} \;|||find Path -iname Regex -ok rm {} \;|||
+find Path -type f -exec rm {} \;|||find Path -type f -print0 | xargs -0 -I {} rm {}|||find Path -type f -exec rm {} +|||
+find Path -name Regex -exec rm {} \;|||find Path -name Regex | xargs -I {} rm {}|||find Path -name Regex -print0 | xargs -0 -I {} rm {}|||
+find Path -name Regex -mtime +Timespan -exec rm {} \;|||find Path -type f -name Regex -mtime +Timespan -exec rm -f {} \;|||find Path -type f -mtime +Timespan -name Regex -exec rm -f {} \;|||
+find Path -perm -Permission -exec chmod Permission {} \;|||find Path -perm -Permission -type f -exec chmod Permission {} \;|||find Path -type f -perm -Permission -exec chmod Permission {} \;|||
+find Path -name Regex | xargs -I {} rm {}|||find Path -name Regex -exec rm {} \;|||find Path -name Regex -delete|||
+rmdir Directory|||find Path -maxdepth Quantity -type d -empty -exec rmdir {} \;|||find Path -maxdepth Quantity -type d -empty -print0 | xargs -0 -I {} rmdir {}|||
+find Path -maxdepth Quantity -type d -exec rm -r -f {} \;|||find Path -maxdepth Quantity -type d -exec basename {} \; | xargs -I {} rm {}|||find Path -type d -exec basename {} \; | wc -l|||
+rm File|||paste -s -d File File|||echo Regex | tr -d Regex | cut -d Regex -f Number|||
+rmdir Directory|||find Path -type d -empty -print0 | xargs -0 -I {} rmdir {}|||find Path -depth -empty -type d -print0 | xargs -0 -I {} rmdir {}|||
+rm -r File File File File File File File File|||rm -r -f File File File File File File File File|||rm -r -f File File File File File File File File File File|||
+find Path -type f -name Regex -exec rm -f {} \;|||find Path -type f -name Regex -exec rm {} \;|||find Path -name Regex -ok rm {} \;|||
+echo Regex | rev | cut -c Number | rev|||echo Regex | rev | cut -d Regex -f Number | rev|||echo Regex | rev | cut -f Number -d Regex | rev|||
+find Path -name Regex -exec rm -f {} \;|||find Path -name Regex -exec rm {} \;|||find Path -name Regex -exec rm -r -f {} \;|||
+mv File File|||mv File $(echo Regex | rev | cut -f Number -d Regex | rev | cut -d Regex -f Number | rev)|||mv File $(echo Regex | rev | cut -f Number -d Regex | rev | cut -f Number -d Regex | rev)|||
+mv File File|||mv File $(echo Regex | rev | cut -f Number -d Regex | rev | cut -d Regex -f Number | rev)|||mv File $(echo Regex | rev | cut -f Number -d Regex | rev | cut -f Number -d Regex | rev)|||
+mv File File -b -S Regex|||mv -T File File File|||mv File $(echo Regex | tr Regex Regex)|||
+mv File File|||mv File $(echo Regex | rev | cut -f Number -d Regex | rev | cut -f Number -d Regex | rev)|||mv File $(echo Regex | rev | cut -f Number -d Regex | rev | cut -d Regex -f Number | rev)|||
+find Path -name Regex -exec rename Regex {} \;|||find Path -name Regex -print0 | xargs -0 -I {} rename Regex {}|||find Path -name Regex -exec rename -v Regex {} \;|||
+rename Regex Regex|||find Path -print0 | xargs -0 -I {} rename Regex {}|||find Path -exec mv {} File \;|||
+find Path -exec mv {} File \;|||find Path -print0 | xargs -0 -I {} rename Regex {}|||find Path -print0 | xargs -0 -I {} mv {} File|||
+find Path -inum Quantity -exec mv {} File \;|||find Path -inum Quantity -exec rename Regex {} \;|||find Path -inum Quantity -print0 | xargs -0 -I {} mv {} File|||
+tr -s Regex Regex|||tr -s -c Regex Regex|||tr -s Regex Regex | tr -d Regex|||
+df -h File|||df --total -B Size | tail -n Quantity|||df -P -h | tail - Quantity | cut -d Regex -f Number|||
+df|||df -i|||df | grep Regex|||
+$(date -d Regex __SP__UNK)|||$(date -u -d Regex __SP__UNK)|||$(echo -e Regex | tr Regex Regex)|||
+find Path -type f -printf '%T@ %p\n' | sort -n | tail - Quantity | cut -f Number -d Regex|||find Path -type f -print0 | xargs -0 -I {} grep -c Regex {} | head -n Quantity|||find Path -name Regex | xargs -I {} grep -E Regex {}|||
+echo Regex | cut -d Regex -f Number|||echo Regex | cut -f Number -d Regex|||echo Regex | rev | cut -d Regex -f Number | head - Quantity|||
+env | grep Regex | tr -s Regex Regex | cut -d Regex -f Number|||echo -e Regex | tr -s Regex Regex | cut -d Regex -f Number|||env Program Program | tr -s Regex Regex | cut -d Regex -f Number|||
+env | grep Regex | tr -s Regex | cut -d Regex -f Number|||env | grep Regex | grep -v Regex|||env | grep Regex | cut -d Regex -f Number | rev|||
+cat File | xargs -n Quantity -I {} dirname {} | sort | uniq | tee File|||cat File | grep Regex | xargs -n Quantity -I {} dirname {} | sort | uniq | tee File|||cat File | grep -v Regex | xargs -n Quantity -I {} dirname {} | sort | uniq | tee File|||
+echo Regex | read Regex|||echo -n Regex | read Regex|||echo $(echo Regex | read Regex)|||
+readlink -f File|||readlink -f $(readlink -f File)|||readlink -f -n -- File|||
+readlink -f File|||readlink -f $(readlink -f File)|||readlink -f -n File|||
+find Path -type d | tr Regex Regex|||find Path -type d -print0 | tr Regex Regex|||find Path -type d -exec mkdir Directory \;|||
+$(echo Regex | rev | cut -d Regex -f Number)|||$(cat File | tr -c Regex Regex | fold -w Quantity | cut -d Regex -f Number)|||$(cat File | tr -s Regex | tail - Quantity | cut -d Regex -f Number)|||
+$(date --date=Regex __SP__UNK)|||$(date __SP__UNK --date=Regex | tr -s Regex Regex | cut -d Regex -f Number)|||$(date __SP__UNK --date=Regex | tr -s Regex Regex | cut -d Regex -f Number | cut -d Regex -f Number)|||
+which Regex | xargs -n Quantity -I {} dirname {} | xargs -I {} dirname {} | xargs -I {} dirname {}|||which Regex | xargs -n Quantity -I {} dirname {} | xargs -I {} dirname {}|||which Regex | xargs -I {} dirname {} | xargs -I {} dirname {} | tail -n Quantity|||
+which Regex | xargs -n Quantity -I {} dirname {} | xargs -I {} dirname {} | xargs -I {} dirname {}|||which Regex | xargs -n Quantity -I {} dirname {} | xargs -I {} dirname {}|||which Regex | xargs -I {} dirname {} | xargs -I {} dirname {} | tail -n Quantity|||
+echo Regex | read -a Regex|||echo Regex | grep -o Regex | wc -l|||echo Regex | tr -d Regex | grep Regex|||
+cat File | tr -d Regex | cut -d Regex -f Number|||find Path -type f -printf __SP__UNK | sort | tail - Quantity | cut -d Regex -f Number|||find Path -type f -printf __SP__UNK | sort -n | tail - Quantity | cut -d Regex -f Number|||
+ls | xargs -n Quantity -I {} ls -l {}|||ls | xargs -I {} ls -l -t -r {} | head - Quantity|||ls | xargs -I {} ls -l -t -r {} | tail -n Quantity|||
+echo -e Regex | tr -s Regex Regex | cut -d Regex -f Number|||dig -x Regex Regex | grep Regex | cut -d Regex -f Number | cut -d Regex -f Number | tr Regex Regex|||dig -x Regex Regex | grep Regex | cut -d Regex -f Number | tr Regex Regex|||
+wc -l File | cut -f Number -d Regex|||cat File | grep -c Regex | wc -l|||cat File | grep Regex | wc -l|||
+hostname | cut -d Regex -f Number|||echo | tr -s Regex | cut -d Regex -f Number|||hostname | tr -s Regex | cut -d Regex -f Number|||
+grep -f File Regex | sort | uniq -c|||grep -o Regex File | sort | uniq -c | sort -n|||grep -E -o Regex File | sort | uniq -c|||
+find Path -type d -empty|||find Path -maxdepth Quantity -empty|||find Path -mindepth Quantity -maxdepth Quantity -empty|||
+find Path -type d -name Regex -print|||find Path -type d -name Regex -exec grep -l Regex {} \;|||find Path -type d -name Regex|||
+find Path -name Regex -exec mv {} File \;|||find Path -name Regex -exec rename -v Regex {} \;|||find Path -iname Regex -exec mv {} File \;|||
+find Path -type f | xargs -I {} grep -F Regex {}|||find Path -type f -print0 | xargs -0 -I {} grep -F Regex {}|||find Path -type f -print0 | xargs -r -0 -I {} grep -F Regex {}|||
+find Path Path -type f \( -perm -Permission -or -perm -Permission \)|||find Path -type f \( -perm -Permission -or -perm -Permission \)|||find Path Path -type f \( -perm -Permission -or -perm -Permission -or -perm -Permission \)|||
+find Path -regex Regex -and -not -regex Regex|||find Path -regextype posix-egrep -regex Regex -regex Regex|||find Path -regex Regex -and \( -name Regex -or -name Regex \) -print|||
+find Path -name Regex -newer File|||find Path -type f -name Regex -newer File -print|||find Path -name Regex -newer File -print|||
+find Path -type f ! -name Regex ! -name Regex -print|||find Path ! -name Regex -print|||find Path -type f ! -regex Regex -exec grep -H Regex {} \;|||
+find Path -name Regex|||find Path -name Regex -print|||find Path \( -name Regex -or -name Regex \) -print|||
+find Path -iname Regex|||find Path -iname Regex -exec grep -i Regex {} \;|||find Path -iname Regex -exec grep -i -l Regex {} \;|||
+find Path -type f ! -name Regex|||find Path -type f|||find Path -type f ! -path Regex|||
+find Path -type f -exec grep -l Regex {} \;|||find Path -type f | xargs -I {} grep -l Regex {}|||find Path -type f -exec grep -l Regex {} +|||
+find Path -regex Regex|||find Path -type f -regex Regex|||find Path -regex Regex -type f|||
+find Path -lname Regex|||find Path -lname Regex -print|||find Path -type l -lname Regex|||
+find Path -name Regex -exec rm {} \;|||find Path -type f -name Regex -exec rm -f {} \;|||find Path -name Regex -type f -exec rm -f {} \;|||
+find Path -name Regex -perm -Permission -print|||find Path -type f -perm -Permission|||find Path -name Regex -type f|||
+find Path -newer File -and ! -newer File|||find Path -newer File -and -newer File|||find Path -newer File -name Regex|||
+grep Regex File | grep Regex|||grep Regex File | grep -i Regex|||grep -i Regex File | grep Regex|||
+find Path -type f -name Regex -newermt Regex ! -newermt Regex -exec zcat {} \;|||find Path -type f -name Regex -newermt Regex ! -newermt Regex -exec grep -H Regex {} \;|||find Path -type f -name Regex -newermt Regex ! -newermt Regex -exec grep -H Regex {} +|||
+find Path -type f -name Regex -exec cat {} \;|||find Path -name Regex -exec cat {} \;|||find Path -type l -name Regex -exec cat {} \;|||
+find Path -type f -regex Regex -exec grep -H Regex {} \;|||find Path -type f -regex Regex -exec grep -H Regex {} +|||find Path -type f -path Regex ! -path Regex -exec grep -H Regex {} \;|||
+find Path -name Regex -exec grep -l Regex {} + | xargs -I {} echo Regex Regex {}|||find Path -name Regex -exec grep -l Regex {} + | xargs -I {} echo Regex Regex Regex {}|||find Path -name Regex -exec grep -l Regex {} \; | xargs -I {} echo Regex Regex {}|||
+find Path -name Regex -exec grep -H -n Regex {} \;|||find Path -name Regex | xargs -I {} grep -H -n Regex {}|||grep -H Regex File | grep Regex|||
+find Path -name Regex | xargs -I {} grep Regex {}|||find Path -name Regex -exec grep Regex {} \;|||find Path -name Regex | xargs -I {} grep -E Regex {}|||
+find Path -name Regex -prune -or -name Regex -print|||find Path -name Regex -print | xargs -I {} grep -i -l Regex {}|||find Path -name Regex -prune -or -print | xargs -I {} grep Regex {}|||
+find Path -name Regex -type d | xargs -I {} dirname {}|||find Path -name Regex -maxdepth Quantity|||find Path -name Regex -type d | xargs -I {} grep -L Regex {}|||
+find Path -perm +Permission | grep Regex|||find Path \( -perm -Permission -or -perm -Permission \) -ls|||find Path -perm +Permission | grep -E Regex|||
+find Path -newer File -and ! -newer File|||find Path -newer File -and ! -newer File -print|||find Path -newer File -and -not -newer File|||
+find Path -inum Quantity|||find Path -inum Quantity -print|||find Path -inum Quantity -exec grep -H -n Regex {} \;|||
+find Path -iname Regex -atime Timespan -type -f|||find Path -type f -atime Timespan -iname Regex|||find Path -name Regex -atime Timespan -type -f|||
+find Path -name Regex -ctime -Timespan|||find Path -type f -ctime -Timespan -name Regex|||find Path -iname Regex -ctime -Timespan|||
+find Path -type f -ctime -Timespan -exec mv {} File \;|||find Path -type f -ctime -Timespan -exec chmod Permission {} \;|||find Path -type f -ctime -Timespan | xargs -I {} chmod Permission {}|||
+find Path -type f -size +Size -name Regex -print|||find Path -type f -size +Size -name Regex|||find Path -type f -size +Size -iname Regex|||
+find Path -name Regex | xargs -I {} grep -E Regex {}|||find Path -name Regex | xargs -I {} grep Regex {}|||find Path -type f -name Regex | xargs -I {} grep Regex {}|||
+find Path -name Regex | grep -v Regex | wc -l|||find Path -name Regex -type f | xargs -I {} grep -l -i Regex {}|||find Path -name Regex -exec grep -l Regex {} \; | wc -l|||
+find Path -iname Regex|||find Path -name Regex|||find Path -name Regex -print|||
+find Path -perm Permission|||find Path -perm -Permission|||find Path \( -perm -Permission -or -perm -Permission \) -or -perm -Permission -or -perm -Permission -or -perm -Permission -exec ls -l {} \;|||
+tar -c -v -f File $(find Path -iname Regex)|||find Path -iname Regex -exec tar -c -v -f File {} \;|||find Path -iname Regex -exec tar -r -v -f File {} \;|||
+find Path -name Regex|||find Path -iregex Regex|||find Path -iname Regex|||
+find Path -regex Regex|||find Path -path Regex|||find Path -name Regex|||
+find Path -mtime -Timespan|||find Path -mtime -Timespan -print|||find Path -mmin -Quantity|||
+find Path -perm Permission|||find Path -perm -Permission|||find Path \( -perm -Permission -or -perm -Permission \) -type f -exec ls -l {} \;|||
+find Path -path Regex -prune -or -name Regex -print|||find Path -iname Regex ! -path Regex|||find Path -name Regex -prune -or -name Regex -print|||
+find Path -iname Regex | grep -i Regex|||find Path -ipath Regex -ipath Regex|||find Path -iname Regex -ipath Regex|||
+find Path \( -name Regex -or -name Regex -or -name Regex \) -print|||find Path -name Regex ! -path Regex ! -path Regex|||find Path \( -name Regex -or -name Regex \) -prune -or -name Regex -print|||
+find Path -name Regex -not -path Regex|||find Path -name Regex ! -path Regex|||find Path -type f \( -name Regex -or -name Regex \)|||
+find Path -type f -mtime -Timespan -daystart -exec cp {} File \;|||find Path -type f -mtime Timespan -daystart -iname Regex -exec cp {} File \;|||find Path -type f -name Regex -daystart -mtime -Timespan -daystart -exec cp {} File \;|||
+find Path -not -name Regex -not -name Regex -not -name Regex -not -name Regex|||find Path -not -name Regex -not -name Regex -not -name Regex -print0 | xargs -0 -I {} grep Regex {}|||find Path -not -name Regex -not -name Regex -not -name Regex -not -name Regex -print0 | xargs -0 -I {} grep Regex {}|||
+find Path -name Regex -exec rm {} \;|||find Path -name Regex -exec rm -f {} \;|||find Path -name Regex -print0 | xargs -0 -I {} rm {}|||
+find Path -type f -exec grep Regex {} \; -print|||find Path -type f -exec grep Regex {} \;|||find Path -type f | xargs -I {} grep Regex {}|||
+find Path -name Regex | xargs -I {} grep Regex {}|||find Path -type f -name Regex -exec grep -i -l Regex {} \;|||find Path -exec grep Regex {} \; -print|||
+find Path -name Regex | xargs -I {} grep Regex {}|||find Path -name Regex -exec grep Regex {} \; -print|||find Path -name Regex -print | xargs -I {} grep Regex {}|||
+apropos | grep Regex|||apropos Regex Regex Regex|||apropos Path Regex Regex|||
+find Path -type f -name Regex -print -exec cat {} \;|||find Path -name Regex -type f -print|||find Path -type f -name Regex -exec echo {} \;|||
+find Path -type f | xargs -I {} grep Regex {}|||find Path -type f -exec grep -H Regex {} +|||find Path -type f -print0 | xargs -0 -I {} grep -F Regex {}|||
+find Path -type f -exec chmod Permission {} \;|||find Path -type f -exec chmod Permission {} +|||find Path -type f -print0 | xargs -0 -I {} chmod Permission {}|||
+find Path -type d -exec chmod Permission {} \;|||find Path -type d -exec chmod Permission {} +|||find Path -type d -print0 | xargs -0 -I {} chmod Permission {}|||
+touch -m --date=Regex File | xargs -I {} touch {}|||touch -m --date=Regex File | cut -d Regex -f Number | xargs -I {} touch {}|||touch -m --date=Regex File | cut -d Regex -f Number | rev|||
+ssh -L Regex Regex|||ssh -p Regex Regex|||ssh -R Regex Regex|||
+find Path -print0 | xargs -0 -I {} ls -l {}|||find Path -exec ls -l {} \;|||find Path -print0 | xargs -0 -I {} ls -l -d {}|||
+find Path -type f -size +Size|||find Path -type f -size +Size -print|||find Path -type f -and -size +Size|||
+date date __SP__UNK | grep --line-buffered Regex | cut -d Regex -f Number | cut -d Regex -f Number | xargs -I {} date|||date __SP__UNK | grep --line-buffered Regex | cut -d Regex -f Number | cut -d Regex -f Number | xargs -I {} date date|||date __SP__UNK | grep --line-buffered Regex | cut -d Regex -f Number | cut -d Regex -f Number | xargs -I {} date __SP__UNK|||
+find Path -size +Size -ls|||find Path -size +Size|||find Path -size +Size -exec ls -l -h {} \;|||
+find Path -mtime -Timespan|||find Path -mtime -Timespan -ls|||find Path -mtime -Timespan -print|||
+read -n Quantity -p Regex Regex|||read -n Quantity -r -p Regex Regex|||read -n Quantity -r -s Regex|||
+sleep Timespan|||sleep Timespan -exec grep -q Regex -q sleep Timespan sleep sleep sleep sleep Timespan sleep sleep sleep Timespan sleep sleep sleep Timespan sleep sleep|||sleep Timespan -exec grep -q Regex -q sleep Timespan sleep sleep sleep sleep sleep Timespan sleep sleep sleep Timespan sleep sleep sleep Timespan sleep|||
+sort File|||sort -n File|||find Path -type f -printf __SP__UNK | sort -n | sort -k Number | sort -k Number|||
+split --lines=Quantity File Regex|||split -l Quantity File Regex|||split --lines=Quantity --numeric-suffixes --suffix-length=Quantity File Regex|||
+split --lines=Quantity --suffix-length=Quantity File Regex|||split --lines=Quantity --numeric-suffixes --suffix-length=Quantity File Regex|||split --lines=Quantity File Regex|||
+cat File | tail -n +Quantity | split --lines=Quantity|||cat File | split --lines=Quantity --suffix-length=Quantity File Regex|||cat File | split --lines=Quantity --lines=Quantity|||
+ssh -l Regex Regex|||ssh -l Regex -p Regex Regex|||ssh -p Regex Regex|||
+$(echo Regex | tr Regex Regex)|||echo $(readlink -e File)|||$(echo Regex | tr -s Regex Regex)|||
+gunzip Regex|||find Path -name Regex -print0 | xargs -0 -I {} gunzip {}|||find Path -name Regex | xargs -I {} gunzip {}|||
+find Path -exec touch {} \;|||find Path -print0 | xargs -0 -I {} touch {}|||find Path -exec touch {} +|||
+bzip2 -k -v File|||bzip2 -k -v $(find Path -type f | xargs -I {} bzip2 -9 {})|||bzip2 -k -v $(find Path -type f | xargs -I {} tar -u -f File {})|||
+bzip2 -k -v File|||du -k -s -k File | sort -n -r | cut -d Regex -f Number | xargs -I {} bzip2 -9 {}|||du -k -s -k File | sort -n -r | cut -d Regex -f Number | xargs -I {} bzip2 {}|||
+sleep Timespan | grep Regex|||du -c -s -x -b File | tail - Quantity | cut -f Number -d Regex|||du -c -s -x -b File | tail - Quantity | cut -d Regex -f Number|||
+bind Regex | grep Regex|||bind Regex | xargs -I {} grep Regex {}|||bind Regex | grep Regex | cut -d Regex -f Number | xargs -I {} rm {}|||
