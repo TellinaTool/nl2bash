@@ -191,7 +191,7 @@ def get_decode_signature(FLAGS):
             model_subdir += '-C'
         if FLAGS.tg_char:
             model_subdir += '-TC'
-            model_subdir += '-{}'.format(FLAGS.gamma)
+            model_subdir += '-{:.1f}'.format(FLAGS.gamma)
     model_subdir += '-{}'.format(FLAGS.min_vocab_frequency)
     model_subdir += '-{}'.format(FLAGS.encoder_topology)
     model_subdir += '-{}'.format(FLAGS.rnn_cell)

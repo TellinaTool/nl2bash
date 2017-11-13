@@ -240,7 +240,8 @@ def process_data():
 def main(_):
     # set GPU device
     os.environ["CUDA_VISIBLE_DEVICES"] = FLAGS.gpu
-    
+    os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+ 
     # set up data and model directories
     FLAGS.data_dir = os.path.join(
         os.path.dirname(__file__), "..", "data", FLAGS.dataset)
