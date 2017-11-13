@@ -200,10 +200,10 @@ def get_decode_signature(FLAGS):
         model_subdir += '-attention'
         model_subdir += '-{}'.format(FLAGS.attention_input_keep)
         model_subdir += '-{}'.format(FLAGS.attention_output_keep)
-        model_subdir += '-{}'.format(FLAGS.beta)
+        model_subdir += '-{:.1f}'.format(FLAGS.beta)
     if FLAGS.use_copy:
         model_subdir += '-copy'
-        model_subdir += '-{}'.format(FLAGS.chi)
+        model_subdir += '-{:.1f}'.format(FLAGS.chi)
     model_subdir += '-{}'.format(FLAGS.batch_size)
     if FLAGS.sc_token:
         model_subdir += '-{}'.format(FLAGS.sc_token_dim)
