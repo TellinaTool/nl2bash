@@ -25,8 +25,13 @@ Randomly split the filtered parallel corpus into train, dev and test (using fixe
 ```
 python3 scripts/split_data.py bash
 ```
+Statistics of the dataset split is shown below.
 
-### Converting to format recognized by the Tensorflow models
+|| Train | Dev | Test |
+| :---: | :---: | :---: | :---: |
+|# pairs| 8090 | 609 | 606 |
+
+### Preprocessing for running Tensorflow models
 ```
 cd ../experiments
 
