@@ -29,14 +29,17 @@ def compute_top_utilities(path, k):
             for u in data_tools.get_utilities(ast):
                 utilities[u] += 1
     top_utilities = []
-   
+
+    freq_threshold = -1   
     for u, freq in sorted(utilities.items(), key=lambda x:x[1], reverse=True):
+        if freq_threshold > 0 and freq < freq_threshold:
+            break 
         if u in bash.BLACK_LIST or u in bash.GREY_LIST:
             continue
         top_utilities.append(u)
         print('{}: {} ({})'.format(len(top_utilities), u, freq))
         if len(top_utilities) == k:
-            break
+            freq_threshold = freq
     top_utilities = set(top_utilities)
     return top_utilities
 
