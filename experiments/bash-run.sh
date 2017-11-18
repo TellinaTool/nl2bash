@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Set up path to CUDA library
 source ~/.profile
