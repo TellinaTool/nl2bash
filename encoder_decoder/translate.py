@@ -18,6 +18,7 @@ if sys.version_info > (3, 0):
     
 import math
 import numpy as np
+import pickle
 import time
 from tqdm import tqdm
 
@@ -172,6 +173,20 @@ def eval(data_set, model_dir=None, decode_sig=None, verbose=True):
         verbose=verbose)
 
 
+def demo(buckets=None):
+    with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
+        log_device_placement=FLAGS.log_device_placement)) as sess:
+        # Initialize model parameters.
+        model = define_model(sess, forward_only=True, buckets=buckets)
+        decode_tools.demo(sess, model, FLAGS)
+
+
+def save_hyperparameters():
+    model_subdir, decode_sig = graph_utils.get_decode_signature(FLAGS)
+    with open(os.path.join(FLAGS.model_root_dir, model_subdir, 'hyperparameters.pkl'), 'wb') as o_f:
+        pickle.dump(FLAGS, o_f)
+
+
 def gen_slot_filling_training_data(FLAGS, datasets):
     # Set hyperparameters
     token_decoding_algorithm = FLAGS.token_decoding_algorithm
@@ -208,13 +223,6 @@ def gen_error_analysis_sheets(dataset, model_dir=None, decode_sig=None,
         eval_tools.gen_error_analysis_csv(
             model_dir, decode_sig, dataset, FLAGS)
 
-
-def demo(buckets=None):
-    with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
-        log_device_placement=FLAGS.log_device_placement)) as sess:
-        # Initialize model parameters.
-        model = define_model(sess, forward_only=True, buckets=buckets)
-        decode_tools.demo(sess, model, FLAGS)
 
 # --- Schedule experiments --- #
 
@@ -295,6 +303,7 @@ def main(_):
         dataset = test_set if FLAGS.test else dev_set
         if FLAGS.eval:
             eval(dataset)
+            save_hyperparameters()
         elif FLAGS.gen_error_analysis_sheet:
             gen_error_analysis_sheets(dataset, group_by_utility=True)
         elif FLAGS.gen_manual_evaluation_sheet:
@@ -324,6 +333,14 @@ def main(_):
         else:
             # Train the model.
             train(train_set, dataset)
+
+            if FLAGS.normalized:
+                tf.reset_default_graph()
+                gen_slot_filling_training_data(FLAGS, [train_set, dev_set, test_set])
+                FLAGS.fill_argument_slots = True
+
+            # save model hyperparameters
+            save_hyperparameters() 
 
             # Decode the new model on the development set.
             tf.reset_default_graph()
