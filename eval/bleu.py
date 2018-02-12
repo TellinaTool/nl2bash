@@ -38,7 +38,6 @@ class BLEU(object):
 
     1. Test with an instance:
 
-    >>> weights = [0.25, 0.25, 0.25, 0.25]
     >>> candidate1 = ['It', 'is', 'a', 'guide', 'to', 'action', 'which',
     ...				  'ensures', 'that', 'the', 'military', 'always',
     ...				  'obeys', 'the', 'commands', 'of', 'the', 'party', '.']
@@ -60,16 +59,15 @@ class BLEU(object):
     ...     'army', 'always', 'to', 'heed', 'the', 'directions',
     ...     'of', 'the', 'party', '.']
 
-    >>> BLEU.compute(candidate1, [reference1, reference2, reference3], weights)
+    >>> BLEU.compute(candidate1, [reference1, reference2, reference3])
     0.0555662774619807
 
-    >>> BLEU.compute(candidate2, [reference1, reference2, reference3], weights)
+    >>> BLEU.compute(candidate2, [reference1, reference2, reference3])
     0.04211415110983725
 
     2. Test with two corpus that one is a reference and another is
     an output from translation system:
 
-    >>> weights = [0.25, 0.25, 0.25, 0.25]
     >>> ref_file = open('newstest2012-ref.en')
     >>> candidate_file = open('newstest2012.fr-en.cmu-avenue')
 
@@ -80,13 +78,14 @@ class BLEU(object):
     ...		ref_raw = ref_file.readline()
     ...		ref_tokens = word_tokenize(ref_raw)
     ...		candi_tokens = word_tokenize(candi_raw)
-    ...		total = BLEU.compute(candi_tokens, [ref_tokens], weights)
+    ...		total = BLEU.compute(candi_tokens, [ref_tokens])
     ...		count += 1
 
     >>> total/count
     2.787504437460048e-05
 
     """
+    weights = [0.25, 0.25, 0.25, 0.25]
 
     @staticmethod
     def compute(candidate, references, weights):
@@ -145,7 +144,6 @@ class BLEU(object):
 
 # run doctests
 if __name__ == "__main__":
-    weights = [0.25, 0.25, 0.25, 0.25]
     candidate1 = ['It', 'is', 'a', 'guide', 'to', 'action', 'which',
     			  'ensures', 'that', 'the', 'military', 'always',
     			  'obeys', 'the', 'commands', 'of', 'the', 'party', '.']
@@ -167,5 +165,5 @@ if __name__ == "__main__":
                   'army', 'always', 'to', 'heed', 'the', 'directions',
                   'of', 'the', 'party', '.']
 
-    print(BLEU.compute(candidate1, [reference1], weights))
-    print(BLEU.compute(candidate2, [reference1], weights))
+    print(BLEU.compute(candidate1, [reference1]))
+    print(BLEU.compute(candidate2, [reference1]))
