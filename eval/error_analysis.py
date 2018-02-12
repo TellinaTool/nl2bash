@@ -25,6 +25,19 @@ from eval.eval_tools import load_cached_correct_translations
 from eval.eval_tools import get_example_nl_key, get_example_cm_key
 
 
+error_types = {
+    0 : "unmarked error",
+    2 : "extra utility",
+    3 : "missing utility",
+    4 : "confused utility",
+    5 : "extra flag",
+    6 : "missing flag",
+    7 : "confused flag",
+    8 : "logic error",
+    9 : "count error"
+}
+
+
 def gen_manual_evaluation_csv_single_model(dataset, FLAGS):
     """
     Generate .csv spreadsheet for manual evaluation on dev/test set
