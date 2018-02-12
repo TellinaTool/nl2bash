@@ -553,7 +553,10 @@ def load_cached_correct_translations(data_dir, verbose=False):
                 if row['description']:
                     current_nl_key = get_example_nl_key(row['description'])
                 pred_cmd = row['prediction']
-                pred_temp = row['template']
+                if 'template' in row:
+                    pred_temp = row['template'] 
+                else:
+                    pred_temp = data_tools.cmd2template(pred_cmd, loose_constraints=True) 
                 structure_eval = row['correct template']
                 command_eval = row['correct command']
                 if structure_eval == 'y':
