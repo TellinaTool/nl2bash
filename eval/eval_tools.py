@@ -500,7 +500,7 @@ def load_cached_evaluations(model_dir, verbose=True):
     return structure_eval_results, command_eval_results
 
 
-def load_cached_evaluations_from_file(input_file, verbose=True):
+def load_cached_evaluations_from_file(input_file, treat_empty_as_correct=False, verbose=True):
     structure_eval_results = {}
     command_eval_results = {}
     with open(input_file) as f:
@@ -518,17 +518,21 @@ def load_cached_evaluations_from_file(input_file, verbose=True):
             else:
                 pred_temp = data_tools.cmd2template(pred_cmd_key, loose_constraints=True)
             command_eval = row['correct command']
+            if treat_empty_as_correct:
+                command_eval = normalize_judgement(command_eval)
             command_example_key = '{}<NL_PREDICTION>{}'.format(current_nl_key, pred_cmd_key)
             if command_eval:
                 command_eval_results[command_example_key] = command_eval
             structure_eval = row['correct template']
+            if treat_empty_as_correct:
+                structure_eval = normalize_judgement(structure_eval)
             structure_example_key = '{}<NL_PREDICTION>{}'.format(current_nl_key, pred_temp)
             if structure_eval:
                 structure_eval_results[structure_example_key] = structure_eval
     return structure_eval_results, command_eval_results
 
 
-def load_cached_correct_translations(data_dir, verbose=False):
+def load_cached_correct_translations(data_dir, treat_empty_as_correct=False, verbose=False):
     """
     Load cached correct translations from disk.
 
@@ -558,7 +562,11 @@ def load_cached_correct_translations(data_dir, verbose=False):
                 else:
                     pred_temp = data_tools.cmd2template(pred_cmd, loose_constraints=True) 
                 structure_eval = row['correct template']
+                if treat_empty_as_correct:
+                    structure_eval = normalize_judgement(structure_eval)
                 command_eval = row['correct command']
+                if treat_empty_as_correct:
+                    command_eval = normalize_judgement(command_eval)
                 if structure_eval == 'y':
                     template_translations[current_nl_key].add(pred_temp)
                 if command_eval == 'y':
@@ -582,3 +590,10 @@ def get_example_cm_key(cm):
     Get the command in an example with nuances removed.
     """
     return tree_dist.ignore_differences(cm)
+
+
+def normalize_judgement(x):
+    if not x or x.lower() == 'y':
+        return 'y'
+    else:
+        return 'n'

@@ -12,12 +12,7 @@ import sys
 from bashlint import data_tools
 from eval.eval_tools import load_cached_evaluations_from_file
 from eval.eval_tools import get_example_nl_key, get_example_cm_key
-
-def normalize_judgement(x):
-    if not x or x.lower() == 'y':
-        return 'y'
-    else:
-        return 'n'
+from eval.eval_tools import normalize_judgement
 
 def iaa(a1, a2):
     assert(len(a1) == len(a2))
@@ -54,7 +49,8 @@ def combine_annotations(input_file1, input_file2, input_file3, output_file):
               'correct template A, correct command A,'
               'correct template B, correct command B,'
               'correct template C, correct command C\n')
-    sup_structure_eval, sup_command_eval = load_cached_evaluations_from_file(input_file3)
+    sup_structure_eval, sup_command_eval = load_cached_evaluations_from_file(
+        input_file3, treat_empty_as_correct=True)
     with open(input_file1) as f1:
         with open(input_file2) as f2:
             reader1 = csv.DictReader(f1)
