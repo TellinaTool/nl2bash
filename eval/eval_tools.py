@@ -73,7 +73,7 @@ def eval_set(model_dir, decode_sig, dataset, top_k, FLAGS, manual=True,
         random.seed(100)
         example_ids = list(range(len(grouped_dataset)))
         random.shuffle(example_ids)
-        sample_ids = example_ids[:100]
+        sample_ids = example_ids[:50]
         grouped_dataset = [grouped_dataset[i] for i in sample_ids]
         prediction_list = [prediction_list[i] for i in sample_ids]
    
@@ -458,7 +458,7 @@ def gen_manual_evaluation_csv(dataset, FLAGS):
         dataset, use_bucket=True, tokenizer_selector=tokenizer_selector)
 
     model_names, model_predictions = load_multiple_model_predictions(
-        grouped_dataset, FLAGS)
+        grouped_dataset, FLAGS, top_k=3)
 
     # Get FIXED dev set samples
     random.seed(100)
@@ -481,8 +481,8 @@ def gen_manual_evaluation_csv(dataset, FLAGS):
 
     output_path = os.path.join(FLAGS.data_dir, 'manual.evaluations.csv')
     with open(output_path, 'w') as o_f:
-        o_f.write('example_id, description, ground_truth, model, prediction, '
-                  'correct template, correct command\n')
+        o_f.write('example_id,description,ground_truth,model,prediction,correct template,'
+                  'correct command\n')
         for example_id in sample_ids:
             data_group = grouped_dataset[example_id][1]
             sc_txt = data_group[0].sc_txt.strip()
@@ -493,6 +493,8 @@ def gen_manual_evaluation_csv(dataset, FLAGS):
                 template_translations)
             for model_id, model_name in enumerate(model_names):
                 predictions = model_predictions[model_id][example_id]
+                if len(predictions) < 3:
+                    predictions.extend(['' for x in range(3 - len(predictions))])
                 for i in xrange(min(3, len(predictions))):
                     if model_id == 0 and i == 0:
                         output_str = '{},"{}",'.format(example_id,
@@ -532,7 +534,7 @@ def gen_manual_evaluation_csv(dataset, FLAGS):
                         structure_eval = structure_eval_cache[structure_example_sig]
                     output_str += '{},{}'.format(structure_eval, command_eval)
                     o_f.write('{}\n'.format(output_str))
-
+                    
     print('Manual evaluation results saved to {}'.format(output_path))
 
 
@@ -720,7 +722,10 @@ def load_cached_evaluation_results(model_dir, verbose=True):
                 if row['description']:
                     current_nl = row['description']
                 pred_cmd = row['prediction']
-                pred_temp = row['template']
+                if 'template' in row:
+                    pred_temp = row['template']
+                else:
+                    pred_temp = data_tools.cmd2template(pred_cmd, loose_constraints=True)
                 command_eval = row['correct command']
                 command_row_sig = '{}<NL_PREDICTION>{}'.format(
                     current_nl, pred_cmd)
@@ -761,7 +766,10 @@ def load_ground_truths_from_manual_evaluation(data_dir, verbose=False):
                 if row['description']:
                     current_nl = row['description']
                 pred_cmd = row['prediction']
-                pred_temp = row['template']
+                if 'template' in row:
+                    pred_temp = row['template'] 
+                else:
+                    pred_temp = data_tools.cmd2template(pred_cmd, loose_constraints=True) 
                 structure_eval = row['correct template']
                 command_eval = row['correct command']
                 if structure_eval == 'y':
