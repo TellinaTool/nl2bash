@@ -141,7 +141,7 @@ def main():
     input_file2 = sys.argv[2]
     input_file3 = sys.argv[3]
     output_file = sys.argv[4]
-    export_annotation_differences(input_file1, input_file2, input_file3, output_file)
+    combine_annotations(input_file1, input_file2, input_file3, output_file)
 
 if __name__ == '__main__':
     main()
