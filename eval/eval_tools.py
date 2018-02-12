@@ -489,27 +489,42 @@ def load_cached_evaluations(model_dir, verbose=True):
             eval_files.append(file_name)
     for file_name in sorted(eval_files):
         manual_judgement_path = os.path.join(model_dir, file_name)
-        with open(manual_judgement_path) as f:
-            if verbose:
-                print('reading cached evaluations from {}'.format(
-                    manual_judgement_path))
-            reader = csv.DictReader(f)
-            current_nl_key = ''
-            for row in reader:
-                if row['description']:
-                    current_nl_key = get_example_nl_key(row['description'])
-                pred_cmd = row['prediction']
+        ser, cer = load_cached_evaluations_from_file(manual_judgement_path, verbose=verbose)
+        for key in ser:
+            structure_eval_results[key] = ser[key]
+        for key in cer:
+            command_eval_results[key] = cer[key]
+    if verbose:
+        print('{} structure evaluation results loaded'.format(len(structure_eval_results)))
+        print('{} command evaluation results loaded'.format(len(command_eval_results)))
+    return structure_eval_results, command_eval_results
+
+
+def load_cached_evaluations_from_file(input_file, verbose=True):
+    structure_eval_results = {}
+    command_eval_results = {}
+    with open(input_file) as f:
+        if verbose:
+            print('reading cached evaluations from {}'.format(input_file))
+        reader = csv.DictReader(f)
+        current_nl_key = ''
+        for row in reader:
+            if row['description']:
+                current_nl_key = get_example_nl_key(row['description'])
+            pred_cmd = row['prediction']
+            pred_cmd_key = get_example_cm_key(pred_cmd)
+            if 'template' in row:
                 pred_temp = row['template']
-                command_eval = row['correct command']
-                command_example_key = '{}<NL_PREDICTION>{}'.format(current_nl_key, pred_cmd)
-                if command_eval:
-                    command_eval_results[command_example_key] = command_eval
-                structure_eval = row['correct template']
-                structure_example_key = '{}<NL_PREDICTION>{}'.format(current_nl_key, pred_temp)
-                if structure_eval:
-                    structure_eval_results[structure_example_key] = structure_eval
-    print('{} structure evaluation results loaded'.format(len(structure_eval_results)))
-    print('{} command evaluation results loaded'.format(len(command_eval_results)))
+            else:
+                pred_temp = data_tools.cmd2template(pred_cmd_key, loose_constraints=True)
+            command_eval = row['correct command']
+            command_example_key = '{}<NL_PREDICTION>{}'.format(current_nl_key, pred_cmd_key)
+            if command_eval:
+                command_eval_results[command_example_key] = command_eval
+            structure_eval = row['correct template']
+            structure_example_key = '{}<NL_PREDICTION>{}'.format(current_nl_key, pred_temp)
+            if structure_eval:
+                structure_eval_results[structure_example_key] = structure_eval
     return structure_eval_results, command_eval_results
 
 
