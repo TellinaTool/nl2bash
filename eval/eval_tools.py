@@ -17,7 +17,8 @@ if sys.version_info > (3, 0):
 
 from bashlint import data_tools
 from encoder_decoder import data_utils, graph_utils
-from eval import token_based, tree_dist, bleu
+from eval import token_based, tree_dist
+import eval.bleu as bl
 from nlp_tools import constants, tokenizer
 import utils.ops
 
@@ -177,7 +178,7 @@ def gen_evaluation_table(dataset, FLAGS, num_examples=100, interactive=True):
 
 
 def get_automatic_evaluation_metrics(model_dir, decode_sig, dataset, top_k, FLAGS,
-                                     manual=True, verbose=False):
+                                     manual_samples_only=False, verbose=False):
     """
     Generate automatic evaluation metrics on a dev/test set.
     The following metrics are computed:
@@ -209,7 +210,7 @@ def get_automatic_evaluation_metrics(model_dir, decode_sig, dataset, top_k, FLAG
         load_cached_correct_translations(FLAGS.data_dir)
 
     # Compute manual evaluation scores on a subset of examples
-    if manual:
+    if manual_samples_only:
         # Get FIXED dev set samples
         random.seed(100)
         example_ids = list(range(len(grouped_dataset)))
@@ -265,7 +266,7 @@ def get_automatic_evaluation_metrics(model_dir, decode_sig, dataset, top_k, FLAG
                     o_f.write('{}\n'.format(sc_str))
                 top_k_str_correct[data_id, i] = 1
             cms = token_based.command_match_score(template_gt_asts, pred_ast)
-            bleu = bleu.BLEU.compute(pred_cmd, command_gts)
+            bleu = bl.BLEU.compute(pred_cmd, command_gts)
             top_k_cms[data_id, i] = cms
             top_k_bleu[data_id, i] = bleu
             if verbose:

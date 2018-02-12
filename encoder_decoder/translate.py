@@ -32,7 +32,7 @@ from encoder_decoder import parse_args
 from encoder_decoder import slot_filling
 from .seq2seq.seq2seq_model import Seq2SeqModel
 from .seq2tree.seq2tree_model import Seq2TreeModel
-from eval import eval_tools
+from eval import eval_tools, error_analysis
 
 # Refer to parse_args.py for model parameter explanations
 FLAGS = tf.app.flags.FLAGS
@@ -169,8 +169,8 @@ def eval(data_set, model_dir=None, decode_sig=None, verbose=True):
         model_dir = os.path.join(FLAGS.model_root_dir, model_subdir)
     print("evaluating " + model_dir)
 
-    return eval_tools.eval_set(model_dir, decode_sig, data_set, 3, FLAGS, 
-        verbose=verbose)
+    return eval_tools.get_automatic_evaluation_metrics(model_dir, decode_sig, data_set,
+        top_k=3, FLAGS=FLAGS, manual_samples_only=False, verbose=verbose)
 
 
 def demo(buckets=None):
@@ -307,11 +307,11 @@ def main(_):
         elif FLAGS.gen_error_analysis_sheet:
             gen_error_analysis_sheets(dataset, group_by_utility=True)
         elif FLAGS.gen_manual_evaluation_sheet:
-            eval_tools.gen_manual_evaluation_csv(dataset, FLAGS)
+            error_analysis.gen_manual_evaluation_csv(dataset, FLAGS)
         elif FLAGS.gen_manual_evaluation_sheet_single_model:
-            eval_tools.gen_manual_evaluation_csv_single_model(dataset, FLAGS)
+            error_analysis.gen_manual_evaluation_csv_single_model(dataset, FLAGS)
         elif FLAGS.gen_manual_evaluation_table:
-            eval_tools.gen_manual_evaluation_table(dataset, FLAGS)
+            eval_tools.gen_evaluation_table(dataset, FLAGS)
 
         elif FLAGS.gen_slot_filling_training_data:
             gen_slot_filling_training_data(FLAGS, [train_set, dev_set, test_set])
