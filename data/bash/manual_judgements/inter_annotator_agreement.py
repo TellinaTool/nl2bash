@@ -6,8 +6,8 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import copy
 import csv
+import sys
 
 from bashlint import data_tools
 from eval.eval_tools import load_cached_evaluations_from_file
@@ -137,42 +137,11 @@ def export_annotation_differences(input_file1, input_file2, output_file, command
     o_f.close()
 
 def main():
-    """shridhar_pc = read_annotations('NL-Cmd Judgement (Shridhar) - pc.csv')
-    shridhar_tellina = read_annotations('NL-Cmd Judgement (Shridhar) - tellina.csv')
-    hamid_pc = read_annotations('NL-Cmd Judgement (Hamid) - pc.csv')
-    hamid_tellina = read_annotations('NL-Cmd Judgement (Hamid) - tellina.csv')
-    eric_pc = read_annotations('NL-Cmd Judgement (Eric) - pc.csv')
-    eric_tellina = read_annotations('NL-Cmd Judgement (Eric) - tellina.csv')
-    # serge_pc = read_annotations('NL-Cmd Judgement Batch II (Serge) - pc.csv')
-    # serge_tellina = read_annotations('NL-Cmd Judgement Batch II (Serge) - tellina.csv')
-
-    shridhar_command_judgements = shridhar_pc[0] + shridhar_tellina[0]
-    shridhar_template_judgements = shridhar_pc[1] + shridhar_tellina[1]
-    hamid_command_judgements = hamid_pc[0] + hamid_tellina[0]
-    hamid_template_judgements = hamid_pc[1] + hamid_tellina[1]
-    eric_command_judgements = eric_pc[0] + eric_tellina[0]
-    eric_template_judgements = eric_pc[1] + eric_tellina[1]
-    # serge_command_judgements = serge_pc[0] + serge_tellina[0]
-    # serge_template_judgements = serge_pc[1] + serge_tellina[1]
-
-    print('Command inter-annotator agreement')
-    print('Shridhar vs. Hamid', iaa(shridhar_command_judgements, hamid_command_judgements))
-    print('Shridhar vs. Eric', iaa(shridhar_command_judgements, eric_command_judgements))
-    print('Hamid vs. Eric', iaa(hamid_command_judgements, eric_command_judgements))
-    print()
-
-    print('Template inter-annotator agreement')
-    print('Shridhar vs. Hamid', iaa(shridhar_template_judgements, hamid_template_judgements))
-    print('Shridhar vs. Eric', iaa(shridhar_template_judgements, eric_template_judgements))
-    print('Hamid vs. Eric', iaa(hamid_template_judgements, eric_template_judgements))
-    print()
-    """
-
-    # export_annotation_differences(
-    #     'NL-Cmd Judgement Batch II (Serge) - tellina.csv', 'NL-Cmd Judgement Batch II (Hamid) - tellina.csv',
-    #     'NL-Cmd Judgement Batch II (Shridhar) - tellina.csv', 'command')
-    export_annotation_differences('manual.evaluations.dev (Hamid).csv', 'manual.evaluations.dev (Victoria).csv',
-                                  'manual.evaluations.dev (Serge).csv', 'prediction')
+    input_file1 = sys.argv[1]
+    input_file2 = sys.argv[2]
+    input_file3 = sys.argv[3]
+    output_file = sys.argv[4]
+    export_annotation_differences(input_file1, input_file2, input_file3, output_file)
 
 if __name__ == '__main__':
     main()
