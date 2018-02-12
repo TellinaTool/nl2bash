@@ -237,10 +237,10 @@ def get_automatic_evaluation_metrics(model_dir, decode_sig, dataset, top_k, FLAG
         else:
             sc_features = ' '.join(sc_tokens)
         command_gts = [dp.tg_txt.strip() for dp in data_group]
-        command_gts = set(command_gts + command_translations[sc_key])
+        command_gts = set(command_gts) | command_translations[sc_key]
         command_gt_asts = [data_tools.bash_parser(cmd) for cmd in command_gts]
         template_gts = [data_tools.cmd2template(cmd, loose_constraints=True) for cmd in command_gts]
-        template_gts = set(template_gts + template_translations[sc_key])
+        template_gts = set(template_gts) | template_translations[sc_key]
         template_gt_asts = [data_tools.bash_parser(temp) for temp in template_gts]
 
         if verbose:
