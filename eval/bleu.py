@@ -15,6 +15,8 @@ from nltk import word_tokenize
 
 import math
 
+weights = [0.5, 0.5, 0, 0]
+
 class BLEU(object):
     """
     This class implements the BLEU method, which is used to evaluate
@@ -85,10 +87,9 @@ class BLEU(object):
     2.787504437460048e-05
 
     """
-    weights = [0.25, 0.25, 0.25, 0.25]
 
     @staticmethod
-    def compute(candidate, references, weights):
+    def compute(candidate, references):
 
         candidate = list(map(lambda x: x.lower(), candidate))
         references = list(map(lambda x: [c.lower() for c in x], references))

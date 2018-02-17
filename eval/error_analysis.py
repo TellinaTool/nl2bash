@@ -133,13 +133,13 @@ def gen_manual_evaluation_csv(dataset, FLAGS, num_examples=100):
         dataset, use_bucket=True, tokenizer_selector=tokenizer_selector)
 
     model_names, model_predictions = load_all_model_predictions(
-        grouped_dataset, FLAGS)
+        grouped_dataset, FLAGS, top_k=3)
 
     # Get FIXED dev set samples
     random.seed(100)
     example_ids = list(range(len(grouped_dataset)))
     random.shuffle(example_ids)
-    sample_ids = example_ids[:num_examples]
+    sample_ids = example_ids[num_examples:num_examples+100]
 
     # Load cached evaluation results
     structure_eval_cache, command_eval_cache = \
