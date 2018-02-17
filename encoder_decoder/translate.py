@@ -312,6 +312,8 @@ def main(_):
             error_analysis.gen_manual_evaluation_csv_single_model(dataset, FLAGS)
         elif FLAGS.gen_manual_evaluation_table:
             eval_tools.gen_evaluation_table(dataset, FLAGS)
+        elif FLAGS.tabulate_example_predictions:
+            error_analysis.print_error_analysis_csv(dataset, FLAGS, num_examples=20)
 
         elif FLAGS.gen_slot_filling_training_data:
             gen_slot_filling_training_data(FLAGS, [train_set, dev_set, test_set])
