@@ -62,6 +62,8 @@ def define_input_flags():
                                 'a particular model.')
     tf.app.flags.DEFINE_boolean('gen_manual_evaluation_table', False,
                                 'Set to True to open manual evaluation commandline interface')
+    tf.app.flags.DEFINE_boolean('tabulate_example_predictions', False,
+                                'Set to True to print example predictions with Latex formattings')
 
     # device
     tf.app.flags.DEFINE_string('gpu', '0', 'GPU device where the computation is going to be placed.')
