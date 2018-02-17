@@ -203,6 +203,73 @@ def gen_manual_evaluation_csv(dataset, FLAGS, num_examples=100):
     print('Manual evaluation results saved to {}'.format(output_path))
 
 
+def tabulate_example_predictions(dataset, FLAGS, num_examples=100):
+    # Group dataset
+    tokenizer_selector = "cm" if FLAGS.explain else "nl"
+    grouped_dataset = data_utils.group_parallel_data(
+        dataset, use_bucket=True, tokenizer_selector=tokenizer_selector)
+
+    model_names, model_predictions = load_all_model_predictions(
+        grouped_dataset, FLAGS, top_k=1)
+
+    # Get FIXED dev set samples
+    random.seed(100)
+    example_ids = list(range(len(grouped_dataset)))
+    random.shuffle(example_ids)
+    sample_ids = example_ids[:num_examples]
+
+    # Load cached evaluation results
+    structure_eval_cache, command_eval_cache = \
+        load_cached_evaluations(
+            os.path.join(FLAGS.data_dir, 'manual_judgements'))
+
+    eval_bash = FLAGS.dataset.startswith("bash")
+    cmd_parser = data_tools.bash_parser if eval_bash \
+        else data_tools.paren_parser
+
+    for example_id in sample_ids:
+        print('Example {}'.format(example_id))
+        data_group = grouped_dataset[example_id][1]
+        sc_txt = data_group[0].sc_txt.strip()
+        sc_key = get_example_nl_key(sc_txt)
+        command_gts = [dp.tg_txt for dp in data_group]
+        command_gt_asts = [data_tools.bash_parser(gt) for gt in command_gts]
+        for model_id, model_name in enumerate(model_names):
+            predictions = model_predictions[model_id][example_id]
+            for i in xrange(min(3, len(predictions))):
+                if model_id == 0 and i == 0:
+                    output_str = '{} & '.format(sc_txt.replace('"', '""'))
+                else:
+                    output_str = '& '
+                pred_cmd = predictions[i]
+                pred_cmd_key = get_example_cm_key(pred_cmd)
+                pred_tree = cmd_parser(pred_cmd_key)
+                pred_temp = data_tools.ast2template(pred_tree, loose_constraints=True)
+                temp_match = tree_dist.one_match(
+                    command_gt_asts, pred_tree, ignore_arg_value=True)
+                str_match = tree_dist.one_match(
+                    command_gt_asts, pred_tree, ignore_arg_value=False)
+                output_str += '{} & {}'.format(pred_cmd.replace('"', '""'), model_name)
+
+                command_example_sig = '{}<NL_PREDICTION>{}'.format(sc_key, pred_cmd_key)
+                structure_example_sig = '{}<NL_PREDICTION>{}'.format(sc_key, pred_temp)
+                command_eval, structure_eval = '', ''
+                if str_match:
+                    command_eval = 'y'
+                    structure_eval = 'y'
+                elif temp_match:
+                    structure_eval = 'y'
+                if command_eval_cache and \
+                        command_example_sig in command_eval_cache:
+                    command_eval = command_eval_cache[command_example_sig]
+                if structure_eval_cache and \
+                        structure_example_sig in structure_eval_cache:
+                    structure_eval = structure_eval_cache[structure_example_sig]
+                output_str += ', {},{}'.format(structure_eval, command_eval)
+            print(output_str)
+        print()
+
+
 def print_error_analysis_csv(grouped_dataset, prediction_list, FLAGS,
         cached_evaluation_results=None, group_by_utility=False,
         error_predictions_only=True):
