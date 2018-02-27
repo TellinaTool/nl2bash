@@ -11,6 +11,8 @@ import re
 def ignore_differences(cmd):
     cmd = re.sub(' -ls\s', ' ', cmd)
     cmd = re.sub(' -ls$', '', cmd)
+    cmd = re.sub(' -print0\s', ' ', cmd)
+    cmd = re.sub(' -print0$', '', cmd)
     cmd = re.sub(' -print\s', ' ', cmd)
     cmd = re.sub(' -print$', '', cmd)
     return cmd
