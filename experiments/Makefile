@@ -1,11 +1,13 @@
-# This Makefile wraps commands used to set up the learning environment.
-gpu = "--gpu ''"
+# This Makefile wraps commands used to reproduce baseline system results.
+
+## Toggle the two lines below if you are reproducing the experiments using CPU
+# gpu = "--gpu ''"
+gpu = "--gpu 0"
 
 all: print
 
 data:
-	# Filter raw parallel corpus and split to train/dev/test as reported 
-	# in the paper
+	# Filter raw parallel corpus and split to train/dev/test 
 	cd ../data/scripts && \
 	python3 filter_data.py bash && \
 	python3 split_data.py bash && \
@@ -15,25 +17,23 @@ data:
 	./bash-run.sh --process_data --dataset bash
 	
 decode:
-	# Decode candidate output from pretrained models
+	# Decode candidate outputs of the baseline systems given the pretrained models (on the dev set)
+	## Add '--test' to the end of each command to perform decoding on the test set  
 	./bash-token.sh --decode $(gpu)
 	./bash-token.sh --normalized --fill_argument_slots --decode $(gpu)
 	./bash-copy.sh --decode $(gpu)
 	./bash-partial-token.sh --decode $(gpu)
 	./bash-copy-partial-token.sh --decode $(gpu)
 	./bash-char --decode $(gpu)
-	./bash-copy-char.sh --decode $(gpu)
-	
-test:
-	# Generate test set evaluation results
-	./bash-copy-partial-token.sh --decode --test $(gpu)
-	./bash-token.sh --normalized --fill_argument_slots --decode --test $(gpu)
+	./bash-copy-char.sh --decode $(gpu)	
 	
 gen_evaluation_table:
 	# Generate dev set evaluation table
+	## Add '--test' to the end of the command to generate the evaluation table on the test set
 	./bash-token.sh --gen_manual_evaluation_table
 	
 train:
+	
 	./bash-token.sh
 	./bash-token.sh --normalized --fill_argument_slots
 	./bash-copy.sh
@@ -42,4 +42,4 @@ train:
 	./bash-char
 	./bash-copy-char.sh
 
-print: train decode gen_evaluation_table
+results: train decode gen_evaluation_table
