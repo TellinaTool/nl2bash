@@ -26,10 +26,8 @@ decode:
 	
 test:
 	# Generate test set evaluation results
-	# ./bash-copy-partial-token.sh --decode --test $(gpu)
-	./bash-copy-partial-token.sh --eval --test $(gpu)
-	# ./bash-token.sh --normalized --fill_argument_slots --decode --test $(gpu)
-	./bash-token.sh --normalized --fill_argument_slots --eval --test $(gpu)
+	./bash-copy-partial-token.sh --decode --test $(gpu)
+	./bash-token.sh --normalized --fill_argument_slots --decode --test $(gpu)
 	
 gen_evaluation_table:
 	# Generate dev set evaluation table

@@ -1,8 +1,11 @@
-# Awesome Neural Machine Translation
+# NL2Bash
 
 ## Overview
 
-This repository consists of the following components:
+This repository contains the data and source code release of the paper: [NL2Bash: A Corpus and Semantic Parser for
+Natural Language Interface to the Linux Operating System](http://victorialin.net/pubs/nl2bash.pdf).
+
+Specifically, it contains the following components:
 
 1. Tensorflow implementations of the sequence-to-sequence neural machine translation model and its variations.
 2. A bash command parser which parses a bash command into an abstractive syntax tree, developed on top of  [bashlex](https://github.com/idank/bashlex).
@@ -38,13 +41,13 @@ cd experiments
 
 If you use the data or source code in your work, please cite
 ```
-@techreport{LinWPVZE2017:TR, 
-  author = {Xi Victoria Lin and Chenglong Wang and Deric Pang and Kevin Vu and Luke Zettlemoyer and Michael D. Ernst}, 
-  title = {Program synthesis from natural language using recurrent neural networks}, 
-  institution = {University of Washington Department of Computer Science and Engineering}, 
-  number = {UW-CSE-17-03-01}, 
-  address = {Seattle, WA, USA}, 
-  month = mar, 
-  year = {2017} 
+@inproceedings{LinWZE2018:NL2Bash, 
+  author = {Xi Victoria Lin and Chenglong Wang and Luke Zettlemoyer and Michael D. Ernst}, 
+  title = {NL2Bash: A Corpus and Semantic Parser for Natural Language Interface to the Linux Operating System}, 
+  booktitle = {Proceedings of the Eleventh International Conference on Language Resources
+               and Evaluation {LREC} 2018, Miyazaki (Japan), 7-12 May, 2018.},
+  year = {2018} 
 }
 ```
+
+Related paper: [Program Synthesis from Natural Language Using Recurrent Neural Networks](http://victorialin.net/pubs/tellina_tr180201.pdf). 

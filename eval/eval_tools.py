@@ -62,8 +62,19 @@ def gen_evaluation_table(dataset, FLAGS, num_examples=100, interactive=True):
     grouped_dataset = data_utils.group_parallel_data(
         dataset, use_bucket=True, tokenizer_selector=tokenizer_selector)
 
-    model_names, model_predictions = load_all_model_predictions(
-        grouped_dataset, FLAGS, top_k=3)
+    if FLAGS.test:
+        model_name, model_predictions = load_all_model_predictions(
+            grouped_dataset, FLAGS, top_k=3,
+            tellina=True,
+            partial_token_copynet=True,
+            token_seq2seq=False,
+            token_copynet=False,
+            char_seq2seq=False,
+            char_copynet=False,
+            partial_token_seq2seq=False)
+    else:
+        model_names, model_predictions = load_all_model_predictions(
+            grouped_dataset, FLAGS, top_k=3)
 
     # Get FIXED dev set samples
     random.seed(100)
@@ -340,13 +351,13 @@ def get_automatic_evaluation_metrics(model_dir, decode_sig, dataset, top_k, FLAG
 
 
 def load_all_model_predictions(grouped_dataset, FLAGS, top_k=1,
-                                tellina=True,
-                                token_seq2seq=True,
-                                token_copynet=True,
-                                char_seq2seq=True,
-                                char_copynet=True,
-                                partial_token_seq2seq=True,
-                                partial_token_copynet=True):
+                               tellina=True,
+                               token_seq2seq=True,
+                               token_copynet=True,
+                               char_seq2seq=True,
+                               char_copynet=True,
+                               partial_token_seq2seq=True,
+                               partial_token_copynet=True,):
     """
     Load predictions of multiple models.
 

@@ -1,3 +1,7 @@
+"""
+Compute keyword overlap between two commands.
+"""
+
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
@@ -8,31 +12,16 @@ import numpy as np
 from bashlint import data_tools, nast
 
 
-whitelist = [
-    '!',
-    '&',
-    '&&'
-]
-
-
-blacklist = [
-    'ls',
-    '-ls',
-    '-a',
-    '-and',
-    '-exec',
-    '-print',
-    '-print0'
-]
-
-
 def get_content_tokens(ast):
     content_tokens = collections.defaultdict(int)
-    for compound_token in data_tools.ast2tokens(
-            ast, loose_constraints=True, arg_type_only=True, with_prefix=True,
-            with_flag_argtype=True):
+    for compound_token in data_tools.ast2tokens(ast, loose_constraints=True,
+            arg_type_only=True, with_prefix=True, with_flag_argtype=True):
         kind_token = compound_token.split(nast.KIND_PREFIX)
-        kind, token = kind_token if len(kind_token) == 2 else ('', kind_token[0])
+        if len(kind_token) == 2:
+            kind, token = kind_token
+        else:
+            kind = ''
+            token = kind_token[0]
         if kind.lower() != 'argument':
             content_tokens[token] += 1
     return content_tokens
