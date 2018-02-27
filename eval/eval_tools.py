@@ -63,7 +63,7 @@ def gen_evaluation_table(dataset, FLAGS, num_examples=100, interactive=True):
         dataset, use_bucket=True, tokenizer_selector=tokenizer_selector)
 
     if FLAGS.test:
-        model_name, model_predictions = load_all_model_predictions(
+        model_names, model_predictions = load_all_model_predictions(
             grouped_dataset, FLAGS, top_k=3,
             tellina=True,
             partial_token_copynet=True,
