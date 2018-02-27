@@ -8,6 +8,7 @@ from __future__ import print_function
 
 import collections
 import csv
+import nltk
 import numpy as np
 import os, sys
 import random
@@ -18,7 +19,6 @@ if sys.version_info > (3, 0):
 from bashlint import data_tools
 from encoder_decoder import data_utils, graph_utils
 from eval import token_based, tree_dist
-import eval.bleu as bl
 from nlp_tools import constants, tokenizer
 import utils.ops
 
@@ -177,6 +177,14 @@ def gen_evaluation_table(dataset, FLAGS, num_examples=100, interactive=True):
     print('-' * len(first_line))
 
 
+def gen_automatic_eval_table(dataset, FLAGS, num_examples=100, interactive=True):
+    # Group dataset
+    tokenizer_selector = "cm" if FLAGS.explain else "nl"
+    grouped_dataset = data_utils.group_parallel_data(
+        dataset, use_bucket=True, tokenizer_selector=tokenizer_selector)
+    pass
+
+
 def get_automatic_evaluation_metrics(model_dir, decode_sig, dataset, top_k, FLAGS,
                                      manual_samples_only=False, verbose=False):
     """
@@ -206,6 +214,8 @@ def get_automatic_evaluation_metrics(model_dir, decode_sig, dataset, top_k, FLAG
                          "{} vs. {}".format(len(grouped_dataset), len(prediction_list)))
 
     # Load additional ground truths
+    template_translations = None
+    command_translations = None
     template_translations, command_translations = \
         load_cached_correct_translations(FLAGS.data_dir)
 
@@ -237,10 +247,12 @@ def get_automatic_evaluation_metrics(model_dir, decode_sig, dataset, top_k, FLAG
         else:
             sc_features = ' '.join(sc_tokens)
         command_gts = [dp.tg_txt.strip() for dp in data_group]
-        command_gts = set(command_gts) | command_translations[sc_key]
+        if command_translations:
+            command_gts = set(command_gts) | command_translations[sc_key]
         command_gt_asts = [data_tools.bash_parser(cmd) for cmd in command_gts]
         template_gts = [data_tools.cmd2template(cmd, loose_constraints=True) for cmd in command_gts]
-        template_gts = set(template_gts) | template_translations[sc_key]
+        if template_translations:
+            template_gts = set(template_gts) | template_translations[sc_key]
         template_gt_asts = [data_tools.bash_parser(temp) for temp in template_gts]
 
         if verbose:
@@ -266,7 +278,7 @@ def get_automatic_evaluation_metrics(model_dir, decode_sig, dataset, top_k, FLAG
                     o_f.write('{}\n'.format(sc_str))
                 top_k_str_correct[data_id, i] = 1
             cms = token_based.command_match_score(template_gt_asts, pred_ast)
-            bleu = bl.BLEU.compute(pred_cmd, command_gts)
+            bleu = nltk.translate.bleu_score.sentence_bleu(command_gts, pred_cmd)
             top_k_cms[data_id, i] = cms
             top_k_bleu[data_id, i] = bleu
             if verbose:

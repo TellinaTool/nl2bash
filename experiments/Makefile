@@ -21,7 +21,7 @@ decode:
 	./bash-copy.sh --decode $(gpu)
 	./bash-partial-token.sh --decode $(gpu)
 	./bash-copy-partial-token.sh --decode $(gpu)
-	./bash-char --decode $(gpu)
+	./bash-char.sh --decode $(gpu)
 	./bash-copy-char.sh --decode $(gpu)
 	
 test:
