@@ -313,7 +313,7 @@ def main(_):
         elif FLAGS.gen_manual_evaluation_table:
             eval_tools.gen_evaluation_table(dataset, FLAGS)
         elif FLAGS.tabulate_example_predictions:
-            error_analysis.tabulate_example_predictions(dataset, FLAGS, num_examples=20)
+            error_analysis.tabulate_example_predictions(dataset, FLAGS, num_examples=100)
 
         elif FLAGS.gen_slot_filling_training_data:
             gen_slot_filling_training_data(FLAGS, [train_set, dev_set, test_set])
