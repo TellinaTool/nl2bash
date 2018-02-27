@@ -277,7 +277,7 @@ def get_automatic_evaluation_metrics(model_dir, decode_sig, dataset, top_k, FLAG
             if str_match:
                 top_k_str_correct[data_id, i] = 1
             cms = token_based.command_match_score(template_gt_asts, pred_ast)
-            bleu = bl.BLEU.compute(pred_cmd, command_gts)
+            bleu = bl.BLEU.compute(pred_cmd_key, command_gts)
             top_k_cms[data_id, i] = cms
             top_k_bleu[data_id, i] = bleu
             if verbose:
