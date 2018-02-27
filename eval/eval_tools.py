@@ -80,7 +80,8 @@ def gen_evaluation_table(dataset, FLAGS, num_examples=100, interactive=True):
     random.seed(100)
     example_ids = list(range(len(grouped_dataset)))
     random.shuffle(example_ids)
-    sample_ids = example_ids[:num_examples]
+    if num_examples > 0:
+        sample_ids = example_ids[:num_examples]
 
     # Load cached evaluation results
     structure_eval_cache, command_eval_cache = \
@@ -250,7 +251,6 @@ def get_automatic_evaluation_metrics(model_dir, decode_sig, dataset, top_k, FLAG
         command_gt_asts = [data_tools.bash_parser(cmd) for cmd in command_gts]
         template_gts = [data_tools.cmd2template(cmd, loose_constraints=True) for cmd in command_gts]
         template_gt_asts = [data_tools.bash_parser(temp) for temp in template_gts]
-
         if verbose:
             print("Example {}".format(data_id))
             print("Original Source: {}".format(sc_str))
@@ -276,8 +276,6 @@ def get_automatic_evaluation_metrics(model_dir, decode_sig, dataset, top_k, FLAG
                 str_match = normalize_judgement(command_eval_cache[command_example_key]) == 'y'
             if structure_eval_cache and structure_example_key in structure_eval_cache:
                 temp_match = normalize_judgement(structure_eval_cache[structure_example_key]) == 'y'
-            else:
-                print(structure_example_key)
             if temp_match:
                 top_k_temp_correct[data_id, i] = 1
             if str_match:
