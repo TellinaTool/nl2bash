@@ -28,9 +28,14 @@ decode:
 	./bash-copy-char.sh --decode $(gpu)	
 	
 gen_evaluation_table:
-	# Generate dev set evaluation table
-	## Add '--test' to the end of the command to generate the evaluation table on the test set
+	# Generate dev set (manual) evaluation result table
+	## Add '--test' to the end of the command to generate the test set (manual) evaluation result table
 	./bash-token.sh --gen_manual_evaluation_table
+	
+gen_auto_evaluation_table:
+	# Generate dev set automatic evaluation result table
+	## Add '--test' to the end of the command to generate the test set (automatic) evaluation result table
+	./bash-token.sh --gen_auto_evaluation_table
 	
 train:
 	
