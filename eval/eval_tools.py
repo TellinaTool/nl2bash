@@ -19,7 +19,6 @@ if sys.version_info > (3, 0):
 from bashlint import data_tools
 from encoder_decoder import data_utils, graph_utils
 from eval import token_based, tree_dist
-from eval.eval_tools import get_example_cm_key
 import eval.bleu as bl
 from nlp_tools import constants, tokenizer
 import utils.ops
@@ -525,7 +524,7 @@ def load_cached_correct_translations(data_dir, treat_empty_as_correct=False, ver
                 if 'template' in row:
                     pred_temp_key = get_example_cm_key(row['template'])
                 else:
-                    pred_temp = data_tools.cmd2template(pred_cmd_key, loose_constraints=True)
+                    pred_temp_key = data_tools.cmd2template(pred_cmd_key, loose_constraints=True)
                 structure_eval = row['correct template']
                 if treat_empty_as_correct:
                     structure_eval = normalize_judgement(structure_eval)
@@ -533,9 +532,9 @@ def load_cached_correct_translations(data_dir, treat_empty_as_correct=False, ver
                 if treat_empty_as_correct:
                     command_eval = normalize_judgement(command_eval)
                 if structure_eval == 'y':
-                    template_translations[current_nl_key].add(pred_temp)
+                    template_translations[current_nl_key].add(pred_temp_key)
                 if command_eval == 'y':
-                    command_translations[current_nl_key].add(pred_cmd)
+                    command_translations[current_nl_key].add(pred_cmd_key)
     print('{} template translations loaded'.format(len(template_translations)))
     print('{} command translations loaded'.format(len(command_translations)))
 
