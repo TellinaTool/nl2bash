@@ -221,7 +221,7 @@ def get_automatic_evaluation_metrics(model_dir, decode_sig, dataset, top_k, FLAG
     command_translations = None
     template_translations, command_translations = \
         load_cached_correct_translations(os.path.join(FLAGS.data_dir, 'manual_judgements'),
-                                         treat_empty_as_correct=True)
+                                         treat_empty_as_correct=False)
 
     # Compute manual evaluation scores on a subset of examples
     if manual_samples_only:
