@@ -215,12 +215,10 @@ def get_automatic_evaluation_metrics(model_dir, decode_sig, dataset, top_k, FLAG
         raise ValueError("ground truth and predictions length must be equal: "
                          "{} vs. {}".format(len(grouped_dataset), len(prediction_list)))
 
-    # Load additional ground truths
-    template_translations = None
-    command_translations = None
-    template_translations, command_translations = \
-        load_cached_correct_translations(os.path.join(FLAGS.data_dir, 'manual_judgements'),
-                                         treat_empty_as_correct=False)
+    # Load cached evaluation results
+    structure_eval_cache, command_eval_cache = \
+        load_cached_evaluations(
+            os.path.join(FLAGS.data_dir, 'manual_judgements'))
 
     # Compute manual evaluation scores on a subset of examples
     if manual_samples_only:
@@ -249,12 +247,8 @@ def get_automatic_evaluation_metrics(model_dir, decode_sig, dataset, top_k, FLAG
         else:
             sc_features = ' '.join(sc_tokens)
         command_gts = [get_example_cm_key(dp.tg_txt.strip()) for dp in data_group]
-        if command_translations:
-            command_gts = set(command_gts) | command_translations[sc_key]
         command_gt_asts = [data_tools.bash_parser(cmd) for cmd in command_gts]
         template_gts = [data_tools.cmd2template(cmd, loose_constraints=True) for cmd in command_gts]
-        if template_translations:
-            template_gts = set(template_gts) | template_translations[sc_key]
         template_gt_asts = [data_tools.bash_parser(temp) for temp in template_gts]
 
         if verbose:
@@ -269,11 +263,21 @@ def get_automatic_evaluation_metrics(model_dir, decode_sig, dataset, top_k, FLAG
             pred_cmd = predictions[i]
             pred_cmd_key = get_example_cm_key(pred_cmd)
             pred_ast = cmd_parser(pred_cmd_key)
+            pred_temp = data_tools.cmd2template(pred_cmd_key, loose_constraints=True)
+            # Match ground truths & exisitng judgements
+            command_example_key = '{}<NL_PREDICTION>{}'.format(sc_key, pred_cmd_key)
+            structure_example_key = '{}<NL_PREDICTION>{}'.format(sc_key, pred_temp)
             # evaluation ignoring flag orders
             temp_match = tree_dist.one_match(
                 template_gt_asts, pred_ast, ignore_arg_value=True)
             str_match = tree_dist.one_match(
                 command_gt_asts, pred_ast, ignore_arg_value=False)
+            if command_eval_cache and command_example_key in command_eval_cache:
+                str_match = normalize_judgement(command_eval_cache[command_example_key]) == 'y'
+            if structure_eval_cache and structure_example_key in structure_eval_cache:
+                temp_match = normalize_judgement(structure_eval_cache[structure_example_key]) == 'y'
+            else:
+                print(structure_example_key)
             if temp_match:
                 top_k_temp_correct[data_id, i] = 1
             if str_match:
