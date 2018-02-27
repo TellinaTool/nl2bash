@@ -23,7 +23,7 @@ from nlp_tools import constants, tokenizer
 import utils.ops
 
 
-def gen_evaluation_table(dataset, FLAGS, num_examples=550, interactive=True):
+def gen_evaluation_table(dataset, FLAGS, num_examples=100, interactive=True):
     """
     Generate structure and full command accuracy results on a fixed set of dev/test
         set samples, with the results of multiple models tabulated in the same table.
