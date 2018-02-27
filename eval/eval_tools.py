@@ -228,7 +228,8 @@ def get_automatic_evaluation_metrics(model_dir, decode_sig, dataset, top_k, FLAG
     template_translations = None
     command_translations = None
     template_translations, command_translations = \
-        load_cached_correct_translations(FLAGS.data_dir)
+        load_cached_correct_translations(os.path.join(FLAGS.data_dir, 'manual_judgements'),
+                                         treat_empty_as_correct=True)
 
     # Compute manual evaluation scores on a subset of examples
     if manual_samples_only:
@@ -246,7 +247,6 @@ def get_automatic_evaluation_metrics(model_dir, decode_sig, dataset, top_k, FLAG
     top_k_cms = np.zeros([len(grouped_dataset), top_k])
     top_k_bleu = np.zeros([len(grouped_dataset), top_k])
 
-    o_f = open('debug.partial', 'w')
     for data_id in xrange(len(grouped_dataset)):
         _, data_group = grouped_dataset[data_id]
         sc_str = data_group[0].sc_txt.strip()
@@ -276,7 +276,8 @@ def get_automatic_evaluation_metrics(model_dir, decode_sig, dataset, top_k, FLAG
         predictions = prediction_list[data_id]
         for i in xrange(len(predictions)):
             pred_cmd = predictions[i]
-            pred_ast = cmd_parser(pred_cmd)
+            pred_cmd_key = get_example_cm_key(pred_cmd)
+            pred_ast = cmd_parser(pred_cmd_key)
             # evaluation ignoring flag orders
             temp_match = tree_dist.one_match(
                 template_gt_asts, pred_ast, ignore_arg_value=True)
@@ -285,8 +286,6 @@ def get_automatic_evaluation_metrics(model_dir, decode_sig, dataset, top_k, FLAG
             if temp_match:
                 top_k_temp_correct[data_id, i] = 1
             if str_match:
-                if i == 0:
-                    o_f.write('{}\n'.format(sc_str))
                 top_k_str_correct[data_id, i] = 1
             cms = token_based.command_match_score(template_gt_asts, pred_ast)
             bleu = nltk.translate.bleu_score.sentence_bleu(command_gts, pred_cmd)
@@ -298,10 +297,10 @@ def get_automatic_evaluation_metrics(model_dir, decode_sig, dataset, top_k, FLAG
         if verbose:
             print()
 
-    top_temp_acc = [-1 for k in [1, 3, 5, 10]]
-    top_cmd_acc = [-1 for k in [1, 3, 5, 10]]
-    top_cms = [-1 for k in [1, 3, 5, 10]]
-    top_bleu = [-1 for k in [1, 3, 5, 10]]
+    top_temp_acc = [-1 for _ in [1, 3, 5, 10]]
+    top_cmd_acc = [-1 for _ in [1, 3, 5, 10]]
+    top_cms = [-1 for _ in [1, 3, 5, 10]]
+    top_bleu = [-1 for _ in [1, 3, 5, 10]]
     top_temp_acc[0] = top_k_temp_correct[:, 0].mean()
     top_cmd_acc[0] = top_k_str_correct[:, 0].mean()
     top_cms[0] = top_k_cms[:, 0].mean()
@@ -496,6 +495,50 @@ def load_predictions(model_dir, decode_sig, top_k, verbose=True):
     return prediction_list
 
 
+def load_cached_correct_translations(data_dir, treat_empty_as_correct=False, verbose=False):
+    """
+    Load cached correct translations from disk.
+
+    :return: nl -> template translation map, nl -> command translation map
+    """
+    command_translations = collections.defaultdict(set)
+    template_translations = collections.defaultdict(set)
+    eval_files = []
+    for file_name in os.listdir(data_dir):
+        if 'evaluations' in file_name and not file_name.endswith('base'):
+            eval_files.append(file_name)
+    for file_name in sorted(eval_files):
+        manual_judgement_path = os.path.join(data_dir, file_name)
+        with open(manual_judgement_path) as f:
+            if verbose:
+                print('reading cached evaluations from {}'.format(
+                    manual_judgement_path))
+            reader = csv.DictReader(f)
+            current_nl_key = ''
+            for row in reader:
+                if row['description']:
+                    current_nl_key = get_example_nl_key(row['description'])
+                pred_cmd = row['prediction']
+                if 'template' in row:
+                    pred_temp = row['template']
+                else:
+                    pred_temp = data_tools.cmd2template(pred_cmd, loose_constraints=True)
+                structure_eval = row['correct template']
+                if treat_empty_as_correct:
+                    structure_eval = normalize_judgement(structure_eval)
+                command_eval = row['correct command']
+                if treat_empty_as_correct:
+                    command_eval = normalize_judgement(command_eval)
+                if structure_eval == 'y':
+                    template_translations[current_nl_key].add(pred_temp)
+                if command_eval == 'y':
+                    command_translations[current_nl_key].add(pred_cmd)
+    print('{} template translations loaded'.format(len(template_translations)))
+    print('{} command translations loaded'.format(len(command_translations)))
+
+    return template_translations, command_translations
+
+
 def load_cached_evaluations(model_dir, verbose=True):
     """
     Load cached evaluation results from disk.
@@ -553,51 +596,6 @@ def load_cached_evaluations_from_file(input_file, treat_empty_as_correct=False, 
             if structure_eval:
                 structure_eval_results[structure_example_key] = structure_eval
     return structure_eval_results, command_eval_results
-
-
-def load_cached_correct_translations(data_dir, treat_empty_as_correct=False, verbose=False):
-    """
-    Load cached correct translations from disk.
-
-    :return: nl -> template translation map, nl -> command translation map
-    """
-    command_translations = collections.defaultdict(set)
-    template_translations = collections.defaultdict(set)
-    data_dir = os.path.join(data_dir, 'manual_judgements')
-    eval_files = []
-    for file_name in os.listdir(data_dir):
-        if 'evaluations' in file_name and not file_name.endswith('base'):
-            eval_files.append(file_name)
-    for file_name in sorted(eval_files):
-        manual_judgement_path = os.path.join(data_dir, file_name)
-        with open(manual_judgement_path) as f:
-            if verbose:
-                print('reading cached evaluations from {}'.format(
-                    manual_judgement_path))
-            reader = csv.DictReader(f)
-            current_nl_key = ''
-            for row in reader:
-                if row['description']:
-                    current_nl_key = get_example_nl_key(row['description'])
-                pred_cmd = row['prediction']
-                if 'template' in row:
-                    pred_temp = row['template'] 
-                else:
-                    pred_temp = data_tools.cmd2template(pred_cmd, loose_constraints=True) 
-                structure_eval = row['correct template']
-                if treat_empty_as_correct:
-                    structure_eval = normalize_judgement(structure_eval)
-                command_eval = row['correct command']
-                if treat_empty_as_correct:
-                    command_eval = normalize_judgement(command_eval)
-                if structure_eval == 'y':
-                    template_translations[current_nl_key].add(pred_temp)
-                if command_eval == 'y':
-                    command_translations[current_nl_key].add(pred_cmd)
-    print('{} template translations loaded'.format(len(template_translations)))
-    print('{} command translations loaded'.format(len(command_translations)))
-
-    return template_translations, command_translations
 
 
 def get_example_nl_key(nl):
