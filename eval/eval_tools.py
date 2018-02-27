@@ -511,7 +511,7 @@ def load_cached_correct_translations(data_dir, treat_empty_as_correct=False, ver
                 if row['description']:
                     current_nl_key = get_example_nl_key(row['description'])
                 pred_cmd = row['prediction']
-                pred_cmd_key = get_example_nl_key(pred_cmd)
+                pred_cmd_key = get_example_cm_key(pred_cmd)
                 if 'template' in row:
                     pred_temp_key = get_example_cm_key(row['template'])
                 else:
