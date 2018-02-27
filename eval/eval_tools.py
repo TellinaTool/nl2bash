@@ -110,14 +110,14 @@ def gen_evaluation_table(dataset, FLAGS, num_examples=100, interactive=True):
                 pred_cmd = predictions[i]
                 pred_cmd_key = get_example_cm_key(pred_cmd)
                 pred_ast = cmd_parser(pred_cmd_key)
-                pred_temp = data_tools.ast2template(pred_ast, loose_constraints=True)
+                pred_temp_key = data_tools.ast2template(pred_ast, loose_constraints=True)
                 temp_match = tree_dist.one_match(
                     command_gt_asts, pred_ast, ignore_arg_value=True)
                 str_match = tree_dist.one_match(
                     command_gt_asts, pred_ast, ignore_arg_value=False)
                 # Match ground truths & exisitng judgements
                 command_example_key = '{}<NL_PREDICTION>{}'.format(sc_key, pred_cmd_key)
-                structure_example_key = '{}<NL_PREDICTION>{}'.format(sc_key, pred_temp)
+                structure_example_key = '{}<NL_PREDICTION>{}'.format(sc_key, pred_temp_key)
                 command_eval, structure_eval = '', ''
                 if str_match:
                     command_eval = 'y'
@@ -205,8 +205,7 @@ def get_automatic_evaluation_metrics(model_dir, decode_sig, dataset, top_k, FLAG
 
     tokenizer_selector = 'cm' if FLAGS.explain else 'nl'
     grouped_dataset = data_utils.group_parallel_data(
-        dataset, use_bucket=use_bucket,
-        tokenizer_selector=tokenizer_selector)
+        dataset, use_bucket=use_bucket, tokenizer_selector=tokenizer_selector)
     vocabs = data_utils.load_vocabulary(FLAGS)
     rev_sc_vocab = vocabs.rev_sc_vocab
 
