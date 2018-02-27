@@ -1,4 +1,4 @@
-# This Makefile wraps commands used to reproduce baseline system results.
+# This Makefile wraps commands used to reproduce the baseline system results.
 
 ## Toggle the two lines below if you are reproducing the experiments using CPU
 # gpu = "--gpu ''"
