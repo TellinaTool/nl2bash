@@ -19,6 +19,8 @@ if sys.version_info > (3, 0):
 from bashlint import data_tools
 from encoder_decoder import data_utils, graph_utils
 from eval import token_based, tree_dist
+from eval.eval_tools import get_example_cm_key
+import eval.bleu as bl
 from nlp_tools import constants, tokenizer
 import utils.ops
 
@@ -100,7 +102,7 @@ def gen_evaluation_table(dataset, FLAGS, num_examples=100, interactive=True):
         data_group = grouped_dataset[example_id][1]
         sc_txt = data_group[0].sc_txt.strip()
         sc_key = get_example_nl_key(sc_txt)
-        command_gts = [dp.tg_txt for dp in data_group]
+        command_gts = [get_example_cm_key(dp.tg_txt) for dp in data_group]
         command_gt_asts = [data_tools.bash_parser(gt) for gt in command_gts]
         for model_id, model_name in enumerate(model_names):
             predictions = model_predictions[model_id][example_id]
@@ -257,7 +259,7 @@ def get_automatic_evaluation_metrics(model_dir, decode_sig, dataset, top_k, FLAG
             sc_features = sc_features.replace(constants._SPACE, ' ')
         else:
             sc_features = ' '.join(sc_tokens)
-        command_gts = [dp.tg_txt.strip() for dp in data_group]
+        command_gts = [get_example_cm_key(dp.tg_txt.strip()) for dp in data_group]
         if command_translations:
             command_gts = set(command_gts) | command_translations[sc_key]
         command_gt_asts = [data_tools.bash_parser(cmd) for cmd in command_gts]
@@ -519,10 +521,11 @@ def load_cached_correct_translations(data_dir, treat_empty_as_correct=False, ver
                 if row['description']:
                     current_nl_key = get_example_nl_key(row['description'])
                 pred_cmd = row['prediction']
+                pred_cmd_key = get_example_nl_key(pred_cmd)
                 if 'template' in row:
-                    pred_temp = row['template']
+                    pred_temp_key = get_example_cm_key(row['template'])
                 else:
-                    pred_temp = data_tools.cmd2template(pred_cmd, loose_constraints=True)
+                    pred_temp = data_tools.cmd2template(pred_cmd_key, loose_constraints=True)
                 structure_eval = row['correct template']
                 if treat_empty_as_correct:
                     structure_eval = normalize_judgement(structure_eval)
