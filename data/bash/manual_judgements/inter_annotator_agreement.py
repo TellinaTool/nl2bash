@@ -12,7 +12,7 @@ import sys
 
 from bashlint import data_tools
 from eval.eval_tools import load_cached_evaluations_from_file
-from eval.eval_tools import get_example_nl_key, get_example_cm_key
+from eval.eval_tools import get_example_nl_key
 from eval.eval_tools import normalize_judgement
 
 def iaa(a1, a2):
@@ -90,10 +90,9 @@ def combine_annotations():
                 if not pred_cmd:
                     row1_template_eval, row1_command_eval = 'n', 'n'
                     row2_template_eval, row2_command_eval = 'n', 'n'
-                pred_cmd_key = get_example_cm_key(pred_cmd)
-                pred_temp = data_tools.cmd2template(pred_cmd_key, loose_constraints=True)
+                pred_temp = data_tools.cmd2template(pred_cmd, loose_constraints=True)
                 structure_example_key = '{}<NL_PREDICTION>{}'.format(sc_key, pred_temp)
-                command_example_key = '{}<NL_PREDICTION>{}'.format(sc_key, pred_cmd_key)
+                command_example_key = '{}<NL_PREDICTION>{}'.format(sc_key, pred_cmd)
                 row3_template_eval, row3_command_eval = None, None
                 if structure_example_key in sup_structure_eval:
                     row3_template_eval = sup_structure_eval[structure_example_key]
@@ -166,10 +165,9 @@ def print_error_analysis_sheet():
                 if not pred_cmd:
                     row1_template_eval, row1_command_eval = 'n', 'n'
                     row2_template_eval, row2_command_eval = 'n', 'n'
-                pred_cmd_key = get_example_cm_key(pred_cmd)
-                pred_temp = data_tools.cmd2template(pred_cmd_key, loose_constraints=True)
+                pred_temp = data_tools.cmd2template(pred_cmd, loose_constraints=True)
                 structure_example_key = '{}<NL_PREDICTION>{}'.format(sc_key, pred_temp)
-                command_example_key = '{}<NL_PREDICTION>{}'.format(sc_key, pred_cmd_key)
+                command_example_key = '{}<NL_PREDICTION>{}'.format(sc_key, pred_cmd)
                 row3_template_eval, row3_command_eval = None, None
                 if structure_example_key in sup_structure_eval:
                     row3_template_eval = sup_structure_eval[structure_example_key]
