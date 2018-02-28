@@ -62,6 +62,8 @@ def define_input_flags():
                                 'a particular model.')
     tf.app.flags.DEFINE_boolean('gen_manual_evaluation_table', False,
                                 'Set to True to open manual evaluation commandline interface')
+    tf.app.flags.DEFINE_boolean('gen_auto_evaluation_table', False,
+                                'Set to True to tabulate the automatic evaluation results for selected baseline systems')
     tf.app.flags.DEFINE_boolean('tabulate_example_predictions', False,
                                 'Set to True to print example predictions with Latex formattings')
 
