@@ -23,7 +23,7 @@ from nlp_tools import constants, tokenizer
 import utils.ops
 
 
-def gen_evaluation_table(dataset, FLAGS, num_examples=100, interactive=True):
+def gen_evaluation_table(dataset, FLAGS, num_examples=-1, interactive=True):
     """
     Generate structure and full command accuracy results on a fixed set of dev/test
         set samples, with the results of multiple models tabulated in the same table.
@@ -58,9 +58,7 @@ def gen_evaluation_table(dataset, FLAGS, num_examples=100, interactive=True):
         print('new judgement added to {}'.format(manual_judgement_path))
 
     # Group dataset
-    tokenizer_selector = "cm" if FLAGS.explain else "nl"
-    grouped_dataset = data_utils.group_parallel_data(
-        dataset, use_bucket=True, tokenizer_selector=tokenizer_selector)
+    grouped_dataset = data_utils.group_parallel_data(dataset, use_bucket=True)
 
     if FLAGS.test:
         model_names, model_predictions = load_all_model_predictions(
@@ -170,27 +168,59 @@ def gen_evaluation_table(dataset, FLAGS, num_examples=100, interactive=True):
                     if not top_3_f_correct_marked:
                         num_f_top_3_correct[model_name] += 1
                         top_3_f_correct_marked = True
-
-    # print evaluation table
-    # compute model name length offset
-    max_len = len(max(model_names, key=len))
-    max_len_with_offset = (int(max_len / 4) + 1) * 4
-    first_line = '{}Acc_F_1    Acc_F_3    Acc_T_1    Acc_T_3'.format(
-        utils.ops.padding_spaces('Model', max_len_with_offset))
-    print(first_line)
-    print('-' * len(first_line))
-    for i, model_name in enumerate(model_names):
-        print('{}{:.2f}    {:.2f}    {:.2f}    {:.2f}'.format(
-            utils.ops.padding_spaces(model_name, max_len_with_offset),
+    metrics_names = ['Acc_F_1', 'Acc_F_3', 'Acc_T_1', 'Acc_T_3']
+    model_metrics = {}
+    for model_name in model_names:
+        metrics = [
             num_f_correct[model_name] / len(sample_ids),
             num_f_top_3_correct[model_name] / len(sample_ids),
             num_s_correct[model_name] / len(sample_ids),
-            num_s_top_3_correct[model_name] / len(sample_ids)))
-    print('-' * len(first_line))
+            num_s_top_3_correct[model_name] / len(sample_ids)
+        ]
+        model_metrics[model_name] = metrics
+    print_table(model_names, metrics_names, model_metrics)
 
 
-def get_automatic_evaluation_metrics(model_dir, decode_sig, dataset, top_k, FLAGS,
-                                     manual_samples_only=False, verbose=False):
+def gen_automatic_evaluation_table(dataset, FLAGS):
+    # Group dataset
+    grouped_dataset = data_utils.group_parallel_data(dataset, use_bucket=True)
+    vocabs = data_utils.load_vocabulary(FLAGS)
+
+    model_names, model_predictions = load_all_model_predictions(
+        grouped_dataset, FLAGS, top_k=3)
+
+    auto_evaluation_metrics = {}
+    for model_id, model_name in enumerate(model_names):
+        prediction_list = model_predictions[model_id]
+        M = get_automatic_evaluation_metrics(
+            grouped_dataset, prediction_list, vocabs, FLAGS, top_k=3)
+        auto_evaluation_metrics[model_name] = \
+            [M['top_bleu'][0], M['top_bleu'][1], M['top_cms'][0], M['top_cms'][1]]
+
+    metrics_names = ['BLEU1', 'BLEU3', 'TM1', 'TM3']
+    print_table(model_names, metrics_names, auto_evaluation_metrics)
+
+
+def print_table(model_names, metrics_names, model_metrics):
+    # print evaluation table
+    # pad model names with spaces to create alignment
+    max_len = len(max(model_names, key=len))
+    max_len_with_offset = (int(max_len / 4) + 1) * 4
+    first_row = utils.ops.padding_spaces('Model', max_len_with_offset)
+    for metrics_name in metrics_names:
+        first_row += '{}    '.format(metrics_name)
+    print(first_row.strip())
+    print('-' * len(first_row))
+    for i, model_name in enumerate(model_names):
+        row = utils.ops.padding_spaces(model_name, max_len_with_offset)
+        for metrics in model_metrics[model_name]:
+            row += '{:.2f}    '.format(metrics)
+        print(row.strip())
+    print('-' * len(first_row))
+
+
+def automatic_eval(model_dir, decode_sig, dataset, FLAGS, top_k,
+                   num_samples=-1, verbose=False):
     """
     Generate automatic evaluation metrics on a dev/test set.
     The following metrics are computed:
@@ -200,15 +230,10 @@ def get_automatic_evaluation_metrics(model_dir, decode_sig, dataset, top_k, FLAG
             3. Command keyword overlap
             4. BLEU
     """
-    cmd_parser = data_tools.bash_parser
-
     use_bucket = False if "knn" in model_dir else True
 
-    tokenizer_selector = 'cm' if FLAGS.explain else 'nl'
-    grouped_dataset = data_utils.group_parallel_data(
-        dataset, use_bucket=use_bucket, tokenizer_selector=tokenizer_selector)
+    grouped_dataset = data_utils.group_parallel_data(dataset, use_bucket=use_bucket)
     vocabs = data_utils.load_vocabulary(FLAGS)
-    rev_sc_vocab = vocabs.rev_sc_vocab
 
     # Load predictions
     prediction_list = load_predictions(model_dir, decode_sig, top_k)
@@ -216,13 +241,23 @@ def get_automatic_evaluation_metrics(model_dir, decode_sig, dataset, top_k, FLAG
         raise ValueError("ground truth and predictions length must be equal: "
                          "{} vs. {}".format(len(grouped_dataset), len(prediction_list)))
 
+    M = get_automatic_evaluation_metrics(grouped_dataset, prediction_list, vocabs, FLAGS,
+                                         top_k, num_samples, verbose)
+    return M
+
+
+def get_automatic_evaluation_metrics(grouped_dataset, prediction_list, vocabs, FLAGS, top_k,
+                                     num_samples=-1, verbose=False):
+    cmd_parser = data_tools.bash_parser
+    rev_sc_vocab = vocabs.rev_sc_vocab
+
     # Load cached evaluation results
     structure_eval_cache, command_eval_cache = \
         load_cached_evaluations(
             os.path.join(FLAGS.data_dir, 'manual_judgements'))
 
     # Compute manual evaluation scores on a subset of examples
-    if manual_samples_only:
+    if num_samples > 0:
         # Get FIXED dev set samples
         random.seed(100)
         example_ids = list(range(len(grouped_dataset)))
@@ -309,29 +344,33 @@ def get_automatic_evaluation_metrics(model_dir, decode_sig, dataset, top_k, FLAG
         top_cmd_acc[1] = np.max(top_k_str_correct[:, :3], 1).mean()
         top_cms[1] = np.max(top_k_cms[:, :3], 1).mean()
         top_bleu[1] = np.max(top_k_bleu[:, :3], 1).mean()
-        print("Top 3 Match (template-only) = %.3f" % top_temp_acc[1])
-        print("Top 3 Match (whole-string) = %.3f" % top_cmd_acc[1])
-        print("Average top 3 Template Match Score = %.3f" % top_cms[1])
-        print("Average top 3 BLEU Score = %.3f" % top_bleu[1])
+        if verbose:
+            print("Top 3 Match (template-only) = %.3f" % top_temp_acc[1])
+            print("Top 3 Match (whole-string) = %.3f" % top_cmd_acc[1])
+            print("Average top 3 Template Match Score = %.3f" % top_cms[1])
+            print("Average top 3 BLEU Score = %.3f" % top_bleu[1])
     if len(predictions) > 3:
         top_temp_acc[2] = np.max(top_k_temp_correct[:, :5], 1).mean()
         top_cmd_acc[2] = np.max(top_k_str_correct[:, :5], 1).mean()
         top_cms[2] = np.max(top_k_cms[:, :5], 1).mean()
         top_bleu[2] = np.max(top_k_bleu[:, :5], 1).mean()
-        print("Top 5 Match (template-only) = %.3f" % top_temp_acc[2])
-        print("Top 5 Match (whole-string) = %.3f" % top_cmd_acc[2])
-        print("Average top 5 Template Match Score = %.3f" % top_cms[2])
-        print("Average top 5 BLEU Score = %.3f" % top_bleu[2])
+        if verbose:
+            print("Top 5 Match (template-only) = %.3f" % top_temp_acc[2])
+            print("Top 5 Match (whole-string) = %.3f" % top_cmd_acc[2])
+            print("Average top 5 Template Match Score = %.3f" % top_cms[2])
+            print("Average top 5 BLEU Score = %.3f" % top_bleu[2])
     if len(predictions) > 5:
         top_temp_acc[3] = np.max(top_k_temp_correct[:, :10], 1).mean()
         top_cmd_acc[3] = np.max(top_k_str_correct[:, :10], 1).mean()
         top_cms[3] = np.max(top_k_cms[:, :10], 1).mean()
         top_bleu[3] = np.max(top_k_bleu[:, :10], 1).mean()
-        print("Top 10 Match (template-only) = %.3f" % top_temp_acc[3])
-        print("Top 10 Match (whole-string) = %.3f" % top_cmd_acc[3])
-        print("Average top 10 Template Match Score = %.3f" % top_cms[3])
-        print("Average top 10 BLEU Score = %.3f" % top_bleu[3])
-    print()
+        if verbose:
+            print("Top 10 Match (template-only) = %.3f" % top_temp_acc[3])
+            print("Top 10 Match (whole-string) = %.3f" % top_cmd_acc[3])
+            print("Average top 10 Template Match Score = %.3f" % top_cms[3])
+            print("Average top 10 BLEU Score = %.3f" % top_bleu[3])
+    if verbose:
+        print()
 
     M = {}
     M['top_temp_acc'] = top_temp_acc

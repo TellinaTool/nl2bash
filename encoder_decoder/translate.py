@@ -169,8 +169,8 @@ def eval(data_set, model_dir=None, decode_sig=None, verbose=True):
         model_dir = os.path.join(FLAGS.model_root_dir, model_subdir)
     print("evaluating " + model_dir)
 
-    return eval_tools.get_automatic_evaluation_metrics(model_dir, decode_sig, data_set,
-        top_k=3, FLAGS=FLAGS, manual_samples_only=False, verbose=verbose)
+    return eval_tools.automatic_eval(model_dir, decode_sig, data_set,
+        top_k=3, FLAGS=FLAGS, verbose=verbose)
 
 
 def demo(buckets=None):
@@ -312,9 +312,11 @@ def main(_):
             error_analysis.gen_manual_evaluation_csv_single_model(dataset, FLAGS)
         elif FLAGS.gen_manual_evaluation_table:
             if FLAGS.test:
-                eval_tools.gen_evaluation_table(dataset, FLAGS, num_examples=-1)
-            else:
                 eval_tools.gen_evaluation_table(dataset, FLAGS)
+            else:
+                eval_tools.gen_evaluation_table(dataset, FLAGS, num_examples=100)
+        elif FLAGS.gen_auto_evaluation_table:
+            eval_tools.gen_automatic_evaluation_table(dataset, FLAGS)
         elif FLAGS.tabulate_example_predictions:
             error_analysis.tabulate_example_predictions(dataset, FLAGS, num_examples=20)
 
