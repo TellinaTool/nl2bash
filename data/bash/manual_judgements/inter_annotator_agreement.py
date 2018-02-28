@@ -6,6 +6,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import collections
 import csv
 import sys
 
@@ -149,6 +150,8 @@ def print_error_analysis_sheet():
             reader2 = csv.DictReader(f2)
             current_desp = ''
             for row_id, (row1, row2) in enumerate(zip(reader1, reader2)):
+                if row1['description']:
+                    current_desp = row1['description'].strip()
                 model_name = row2['model']
                 if not model_name in ['partial.token-copynet', 'tellina']:
                     continue
@@ -158,8 +161,6 @@ def print_error_analysis_sheet():
                 row1_command_eval = normalize_judgement(row1['correct command'].strip())
                 row2_template_eval = normalize_judgement(row2['correct template'].strip())
                 row2_command_eval = normalize_judgement(row2['correct command'].strip())
-                if row1['description']:
-                    current_desp = row1['description'].strip()
                 sc_key = get_example_nl_key(current_desp)
                 pred_cmd = row1['prediction'].strip()
                 if not pred_cmd:
@@ -177,7 +178,7 @@ def print_error_analysis_sheet():
                 if row1_template_eval != row2_template_eval or row1_command_eval != row2_command_eval:
                     if row1_template_eval != row2_template_eval:
                         if row3_template_eval is None:
-                            print(structure_example_key)
+                            print(pred_cmd_key, structure_example_key)
                         assert (row3_template_eval is not None)
                         template_eval = row3_template_eval
                     else:
@@ -203,6 +204,75 @@ def print_error_analysis_sheet():
                     row2_template_eval, row2_command_eval,
                     row3_template_eval, row3_command_eval))
     o_f.close()
+
+def compute_error_overlap():
+    input_file = sys.argv[1]
+    template_judgements = []
+    command_judgements = []
+    with open(input_file) as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            template_eval = row['correct template']
+            command_eval = row['correct command']
+            if row['model'] == 'tellina':
+                template_judgements.append([template_eval])
+                command_judgements.append([command_eval])
+            else:
+                template_judgements[-1].append(template_eval)
+                command_judgements[-1].append(command_eval)
+    temp_error_hist = [0, 0, 0, 0]
+    for t1, t2 in template_judgements:
+        if t1 == 'y' and t2 == 'y':
+            temp_error_hist[0] += 1
+        elif t1 == 'y' and t2 == 'n':
+            temp_error_hist[1] += 1
+        elif t1 == 'n' and t2 == 'y':
+            temp_error_hist[2] += 1
+        elif t1 == 'n' and t2 == 'n':
+            temp_error_hist[3] += 1
+    print('Template Judgements:')
+    print('\ty y: {}'.format(temp_error_hist[0]))
+    print('\ty n: {}'.format(temp_error_hist[1]))
+    print('\tn y: {}'.format(temp_error_hist[2]))
+    print('\tn n: {}'.format(temp_error_hist[3]))
+    command_error_hist = [0, 0, 0, 0]
+    for c1, c2 in command_judgements:
+        if c1 == 'y' and c2 == 'y':
+            command_error_hist[0] += 1
+        elif c1 == 'y' and c2 == 'n':
+            command_error_hist[1] += 1
+        elif c1 == 'n' and c2 == 'y':
+            command_error_hist[2] += 1
+        elif c1 == 'n' and c2 == 'n':
+            command_error_hist[3] += 1
+    print('Command Judgements"')
+    print('\ty y: {}'.format(command_error_hist[0]))
+    print('\ty n: {}'.format(command_error_hist[1]))
+    print('\tn y: {}'.format(command_error_hist[2]))
+    print('\tn n: {}'.format(command_error_hist[3]))
+
+def compute_error_category():
+    input_file = sys.argv[1]
+    tellina_error_hist = collections.defaultdict(int)
+    pc_error_hist = collections.defaultdict(int)
+    with open(input_file) as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            error_cat = row['error category']
+            if error_cat:
+                if row['model'] == 'tellina':
+                    tellina_error_hist[error_cat] += 1
+                elif row['model'] == 'partial.token-copynet':
+                    pc_error_hist[error_cat] += 1
+                else:
+                    raise ValueError
+    print('Tellina errors:')
+    for ec, freq in sorted(tellina_error_hist.items(), key=lambda x:x[1], reverse=True):
+        print(ec, freq)
+    print()
+    print('Sub-token CopyNet errors:')
+    for ec, freq in sorted(pc_error_hist.items(), key=lambda x:x[1], reverse=True):
+        print(ec, freq)
 
 def export_annotation_differences(input_file1, input_file2, output_file, command_header):
     o_f = open(output_file, 'w')
@@ -237,7 +307,7 @@ def export_annotation_differences(input_file1, input_file2, output_file, command
     o_f.close()
 
 def main():
-    print_error_analysis_sheet()
+    # print_error_analysis_sheet()
     # combine_annotations()
     # input_files1 = ['unreleased_files/manual.evaluations.test.stc.annotator.1.csv', 'unreleased_files/manual.evaluations.test.tellina.annotator.1.csv']
     # input_files2 = ['unreleased_files/manual.evaluations.test.stc.annotator.2.csv', 'unreleased_files/manual.evaluations.test.tellina.annotator.2.csv']
@@ -246,6 +316,8 @@ def main():
     # input_files1 = ['unreleased_files/manual.evaluations.dev.samples.annotator.1.csv']
     # input_files2 = ['unreleased_files/manual.evaluations.dev.samples.annotator.2.csv']
     # inter_annotator_agreement(input_files1, input_files2)
+    # compute_error_overlap()
+    compute_error_category()
 
 if __name__ == '__main__':
     main()
