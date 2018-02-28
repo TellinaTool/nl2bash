@@ -22,7 +22,7 @@ from eval.eval_tools import load_predictions
 from eval.eval_tools import load_all_model_predictions
 from eval.eval_tools import load_cached_evaluations
 from eval.eval_tools import load_cached_correct_translations
-from eval.eval_tools import get_example_nl_key, get_example_cm_key
+from eval.eval_tools import get_example_nl_key
 
 
 error_types = {
@@ -90,15 +90,14 @@ def gen_manual_evaluation_csv_single_model(dataset, FLAGS):
                     o_f.write(',,,n,n\n')
                     continue
                 pred_cmd = predictions[i]
-                pred_cmd_key = get_example_cm_key(pred_cmd)
-                pred_tree = cmd_parser(pred_cmd_key)
+                pred_tree = cmd_parser(pred_cmd)
                 pred_temp = data_tools.ast2template(pred_tree, loose_constraints=True)
                 temp_match = tree_dist.one_match(
                     template_gt_asts, pred_tree, ignore_arg_value=True)
                 str_match = tree_dist.one_match(
                     command_gt_asts, pred_tree, ignore_arg_value=False)
                 # Match ground truths & exisitng judgements
-                command_example_sig = '{}<NL_PREDICTION>{}'.format(sc_key, pred_cmd_key)
+                command_example_sig = '{}<NL_PREDICTION>{}'.format(sc_key, pred_cmd)
                 structure_example_sig = '{}<NL_PREDICTION>{}'.format(sc_key, pred_temp)
                 command_eval, structure_eval = '', ''
                 if str_match:
@@ -168,8 +167,7 @@ def gen_manual_evaluation_csv(dataset, FLAGS, num_examples=100):
                     else:
                         output_str = ',,'
                     pred_cmd = predictions[i]
-                    pred_cmd_key = get_example_cm_key(pred_cmd)
-                    pred_tree = cmd_parser(pred_cmd_key)
+                    pred_tree = cmd_parser(pred_cmd)
                     pred_temp = data_tools.ast2template(pred_tree, loose_constraints=True)
                     temp_match = tree_dist.one_match(
                         command_gt_asts, pred_tree, ignore_arg_value=True)
@@ -183,7 +181,7 @@ def gen_manual_evaluation_csv(dataset, FLAGS, num_examples=100):
                         output_str += ','
                     output_str += '{},"{}",'.format(model_name, pred_cmd.replace('"', '""'))
 
-                    command_example_sig = '{}<NL_PREDICTION>{}'.format(sc_key, pred_cmd_key)
+                    command_example_sig = '{}<NL_PREDICTION>{}'.format(sc_key, pred_cmd)
                     structure_example_sig = '{}<NL_PREDICTION>{}'.format(sc_key, pred_temp)
                     command_eval, structure_eval = '', ''
                     if str_match:
@@ -249,8 +247,7 @@ def tabulate_example_predictions(dataset, FLAGS, num_examples=100):
             predictions = model_predictions[model_id][example_id]
             for i in xrange(min(3, len(predictions))):
                 pred_cmd = predictions[i]
-                pred_cmd_key = get_example_cm_key(pred_cmd)
-                pred_tree = cmd_parser(pred_cmd_key)
+                pred_tree = cmd_parser(pred_cmd)
                 pred_temp = data_tools.ast2template(pred_tree, loose_constraints=True)
                 temp_match = tree_dist.one_match(
                     command_gt_asts, pred_tree, ignore_arg_value=True)
@@ -264,7 +261,7 @@ def tabulate_example_predictions(dataset, FLAGS, num_examples=100):
                                                            .replace('{{}}', '\\ttcbs'), 
                                                    model_name_pt[model_name])
 
-                command_example_sig = '{}<NL_PREDICTION>{}'.format(sc_key, pred_cmd_key)
+                command_example_sig = '{}<NL_PREDICTION>{}'.format(sc_key, pred_cmd)
                 structure_example_sig = '{}<NL_PREDICTION>{}'.format(sc_key, pred_temp)
                 command_eval, structure_eval = '', ''
                 if str_match:
@@ -378,8 +375,7 @@ def print_error_analysis_csv(grouped_dataset, prediction_list, FLAGS,
                     if i == 0:
                         grammar_error = True
 
-            example_sig = '{}<NL_PREDICTION>{}'.format(
-                sc_temp, get_example_cm_key(pred_cmd))
+            example_sig = '{}<NL_PREDICTION>{}'.format(sc_temp, pred_cmd)
             if cached_evaluation_results and \
                     example_sig in cached_evaluation_results:
                 output_str += cached_evaluation_results[example_sig]

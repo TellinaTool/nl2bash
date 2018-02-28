@@ -5,17 +5,6 @@ from __future__ import print_function
 from bashlint import data_tools, nast
 from eval import zss
 
-import re
-
-
-def ignore_differences(cmd):
-    cmd = re.sub(' -ls\s', ' ', cmd)
-    cmd = re.sub(' -ls$', '', cmd)
-    cmd = re.sub(' -print0\s', ' ', cmd)
-    cmd = re.sub(' -print0$', '', cmd)
-    cmd = re.sub(' -print\s', ' ', cmd)
-    cmd = re.sub(' -print$', '', cmd)
-    return cmd
 
 def local_dist(s1, s2, skip_argument=False):
     score_list = {
@@ -93,27 +82,23 @@ def one_match(asts, ast2, rewrite=False, ignore_arg_value=False):
         raise NotImplementedError
     else:
         ast_rewrites = asts
-    cmd2 = ignore_differences(data_tools.ast2template(ast2, 
-        loose_constraints=True, arg_type_only=ignore_arg_value))
+    cmd2 = data_tools.ast2template(ast2, loose_constraints=True,
+                                   arg_type_only=ignore_arg_value)
     for ast1 in ast_rewrites:
-        cmd1 = ignore_differences(data_tools.ast2template(ast1, 
-            loose_constraints=True, arg_type_only=ignore_arg_value))
+        cmd1 = data_tools.ast2template(ast1, loose_constraints=True,
+                                       arg_type_only=ignore_arg_value)
         if cmd1 == cmd2:
             return True
     return False
 
 def template_match(ast1, ast2):
-    temp1 = ignore_differences(
-        data_tools.ast2template(ast1, loose_constraints=True))
-    temp2 = ignore_differences(
-        data_tools.ast2template(ast2, loose_constraints=True))
+    temp1 = data_tools.ast2template(ast1, loose_constraints=True)
+    temp2 = data_tools.ast2template(ast2, loose_constraints=True)
     return temp1 == temp2
 
 def string_match(ast1, ast2):
-    str1 = ignore_differences(
-        data_tools.ast2template(ast1, loose_constraints=True, arg_type_only=False))
-    str2 = ignore_differences(
-        data_tools.ast2template(ast2, loose_constraints=True, arg_type_only=False))
+    str1 = data_tools.ast2template(ast1, loose_constraints=True, arg_type_only=False)
+    str2 = data_tools.ast2template(ast2, loose_constraints=True, arg_type_only=False)
     return str1 == str2
 
 

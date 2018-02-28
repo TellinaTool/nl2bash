@@ -80,6 +80,8 @@ def gen_evaluation_table(dataset, FLAGS, num_examples=-1, interactive=True):
     random.shuffle(example_ids)
     if num_examples > 0:
         sample_ids = example_ids[:num_examples]
+    else:
+        sample_ids = example_ids
 
     # Load cached evaluation results
     structure_eval_cache, command_eval_cache = \
@@ -99,7 +101,7 @@ def gen_evaluation_table(dataset, FLAGS, num_examples=-1, interactive=True):
         data_group = grouped_dataset[example_id][1]
         sc_txt = data_group[0].sc_txt.strip()
         sc_key = get_example_nl_key(sc_txt)
-        command_gts = [get_example_cm_key(dp.tg_txt) for dp in data_group]
+        command_gts = [dp.tg_txt for dp in data_group]
         command_gt_asts = [data_tools.bash_parser(gt) for gt in command_gts]
         for model_id, model_name in enumerate(model_names):
             predictions = model_predictions[model_id][example_id]
@@ -107,16 +109,15 @@ def gen_evaluation_table(dataset, FLAGS, num_examples=-1, interactive=True):
             top_3_f_correct_marked = False
             for i in xrange(min(3, len(predictions))):
                 pred_cmd = predictions[i]
-                pred_cmd_key = get_example_cm_key(pred_cmd)
-                pred_ast = cmd_parser(pred_cmd_key)
-                pred_temp_key = data_tools.ast2template(pred_ast, loose_constraints=True)
+                pred_ast = cmd_parser(pred_cmd)
+                pred_temp = data_tools.ast2template(pred_ast, loose_constraints=True)
                 temp_match = tree_dist.one_match(
                     command_gt_asts, pred_ast, ignore_arg_value=True)
                 str_match = tree_dist.one_match(
                     command_gt_asts, pred_ast, ignore_arg_value=False)
                 # Match ground truths & exisitng judgements
-                command_example_key = '{}<NL_PREDICTION>{}'.format(sc_key, pred_cmd_key)
-                structure_example_key = '{}<NL_PREDICTION>{}'.format(sc_key, pred_temp_key)
+                command_example_key = '{}<NL_PREDICTION>{}'.format(sc_key, pred_cmd)
+                structure_example_key = '{}<NL_PREDICTION>{}'.format(sc_key, pred_temp)
                 command_eval, structure_eval = '', ''
                 if str_match:
                     command_eval = 'y'
@@ -137,7 +138,7 @@ def gen_evaluation_table(dataset, FLAGS, num_examples=-1, interactive=True):
                             print('> {}'.format(pred_cmd))
                             command_eval = input(
                                 'CORRECT COMMAND? [y/reason] ')
-                            add_judgement(FLAGS.data_dir, sc_key, pred_cmd_key,
+                            add_judgement(FLAGS.data_dir, sc_key, pred_cmd,
                                           structure_eval, command_eval)
                             print()
                     else:
@@ -151,7 +152,7 @@ def gen_evaluation_table(dataset, FLAGS, num_examples=-1, interactive=True):
                             if structure_eval == 'y':
                                 command_eval = input(
                                     'CORRECT COMMAND? [y/reason] ')
-                            add_judgement(FLAGS.data_dir, sc_key, pred_cmd_key,
+                            add_judgement(FLAGS.data_dir, sc_key, pred_cmd,
                                           structure_eval, command_eval)
                             print()
                     structure_eval_cache[structure_example_key] = structure_eval
@@ -282,7 +283,7 @@ def get_automatic_evaluation_metrics(grouped_dataset, prediction_list, vocabs, F
             sc_features = sc_features.replace(constants._SPACE, ' ')
         else:
             sc_features = ' '.join(sc_tokens)
-        command_gts = [get_example_cm_key(dp.tg_txt.strip()) for dp in data_group]
+        command_gts = [dp.tg_txt.strip() for dp in data_group]
         command_gt_asts = [data_tools.bash_parser(cmd) for cmd in command_gts]
         template_gts = [data_tools.cmd2template(cmd, loose_constraints=True) for cmd in command_gts]
         template_gt_asts = [data_tools.bash_parser(temp) for temp in template_gts]
@@ -296,11 +297,10 @@ def get_automatic_evaluation_metrics(grouped_dataset, prediction_list, vocabs, F
         predictions = prediction_list[data_id]
         for i in xrange(len(predictions)):
             pred_cmd = predictions[i]
-            pred_cmd_key = get_example_cm_key(pred_cmd)
-            pred_ast = cmd_parser(pred_cmd_key)
-            pred_temp = data_tools.cmd2template(pred_cmd_key, loose_constraints=True)
+            pred_ast = cmd_parser(pred_cmd)
+            pred_temp = data_tools.cmd2template(pred_cmd, loose_constraints=True)
             # Match ground truths & exisitng judgements
-            command_example_key = '{}<NL_PREDICTION>{}'.format(sc_key, pred_cmd_key)
+            command_example_key = '{}<NL_PREDICTION>{}'.format(sc_key, pred_cmd)
             structure_example_key = '{}<NL_PREDICTION>{}'.format(sc_key, pred_temp)
             # evaluation ignoring flag orders
             temp_match = tree_dist.one_match(
@@ -316,7 +316,7 @@ def get_automatic_evaluation_metrics(grouped_dataset, prediction_list, vocabs, F
             if str_match:
                 top_k_str_correct[data_id, i] = 1
             cms = token_based.command_match_score(template_gt_asts, pred_ast)
-            bleu = nltk.translate.bleu_score.sentence_bleu(command_gts, pred_cmd_key)
+            bleu = nltk.translate.bleu_score.sentence_bleu(command_gts, pred_cmd)
             top_k_cms[data_id, i] = cms
             top_k_bleu[data_id, i] = bleu
             if verbose:
@@ -551,11 +551,10 @@ def load_cached_correct_translations(data_dir, treat_empty_as_correct=False, ver
                 if row['description']:
                     current_nl_key = get_example_nl_key(row['description'])
                 pred_cmd = row['prediction']
-                pred_cmd_key = get_example_cm_key(pred_cmd)
                 if 'template' in row:
-                    pred_temp_key = get_example_cm_key(row['template'])
+                    pred_temp = row['template']
                 else:
-                    pred_temp_key = data_tools.cmd2template(pred_cmd_key, loose_constraints=True)
+                    pred_temp = data_tools.cmd2template(pred_cmd, loose_constraints=True)
                 structure_eval = row['correct template']
                 if treat_empty_as_correct:
                     structure_eval = normalize_judgement(structure_eval)
@@ -563,9 +562,9 @@ def load_cached_correct_translations(data_dir, treat_empty_as_correct=False, ver
                 if treat_empty_as_correct:
                     command_eval = normalize_judgement(command_eval)
                 if structure_eval == 'y':
-                    template_translations[current_nl_key].add(pred_temp_key)
+                    template_translations[current_nl_key].add(pred_temp)
                 if command_eval == 'y':
-                    command_translations[current_nl_key].add(pred_cmd_key)
+                    command_translations[current_nl_key].add(pred_cmd)
     print('{} template translations loaded'.format(len(template_translations)))
     print('{} command translations loaded'.format(len(command_translations)))
 
@@ -611,15 +610,14 @@ def load_cached_evaluations_from_file(input_file, treat_empty_as_correct=False, 
             if row['description']:
                 current_nl_key = get_example_nl_key(row['description'])
             pred_cmd = row['prediction']
-            pred_cmd_key = get_example_cm_key(pred_cmd)
             if 'template' in row:
                 pred_temp = row['template']
             else:
-                pred_temp = data_tools.cmd2template(pred_cmd_key, loose_constraints=True)
+                pred_temp = data_tools.cmd2template(pred_cmd, loose_constraints=True)
             command_eval = row['correct command']
             if treat_empty_as_correct:
                 command_eval = normalize_judgement(command_eval)
-            command_example_key = '{}<NL_PREDICTION>{}'.format(current_nl_key, pred_cmd_key)
+            command_example_key = '{}<NL_PREDICTION>{}'.format(current_nl_key, pred_cmd)
             if command_eval:
                 command_eval_results[command_example_key] = command_eval
             structure_eval = row['correct template']
@@ -641,9 +639,12 @@ def get_example_nl_key(nl):
 
 def get_example_cm_key(cm):
     """
-    Get the command in an example with nuances removed.
+    TODO: implement command normalization
+        1. flag order normalization
+        2. flag format normalization (long flag vs. short flag)
+        3. remove flags whose effect does not matter
     """
-    return tree_dist.ignore_differences(cm)
+    return cm
 
 
 def normalize_judgement(x):
