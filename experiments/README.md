@@ -1,10 +1,11 @@
 ## Experiments
 
 ### Data filtering, split and pre-processing
+Run the following command before starting the experiments. This will apply filtering and cleaning to the raw data, create the data splits and generate the input used by each baseline model. 
 ```
 make data
 ```
-To modify the data-processing workflow, go to [data](/data).
+To change the data-processing workflow, go to [data](/data) and modify the utility scripts.
 
 ### Train the models
 ```
