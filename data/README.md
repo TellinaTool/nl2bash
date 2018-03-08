@@ -12,7 +12,7 @@ The entire corpus `bash/all.nl, bash/all.cm` are randomly splited into train, de
 The manual evaluations of a subset of model predictions are stored in `bash/manual_judgments/` in `csv` format.
 
 
-## Random Split and Pre-processing
+## Split and Pre-processing
 
 ### Filtering
 Filtering the raw parallel corpus.
