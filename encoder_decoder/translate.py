@@ -355,7 +355,7 @@ def main(_):
 
             # Run automatic evaluation on the development set.
             if not FLAGS.explain:
-                eval(dataset, model.model_dir, model.decode_sig, verbose=False)
+                eval(dataset, model.model_dir, model.decode_sig, verbose=True)
 
     
 if __name__ == "__main__":

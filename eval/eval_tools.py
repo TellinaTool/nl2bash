@@ -86,7 +86,7 @@ def gen_evaluation_table(dataset, FLAGS, num_examples=-1, interactive=True):
     # Load cached evaluation results
     structure_eval_cache, command_eval_cache = \
         load_cached_evaluations(
-            os.path.join(FLAGS.data_dir, 'manual_judgements'))
+            os.path.join(FLAGS.data_dir, 'manual_judgements'), verbose=True)
 
     eval_bash = FLAGS.dataset.startswith("bash")
     cmd_parser = data_tools.bash_parser if eval_bash \
@@ -138,7 +138,7 @@ def gen_evaluation_table(dataset, FLAGS, num_examples=-1, interactive=True):
                             print('> {}'.format(pred_cmd))
                             command_eval = input(
                                 'CORRECT COMMAND? [y/reason] ')
-                            add_judgement(FLAGS.data_dir, sc_key, pred_cmd,
+                            add_judgement(FLAGS.data_dir, sc_txt, pred_cmd,
                                           structure_eval, command_eval)
                             print()
                     else:
@@ -152,7 +152,7 @@ def gen_evaluation_table(dataset, FLAGS, num_examples=-1, interactive=True):
                             if structure_eval == 'y':
                                 command_eval = input(
                                     'CORRECT COMMAND? [y/reason] ')
-                            add_judgement(FLAGS.data_dir, sc_key, pred_cmd,
+                            add_judgement(FLAGS.data_dir, sc_txt, pred_cmd,
                                           structure_eval, command_eval)
                             print()
                     structure_eval_cache[structure_example_key] = structure_eval
