@@ -7,8 +7,10 @@ Natural Language Interface to the Linux Operating System](http://victorialin.net
 
 Specifically, it contains the following components:
 
-1. Tensorflow implementations of the standard [Seq2Seq](https://arxiv.org/abs/1409.0473) and [CopyNet](https://arxiv.org/abs/1603.06393) models.
-2. Tensorflow implementation of the stage-wise nl⟶code model with argument filling heuristics ([Lin et. al. 2017](http://victorialin.net/pubs/tellina_tr_2017.pdf)).
+1. A set of ~10,000 bash one-liners collected from websites such as StackOverflow and their English descriptions written by Bash programmers.
+2. Tensorflow implementations of the following translation models:
+   - the standard [Seq2Seq](https://arxiv.org/abs/1409.0473) and [CopyNet](https://arxiv.org/abs/1603.06393) models
+   - a stage-wise nl⟶Bash model using argument filling heuristics ([Lin et. al. 2017](http://victorialin.net/pubs/tellina_tr_2017.pdf)).
 3. A bash command parser which parses a bash command into an abstractive syntax tree, developed on top of  [bashlex](https://github.com/idank/bashlex).
 4. A set of domain-specific natural language processing tools, including a regex-based sentence tokenizer and a bash-domain named entity recognizer.
 
