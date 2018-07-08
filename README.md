@@ -18,27 +18,59 @@ Specifically, it contains the following components:
 
 ### Install TensorFlow
 
-The Tensorflow library is required to reproduce our experiments. The experiment results can be reproduced on machines with or without GPUs.
+To reproduce our experiments, please install TensorFlow (>= 1.0). The experiments can be reproduced on machines with or without GPUs.
 
-Please follow the instructions on the [official website](https://www.tensorflow.org/install/) to install the library.
-
-The following pip installation command has been tested on Mac OS 10.10.5.
+We suggest following the [official instructions](https://www.tensorflow.org/install/) to install the library. The following pip installation command is copied from the official website and has been tested on Mac OS 10.10.5.
 ```
 sudo pip3 install --upgrade \
  https://storage.googleapis.com/tensorflow/mac/cpu/tensorflow-1.3.0-py3-none-any.whl 
 ```
 
 ### Environment Variables & Dependencies
-First of all, run `make` in the root directory of the repo.
+
+Once TensorFlow is installed, run `make` in the root directory of the repo. This sets up the Python path and main experiment dependencies.
 ```
 (sudo) make
 ```
-This sets up the Python path and other tools on which the main experiment depends.
 
-Then change to the [experiments](/experiments) folder and follow the instructions there to reproduce our results.
+### Change Directory
+
+Then enter the [experiments](/experiments) directory.
 ```
 cd experiments
 ```
+### Data filtering, split and pre-processing
+
+Run the following command. This will clean the raw NL2Bash corpus and apply filtering, create the train/dev/test splits and preprocess the data into the formats taken by the Tensorflow models. 
+
+```
+make data
+```
+To change the data-processing workflow, go to [data](/data) and modify the utility scripts.
+
+### Train the models
+```
+make train
+```
+
+### Generate evaluation table using pre-trained models
+
+Decode the pre-trained models and print the evaluation summary table.
+```
+make decode
+```
+
+Skip the decoding step and print the evaluation summary table from the predictions saved on disk.
+```
+make gen_evaluation_table
+```
+
+By default, the decoding and evaluation steps will print sanity checking messages. You may set `verbose` to `False` in the following source files to suppress those messages.
+```
+encoder_decoder/decode_tools.py
+eval/eval_tools.py
+```
+
 
 ## Citation
 
