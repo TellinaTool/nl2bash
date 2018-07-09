@@ -16,9 +16,9 @@ Specifically, it contains the following components:
 
 ## Data Statistics
 
-Our corpus consists of a diverse set of Bash utilities and flags: 102 unique utilities, 206 unique flags and 15 reserved tokens. 
+Our corpus contain a diverse set of Bash utilities and flags: 102 unique utilities, 206 unique flags and 15 reserved tokens. 
 
-In our experiments, the set of ~10,000 NL-bash command pairs are splitted into train, dev and test sets based on the criteria that neither a natural language description nor a Bash command appears in more than one split.
+In our experiments, the set of ~10,000 NL-bash command pairs are splitted into train, dev and test sets such that neither a natural language description nor a Bash command appears in more than one split.
 
 The statistics of the data split is tabulated below. (A command template is defined as a Bash command with all of its arguments replaced by their semantic types.)
 
@@ -55,7 +55,7 @@ The statistics of the data split is tabulated below. (A command template is defi
    </tr>
 </table>
 
-The distribution of the top 50 most frequent Bash utilities in the corpus is illustrated in the following diagram.
+The # occurrences of the top 50 most frequent Bash utilities in the corpus is illustrated in the following diagram.
 
 <p align="left">
   <img src="http://victorialin.net/img/github/nl2bash-utility-dist2.png" width="320" title="NL2Bash utility distribution">
@@ -93,7 +93,7 @@ Top-k full command accuracy and top-k command template accuracy judged by human 
 
 ### Automatic Evaluation Metrics
 
-In addition, we also report BLEU and a self-defined template matching score as automatic evaluation metrics as an approximation of the true translation accuracy. Baseline system evaluation on the dev set shows that these metrics do not always correlated with the manually computed translation accuracy, but most of the time they serve as good indicators of relative performance. Please refer to Appendix C of the paper for more details.
+In addition, we also report BLEU and a self-defined template matching score as the automatic evaluation metrics used to approximate the true translation accuracy. System evaluation on the dev set shows that these metrics do not always correlated with the manually computed translation accuracy, but most of the time they serve as good indicators of relative performance. Please refer to Appendix C of the paper for more details.
 
 <table>
    <tr>
