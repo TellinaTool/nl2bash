@@ -57,7 +57,7 @@ The Bash commands consist of a diverse set of Bash utilities and flags: 102 uniq
 
 The distribution of the top 50 most frequent Bash utilities in the corpus is illustrated in the following diagram.
 
-<p align="center">
+<p align="left">
   <img src="http://victorialin.net/img/github/nl2bash-utility-dist2.png" width="320" title="NL2Bash utility distribution">
 </p>
 
