@@ -18,7 +18,7 @@ Specifically, it contains the following components:
 
 In our experiments, the set of ~10,000 NL-bash command pairs are splitted into train, dev and test sets based on the criteria that neither a natural language description nor a Bash command appears in more than one split.
 
-The statistics of the data split is tabulated below.
+The statistics of the data split is tabulated below. (A command template is defined as a Bash command with all of its arguments replaced by their semantic types.)
 
 <table>
    <tr>
