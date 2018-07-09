@@ -65,7 +65,7 @@ The # occurrences of the top 50 most frequent Bash utilities in the corpus is il
 
 ### Manually Evaluated Translation Accuracy
 
-Top-k full command accuracy and top-k command template accuracy judged by human experts.
+Top-k full command accuracy and top-k command template accuracy judged by human experts. Please refer to section 4 of the paper for how manual evaluation is conducted.
 
 <table>
    <tr>
@@ -93,7 +93,7 @@ Top-k full command accuracy and top-k command template accuracy judged by human 
 
 ### Automatic Evaluation Metrics
 
-In addition, we also report BLEU and a self-defined template matching score as the automatic evaluation metrics used to approximate the true translation accuracy. System evaluation on the dev set shows that these metrics do not always correlated with the manually computed translation accuracy, but most of the time they serve as good indicators of relative performance. Please refer to Appendix C of the paper for more details.
+In addition, we also report BLEU and a self-defined template matching score as the automatic evaluation metrics used to approximate the true translation accuracy. System evaluation on the dev set shows that these metrics do not always correlated with the manually computed translation accuracy, but most of the time they serve as good indicators of relative performance. Please refer to appendix C of the paper for more details.
 
 <table>
    <tr>
