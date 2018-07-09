@@ -105,17 +105,17 @@ In addition, we also report BLEU and a self-defined template matching score as a
    </tr>
    <tr>
       <td>Sub-token CopyNet (this work)</td>
-      <td><strong>0.36</strong></td>
-      <td><strong>0.45</strong></td>
-      <td>0.49</td>
-      <td>0.61</td>
+      <td><strong>50.9</strong></td>
+      <td><strong>58.2</strong></td>
+      <td>0.574</td>
+      <td>0.634</td>
    </tr>
    <tr>
       <td>Tellina (Lin et. al. 2017)</td>
-      <td>0.27</td>
-      <td>0.32</td>
-      <td><strong>0.53</strong></td>
-      <td><strong>0.62</strong></td>
+      <td>48.6</td>
+      <td>53.8</td>
+      <td><strong>0.625</strong></td>
+      <td><strong>0.698</strong></td>
    </tr>
 </table>
 
