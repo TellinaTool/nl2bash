@@ -55,6 +55,12 @@ The statistics of the data split is tabulated below. (A command template is defi
 
 The Bash commands consist of a diverse set of Bash utilities and flags: 102 unique utilities, 206 unique flags and 15 reserved tokens.  
 
+The distribution of the top 50 most frequent Bash utilities in the corpus is illustrated in the following diagram.
+
+<p align="center">
+  <img src="http://victorialin.net/img/github/nl2bash-utility-dist.png" width="350" title="NL2Bash utility distribution">
+</p>
+
 ## Leaderboard
 
 ### Manually Evaluated Translation Accuracy
