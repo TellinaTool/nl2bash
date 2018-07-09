@@ -59,13 +59,15 @@ The Bash commands consist of a diverse set of Bash utilities and flags: 102 uniq
 
 ### Manually Evaluated Translation Accuracy
 
+Top-k full command accuracy and top-k command template accuracy judged by human experts.
+
 <table>
    <tr>
       <td>Model</td>
-      <td>F-Acc-1</td>
-      <td>F-Acc-3</td>
-      <td>T-Acc-1</td>
-      <td>T-Acc-3</td>
+      <td>F-Acc-Top1</td>
+      <td>F-Acc-Top3</td>
+      <td>T-Acc-Top1</td>
+      <td>T-Acc-Top3</td>
    </tr>
    <tr>
       <td>Sub-token CopyNet (this work)</td>
@@ -85,7 +87,31 @@ The Bash commands consist of a diverse set of Bash utilities and flags: 102 uniq
 
 ### Automatic Evaluation Metrics
 
+In addition, we also report BLEU and a self-defined template matching score as automatic evaluation metrics as an approximation of the true translation accuracy. Baseline system evaluation on the dev set shows that these metrics do not always correlated with the manually computed translation accuracy, but most of the time they serve as good indicators of relative performance. Please refer to Appendix C of the paper for more details.
 
+<table>
+   <tr>
+      <td>Model</td>
+      <td>BLEU-Top1</td>
+      <td>BLEU-Top3</td>
+      <td>TM-Top1</td>
+      <td>TM-Top3</td>
+   </tr>
+   <tr>
+      <td>Sub-token CopyNet (this work)</td>
+      <td><strong>0.36</strong></td>
+      <td><strong>0.45</strong></td>
+      <td>0.49</td>
+      <td>0.61</td>
+   </tr>
+   <tr>
+      <td>Tellina (Lin et. al. 2017)</td>
+      <td>0.27</td>
+      <td>0.32</td>
+      <td><strong>0.53</strong></td>
+      <td><strong>0.62</strong></td>
+   </tr>
+</table>
 
 ## Run Experiments
 
