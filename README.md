@@ -53,7 +53,41 @@ The statistics of the data split is tabulated below. (A command template is defi
    </tr>
 </table>
 
-## Experiment Setup
+The Bash commands consist of a diverse set of Bash utilities and flags: 102 unique utilities, 206 unique flags and 15 reserved tokens.  
+
+## Leaderboard
+
+### Manually Evaluated Translation Accuracy
+
+<table>
+   <tr>
+      <td>Model</td>
+      <td>F-Acc-1</td>
+      <td>F-Acc-3</td>
+      <td>T-Acc-1</td>
+      <td>T-Acc-3</td>
+   </tr>
+   <tr>
+      <td>Sub-token CopyNet (this work)</td>
+      <td><strong>0.36</strong></td>
+      <td><strong>0.45</strong></td>
+      <td>0.49</td>
+      <td>0.61</td>
+   </tr>
+   <tr>
+      <td>Tellina (Lin et. al. 2017)</td>
+      <td>0.27</td>
+      <td>0.32</td>
+      <td><strong>0.53</strong></td>
+      <td><strong>0.62</strong></td>
+   </tr>
+</table>
+
+### Automatic Evaluation Metrics
+
+
+
+## Run Experiments
 
 ### Install TensorFlow
 
@@ -124,4 +158,4 @@ If you use the data or source code in your work, please cite
 }
 ```
 
-Related paper: [Program Synthesis from Natural Language Using Recurrent Neural Networks](http://victorialin.net/pubs/tellina_tr_2017.pdf). 
+Related paper: [Lin et. al. 2017. Program Synthesis from Natural Language Using Recurrent Neural Networks](http://victorialin.net/pubs/tellina_tr_2017.pdf). 
