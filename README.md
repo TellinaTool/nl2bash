@@ -7,12 +7,51 @@ Natural Language Interface to the Linux Operating System](http://victorialin.net
 
 Specifically, it contains the following components:
 
-1. A set of ~10,000 bash one-liners collected from websites such as StackOverflow and their English descriptions written by Bash programmers.
+1. A set of ~10,000 bash one-liners collected from websites such as StackOverflow paired with their English descriptions written by Bash programmers.
 2. Tensorflow implementations of the following translation models:
    - the standard [Seq2Seq](https://arxiv.org/abs/1409.0473) and [CopyNet](https://arxiv.org/abs/1603.06393) models
    - a stage-wise NL⟶Bash model using argument filling heuristics ([Lin et. al. 2017](http://victorialin.net/pubs/tellina_tr_2017.pdf)).
 3. A Bash command parser which parses a Bash command into an abstractive syntax tree, developed on top of  [bashlex](https://github.com/idank/bashlex).
 4. A set of domain-specific natural language processing tools, including a regex-based sentence tokenizer and a domain specific named entity recognizer.
+
+## Data Statistics
+
+In our experiments, the set of ~10,000 NL-bash command pairs are splitted into train, dev and test sets based on the criteria that neither a natural language description nor a Bash command appears in more than one split.
+
+The statistics of the data split is tabulated below.
+
+<table>
+   <tr>
+      <td><strong>Split</strong></td>
+      <td>Train</td>
+      <td>Dev</td>
+      <td>Test</td>
+   </tr>
+   <tr>
+      <td># pairs</td>
+      <td>8,090</td>
+      <td>609</td>
+      <td>606</td>
+   </tr>
+   <tr>
+      <td># unique NL</td>
+      <td>7,340</td>
+      <td>549</td>
+      <td>XX</td>
+   </tr>
+   <tr>
+      <td># unique command</td>
+      <td>6,400</td>
+      <td>599</td>
+      <td>XX</td>
+   </tr>
+   <tr>
+      <td># unique command template</td>
+      <td>4,002</td>
+      <td>509</td>
+      <td>XX</td>
+   </tr>
+</table>
 
 ## Experiment Setup
 
