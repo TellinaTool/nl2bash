@@ -16,6 +16,8 @@ Specifically, it contains the following components:
 
 ## Data Statistics
 
+Our corpus consists of a diverse set of Bash utilities and flags: 102 unique utilities, 206 unique flags and 15 reserved tokens. 
+
 In our experiments, the set of ~10,000 NL-bash command pairs are splitted into train, dev and test sets based on the criteria that neither a natural language description nor a Bash command appears in more than one split.
 
 The statistics of the data split is tabulated below. (A command template is defined as a Bash command with all of its arguments replaced by their semantic types.)
@@ -52,8 +54,6 @@ The statistics of the data split is tabulated below. (A command template is defi
       <td>XX</td>
    </tr>
 </table>
-
-The Bash commands consist of a diverse set of Bash utilities and flags: 102 unique utilities, 206 unique flags and 15 reserved tokens.  
 
 The distribution of the top 50 most frequent Bash utilities in the corpus is illustrated in the following diagram.
 
