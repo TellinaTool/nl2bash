@@ -16,7 +16,7 @@ Specifically, it contains the following components:
 
 ## Data Statistics
 
-Our corpus contain a diverse set of Bash utilities and flags: 102 unique utilities, 206 unique flags and 15 reserved tokens. 
+Our corpus contain a diverse set of Bash utilities and flags: 102 unique utilities, 206 unique flags and 15 reserved tokens. (Browse the raw data collection [here](https://github.com/TellinaTool/nl2bash/tree/master/data/bash).)
 
 In our experiments, the set of ~10,000 NL-bash command pairs are splitted into train, dev and test sets such that neither a natural language description nor a Bash command appears in more than one split.
 
