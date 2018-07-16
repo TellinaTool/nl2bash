@@ -29,60 +29,55 @@ def define_input_flags():
     tf.app.flags.DEFINE_boolean('grid_search', False,
                                 'Set to True for grid search.')
     tf.app.flags.DEFINE_boolean('schedule_experiments', False,
-                                'Set to True for running multiple experiments with different ' +
-                                'set of hyperparameters sequentially.')
+                                'Set to True for running multiple experiments with different pre-specified '
+                                'hyperparameters.')
     tf.app.flags.DEFINE_string('tuning', 'initialization,output_keep_prob,num_samples',
                                'List of hyperparamters to tune.')
     tf.app.flags.DEFINE_boolean('initialization', False,
                                 'Set to try multiple random intialization and select the best one.')
 
-    tf.app.flags.DEFINE_boolean('compare_models', False,
-                                'Set to True to compare model performance.')
-    tf.app.flags.DEFINE_boolean('manual_eval', False,
-                                'Set to True for manual evaluation.')
-    tf.app.flags.DEFINE_boolean('eval', False,
-                                'Set to True for quantitive evaluation.')
     tf.app.flags.DEFINE_boolean('process_data', False,
                                 'Set to True for data preprocessing.')
     tf.app.flags.DEFINE_boolean('decode', False,
                                 'Set to True for decoding.')
     tf.app.flags.DEFINE_boolean('test', False,
                                 'Set to True to decode and evaluate on the test set.')
+    tf.app.flags.DEFINE_boolean('eval', False,
+                                'Set to True to perform automatic evaluation.')
+    tf.app.flags.DEFINE_boolean('manual_eval', False,
+                                'Set to True to perform manual evaluation in the commandline interface.')
     tf.app.flags.DEFINE_boolean('demo', False,
                                 'Set to True for interactive demo.')
-    tf.app.flags.DEFINE_boolean('self_test', False,
-                                'Run a self-test if this is set to True.')
 
     tf.app.flags.DEFINE_boolean('gen_error_analysis_sheet', False,
                                 'Set to True to generate error analysis spreadsheet.')
     tf.app.flags.DEFINE_boolean('gen_manual_evaluation_sheet', False,
-                                'Set to True to generate manual evaluation spreadsheet.')
+                                'Set to True to tabulate the output of specified baseline models in .csv files '
+                                'for manual annotation.')
     tf.app.flags.DEFINE_boolean('gen_manual_evaluation_sheet_single_model', False,
-                                'Set to True to generate manual evaluation spreadsheet for '
-                                'a particular model.')
+                                'Set to True to tabulate the output of a specific model in .csv file '
+                                'for manual annotation.')
     tf.app.flags.DEFINE_boolean('gen_manual_evaluation_table', False,
-                                'Set to True to open manual evaluation commandline interface')
+                                'Set to True to tabulate manual evaluation results of specified baseline systems '
+                                'in standard output.'
+                                'Opens the commandline interface when the model output contains unseen command.')
     tf.app.flags.DEFINE_boolean('gen_auto_evaluation_table', False,
-                                'Set to True to tabulate the automatic evaluation results for selected baseline systems')
-    tf.app.flags.DEFINE_boolean('tabulate_example_predictions', False,
-                                'Set to True to print example predictions with Latex formattings')
+                                'Set to True to tabulate the automatic evaluation results '
+                                'for specified baseline systems in standard output.')
 
     # device
     tf.app.flags.DEFINE_string('gpu', '0', 'GPU device where the computation is going to be placed.')
-    tf.app.flags.DEFINE_boolean('log_device_placement', False,
-                                'Set to True for logging device placement.')
+    tf.app.flags.DEFINE_boolean('log_device_placement', False, 'Set to True for logging device placement.')
 
     # data hyperparameters
     tf.app.flags.DEFINE_string('dataset', 'bash', 'select dataset to use.')
     tf.app.flags.DEFINE_string('channel', '', 'translation feature channel.')
     tf.app.flags.DEFINE_string('data_dir', os.path.join(os.path.dirname(__file__), 'data'), 'Data directory')
     tf.app.flags.DEFINE_string('model_dir', os.path.join(os.path.dirname(__file__), 'model'), 'Model directory')
-    tf.app.flags.DEFINE_boolean('sample_train', False, 'Train on a subset of data if this is set to True.')
     tf.app.flags.DEFINE_integer('sample_size', 200, 'Training data sample size')
     tf.app.flags.DEFINE_boolean('normalized', False, 'Set to True for learning with normalized command.')
-    tf.app.flags.DEFINE_boolean('canonical', False, 'Set to True for learning with normalized command with ' +
-                                                    'canonical option order.')
-    tf.app.flags.DEFINE_boolean('full', False, 'Set to True for learning with all tokens.')
+    tf.app.flags.DEFINE_boolean('canonical', False,
+                                'Set to True for learning with normalized command with canonicalized option order.')
     tf.app.flags.DEFINE_integer('max_sc_length', 100, 'Maximum source sequence length.')
     tf.app.flags.DEFINE_integer('max_tg_length', 100, 'Maximum target sequence length.')
     tf.app.flags.DEFINE_integer('sc_vocab_size', 1000, 'Source vocabulary size.')
@@ -169,8 +164,6 @@ def define_input_flags():
     # slot-filling experiments
     tf.app.flags.DEFINE_integer('num_nn_slot_filling', 1, 'Number of nearest neighbors to use in '
                                 'the nearest neighbor slot-filling classifier.')
-    tf.app.flags.DEFINE_boolean('induce_slot_filling_mapping', False,
-                                'Set to True for slot-filling mapping induction.')
     tf.app.flags.DEFINE_boolean('gen_slot_filling_training_data', False,
                                 'Set to True to generate feature vectors for slot-filling training.')
     tf.app.flags.DEFINE_boolean('eval_slot_filling', False,
@@ -216,3 +209,7 @@ def define_input_flags():
 
     # debugging options
     tf.app.flags.DEFINE_boolean('force_reading_input', False, 'If set, read ground truth decoder inputs for decoding.')
+
+    # Generate tables and plots charts for paper.
+    tf.app.flags.DEFINE_boolean('tabulate_example_predictions', False,
+                                'Set to True to print example predictions with Latex formattings')
