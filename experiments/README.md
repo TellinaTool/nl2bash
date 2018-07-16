@@ -23,7 +23,7 @@ make decode
 
 Skip the decoding step and print the evaluation summary table from the predictions saved on disk.
 ```
-make gen_evaluation_table
+make gen_manual_evaluation_table
 ```
 
 By default, the decoding and evaluation steps will print sanity checking messages. You may set `verbose` to `False` in the following source files to suppress those messages.

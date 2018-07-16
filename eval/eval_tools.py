@@ -193,9 +193,9 @@ def get_manual_evaluation_metrics(grouped_dataset, prediction_list, FLAGS, num_e
 
     if verbose:
         print('{} examples evaluated'.format(len(sample_ids)))
-        print('Top 1 Template Acc = {:.3f}'.format(acc_f_1))
-        print('Top 3 Template Acc = {:.3f}'.format(acc_f_3))
-        print('Top 1 Command Acc = {:.3f}'.format(acc_t_1))
+        print('Top 1 Command Acc = {:.3f}'.format(acc_f_1))
+        print('Top 3 Command Acc = {:.3f}'.format(acc_f_3))
+        print('Top 1 Template Acc = {:.3f}'.format(acc_t_1))
         print('Top 3 Template Acc = {:.3f}'.format(acc_t_3))
     return metrics
 
@@ -354,44 +354,39 @@ def get_automatic_evaluation_metrics(grouped_dataset, prediction_list, vocabs, F
     top_cmd_acc[0] = top_k_str_correct[:, 0].mean()
     top_cms[0] = top_k_cms[:, 0].mean()
     top_bleu[0] = top_k_bleu[:, 0].mean()
-    if verbose:
-        print("{} examples evaluated".format(num_eval))
-        print("Top 1 Template Acc = %.3f" % top_temp_acc[0])
-        print("Top 1 Command Acc = %.3f" % top_cmd_acc[0])
-        print("Average top 1 Template Match Score = %.3f" % top_cms[0])
-        print("Average top 1 BLEU Score = %.3f" % top_bleu[0])
+    print("{} examples evaluated".format(num_eval))
+    print("Top 1 Template Acc = %.3f" % top_temp_acc[0])
+    print("Top 1 Command Acc = %.3f" % top_cmd_acc[0])
+    print("Average top 1 Template Match Score = %.3f" % top_cms[0])
+    print("Average top 1 BLEU Score = %.3f" % top_bleu[0])
     if len(predictions) > 1:
         top_temp_acc[1] = np.max(top_k_temp_correct[:, :3], 1).mean()
         top_cmd_acc[1] = np.max(top_k_str_correct[:, :3], 1).mean()
         top_cms[1] = np.max(top_k_cms[:, :3], 1).mean()
         top_bleu[1] = np.max(top_k_bleu[:, :3], 1).mean()
-        if verbose:
-            print("Top 3 Template Acc = %.3f" % top_temp_acc[1])
-            print("Top 3 Command Acc = %.3f" % top_cmd_acc[1])
-            print("Average top 3 Template Match Score = %.3f" % top_cms[1])
-            print("Average top 3 BLEU Score = %.3f" % top_bleu[1])
+        print("Top 3 Template Acc = %.3f" % top_temp_acc[1])
+        print("Top 3 Command Acc = %.3f" % top_cmd_acc[1])
+        print("Average top 3 Template Match Score = %.3f" % top_cms[1])
+        print("Average top 3 BLEU Score = %.3f" % top_bleu[1])
     if len(predictions) > 3:
         top_temp_acc[2] = np.max(top_k_temp_correct[:, :5], 1).mean()
         top_cmd_acc[2] = np.max(top_k_str_correct[:, :5], 1).mean()
         top_cms[2] = np.max(top_k_cms[:, :5], 1).mean()
         top_bleu[2] = np.max(top_k_bleu[:, :5], 1).mean()
-        if verbose:
-            print("Top 5 Template Acc = %.3f" % top_temp_acc[2])
-            print("Top 5 Command Acc = %.3f" % top_cmd_acc[2])
-            print("Average top 5 Template Match Score = %.3f" % top_cms[2])
-            print("Average top 5 BLEU Score = %.3f" % top_bleu[2])
+        print("Top 5 Template Acc = %.3f" % top_temp_acc[2])
+        print("Top 5 Command Acc = %.3f" % top_cmd_acc[2])
+        print("Average top 5 Template Match Score = %.3f" % top_cms[2])
+        print("Average top 5 BLEU Score = %.3f" % top_bleu[2])
     if len(predictions) > 5:
         top_temp_acc[3] = np.max(top_k_temp_correct[:, :10], 1).mean()
         top_cmd_acc[3] = np.max(top_k_str_correct[:, :10], 1).mean()
         top_cms[3] = np.max(top_k_cms[:, :10], 1).mean()
         top_bleu[3] = np.max(top_k_bleu[:, :10], 1).mean()
-        if verbose:
-            print("Top 10 Template Acc = %.3f" % top_temp_acc[3])
-            print("Top 10 Command Acc = %.3f" % top_cmd_acc[3])
-            print("Average top 10 Template Match Score = %.3f" % top_cms[3])
-            print("Average top 10 BLEU Score = %.3f" % top_bleu[3])
-    if verbose:
-        print()
+        print("Top 10 Template Acc = %.3f" % top_temp_acc[3])
+        print("Top 10 Command Acc = %.3f" % top_cmd_acc[3])
+        print("Average top 10 Template Match Score = %.3f" % top_cms[3])
+        print("Average top 10 BLEU Score = %.3f" % top_bleu[3])
+    print()
 
     metrics = {}
     metrics['acc_f'] = top_cmd_acc
