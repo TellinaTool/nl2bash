@@ -39,7 +39,7 @@ The statistics of the data split is tabulated below. (A command template is defi
       <td># unique NL</td>
       <td>7,340</td>
       <td>549</td>
-      <td>XX</td>
+      <td>547</td>
    </tr>
    <tr>
       <td># unique command</td>
