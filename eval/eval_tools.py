@@ -206,7 +206,7 @@ def add_judgement(data_dir, nl, command, correct_template='', correct_command=''
     """
     data_dir = os.path.join(data_dir, 'manual_judgements')
     manual_judgement_path = os.path.join(
-        data_dir, 'manual.evaluations.additional')
+        data_dir, 'manual.evaluations.author')
     if not os.path.exists(manual_judgement_path):
         with open(manual_judgement_path, 'w') as o_f:
             o_f.write(

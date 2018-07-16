@@ -407,13 +407,11 @@ def decode_set(sess, model, dataset, top_k, FLAGS, verbose=False):
 
 def get_slot_filling_classifer(FLAGS):
     # create slot filling classifier
-    mapping_param_dir = os.path.join(
-        FLAGS.model_dir, 'train.mappings.X.Y.npz')
+    mapping_param_dir = os.path.join(FLAGS.model_dir, 'train.mappings.X.Y.npz')
     npz = np.load(mapping_param_dir)
     train_X = npz['arr_0']
     train_Y = npz['arr_1']
-    slot_filling_classifier = slot_filling.KNearestNeighborModel(
-        FLAGS.num_nn_slot_filling, train_X, train_Y)
+    slot_filling_classifier = slot_filling.KNearestNeighborModel(FLAGS.num_nn_slot_filling, train_X, train_Y)
     print('Slot filling classifier parameters loaded.')
     return slot_filling_classifier
 
