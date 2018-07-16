@@ -193,9 +193,9 @@ def get_manual_evaluation_metrics(grouped_dataset, prediction_list, FLAGS, num_e
 
     if verbose:
         print('{} examples evaluated'.format(len(sample_ids)))
-        print('Top 1 Template Acc = {:.3f}'.format(acc_f_1))
-        print('Top 3 Template Acc = {:.3f}'.format(acc_f_3))
-        print('Top 1 Command Acc = {:.3f}'.format(acc_t_1))
+        print('Top 1 Command Acc = {:.3f}'.format(acc_f_1))
+        print('Top 3 Command Acc = {:.3f}'.format(acc_f_3))
+        print('Top 1 Template Acc = {:.3f}'.format(acc_t_1))
         print('Top 3 Template Acc = {:.3f}'.format(acc_t_3))
     return metrics
 
