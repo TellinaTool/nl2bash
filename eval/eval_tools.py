@@ -23,7 +23,7 @@ from nlp_tools import constants, tokenizer
 import utils.ops
 
 
-def manual_eval(model_dir, decode_sig, dataset, FLAGS, top_k, num_examples=-1, interactive=True):
+def manual_eval(model_dir, decode_sig, dataset, FLAGS, top_k, num_examples=-1, interactive=True, verbose=True):
     """
     Conduct dev/test set evaluation.
 
@@ -44,7 +44,7 @@ def manual_eval(model_dir, decode_sig, dataset, FLAGS, top_k, num_examples=-1, i
     prediction_list = load_predictions(model_dir, decode_sig, top_k)
 
     metrics = get_manual_evaluation_metrics(
-        grouped_dataset, prediction_list, FLAGS, num_examples=num_examples, interactive=interactive)
+        grouped_dataset, prediction_list, FLAGS, num_examples=num_examples, interactive=interactive, verbose=verbose)
 
     return metrics
 
@@ -73,14 +73,15 @@ def gen_manual_evaluation_table(dataset, FLAGS, num_examples=-1, interactive=Tru
     for model_id, model_name in enumerate(model_names):
         prediction_list = model_predictions[model_names]
         M = get_manual_evaluation_metrics(
-            grouped_dataset, prediction_list, FLAGS, num_examples=num_examples, interactive=interactive)
+            grouped_dataset, prediction_list, FLAGS, num_examples=num_examples, interactive=interactive, verbose=False)
         manual_eval_metrics[model_name] = [M['acc_f'][0], M['acc_f'[1]], M['acc_t'][0], M['acc_t'][1]]
 
     metrics_names = ['Acc_F_1', 'Acc_F_3', 'Acc_T_1', 'Acc_T_3']
     print_eval_table(model_names, metrics_names, manual_eval_metrics)
 
 
-def get_manual_evaluation_metrics(grouped_dataset, prediction_list, FLAGS, num_examples=-1, interactive=True):
+def get_manual_evaluation_metrics(grouped_dataset, prediction_list, FLAGS, num_examples=-1, interactive=True,
+                                  verbose=True):
 
     if len(grouped_dataset) != len(prediction_list):
         raise ValueError("ground truth and predictions length must be equal: "
@@ -189,6 +190,13 @@ def get_manual_evaluation_metrics(grouped_dataset, prediction_list, FLAGS, num_e
     acc_t_3 = num_t_top_3_correct / len(sample_ids)
     metrics['acc_f'] = [acc_f_1, acc_f_3]
     metrics['acc_t'] = [acc_t_1, acc_t_3]
+
+    if verbose:
+        print('{} examples evaluated'.format(len(sample_ids)))
+        print('Top 1 Template Acc = {:.3f}'.format(acc_f_1))
+        print('Top 3 Template Acc = {:.3f}'.format(acc_f_3))
+        print('Top 1 Command Acc = {:.3f}'.format(acc_t_1))
+        print('Top 3 Template Acc = {:.3f}'.format(acc_t_3))
     return metrics
 
 
@@ -347,9 +355,9 @@ def get_automatic_evaluation_metrics(grouped_dataset, prediction_list, vocabs, F
     top_cms[0] = top_k_cms[:, 0].mean()
     top_bleu[0] = top_k_bleu[:, 0].mean()
     if verbose:
-        print("%d examples evaluated" % num_eval)
-        print("Top 1 Match (template-only) = %.3f" % top_temp_acc[0])
-        print("Top 1 Match (whole-string) = %.3f" % top_cmd_acc[0])
+        print("{} examples evaluated".format(num_eval))
+        print("Top 1 Template Acc = %.3f" % top_temp_acc[0])
+        print("Top 1 Command Acc = %.3f" % top_cmd_acc[0])
         print("Average top 1 Template Match Score = %.3f" % top_cms[0])
         print("Average top 1 BLEU Score = %.3f" % top_bleu[0])
     if len(predictions) > 1:
@@ -358,8 +366,8 @@ def get_automatic_evaluation_metrics(grouped_dataset, prediction_list, vocabs, F
         top_cms[1] = np.max(top_k_cms[:, :3], 1).mean()
         top_bleu[1] = np.max(top_k_bleu[:, :3], 1).mean()
         if verbose:
-            print("Top 3 Match (template-only) = %.3f" % top_temp_acc[1])
-            print("Top 3 Match (whole-string) = %.3f" % top_cmd_acc[1])
+            print("Top 3 Template Acc = %.3f" % top_temp_acc[1])
+            print("Top 3 Command Acc = %.3f" % top_cmd_acc[1])
             print("Average top 3 Template Match Score = %.3f" % top_cms[1])
             print("Average top 3 BLEU Score = %.3f" % top_bleu[1])
     if len(predictions) > 3:
@@ -368,8 +376,8 @@ def get_automatic_evaluation_metrics(grouped_dataset, prediction_list, vocabs, F
         top_cms[2] = np.max(top_k_cms[:, :5], 1).mean()
         top_bleu[2] = np.max(top_k_bleu[:, :5], 1).mean()
         if verbose:
-            print("Top 5 Match (template-only) = %.3f" % top_temp_acc[2])
-            print("Top 5 Match (whole-string) = %.3f" % top_cmd_acc[2])
+            print("Top 5 Template Acc = %.3f" % top_temp_acc[2])
+            print("Top 5 Command Acc = %.3f" % top_cmd_acc[2])
             print("Average top 5 Template Match Score = %.3f" % top_cms[2])
             print("Average top 5 BLEU Score = %.3f" % top_bleu[2])
     if len(predictions) > 5:
@@ -378,8 +386,8 @@ def get_automatic_evaluation_metrics(grouped_dataset, prediction_list, vocabs, F
         top_cms[3] = np.max(top_k_cms[:, :10], 1).mean()
         top_bleu[3] = np.max(top_k_bleu[:, :10], 1).mean()
         if verbose:
-            print("Top 10 Match (template-only) = %.3f" % top_temp_acc[3])
-            print("Top 10 Match (whole-string) = %.3f" % top_cmd_acc[3])
+            print("Top 10 Template Acc = %.3f" % top_temp_acc[3])
+            print("Top 10 Command Acc = %.3f" % top_cmd_acc[3])
             print("Average top 10 Template Match Score = %.3f" % top_cms[3])
             print("Average top 10 BLEU Score = %.3f" % top_bleu[3])
     if verbose:

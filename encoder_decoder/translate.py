@@ -154,23 +154,32 @@ def train(train_set, test_set):
         return model
 
 
-def decode(data_set, buckets=None, verbose=True):
+def decode(dataset, buckets=None, verbose=True):
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
             log_device_placement=FLAGS.log_device_placement)) as sess:
         # Initialize model parameters.
         model = define_model(sess, forward_only=True, buckets=buckets)
-        decode_tools.decode_set(sess, model, data_set, 3, FLAGS, verbose)
+        decode_tools.decode_set(sess, model, dataset, 3, FLAGS, verbose)
         return model
 
 
-def eval(data_set, model_dir=None, decode_sig=None, verbose=True):
+def eval(dataset, model_dir=None, decode_sig=None, verbose=True):
     if model_dir is None:
         model_subdir, decode_sig = graph_utils.get_decode_signature(FLAGS)
         model_dir = os.path.join(FLAGS.model_root_dir, model_subdir)
-    print("evaluating " + model_dir)
+    print("(Auto) evaluating " + model_dir)
 
-    return eval_tools.automatic_eval(model_dir, decode_sig, data_set,
+    return eval_tools.automatic_eval(model_dir, decode_sig, dataset,
         top_k=3, FLAGS=FLAGS, verbose=verbose)
+
+
+def manual_eval(dataset, model_dir=None, decode_sig=None):
+    if model_dir is None:
+        model_subdir, decode_sig = graph_utils.get_decode_signature(FLAGS)
+        model_dir = os.path.join(FLAGS.model_root_dir, model_subdir)
+    print("(Manual) evaluating " + model_dir)
+
+    return eval_tools.manual_eval(model_dir, decode_sig, dataset, FLAGS, top_k=3, num_examples=100, verbose=True)
 
 
 def demo(buckets=None):
@@ -303,7 +312,8 @@ def main(_):
         dataset = test_set if FLAGS.test else dev_set
         if FLAGS.eval:
             eval(dataset)
-            save_hyperparameters()
+        if FLAGS.manual_eval:
+            manual_eval(dataset)
         elif FLAGS.gen_error_analysis_sheet:
             gen_error_analysis_sheets(dataset, group_by_utility=True)
         elif FLAGS.gen_manual_evaluation_sheet:
