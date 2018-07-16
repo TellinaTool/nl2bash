@@ -64,10 +64,15 @@ def combine_annotations_multi_files():
         in_csv_path = os.path.join(input_dir, in_csv)
         with open(in_csv_path) as f:
             reader = csv.DictReader(f)
+            current_description = ''
             for row in reader:
                 template_eval = normalize_judgement(row['correct template'])
                 command_eval = normalize_judgement(row['correct command'])
                 description = get_example_nl_key(row['description'])
+                if description.strip():
+                    current_description = description
+                else:
+                    description = current_description
                 prediction = row['prediction']
                 example_key = '{}<NL_PREDICTION>{}'.format(description, prediction)
                 if example_key in template_evals and template_evals[example_key] != template_eval:
