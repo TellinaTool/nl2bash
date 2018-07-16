@@ -58,11 +58,12 @@ def combine_annotations_multi_files():
 
     template_evals = {}
     command_evals = {}
+    discarded_keys = set({})
 
     for in_csv in os.listdir(input_dir):
         in_csv_path = os.path.join(input_dir, in_csv)
         with open(in_csv_path) as f:
-            reader = csv.DivReader(f)
+            reader = csv.DictReader(f)
             for row in reader:
                 template_eval = normalize_judgement(row['correct template'])
                 command_eval = normalize_judgement(row['correct command'])
@@ -70,18 +71,22 @@ def combine_annotations_multi_files():
                 prediction = row['prediction']
                 example_key = '{}<NL_PREDICTION>{}'.format(description, prediction)
                 if example_key in template_evals and template_evals[example_key] != template_eval:
+                    discarded_keys.add(example_key)
                     continue
                 if example_key in command_evals and command_evals[example_key] != command_eval:
+                    discarded_keys.add(example_key)
                     continue
                 template_evals[example_key] = template_eval
                 command_evals[example_key] = command_eval
-            print('{} read'.format(in_csv_path))
+            print('{} read ({} manually annotated examples, {} discarded)'.format(in_csv_path, len(template_evals), len(discarded_keys)))
 
     # Write to new file
     assert(len(template_evals) == len(command_evals))
-    with open('amnual_annotations.additional', 'w') as o_f:
+    with open('manual_annotations.additional', 'w') as o_f:
         o_f.write('description,prediction,template,correct template,correct comand\n')
         for key in sorted(template_evals.keys()):
+            if key in discarded_keys:
+                continue
             description, prediction = key.split('<NL_PREDICTION>')
             template_eval = template_evals[example_key]
             command_eval = command_evals[example_key]
@@ -361,7 +366,8 @@ def main():
     # input_files2 = ['unreleased_files/manual.evaluations.dev.samples.annotator.2.csv']
     # inter_annotator_agreement(input_files1, input_files2)
     # compute_error_overlap()
-    compute_error_category()
+    # compute_error_category()
+    combine_annotations_multi_files()    
 
 if __name__ == '__main__':
     main()
