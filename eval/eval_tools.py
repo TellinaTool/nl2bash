@@ -23,58 +23,70 @@ from nlp_tools import constants, tokenizer
 import utils.ops
 
 
-def gen_evaluation_table(dataset, FLAGS, num_examples=-1, interactive=True):
+def manual_eval(model_dir, decode_sig, dataset, FLAGS, top_k, num_examples=-1, interactive=True):
     """
-    Generate structure and full command accuracy results on a fixed set of dev/test
-        set samples, with the results of multiple models tabulated in the same table.
+    Conduct dev/test set evaluation.
+
+    Evaluation metrics:
+        1) full command accuracy;
+        2) command template accuracy.
+
     :param interactive:
         - If set, prompt the user to enter judgement if a prediction does not
             match any of the groundtruths and the correctness of the prediction
             has not been pre-determined;
-          Otherwise, count all predictions that does not match any of the
-          groundtruths as wrong.
+          Otherwise, all predictions that does not match any of the groundtruths are counted as wrong.
     """
-    def add_judgement(data_dir, nl, command, correct_template='', correct_command=''):
-        """
-        Append a new judgement
-        """
-        data_dir = os.path.join(data_dir, 'manual_judgements')
-        manual_judgement_path = os.path.join(
-            data_dir, 'manual.evaluations.additional')
-        if not os.path.exists(manual_judgement_path):
-            with open(manual_judgement_path, 'w') as o_f:
-                o_f.write(
-                    'description,prediction,template,correct template,correct command\n')
-        with open(manual_judgement_path, 'a') as o_f:
-            temp = data_tools.cmd2template(command, loose_constraints=True)
-            if not correct_template:
-                correct_template = 'n'
-            if not correct_command:
-                correct_command = 'n'
-            o_f.write('"{}","{}","{}","{}","{}"\n'.format(
-                nl.replace('"', '""'), command.replace('"', '""'),
-                temp.replace('"', '""'), correct_template.replace('"', '""'),
-                correct_command.replace('"', '""')))
-        print('new judgement added to {}'.format(manual_judgement_path))
-
     # Group dataset
     grouped_dataset = data_utils.group_parallel_data(dataset, use_bucket=True)
 
-    if FLAGS.test:
-        model_names, model_predictions = load_all_model_predictions(
-            grouped_dataset, FLAGS, top_k=3,
-            tellina=True,
-            partial_token_copynet=True,
-            token_seq2seq=False,
-            token_copynet=False,
-            char_seq2seq=False,
-            char_copynet=False,
-            partial_token_seq2seq=False)
-    else:
-        model_names, model_predictions = load_all_model_predictions(
-            grouped_dataset, FLAGS, top_k=3)
+    # Load model prediction
+    prediction_list = load_predictions(model_dir, decode_sig, top_k)
 
-    # Get FIXED dev set samples
+    metrics = get_manual_evaluation_metrics(
+        grouped_dataset, prediction_list, FLAGS, num_examples=num_examples, interactive=interactive)
+
+    return metrics
+
+
+def gen_manual_evaluation_table(dataset, FLAGS, num_examples=-1, interactive=True):
+    """
+    Conduct dev/test set evaluation. The results of multiple pre-specified models are tabulated in the same table.
+
+    Evaluation metrics:
+        1) full command accuracy;
+        2) command template accuracy.
+        
+    :param interactive:
+        - If set, prompt the user to enter judgement if a prediction does not
+            match any of the groundtruths and the correctness of the prediction
+            has not been pre-determined;
+          Otherwise, all predictions that does not match any of the groundtruths are counted as wrong.
+    """
+    # Group dataset
+    grouped_dataset = data_utils.group_parallel_data(dataset, use_bucket=True)
+
+    # Load all model predictions
+    model_names, model_predictions = load_all_model_predictions(grouped_dataset, FLAGS, top_k=3)
+
+    manual_eval_metrics = {}
+    for model_id, model_name in enumerate(model_names):
+        prediction_list = model_predictions[model_names]
+        M = get_manual_evaluation_metrics(
+            grouped_dataset, prediction_list, FLAGS, num_examples=num_examples, interactive=interactive)
+        manual_eval_metrics[model_name] = [M['acc_f'][0], M['acc_f'[1]], M['acc_t'][0], M['acc_t'][1]]
+
+    metrics_names = ['Acc_F_1', 'Acc_F_3', 'Acc_T_1', 'Acc_T_3']
+    print_eval_table(model_names, metrics_names, manual_eval_metrics)
+
+
+def get_manual_evaluation_metrics(grouped_dataset, prediction_list, FLAGS, num_examples=-1, interactive=True):
+
+    if len(grouped_dataset) != len(prediction_list):
+        raise ValueError("ground truth and predictions length must be equal: "
+                         "{} vs. {}".format(len(grouped_dataset), len(prediction_list)))
+
+    # Get dev set samples (fixed)
     random.seed(100)
     example_ids = list(range(len(grouped_dataset)))
     random.shuffle(example_ids)
@@ -92,138 +104,121 @@ def gen_evaluation_table(dataset, FLAGS, num_examples=-1, interactive=True):
     cmd_parser = data_tools.bash_parser if eval_bash \
         else data_tools.paren_parser
 
-    # Interactive manual evaluation interface
-    num_s_correct = collections.defaultdict(int)
-    num_f_correct = collections.defaultdict(int)
-    num_s_top_3_correct = collections.defaultdict(int)
-    num_f_top_3_correct = collections.defaultdict(int)
+    # Interactive manual evaluation
+    num_t_top_1_correct = 0.0
+    num_f_top_1_correct = 0.0
+    num_t_top_3_correct = 0.0
+    num_f_top_3_correct = 0.0
+
     for exam_id, example_id in enumerate(sample_ids):
         data_group = grouped_dataset[example_id][1]
         sc_txt = data_group[0].sc_txt.strip()
         sc_key = get_example_nl_key(sc_txt)
         command_gts = [dp.tg_txt for dp in data_group]
         command_gt_asts = [data_tools.bash_parser(gt) for gt in command_gts]
-        for model_id, model_name in enumerate(model_names):
-            predictions = model_predictions[model_id][example_id]
-            top_3_s_correct_marked = False
-            top_3_f_correct_marked = False
-            for i in xrange(min(3, len(predictions))):
-                pred_cmd = predictions[i]
-                pred_ast = cmd_parser(pred_cmd)
-                pred_temp = data_tools.ast2template(pred_ast, loose_constraints=True)
-                temp_match = tree_dist.one_match(
-                    command_gt_asts, pred_ast, ignore_arg_value=True)
-                str_match = tree_dist.one_match(
-                    command_gt_asts, pred_ast, ignore_arg_value=False)
-                # Match ground truths & exisitng judgements
-                command_example_key = '{}<NL_PREDICTION>{}'.format(sc_key, pred_cmd)
-                structure_example_key = '{}<NL_PREDICTION>{}'.format(sc_key, pred_temp)
-                command_eval, structure_eval = '', ''
-                if str_match:
-                    command_eval = 'y'
-                    structure_eval = 'y'
-                elif temp_match:
-                    structure_eval = 'y'
-                if command_eval_cache and command_example_key in command_eval_cache:
-                    command_eval = command_eval_cache[command_example_key]
-                if structure_eval_cache and structure_example_key in structure_eval_cache:
-                    structure_eval = structure_eval_cache[structure_example_key]
-                # Prompt for new judgements
-                if command_eval != 'y':
-                    if structure_eval == 'y':
-                        if not command_eval and interactive:
-                            print('#{}. {}'.format(exam_id, sc_txt))
-                            for j, gt in enumerate(command_gts):
-                                print('- GT{}: {}'.format(j, gt))
-                            print('> {}'.format(pred_cmd))
+        predictions = prediction_list[example_id]
+        top_3_s_correct_marked = False
+        top_3_f_correct_marked = False
+        for i in xrange(min(3, len(predictions))):
+            pred_cmd = predictions[i]
+            pred_ast = cmd_parser(pred_cmd)
+            pred_temp = data_tools.ast2template(pred_ast, loose_constraints=True)
+            temp_match = tree_dist.one_match(
+                command_gt_asts, pred_ast, ignore_arg_value=True)
+            str_match = tree_dist.one_match(
+                command_gt_asts, pred_ast, ignore_arg_value=False)
+            # Match ground truths & exisitng judgements
+            command_example_key = '{}<NL_PREDICTION>{}'.format(sc_key, pred_cmd)
+            structure_example_key = '{}<NL_PREDICTION>{}'.format(sc_key, pred_temp)
+            command_eval, structure_eval = '', ''
+            if str_match:
+                command_eval = 'y'
+                structure_eval = 'y'
+            elif temp_match:
+                structure_eval = 'y'
+            if command_eval_cache and command_example_key in command_eval_cache:
+                command_eval = command_eval_cache[command_example_key]
+            if structure_eval_cache and structure_example_key in structure_eval_cache:
+                structure_eval = structure_eval_cache[structure_example_key]
+            # Prompt for new judgements
+            if command_eval != 'y':
+                if structure_eval == 'y':
+                    if not command_eval and interactive:
+                        print('#{}. {}'.format(exam_id, sc_txt))
+                        for j, gt in enumerate(command_gts):
+                            print('- GT{}: {}'.format(j, gt))
+                        print('> {}'.format(pred_cmd))
+                        command_eval = input(
+                            'CORRECT COMMAND? [y/reason] ')
+                        add_judgement(FLAGS.data_dir, sc_txt, pred_cmd,
+                                      structure_eval, command_eval)
+                        print()
+                else:
+                    if not structure_eval and interactive:
+                        print('#{}. {}'.format(exam_id, sc_txt))
+                        for j, gt in enumerate(command_gts):
+                            print('- GT{}: {}'.format(j, gt))
+                        print('> {}'.format(pred_cmd))
+                        structure_eval = input(
+                            'CORRECT STRUCTURE? [y/reason] ')
+                        if structure_eval == 'y':
                             command_eval = input(
                                 'CORRECT COMMAND? [y/reason] ')
-                            add_judgement(FLAGS.data_dir, sc_txt, pred_cmd,
-                                          structure_eval, command_eval)
-                            print()
-                    else:
-                        if not structure_eval and interactive:
-                            print('#{}. {}'.format(exam_id, sc_txt))
-                            for j, gt in enumerate(command_gts):
-                                print('- GT{}: {}'.format(j, gt))
-                            print('> {}'.format(pred_cmd))
-                            structure_eval = input(
-                                'CORRECT STRUCTURE? [y/reason] ')
-                            if structure_eval == 'y':
-                                command_eval = input(
-                                    'CORRECT COMMAND? [y/reason] ')
-                            add_judgement(FLAGS.data_dir, sc_txt, pred_cmd,
-                                          structure_eval, command_eval)
-                            print()
-                    structure_eval_cache[structure_example_key] = structure_eval
-                    command_eval_cache[command_example_key] = command_eval
-                if structure_eval == 'y':
-                    if i == 0:
-                        num_s_correct[model_name] += 1
-                    if not top_3_s_correct_marked:
-                        num_s_top_3_correct[model_name] += 1
-                        top_3_s_correct_marked = True
-                if command_eval == 'y':
-                    if i == 0:
-                        num_f_correct[model_name] += 1
-                    if not top_3_f_correct_marked:
-                        num_f_top_3_correct[model_name] += 1
-                        top_3_f_correct_marked = True
-    metrics_names = ['Acc_F_1', 'Acc_F_3', 'Acc_T_1', 'Acc_T_3']
-    model_metrics = {}
-    for model_name in model_names:
-        metrics = [
-            num_f_correct[model_name] / len(sample_ids),
-            num_f_top_3_correct[model_name] / len(sample_ids),
-            num_s_correct[model_name] / len(sample_ids),
-            num_s_top_3_correct[model_name] / len(sample_ids)
-        ]
-        model_metrics[model_name] = metrics
-    print_table(model_names, metrics_names, model_metrics)
+                        add_judgement(FLAGS.data_dir, sc_txt, pred_cmd,
+                                      structure_eval, command_eval)
+                        print()
+                structure_eval_cache[structure_example_key] = structure_eval
+                command_eval_cache[command_example_key] = command_eval
+            if structure_eval == 'y':
+                if i == 0:
+                    num_t_top_1_correct += 1
+                if not top_3_s_correct_marked:
+                    num_t_top_3_correct += 1
+                    top_3_s_correct_marked = True
+            if command_eval == 'y':
+                if i == 0:
+                    num_f_top_1_correct += 1
+                if not top_3_f_correct_marked:
+                    num_f_top_3_correct += 1
+                    top_3_f_correct_marked = True
+
+    metrics = {}
+    acc_f_1 = num_f_top_1_correct / len(sample_ids)
+    acc_f_3 = num_f_top_3_correct / len(sample_ids)
+    acc_t_1 = num_t_top_1_correct / len(sample_ids)
+    acc_t_3 = num_t_top_3_correct / len(sample_ids)
+    metrics['acc_f'] = [acc_f_1, acc_f_3]
+    metrics['acc_t'] = [acc_t_1, acc_t_3]
+    return metrics
 
 
-def gen_automatic_evaluation_table(dataset, FLAGS):
-    # Group dataset
-    grouped_dataset = data_utils.group_parallel_data(dataset, use_bucket=True)
-    vocabs = data_utils.load_vocabulary(FLAGS)
-
-    model_names, model_predictions = load_all_model_predictions(
-        grouped_dataset, FLAGS, top_k=3)
-
-    auto_evaluation_metrics = {}
-    for model_id, model_name in enumerate(model_names):
-        prediction_list = model_predictions[model_id]
-        M = get_automatic_evaluation_metrics(
-            grouped_dataset, prediction_list, vocabs, FLAGS, top_k=3)
-        auto_evaluation_metrics[model_name] = \
-            [M['top_bleu'][0], M['top_bleu'][1], M['top_cms'][0], M['top_cms'][1]]
-
-    metrics_names = ['BLEU1', 'BLEU3', 'TM1', 'TM3']
-    print_table(model_names, metrics_names, auto_evaluation_metrics)
-
-
-def print_table(model_names, metrics_names, model_metrics):
-    # print evaluation table
-    # pad model names with spaces to create alignment
-    max_len = len(max(model_names, key=len))
-    max_len_with_offset = (int(max_len / 4) + 1) * 4
-    first_row = utils.ops.padding_spaces('Model', max_len_with_offset)
-    for metrics_name in metrics_names:
-        first_row += '{}    '.format(metrics_name)
-    print(first_row.strip())
-    print('-' * len(first_row))
-    for i, model_name in enumerate(model_names):
-        row = utils.ops.padding_spaces(model_name, max_len_with_offset)
-        for metrics in model_metrics[model_name]:
-            row += '{:.2f}    '.format(metrics)
-        print(row.strip())
-    print('-' * len(first_row))
-
-
-def automatic_eval(model_dir, decode_sig, dataset, FLAGS, top_k,
-                   num_samples=-1, verbose=False):
+def add_judgement(data_dir, nl, command, correct_template='', correct_command=''):
     """
-    Generate automatic evaluation metrics on a dev/test set.
+    Append a new judgement
+    """
+    data_dir = os.path.join(data_dir, 'manual_judgements')
+    manual_judgement_path = os.path.join(
+        data_dir, 'manual.evaluations.additional')
+    if not os.path.exists(manual_judgement_path):
+        with open(manual_judgement_path, 'w') as o_f:
+            o_f.write(
+                'description,prediction,template,correct template,correct command\n')
+    with open(manual_judgement_path, 'a') as o_f:
+        temp = data_tools.cmd2template(command, loose_constraints=True)
+        if not correct_template:
+            correct_template = 'n'
+        if not correct_command:
+            correct_command = 'n'
+        o_f.write('"{}","{}","{}","{}","{}"\n'.format(
+            nl.replace('"', '""'), command.replace('"', '""'),
+            temp.replace('"', '""'), correct_template.replace('"', '""'),
+            correct_command.replace('"', '""')))
+    print('new judgement added to {}'.format(manual_judgement_path))
+
+
+def automatic_eval(model_dir, decode_sig, dataset, FLAGS, top_k, num_samples=-1, verbose=False):
+    """
+    Generate automatic evaluation metrics on dev/test set.
     The following metrics are computed:
         Top 1,3,5,10
             1. Structure accuracy
@@ -242,9 +237,27 @@ def automatic_eval(model_dir, decode_sig, dataset, FLAGS, top_k,
         raise ValueError("ground truth and predictions length must be equal: "
                          "{} vs. {}".format(len(grouped_dataset), len(prediction_list)))
 
-    M = get_automatic_evaluation_metrics(grouped_dataset, prediction_list, vocabs, FLAGS,
+    metrics = get_automatic_evaluation_metrics(grouped_dataset, prediction_list, vocabs, FLAGS,
                                          top_k, num_samples, verbose)
-    return M
+    return metrics
+
+
+def gen_automatic_evaluation_table(dataset, FLAGS):
+    # Group dataset
+    grouped_dataset = data_utils.group_parallel_data(dataset, use_bucket=True)
+    vocabs = data_utils.load_vocabulary(FLAGS)
+
+    model_names, model_predictions = load_all_model_predictions(grouped_dataset, FLAGS, top_k=3)
+
+    auto_eval_metrics = {}
+    for model_id, model_name in enumerate(model_names):
+        prediction_list = model_predictions[model_id]
+        M = get_automatic_evaluation_metrics(
+            grouped_dataset, prediction_list, vocabs, FLAGS, top_k=3)
+        auto_eval_metrics[model_name] = [M['bleu'][0], M['bleu'][1], M['cms'][0], M['cms'][1]]
+
+    metrics_names = ['BLEU1', 'BLEU3', 'TM1', 'TM3']
+    print_eval_table(model_names, metrics_names, auto_eval_metrics)
 
 
 def get_automatic_evaluation_metrics(grouped_dataset, prediction_list, vocabs, FLAGS, top_k,
@@ -299,10 +312,10 @@ def get_automatic_evaluation_metrics(grouped_dataset, prediction_list, vocabs, F
             pred_cmd = predictions[i]
             pred_ast = cmd_parser(pred_cmd)
             pred_temp = data_tools.cmd2template(pred_cmd, loose_constraints=True)
-            # Match ground truths & exisitng judgements
+            # A) Exact match with ground truths & exisitng judgements
             command_example_key = '{}<NL_PREDICTION>{}'.format(sc_key, pred_cmd)
             structure_example_key = '{}<NL_PREDICTION>{}'.format(sc_key, pred_temp)
-            # evaluation ignoring flag orders
+            # B) Match ignoring flag orders
             temp_match = tree_dist.one_match(
                 template_gt_asts, pred_ast, ignore_arg_value=True)
             str_match = tree_dist.one_match(
@@ -372,38 +385,43 @@ def get_automatic_evaluation_metrics(grouped_dataset, prediction_list, vocabs, F
     if verbose:
         print()
 
-    M = {}
-    M['top_temp_acc'] = top_temp_acc
-    M['top_cmd_acc'] = top_cmd_acc
-    M['top_cms'] = top_cms
-    M['top_bleu'] = top_bleu
+    metrics = {}
+    metrics['acc_f'] = top_cmd_acc
+    metrics['acc_t'] = top_temp_acc
+    metrics['cms'] = top_cms
+    metrics['bleu'] = top_bleu
 
-    return M
+    return metrics
 
 
-def load_all_model_predictions(grouped_dataset, FLAGS, top_k=1,
-                               tellina=True,
-                               token_seq2seq=True,
-                               token_copynet=True,
-                               char_seq2seq=True,
-                               char_copynet=True,
-                               partial_token_seq2seq=True,
-                               partial_token_copynet=True,):
+def print_eval_table(model_names, metrics_names, model_metrics):
+    # print evaluation table
+    # pad model names with spaces to create alignment
+    max_len = len(max(model_names, key=len))
+    max_len_with_offset = (int(max_len / 4) + 1) * 4
+    first_row = utils.ops.padding_spaces('Model', max_len_with_offset)
+    for metrics_name in metrics_names:
+        first_row += '{}    '.format(metrics_name)
+    print(first_row.strip())
+    print('-' * len(first_row))
+    for i, model_name in enumerate(model_names):
+        row = utils.ops.padding_spaces(model_name, max_len_with_offset)
+        for metrics in model_metrics[model_name]:
+            row += '{:.2f}    '.format(metrics)
+        print(row.strip())
+    print('-' * len(first_row))
+
+
+def load_all_model_predictions(grouped_dataset, FLAGS, top_k=1, model_names=('token_seq2seq',
+                                                                             'token_copynet',
+                                                                             'char_seq2seq',
+                                                                             'char_copynet',
+                                                                             'partial_token_seq2seq',
+                                                                             'parital_token_copynet',
+                                                                             'tellina')):
     """
-    Load predictions of multiple models.
+    Load predictions of multiple models (specified with "model_names").
 
-    :param dataset: The dataset over which the predictions are generated.
-    :param FLAGS: Experiment hyperparametrs.
-    :param tellina,
-           token_seq2seq,
-           token_copynet,
-           char_seq2seq,
-           char_copynet
-           partial_token_seq2seq,
-           partial_token_copynet:
-           Binary variables indicating whether a model is to be included in the
-           test results or not.
-    :return model_names: List of model names.
     :return model_predictions: List of model predictions.
     """
 
@@ -418,89 +436,53 @@ def load_all_model_predictions(grouped_dataset, FLAGS, top_k=1,
         return prediction_list
 
     # Load model predictions
-    model_names = []
     model_predictions = []
 
-    include_gru = True
-    include_lstm = False
-
-    # GRUs
-    if include_gru:
-        # -- Token
-        FLAGS.channel = 'token'
-        FLAGS.normalized = False
-        FLAGS.fill_argument_slots = False
-        FLAGS.use_copy = False
-        # --- Seq2Seq
-        if token_seq2seq:
-            model_names.append('token-seq2seq')
-            model_predictions.append(load_model_predictions())
-        # --- Tellina
-        if tellina:
-            FLAGS.normalized = True
-            FLAGS.fill_argument_slots = True
-            model_names.append('tellina')
-            model_predictions.append(load_model_predictions())
-            FLAGS.normalized = False
-            FLAGS.fill_argument_slots = False
-        # --- CopyNet
-        if token_copynet:
-            FLAGS.use_copy = True
-            FLAGS.copy_fun = 'copynet'
-            model_names.append('token-copynet')
-            model_predictions.append(load_model_predictions())
-            FLAGS.use_copy = False
-        # -- Parital token
-        FLAGS.channel = 'partial.token'
-        # --- Seq2Seq
-        if partial_token_seq2seq:
-            model_names.append('partial.token-seq2seq')
-            model_predictions.append(load_model_predictions())
-        # --- CopyNet
-        if partial_token_copynet:
-            FLAGS.use_copy = True
-            FLAGS.copy_fun = 'copynet'
-            model_names.append('partial.token-copynet')
-            model_predictions.append(load_model_predictions())
-            FLAGS.use_copy = False
-        # -- Character
-        FLAGS.channel = 'char'
-        FLAGS.batch_size = 32
-        FLAGS.min_vocab_frequency = 1
-        # --- Seq2Seq
-        if char_seq2seq:
-            model_names.append('char-seq2seq')
-            model_predictions.append(load_model_predictions())
-        # --= CopyNet
-        if char_copynet:
-            FLAGS.use_copy = True
-            FLAGS.copy_fun = 'copynet'
-            model_names.append('char-copynet')
-            model_predictions.append(load_model_predictions())
-            FLAGS.use_copy = False
-
-    # LSTMs
-    if include_lstm:
-        FLAGS.rnn_cell = 'lstm'
-        # -- Token
-        FLAGS.channel = 'token'
-        # --- Seq2Seq
-        FLAGS.normalized = False
-        FLAGS.use_copy = False
-        model_names.append('token-seq2seq-lstm')
+    # -- Token
+    FLAGS.channel = 'token'
+    FLAGS.normalized = False
+    FLAGS.fill_argument_slots = False
+    FLAGS.use_copy = False
+    # --- Seq2Seq
+    if 'token_seq2seq' in model_names:
         model_predictions.append(load_model_predictions())
-        # --- Tellina
+    # --- Tellina
+    if 'tellina' in model_names:
         FLAGS.normalized = True
         FLAGS.fill_argument_slots = True
-        model_names.append('tellina-lstm')
         model_predictions.append(load_model_predictions())
-        # -- Partial token
-        FLAGS.channel = 'partial.token'
-        # --- Seq2Seq
         FLAGS.normalized = False
         FLAGS.fill_argument_slots = False
-        model_names.append('partial.token-seq2seq-lstm')
+    # --- CopyNet
+    if 'token_copynet' in model_names:
+        FLAGS.use_copy = True
+        FLAGS.copy_fun = 'copynet'
         model_predictions.append(load_model_predictions())
+        FLAGS.use_copy = False
+    # -- Parital token
+    FLAGS.channel = 'partial.token'
+    # --- Seq2Seq
+    if 'partial_token_seq2seq' in model_names:
+        model_predictions.append(load_model_predictions())
+    # --- CopyNet
+    if 'partial_token_copynet' in model_names:
+        FLAGS.use_copy = True
+        FLAGS.copy_fun = 'copynet'
+        model_predictions.append(load_model_predictions())
+        FLAGS.use_copy = False
+    # -- Character
+    FLAGS.channel = 'char'
+    FLAGS.batch_size = 32
+    FLAGS.min_vocab_frequency = 1
+    # --- Seq2Seq
+    if 'char_seq2seq' in model_names:
+        model_predictions.append(load_model_predictions())
+    # --= CopyNet
+    if 'char_copynet' in model_names:
+        FLAGS.use_copy = True
+        FLAGS.copy_fun = 'copynet'
+        model_predictions.append(load_model_predictions())
+        FLAGS.use_copy = False
 
     return model_names, model_predictions
 
