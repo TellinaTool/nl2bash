@@ -39,7 +39,7 @@ The statistics of the data split is tabulated below. (A command template is defi
       <td># unique NL</td>
       <td>7,340</td>
       <td>549</td>
-      <td>XX</td>
+      <td>547</td>
    </tr>
    <tr>
       <td># unique command</td>
@@ -167,7 +167,7 @@ make decode
 
 Skip the decoding step and print the evaluation summary table from the predictions saved on disk.
 ```
-make gen_evaluation_table
+make gen_manual_evaluation_table
 ```
 
 By default, the decoding and evaluation steps will print sanity checking messages. You may set `verbose` to `False` in the following source files to suppress those messages.
