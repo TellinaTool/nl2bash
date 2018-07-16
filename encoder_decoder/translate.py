@@ -226,10 +226,10 @@ def gen_error_analysis_sheets(dataset, model_dir=None, decode_sig=None,
         model_subdir, decode_sig = graph_utils.get_decode_signature(FLAGS)
         model_dir = os.path.join(FLAGS.model_root_dir, model_subdir)
     if group_by_utility:
-        eval_tools.gen_error_analysis_csv_by_utility(
+        error_analysis.gen_error_analysis_csv_by_utility(
             model_dir, decode_sig, dataset, FLAGS)
     else:
-        eval_tools.gen_error_analysis_csv(
+        error_analysis.gen_error_analysis_csv(
             model_dir, decode_sig, dataset, FLAGS)
 
 
@@ -322,9 +322,9 @@ def main(_):
             error_analysis.gen_manual_evaluation_csv_single_model(dataset, FLAGS)
         elif FLAGS.gen_manual_evaluation_table:
             if FLAGS.test:
-                eval_tools.gen_evaluation_table(dataset, FLAGS)
+                eval_tools.gen_manual_evaluation_table(dataset, FLAGS)
             else:
-                eval_tools.gen_evaluation_table(dataset, FLAGS, num_examples=100)
+                eval_tools.gen_manual_evaluation_table(dataset, FLAGS, num_examples=100)
         elif FLAGS.gen_auto_evaluation_table:
             eval_tools.gen_automatic_evaluation_table(dataset, FLAGS)
         elif FLAGS.tabulate_example_predictions:

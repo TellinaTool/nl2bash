@@ -58,17 +58,14 @@ def gen_manual_evaluation_csv_single_model(dataset, FLAGS):
                                                       len(prediction_list)))
 
     # Load additional ground truths
-    template_translations, command_translations = \
-        load_cached_correct_translations(FLAGS.data_dir)
+    template_translations, command_translations = load_cached_correct_translations(FLAGS.data_dir)
 
     # Load cached evaluation results
-    structure_eval_cache, command_eval_cache = \
-        load_cached_evaluations(
-            os.path.join(FLAGS.data_dir, 'manual_judgements'))
+    structure_eval_cache, command_eval_cache = load_cached_evaluations(
+        os.path.join(FLAGS.data_dir, 'manual_judgements'))
 
     eval_bash = FLAGS.dataset.startswith("bash")
-    cmd_parser = data_tools.bash_parser if eval_bash \
-        else data_tools.paren_parser
+    cmd_parser = data_tools.bash_parser if eval_bash else data_tools.paren_parser
 
     output_path = os.path.join(model_dir, 'manual.evaluations.single.model')
     with open(output_path, 'w') as o_f:
