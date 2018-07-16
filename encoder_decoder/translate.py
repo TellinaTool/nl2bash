@@ -312,7 +312,7 @@ def main(_):
         dataset = test_set if FLAGS.test else dev_set
         if FLAGS.eval:
             eval(dataset)
-        if FLAGS.manual_eval:
+        elif FLAGS.manual_eval:
             manual_eval(dataset)
         elif FLAGS.gen_error_analysis_sheet:
             gen_error_analysis_sheets(dataset, group_by_utility=True)
