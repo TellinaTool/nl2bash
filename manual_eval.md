@@ -17,7 +17,7 @@ For example, to obtain the manual evaluation results of the sub-token CopyNet mo
 
 This will print the manual evaluation results if there are no unjudged predictions in the data being evaluated. 
 
-By default, 100 examples are randomly sampled to pass through the manual evaluation.
+By default, the top 3 predictions of 100 randomly sampled examples are passed through the manual evaluation.
 
 If there are unjudged predictions (e.g. you have just updated the model and it made many new predictions), the above will trigger a commandline interface which will prompt you to input the judgement for the new predictions.
 
