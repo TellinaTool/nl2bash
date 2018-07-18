@@ -180,12 +180,12 @@ eval/eval_tools.py
 
 ## Notes on Manual Evaluation
 
-In our experiment, we conducted manual evaluation as the correctness of a Bash translation cannot be determined by simply mapping it to a set of ground truth.
-We suggest the following practices to generate comparable results across different publications and to accelerate development cycle.
-1. If you plan to re-run manual evaluation, please make sure to annotate the output of both your system(s) and the baseline systems you compared to. (Different set of annotators may employ different evaluation standards which results in evaluation discrepancies.)
-2. During model development you could hand-annotate a small subset of the dev set examples (50-100 in likely enough) yourself to obtain an estimation of the dev set accuracy. We released a script which saves any previous annotations and opens a commandline interface for someone to annotate any new predictions ([manual_eval.md](https://github.com/TellinaTool/nl2bash/blob/master/manual_eval.md)).
+In our experiment, we conduct manual evaluation as the correctness of a Bash translation cannot be determined by simply mapping it to a set of ground truth.
+We suggest the following practices to generate comparable results across different work and to accelerate development cycle.
+1. If you plan to re-run manual evaluation, please make sure to annotate the output of both your system(s) and the baseline systems you compared to. This is to make sure that the newly proposed system and the baselines are judged by the same group of annotators.
+2. During model development you could always annotate a small subset of the dev set examples (50-100 in likely enough) yourself to obtain an estimation of the dev set accuracy. We released a script which saves any previous annotations and opens a commandline interface to annotated any unseen predictions ([manual_eval.md](https://github.com/TellinaTool/nl2bash/blob/master/manual_eval.md)).
 
-The motivation of the practices above is discussed in detail @issue [#6](https://github.com/TellinaTool/nl2bash/issues/6).
+The motivation for the practices above is discussed in detail @issue [#6](https://github.com/TellinaTool/nl2bash/issues/6).
 
 ## Citation
 
