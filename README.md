@@ -183,7 +183,7 @@ eval/eval_tools.py
 In our experiment, we conduct manual evaluation as the correctness of a Bash translation cannot simply be determined by mapping it to a set of ground truth.
 We suggest the following practices for future work to generate comparable results and to accelerate development cycle.
 1. If you plan to run your own manual evaluation, please make sure to annotate the output of both your system(s) and the baseline systems you compared to. This is to make sure that the newly proposed system and the baselines are judged by the same group of annotators.
-2. During model development you could annotate a small subset of the dev examples (50-100 is likely enough) to estimate the true dev set accuracy. We released a script which saves any previous annotations and opens a commandline interface to annotated any unseen predictions ([manual_eval.md](https://github.com/TellinaTool/nl2bash/blob/master/manual_eval.md)).
+2. During model development you could annotate a small subset of the dev examples (50-100 is likely enough) to estimate the true dev set accuracy. We released a script which saves any previous annotations and opens a commandline interface for judging any unseen predictions ([manual_eval.md](https://github.com/TellinaTool/nl2bash/blob/master/manual_eval.md)).
 
 The motivation for the practices above is discussed in detail @issue [#6](https://github.com/TellinaTool/nl2bash/issues/6).
 
