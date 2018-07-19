@@ -37,7 +37,7 @@ For both questions, replying "y" or "Y" implies a "correct" judgement; any other
 
 If an "incorrect" judgement is received for the first question, the second question will be skipped and an "incorrect" judgement will be automatically recorded for it.
 
-All the judgements you input are saved to `[data/bash/manual_judgements/manual.evaluations.author](https://github.com/TellinaTool/nl2bash/blob/master/data/bash/manual_judgements/manual.evaluations.author)` and will be reused in future experiments.
+All the judgements you input are saved to [data/bash/manual_judgements/manual.evaluations.author](https://github.com/TellinaTool/nl2bash/blob/master/data/bash/manual_judgements/manual.evaluations.author) and will be reused in future experiments.
 
 The manual evaluation results will be printed once you have input the judgements for all new predictions.
 ```
