@@ -55,7 +55,7 @@ The statistics of the data split is tabulated below. (A command template is defi
    </tr>
 </table>
 
-The # occurrences of the top 50 most frequent Bash utilities in the corpus is illustrated in the following diagram.
+The frequency of the top 50 most frequent Bash utilities in the corpus is illustrated in the following diagram.
 
 <p align="left">
   <img src="http://victorialin.net/img/github/nl2bash-utility-dist2.png" width="320" title="NL2Bash utility distribution">
