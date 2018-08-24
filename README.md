@@ -127,7 +127,7 @@ In addition, we also report BLEU and a self-defined template matching score as t
 
 To reproduce our experiments, please install TensorFlow (>= 1.0). The experiments can be reproduced on machines with or without GPUs.
 
-We suggest following the [official instructions](https://www.tensorflow.org/install/) to install the library. The following pip installation command is copied from the official website and has been tested on Mac OS 10.10.5.
+We suggest following the [official instructions](https://www.tensorflow.org/install/) to install the library. Specifically, we used the following pip installation command copied from the official website on Mac OS 10.10.5.
 ```
 sudo pip3 install --upgrade \
  https://storage.googleapis.com/tensorflow/mac/cpu/tensorflow-1.3.0-py3-none-any.whl 
