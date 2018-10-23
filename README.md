@@ -14,6 +14,8 @@ Specifically, it contains the following components:
 3. A Bash command parser which parses a Bash command into an abstractive syntax tree, developed on top of  [bashlex](https://github.com/idank/bashlex).
 4. A set of domain-specific natural language processing tools, including a regex-based sentence tokenizer and a domain specific named entity recognizer.
 
+You may visit  http://tellina.rocks to interactive with our pretrained model.
+
 ## Data Statistics
 
 Our corpus contain a diverse set of Bash utilities and flags: 102 unique utilities, 206 unique flags and 15 reserved tokens. (Browse the raw data collection [here](https://github.com/TellinaTool/nl2bash/tree/master/data/bash).)
