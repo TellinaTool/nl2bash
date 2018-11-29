@@ -137,8 +137,10 @@ sudo pip3 install --upgrade \
 
 ### Environment Variables & Dependencies
 
-Once TensorFlow is installed, run `make` in the root directory of the repo. This sets up the Python path and main experiment dependencies.
+Once TensorFlow is installed, use the following commands to set up the Python path and main experiment dependencies.
 ```
+export PYTHONPATH=`pwd`
+
 (sudo) make
 ```
 
