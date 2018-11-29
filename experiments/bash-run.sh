@@ -1,8 +1,5 @@
 #!/bin/bash
 
-# Set up path to CUDA library
-source ~/.profile
-
 ARGS=${@:1}
 
 python3 -m encoder_decoder.translate \
