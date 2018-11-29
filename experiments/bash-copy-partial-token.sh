@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # reproduce experiments using seq2seq with attention model on the bash dataset
 
