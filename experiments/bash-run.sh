@@ -3,8 +3,6 @@
 # Set up path to CUDA library
 source ~/.profile
 
-export PYTHONPATH=`pwd`'/..'
-
 ARGS=${@:1}
 
 python3 -m encoder_decoder.translate \
