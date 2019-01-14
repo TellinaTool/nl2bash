@@ -97,7 +97,7 @@ Please also refer to "Notes on Manual Evaluation" at the end of this readme for 
 
 ### Automatic Evaluation Metrics
 
-In addition, we also report BLEU and a self-defined template matching score as the automatic evaluation metrics used to approximate the true translation accuracy. Please refer to appendix C of the paper for more details.
+In addition, we also report BLEU and a self-defined template matching score as the automatic evaluation metrics used to approximate the true translation accuracy. Please refer to appendix C of the paper for the metrics definitions.
 
 <table>
    <tr>
