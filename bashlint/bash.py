@@ -378,6 +378,14 @@ quantity_argument_types = {
 argument_types = pattern_argument_types | quantity_argument_types | \
                  {'Type', 'Unknown'}
 
+find_common_args = {
+    '.',
+    './',
+    '~',
+    '~/',
+    '/',
+}
+
 reserved_tokens = {
     '+',
     ';',
