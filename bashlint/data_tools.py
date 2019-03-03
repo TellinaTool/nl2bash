@@ -400,8 +400,6 @@ def test_bash_parser():
             print(ast2template(norm_tree, ignore_flag_order=False))
             print("Command: ")
             print(ast2command(norm_tree, ignore_flag_order=False))
-
-
             # print("Pruned Command Template:")
             # print(ast2template(pruned_tree, ignore_flag_order=False))
             print()
