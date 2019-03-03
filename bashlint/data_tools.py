@@ -44,14 +44,14 @@ def get_utilities(ast):
 
 
 def bash_tokenizer(cmd, recover_quotation=True, loose_constraints=False,
-        ignore_flag_order=False, arg_type_only=False, with_flag_head=False,
+        ignore_flag_order=False, arg_type_only=False, keep_common_args=False, with_flag_head=False,
         with_flag_argtype=False, with_prefix=False, verbose=False):
     """
     Tokenize a bash command.
     """
     tree = lint.normalize_ast(cmd, recover_quotation, verbose=verbose)
     return ast2tokens(tree, loose_constraints, ignore_flag_order,
-                      arg_type_only, with_flag_head=with_flag_head,
+                      arg_type_only, keep_common_args=keep_common_args, with_flag_head=with_flag_head,
                       with_prefix=with_prefix, with_flag_argtype=with_flag_argtype)
 
 
@@ -210,7 +210,8 @@ def ast2tokens(node, loose_constraints=False, ignore_flag_order=False,
         elif node.is_argument() or node.kind in ["t"]:
             assert(loose_constraints or node.get_num_of_children() == 0)
             if arg_type_only and node.is_open_vocab():
-                if keep_common_args:
+                if (keep_common_args and node.parent.is_utility() and
+                    node.parent.value == 'find' and node.value in bash.find_common_args):
                     # keep frequently-occurred arguments in the vocabulary
                     # TODO: define the criteria for "common args"
                     token = node.value
@@ -256,8 +257,19 @@ def ast2template(node, loose_constraints=False, ignore_flag_order=False,
     tokens = ast2tokens(node, loose_constraints, ignore_flag_order,
                         arg_type_only=arg_type_only, 
                         indexing_args=indexing_args)
-    return ' '.join(tokens) 
+    return ' '.join(tokens)
 
+def ast2template_commonargs(node, loose_constraints=False, ignore_flag_order=False,
+                 arg_type_only=True, indexing_args=False):
+    """
+    Convert a bash AST to a template that contains only reserved words and
+    argument types flags are alphabetically ordered.
+    """
+    tokens = ast2tokens(node, loose_constraints, ignore_flag_order,
+                        arg_type_only=arg_type_only,
+                        keep_common_args=True,
+                        indexing_args=indexing_args)
+    return ' '.join(tokens)
 
 def cmd2template(cmd, recover_quotation=True, arg_type_only=True,
                 loose_constraints=False, verbose=False):
@@ -398,6 +410,8 @@ def test_bash_parser():
             print(ast2template(norm_tree, ignore_flag_order=False))
             print("Command: ")
             print(ast2command(norm_tree, ignore_flag_order=False))
+
+
             # print("Pruned Command Template:")
             # print(ast2template(pruned_tree, ignore_flag_order=False))
             print()
@@ -408,4 +422,9 @@ def test_bash_parser():
 if __name__ == "__main__":
     # input_file = sys.argv[1]
     # batch_parse(input_file)
-    test_bash_parser()
+    print('Command template common args')
+    cmd = 'find . -name cat'
+    print('Command template common args')
+    print(ast2template(bash_parser(cmd), arg_type_only=True))
+    print(ast2template_commonargs(bash_parser(cmd), arg_type_only=True))
+    # test_bash_parser()
