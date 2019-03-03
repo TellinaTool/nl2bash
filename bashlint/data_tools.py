@@ -249,26 +249,16 @@ def ast2command(node, loose_constraints=False, ignore_flag_order=False):
 
 
 def ast2template(node, loose_constraints=False, ignore_flag_order=False,
-                 arg_type_only=True, indexing_args=False):
+                 arg_type_only=True, indexing_args=False,
+                 keep_common_args=False):
     """
     Convert a bash AST to a template that contains only reserved words and
     argument types flags are alphabetically ordered.
     """
     tokens = ast2tokens(node, loose_constraints, ignore_flag_order,
                         arg_type_only=arg_type_only, 
-                        indexing_args=indexing_args)
-    return ' '.join(tokens)
-
-def ast2template_commonargs(node, loose_constraints=False, ignore_flag_order=False,
-                 arg_type_only=True, indexing_args=False):
-    """
-    Convert a bash AST to a template that contains only reserved words and
-    argument types flags are alphabetically ordered.
-    """
-    tokens = ast2tokens(node, loose_constraints, ignore_flag_order,
-                        arg_type_only=arg_type_only,
-                        keep_common_args=True,
-                        indexing_args=indexing_args)
+                        indexing_args=indexing_args,
+                        keep_common_args=keep_common_args)
     return ' '.join(tokens)
 
 def cmd2template(cmd, recover_quotation=True, arg_type_only=True,
@@ -422,9 +412,9 @@ def test_bash_parser():
 if __name__ == "__main__":
     # input_file = sys.argv[1]
     # batch_parse(input_file)
+    # test_bash_parser()
     print('Command template common args')
     cmd = 'find . -name cat'
     print('Command template common args')
     print(ast2template(bash_parser(cmd), arg_type_only=True))
-    print(ast2template_commonargs(bash_parser(cmd), arg_type_only=True))
-    # test_bash_parser()
+    print(ast2template(bash_parser(cmd), arg_type_only=True, keep_common_args=True))
