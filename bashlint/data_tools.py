@@ -412,9 +412,4 @@ def test_bash_parser():
 if __name__ == "__main__":
     # input_file = sys.argv[1]
     # batch_parse(input_file)
-    # test_bash_parser()
-    print('Command template common args')
-    cmd = 'find . -name cat'
-    print('Command template common args')
-    print(ast2template(bash_parser(cmd), arg_type_only=True))
-    print(ast2template(bash_parser(cmd), arg_type_only=True, keep_common_args=True))
+    test_bash_parser()
