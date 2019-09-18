@@ -146,9 +146,9 @@ export PYTHONPATH=`pwd`
 
 ### Change Directory
 
-Then enter the [experiments](/experiments) directory.
+Then enter the [scripts](/scripts) directory.
 ```
-cd experiments
+cd scripts
 ```
 ### Data filtering, split and pre-processing
 
