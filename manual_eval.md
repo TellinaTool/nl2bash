@@ -1,9 +1,9 @@
 # Manual Evaluation Script
 
 ## Change Directory
-Enter the [experiments](https://github.com/TellinaTool/nl2bash/tree/master/experiments) directory.
+Enter the [scripts](https://github.com/TellinaTool/nl2bash/tree/master/scripts) directory.
 ```
-cd experiments
+cd scripts
 ```
 
 ## Run Manual Evaluation
