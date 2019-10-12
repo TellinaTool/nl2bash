@@ -256,14 +256,17 @@ def gen_automatic_evaluation_table(dataset, FLAGS):
     vocabs = data_utils.load_vocabulary(FLAGS)
 
     model_names, model_predictions = load_all_model_predictions(grouped_dataset, FLAGS, top_k=3)
-
+    import pdb
+    pdb.set_trace()
     auto_eval_metrics = {}
     for model_id, model_name in enumerate(model_names):
         prediction_list = model_predictions[model_id]
-        M = get_automatic_evaluation_metrics(
-            grouped_dataset, prediction_list, vocabs, FLAGS, top_k=3)
-        auto_eval_metrics[model_name] = [M['bleu'][0], M['bleu'][1], M['cms'][0], M['cms'][1]]
-
+        if prediction_list is not None:
+            M = get_automatic_evaluation_metrics(
+                grouped_dataset, prediction_list, vocabs, FLAGS, top_k=3)
+            auto_eval_metrics[model_name] = [M['bleu'][0], M['bleu'][1], M['cms'][0], M['cms'][1]]
+        else:
+            print('Model {} skipped in evaluation'.format(model_name))
     metrics_names = ['BLEU1', 'BLEU3', 'TM1', 'TM3']
     print_eval_table(model_names, metrics_names, auto_eval_metrics)
 
@@ -305,9 +308,9 @@ def get_automatic_evaluation_metrics(grouped_dataset, prediction_list, vocabs, F
         else:
             sc_features = ' '.join(sc_tokens)
         command_gts = [dp.tg_txt.strip() for dp in data_group]
-        command_gt_asts = [data_tools.bash_parser(cmd) for cmd in command_gts]
+        command_gt_asts = [cmd_parser(cmd) for cmd in command_gts]
         template_gts = [data_tools.cmd2template(cmd, loose_constraints=True) for cmd in command_gts]
-        template_gt_asts = [data_tools.bash_parser(temp) for temp in template_gts]
+        template_gt_asts = [cmd_parser(temp) for temp in template_gts]
         if verbose:
             print("Example {}".format(data_id))
             print("Original Source: {}".format(sc_str))
@@ -337,7 +340,7 @@ def get_automatic_evaluation_metrics(grouped_dataset, prediction_list, vocabs, F
             if str_match:
                 top_k_str_correct[data_id, i] = 1
             cms = token_based.command_match_score(template_gt_asts, pred_ast)
-            bleu = nltk.translate.bleu_score.sentence_bleu(command_gts, pred_cmd)
+            bleu = token_based.bleu_score(template_gt_asts, pred_ast)
             top_k_cms[data_id, i] = cms
             top_k_bleu[data_id, i] = bleu
             if verbose:
@@ -420,7 +423,7 @@ def load_all_model_predictions(grouped_dataset, FLAGS, top_k=1, model_names=('to
                                                                              'char_seq2seq',
                                                                              'char_copynet',
                                                                              'partial_token_seq2seq',
-                                                                             'parital_token_copynet',
+                                                                             'partial_token_copynet',
                                                                              'tellina')):
     """
     Load predictions of multiple models (specified with "model_names").
@@ -432,7 +435,7 @@ def load_all_model_predictions(grouped_dataset, FLAGS, top_k=1, model_names=('to
         model_subdir, decode_sig = graph_utils.get_decode_signature(FLAGS)
         model_dir = os.path.join(FLAGS.model_root_dir, model_subdir)
         prediction_list = load_predictions(model_dir, decode_sig, top_k)
-        if len(grouped_dataset) != len(prediction_list):
+        if prediction_list is not None and len(grouped_dataset) != len(prediction_list):
             raise ValueError("ground truth list and prediction list length must "
                              "be equal: {} vs. {}".format(len(grouped_dataset),
                                                           len(prediction_list)))
@@ -501,11 +504,16 @@ def load_predictions(model_dir, decode_sig, top_k, verbose=True):
     :return: List of top k predictions.
     """
     prediction_path = os.path.join(model_dir, 'predictions.{}.latest'.format(decode_sig))
-    with open(prediction_path) as f:
-        prediction_list = []
-        for line in f:
-            predictions = line.split('|||')
-            prediction_list.append(predictions[:top_k])
+    if os.path.exists(prediction_path):
+        with open(prediction_path) as f:
+            prediction_list = []
+            for line in f:
+                predictions = line.split('|||')
+                prediction_list.append(predictions[:top_k])
+    else:
+        if verbose:
+            print('Warning: file not found: {}'.format(prediction_path))
+        return None
     if verbose:
         print('{} predictions loaded from {}'.format(
             len(prediction_list), prediction_path))

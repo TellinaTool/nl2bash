@@ -52,3 +52,10 @@ def command_match_score(gts, ast):
         if CMS(ast, gt) > max_cms:
             max_cms = CMS(ast, gt)
     return max_cms
+
+
+def bleu_score(gt_asts, pred_ast):
+    gt_tokens = [data_tools.bash_tokenizer(ast) for ast in gt_asts]
+    pred_tokens = data_tools.bash_tokenizer(pred_ast)
+    bleu = nltk.translate.bleu_score.sentence_bleu(gt_tokens, pred_tokens)
+    return bleu

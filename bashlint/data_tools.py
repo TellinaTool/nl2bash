@@ -49,7 +49,10 @@ def bash_tokenizer(cmd, recover_quotation=True, loose_constraints=False,
     """
     Tokenize a bash command.
     """
-    tree = lint.normalize_ast(cmd, recover_quotation, verbose=verbose)
+    if isinstance(cmd, str):
+        tree = lint.normalize_ast(cmd, recover_quotation, verbose=verbose)
+    else:
+        tree = cmd
     return ast2tokens(tree, loose_constraints, ignore_flag_order,
                       arg_type_only, keep_common_args=keep_common_args, with_flag_head=with_flag_head,
                       with_prefix=with_prefix, with_flag_argtype=with_flag_argtype)
@@ -407,7 +410,23 @@ def test_bash_parser():
             break
 
 
+def test_bash_tokenizer():
+
+    def test(cmd):
+        tokens = bash_tokenizer(cmd)
+        print('cmd: {}'.format(cmd))
+        print('tokens: {}'.format(tokens))
+
+    cmd1 = 'find . -name "*.andnav" | rename -vn "s/\.andnav$/.tile/"'
+    test(cmd1)
+    cmd2 = 'find /volume1/uploads -name "*.mkv" -exec mv \{\} \{\}.avi \;'
+    test(cmd2)
+    cmd3 = 'touch -d "$(date -r filename) - 2 hours" filename'
+    test(cmd3)
+
+
 if __name__ == "__main__":
     # input_file = sys.argv[1]
     # batch_parse(input_file)
-    test_bash_parser()
+    # test_bash_parser()
+    test_bash_tokenizer()
