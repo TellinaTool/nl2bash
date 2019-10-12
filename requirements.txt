@@ -5,4 +5,4 @@ numpy>=1.7
 scipy>0.13.3
 six>=1.8
 # bs4
-# matplotlib
+matplotlib
