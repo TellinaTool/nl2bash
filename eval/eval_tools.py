@@ -305,9 +305,9 @@ def get_automatic_evaluation_metrics(grouped_dataset, prediction_list, vocabs, F
         else:
             sc_features = ' '.join(sc_tokens)
         command_gts = [dp.tg_txt.strip() for dp in data_group]
-        command_gt_asts = [data_tools.bash_parser(cmd) for cmd in command_gts]
+        command_gt_asts = [cmd_parser(cmd) for cmd in command_gts]
         template_gts = [data_tools.cmd2template(cmd, loose_constraints=True) for cmd in command_gts]
-        template_gt_asts = [data_tools.bash_parser(temp) for temp in template_gts]
+        template_gt_asts = [cmd_parser(temp) for temp in template_gts]
         if verbose:
             print("Example {}".format(data_id))
             print("Original Source: {}".format(sc_str))
@@ -337,7 +337,7 @@ def get_automatic_evaluation_metrics(grouped_dataset, prediction_list, vocabs, F
             if str_match:
                 top_k_str_correct[data_id, i] = 1
             cms = token_based.command_match_score(template_gt_asts, pred_ast)
-            bleu = nltk.translate.bleu_score.sentence_bleu(command_gts, pred_cmd)
+            bleu = token_based.bleu_score(template_gt_asts, pred_ast)
             top_k_cms[data_id, i] = cms
             top_k_bleu[data_id, i] = bleu
             if verbose:
