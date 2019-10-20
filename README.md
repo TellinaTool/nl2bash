@@ -16,6 +16,8 @@ Specifically, it contains the following components:
 
 You may visit  http://tellina.rocks to interact with our pretrained model.
 
+**🆕 Oct 20, 2019:** we update the code to Tensorflow 2.0.
+
 ## Data Statistics
 
 Our corpus contain a diverse set of Bash utilities and flags: 102 unique utilities, 206 unique flags and 15 reserved tokens. (Browse the raw data collection [here](https://github.com/TellinaTool/nl2bash/tree/master/data/bash).)
@@ -202,3 +204,6 @@ If you use the data or source code in your work, please cite
 ```
 
 Related paper: [Lin et. al. 2017. Program Synthesis from Natural Language Using Recurrent Neural Networks](http://victorialin.net/pubs/tellina_tr170510.pdf). 
+
+## Changelog  
+* **Oct 20, 2019** update to Tensorflow 2.0
