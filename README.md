@@ -127,13 +127,9 @@ In addition, we also report BLEU and a self-defined template matching score as t
 
 ### Install TensorFlow
 
-To reproduce our experiments, please install TensorFlow (>= 1.0). The experiments can be reproduced on machines with or without GPUs.
+To reproduce our experiments, please install TensorFlow 2.0. The experiments can be reproduced on machines with or without GPUs. However, training with CPU only is extremely slow and we do not recommend it. Inference with CPU only is slow but tolerable.
 
-We suggest following the [official instructions](https://www.tensorflow.org/install/) to install the library. Specifically, we used the following pip installation command copied from the official website on Mac OS 10.10.5.
-```
-sudo pip3 install --upgrade \
- https://storage.googleapis.com/tensorflow/mac/cpu/tensorflow-1.3.0-py3-none-any.whl 
-```
+We suggest following the [official instructions](https://www.tensorflow.org/install/) to install the library. The code has been tested on Ubuntu 16.04 + CUDA 10.0 + CUDNN 7.6.3.
 
 ### Environment Variables & Dependencies
 
