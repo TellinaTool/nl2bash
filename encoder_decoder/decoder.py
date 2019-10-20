@@ -68,12 +68,12 @@ class Decoder(graph_utils.NNModel):
         self.output_project = self.output_project()
 
     def embeddings(self):
-        with tf.variable_scope(self.scope + "_embeddings", reuse=self.embedding_vars):
+        with tf.compat.v1.variable_scope(self.scope + "_embeddings", reuse=self.embedding_vars):
             vocab_size = self.target_vocab_size
             print("target token embedding size = {}".format(vocab_size))
             sqrt3 = math.sqrt(3)
-            initializer = tf.random_uniform_initializer(-sqrt3, sqrt3)
-            embeddings = tf.get_variable("embedding",
+            initializer = tf.compat.v1.random_uniform_initializer(-sqrt3, sqrt3)
+            embeddings = tf.compat.v1.get_variable("embedding",
                 [vocab_size, self.embedding_dim], initializer=initializer)
             self.embedding_vars = True
             return embeddings
@@ -82,15 +82,15 @@ class Decoder(graph_utils.NNModel):
         return np.load(self.tg_token_features_path)
 
     def output_project(self):
-        with tf.variable_scope(self.scope + "_output_project",
+        with tf.compat.v1.variable_scope(self.scope + "_output_project",
                                reuse=self.output_project_vars):
-            w = tf.get_variable("proj_w", [self.dim, self.vocab_size])
-            b = tf.get_variable("proj_b", [self.vocab_size])
+            w = tf.compat.v1.get_variable("proj_w", [self.dim, self.vocab_size])
+            b = tf.compat.v1.get_variable("proj_b", [self.vocab_size])
             self.output_project_vars = True
         return (w, b)
 
 
-class CopyCellWrapper(tf.nn.rnn_cell.RNNCell):
+class CopyCellWrapper(tf.compat.v1.nn.rnn_cell.RNNCell):
     def __init__(self, cell, output_project, num_layers,
                  encoder_copy_inputs, tg_vocab_size):
         self.cell = cell
@@ -123,13 +123,13 @@ class CopyCellWrapper(tf.nn.rnn_cell.RNNCell):
             tf.one_hot(self.encoder_copy_inputs, depth=self.tg_vocab_size+copy_prob.get_shape()[1].value)), 1)
 
         # mixture probability
-        mix_prob = tf.concat([gen_prob, tf.zeros(tf.shape(copy_prob))], 1) + \
+        mix_prob = tf.concat([gen_prob, tf.zeros(tf.shape(input=copy_prob))], 1) + \
                    copy_vocab_prob
 
         return mix_prob, state, alignments, attns
 
 
-class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
+class AttentionCellWrapper(tf.compat.v1.nn.rnn_cell.RNNCell):
     def __init__(self, cell, attention_states, encoder_attn_masks,
             attention_function, attention_input_keep, attention_output_keep,
             num_heads, dim, num_layers, use_copy, tg_vocab_size=-1):
@@ -157,13 +157,13 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
             print("attention input keep probability = {}"
                   .format(attention_input_keep))
             attention_states = tf.nn.dropout(
-                attention_states, attention_input_keep)
+                attention_states, 1 - (attention_input_keep))
         attn_length = attention_states.get_shape()[1].value
         attn_dim = attention_states.get_shape()[2].value
 
         self.cell = cell
         self.encoder_attn_masks = encoder_attn_masks
-        self.vocab_indices = tf.diag(tf.ones(tg_vocab_size))
+        self.vocab_indices = tf.linalg.tensor_diag(tf.ones(tg_vocab_size))
         self.num_heads = num_heads
         self.dim = dim
         self.num_layers = num_layers
@@ -174,7 +174,7 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
         self.attention_output_keep = attention_output_keep
 
         hidden_features = []
-        with tf.variable_scope("attention_cell_wrapper"):
+        with tf.compat.v1.variable_scope("attention_cell_wrapper"):
             for a in xrange(num_heads):
                 # [batch_size, attn_length, attn_dim]
                 hidden_features.append(attention_states)
@@ -196,21 +196,21 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
                     assert ndims == 2
             state = tf.concat(axis=1, values=query_list)
         for a in xrange(self.num_heads):
-            with tf.variable_scope("Attention_%d" % a):
+            with tf.compat.v1.variable_scope("Attention_%d" % a):
                 y = tf.reshape(state, [-1, 1, 1, self.attn_dim])
                 # Attention mask is a softmax of v^T * tanh(...).
                 if self.attention_function == 'non-linear':
-                    k = tf.get_variable("AttnW_%d" % a,
+                    k = tf.compat.v1.get_variable("AttnW_%d" % a,
                                         [1, 1, 2*self.attn_dim, self.attn_dim])
-                    l = tf.get_variable("Attnl_%d" % a,
+                    l = tf.compat.v1.get_variable("Attnl_%d" % a,
                                         [1, 1, 1, self.attn_dim])
                     z = tf.reshape(self.hidden_features[a],
                                    [-1, self.attn_length, 1, self.attn_dim])
                     v = tf.concat(axis=3, values=[z, tf.tile(y, [1, self.attn_length, 1, 1])])
                     s = tf.reduce_sum(
-                        l * tf.tanh(tf.nn.conv2d(v, k, [1,1,1,1], "SAME")), [2, 3])
+                        input_tensor=l * tf.tanh(tf.nn.conv2d(input=v, filters=k, strides=[1,1,1,1], padding="SAME")), axis=[2, 3])
                 elif self.attention_function == 'inner_product':
-                    s = tf.reduce_sum(tf.multiply(self.hidden_features[a], y), [2])
+                    s = tf.reduce_sum(input_tensor=tf.multiply(self.hidden_features[a], y), axis=[2])
                 else:
                     raise NotImplementedError
 
@@ -222,8 +222,8 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
                     alignments.append(alignment)
                     # Soft attention read
                     d = tf.reduce_sum(
-                        tf.reshape(alignment, [-1, self.attn_length, 1])
-                            * self.hidden_features[a], [1])
+                        input_tensor=tf.reshape(alignment, [-1, self.attn_length, 1])
+                            * self.hidden_features[a], axis=[1])
                     # [batch_size, attn_dim]
                     context = tf.reshape(d, [-1, self.attn_dim])
                 else:
@@ -245,7 +245,7 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
         #                          [cell_output, attns[0]], self.dim, True)),
         #                          self.attention_output_keep# )
 
-        with tf.variable_scope("AttnOutputProjection"):
+        with tf.compat.v1.variable_scope("AttnOutputProjection"):
             output = rnn.linear([cell_output, attns[0]], self.dim, True)
 
         self.attention_cell_vars = True

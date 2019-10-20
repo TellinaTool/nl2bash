@@ -165,7 +165,7 @@ def define_model(FLAGS, session, model_constructor, buckets, forward_only):
                 tf.constant(FLAGS.learning_rate)))
         else:
             print("Initialize the graph with random parameters.")
-            session.run(tf.global_variables_initializer())
+            session.run(tf.compat.v1.global_variables_initializer())
 
     return model
 
@@ -250,7 +250,7 @@ def softmax_loss(output_project, num_samples, target_vocab_size):
     w, b = output_project
     if num_samples > 0 and num_samples < target_vocab_size:
         print("loss function = sampled_softmax_loss ({})".format(num_samples))
-        w_t = tf.transpose(w)
+        w_t = tf.transpose(a=w)
         def sampled_loss(outputs, labels):
             labels = tf.reshape(labels, [-1, 1])
             return tf.nn.sampled_softmax_loss(
@@ -271,7 +271,7 @@ def wrap_inputs(beam_decoder, inputs):
 
 
 def sparse_cross_entropy(logits, targets):
-    return -tf.reduce_sum(logits * tf.one_hot(targets, logits.get_shape()[1]), 1)
+    return -tf.reduce_sum(input_tensor=logits * tf.one_hot(targets, logits.get_shape()[1]), axis=1)
 
 
 def nest_map(func, nested):

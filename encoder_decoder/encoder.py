@@ -51,7 +51,7 @@ class Encoder(graph_utils.NNModel):
         if self.sc_token:
             token_embeddings = self.token_embeddings()
             token_channel_embeddings = \
-                [tf.nn.embedding_lookup(token_embeddings, encoder_input)
+                [tf.nn.embedding_lookup(params=token_embeddings, ids=encoder_input)
                  for encoder_input in channel_inputs[0]]
             channel_embeddings.append(token_channel_embeddings)
         if self.sc_char:
@@ -73,23 +73,23 @@ class Encoder(graph_utils.NNModel):
 
         :return: token embedding matrix [source_vocab_size, dim]
         """
-        with tf.variable_scope("encoder_token_embeddings",
+        with tf.compat.v1.variable_scope("encoder_token_embeddings",
                                reuse=self.token_embedding_vars):
             vocab_size = self.source_vocab_size
             print("source token embedding size = {}".format(vocab_size))
             sqrt3 = math.sqrt(3)
-            initializer = tf.random_uniform_initializer(-sqrt3, sqrt3)
-            embeddings = tf.get_variable("embedding",
+            initializer = tf.compat.v1.random_uniform_initializer(-sqrt3, sqrt3)
+            embeddings = tf.compat.v1.get_variable("embedding",
                 [vocab_size, self.sc_token_dim], initializer=initializer)
             self.token_embedding_vars = True
             return embeddings
 
     def char_embeddings(self):
-        with tf.variable_scope("encoder_char_embeddings",
+        with tf.compat.v1.variable_scope("encoder_char_embeddings",
                                reuse=self.char_embedding_vars):
             sqrt3 = math.sqrt(3)
-            initializer = tf.random_uniform_initializer(-sqrt3, sqrt3)
-            embeddings = tf.get_variable(
+            initializer = tf.compat.v1.random_uniform_initializer(-sqrt3, sqrt3)
+            embeddings = tf.compat.v1.get_variable(
                 "embedding", [self.source_char_vocab_size, self.sc_char_dim],
                 initializer=initializer)
             self.char_embedding_vars = True
@@ -97,7 +97,7 @@ class Encoder(graph_utils.NNModel):
 
     def token_channel_embeddings(self):
         input = self.token_features()
-        return tf.nn.embedding_lookup(self.token_embeddings(), input)
+        return tf.nn.embedding_lookup(params=self.token_embeddings(), ids=input)
 
     def char_channel_embeddings(self, channel_inputs):
         """
@@ -110,10 +110,10 @@ class Encoder(graph_utils.NNModel):
         inputs = [tf.squeeze(x, 1) for x in tf.split(axis=1,
                   num_or_size_splits=self.max_source_token_size,
                   value=tf.concat(axis=0, values=channel_inputs))]
-        input_embeddings = [tf.nn.embedding_lookup(self.char_embeddings(), input) 
+        input_embeddings = [tf.nn.embedding_lookup(params=self.char_embeddings(), ids=input) 
                             for input in inputs]
         if self.sc_char_composition == 'rnn':
-            with tf.variable_scope("encoder_char_rnn",
+            with tf.compat.v1.variable_scope("encoder_char_rnn",
                                    reuse=self.char_rnn_vars) as scope:
                 cell = rnn.create_multilayer_cell(
                     self.sc_char_rnn_cell, scope,
@@ -150,13 +150,13 @@ class RNNEncoder(Encoder):
         # Compute the continuous input representations
         if input_embeddings is None:
             input_embeddings = self.token_representations(encoder_channel_inputs)
-        with tf.variable_scope("encoder_rnn"):
+        with tf.compat.v1.variable_scope("encoder_rnn"):
             return rnn.RNNModel(self.cell, input_embeddings,
                 num_cell_layers=self.num_layers, dtype=tf.float32)
 
     def encoder_cell(self):
         """RNN cell for the encoder."""
-        with tf.variable_scope("encoder_cell") as scope:
+        with tf.compat.v1.variable_scope("encoder_cell") as scope:
             cell = rnn.create_multilayer_cell(self.rnn_cell, scope,
                 self.dim, self.num_layers, self.input_keep, self.output_keep,
                 variational_recurrent=self.variational_recurrent_dropout,
@@ -184,13 +184,13 @@ class BiRNNEncoder(Encoder):
         # Compute the continuous input representations
         if input_embeddings is None:
             input_embeddings = self.token_representations(channel_inputs)
-        with tf.variable_scope("encoder_rnn"):
+        with tf.compat.v1.variable_scope("encoder_rnn"):
             return rnn.BiRNNModel(self.fw_cell, self.bw_cell, input_embeddings,
                 num_cell_layers=self.num_layers, dtype=tf.float32)
 
     def forward_cell(self):
         """RNN cell for the forward RNN."""
-        with tf.variable_scope("forward_cell") as scope:
+        with tf.compat.v1.variable_scope("forward_cell") as scope:
             cell = rnn.create_multilayer_cell(self.rnn_cell, scope,
                 self.dim, self.num_layers, self.input_keep, self.output_keep,
                 variational_recurrent=self.variational_recurrent_dropout,
@@ -200,7 +200,7 @@ class BiRNNEncoder(Encoder):
 
     def backward_cell(self):
         """RNN cell for the backward RNN."""
-        with tf.variable_scope("backward_cell") as scope:
+        with tf.compat.v1.variable_scope("backward_cell") as scope:
             cell = rnn.create_multilayer_cell(self.rnn_cell, scope,
                 self.dim, self.num_layers, self.input_keep, self.output_keep,
                 variational_recurrent=self.variational_recurrent_dropout,

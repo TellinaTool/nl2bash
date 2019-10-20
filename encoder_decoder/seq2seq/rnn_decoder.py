@@ -65,7 +65,7 @@ class RNNDecoder(decoder.Decoder):
         if self.force_reading_input:
             print("Warning: reading ground truth decoder inputs at decoding time.")
 
-        with tf.variable_scope(self.scope + "_decoder_rnn") as scope:
+        with tf.compat.v1.variable_scope(self.scope + "_decoder_rnn") as scope:
             decoder_cell = self.decoder_cell()
             states = []
             alignments_list = []
@@ -117,12 +117,12 @@ class RNNDecoder(decoder.Decoder):
             def step_output_symbol_and_logit(output):
                 epsilon = tf.constant(1e-12)
                 if self.copynet:
-                    output_logits = tf.log(output + epsilon)
+                    output_logits = tf.math.log(output + epsilon)
                 else:
                     W, b = self.output_project
-                    output_logits = tf.log(
+                    output_logits = tf.math.log(
                         tf.nn.softmax(tf.matmul(output, W) + b) + epsilon)
-                output_symbol = tf.argmax(output_logits, 1)
+                output_symbol = tf.argmax(input=output_logits, axis=1)
                 past_output_symbols.append(output_symbol)
                 past_output_logits.append(output_logits)
                 return output_symbol, output_logits
@@ -149,10 +149,10 @@ class RNNDecoder(decoder.Decoder):
                         step_output_symbol_and_logit(output)
                     if self.copynet:
                         decoder_input = input
-                        input = tf.where(input >= self.target_vocab_size,
+                        input = tf.compat.v1.where(input >= self.target_vocab_size,
                                          tf.ones_like(input)*data_utils.UNK_ID, input)
 
-                input_embedding = tf.nn.embedding_lookup(input_embeddings, input)
+                input_embedding = tf.nn.embedding_lookup(params=input_embeddings, ids=input)
 
                 # Appending selective read information for CopyNet
                 if self.copynet:
@@ -167,9 +167,9 @@ class RNNDecoder(decoder.Decoder):
                         encoder_copy_inputs_2d = tf.concat(
                             [tf.expand_dims(x, 1) for x in encoder_copy_inputs], axis=1)
                         if self.forward_only:
-                            copy_input = tf.where(decoder_input >= self.target_vocab_size,
+                            copy_input = tf.compat.v1.where(decoder_input >= self.target_vocab_size,
                                                   tf.reduce_sum(
-                                                    tf.one_hot(input-self.target_vocab_size, 
+                                                    input_tensor=tf.one_hot(input-self.target_vocab_size, 
                                                                depth=attn_length, dtype=tf.int32)
                                                     * encoder_copy_inputs_2d,
                                                     axis=1),
@@ -187,7 +187,7 @@ class RNNDecoder(decoder.Decoder):
                         weighted_selective_mask_3d = tf.tile(input=tf.expand_dims(weighted_selective_mask, 2), 
                                                              multiples=np.array([1, 1, attn_dim]))
                         # [batch_size(*self.beam_size), attn_dim]
-                        selective_reads = tf.reduce_sum(weighted_selective_mask_3d * attention_states, axis=1)
+                        selective_reads = tf.reduce_sum(input_tensor=weighted_selective_mask_3d * attention_states, axis=1)
                     input_embedding = tf.concat([input_embedding, selective_reads], axis=1)
 
                 if self.copynet:
@@ -281,7 +281,7 @@ class RNNDecoder(decoder.Decoder):
                 step_output_symbol_and_logit(output)
                 output_symbols = tf.concat(
                     [tf.expand_dims(x, 1) for x in past_output_symbols], axis=1)
-                sequence_logits = tf.add_n([tf.reduce_max(x, axis=1) 
+                sequence_logits = tf.add_n([tf.reduce_max(input_tensor=x, axis=1) 
                                             for x in past_output_logits])
                 return output_symbols, sequence_logits, past_output_logits, \
                        states, attn_alignments, pointers
@@ -292,7 +292,7 @@ class RNNDecoder(decoder.Decoder):
             input_size = self.dim * 2
         else:
             input_size = self.dim
-        with tf.variable_scope(self.scope + "_decoder_cell") as scope:
+        with tf.compat.v1.variable_scope(self.scope + "_decoder_cell") as scope:
             cell = rnn.create_multilayer_cell(
                 self.rnn_cell, scope, self.dim, self.num_layers,
                 self.input_keep, self.output_keep,

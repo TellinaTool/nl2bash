@@ -33,16 +33,16 @@ def create_multilayer_cell(rnn_cell, scope, dim, num_layers,
         the batch normalization process.
     :return: RNN cell as specified.
     """
-    with tf.variable_scope(scope):
+    with tf.compat.v1.variable_scope(scope):
         if rnn_cell == "lstm":
             if batch_normalization:
                 print("-- using recurrent batch normalization")
                 cell = BNLSTMCell(
                     dim, forward_only=forward_only, state_is_tuple=True)
             else:
-                cell = tf.nn.rnn_cell.LSTMCell(dim, state_is_tuple=True)
+                cell = tf.compat.v1.nn.rnn_cell.LSTMCell(dim, state_is_tuple=True)
         elif rnn_cell == "gru":
-            cell = tf.nn.rnn_cell.GRUCell(dim)
+            cell = tf.compat.v1.nn.rnn_cell.GRUCell(dim)
         elif rnn_cell == 'ran':
             cell = RANCell(dim)
         else:
@@ -56,19 +56,19 @@ def create_multilayer_cell(rnn_cell, scope, dim, num_layers,
             print("-- rnn dropout output keep probability: {}".format(output_keep_prob))
             if variational_recurrent:
                 print("-- using variational dropout")
-            cell = tf.nn.rnn_cell.DropoutWrapper(cell,
+            cell = tf.compat.v1.nn.rnn_cell.DropoutWrapper(cell,
                 input_keep_prob=input_keep_prob,
                 output_keep_prob=output_keep_prob,
                 variational_recurrent=variational_recurrent,
                 input_size=input_dim, dtype=tf.float32)
 
         if num_layers > 1:
-            cell = tf.nn.rnn_cell.MultiRNNCell(
+            cell = tf.compat.v1.nn.rnn_cell.MultiRNNCell(
                 [cell] * num_layers, state_is_tuple=(rnn_cell=="lstm"))
     return cell
 
 
-class BNLSTMCell(tf.nn.rnn_cell.RNNCell):
+class BNLSTMCell(tf.compat.v1.nn.rnn_cell.RNNCell):
   """
   Batch Normalized Long short-term memory unit (LSTM) recurrent network cell.
 
@@ -154,12 +154,12 @@ class BNLSTMCell(tf.nn.rnn_cell.RNNCell):
 
     if num_proj:
       self._state_size = (
-          tf.nn.rnn_cell.LSTMStateTuple(num_units, num_proj)
+          tf.compat.v1.nn.rnn_cell.LSTMStateTuple(num_units, num_proj)
           if state_is_tuple else num_units + num_proj)
       self._output_size = num_proj
     else:
       self._state_size = (
-          tf.nn.rnn_cell.LSTMStateTuple(num_units, num_units)
+          tf.compat.v1.nn.rnn_cell.LSTMStateTuple(num_units, num_units)
           if state_is_tuple else 2 * num_units)
       self._output_size = num_units
 
@@ -208,30 +208,30 @@ class BNLSTMCell(tf.nn.rnn_cell.RNNCell):
     input_size = inputs.get_shape().with_rank(2)[1]
     if input_size.value is None:
       raise ValueError("Could not infer input size from inputs.get_shape()[-1]")
-    with tf.variable_scope(scope or type(self).__name__,
+    with tf.compat.v1.variable_scope(scope or type(self).__name__,
                            initializer=self._initializer):  # "LSTMCell"
-      w_h = tf.get_variable("W_h", [num_proj, 4 * self._num_units],
+      w_h = tf.compat.v1.get_variable("W_h", [num_proj, 4 * self._num_units],
                             dtype=tf.float32)
-      w_x = tf.get_variable("W_x", [input_size.value, 4 * self._num_units],
+      w_x = tf.compat.v1.get_variable("W_x", [input_size.value, 4 * self._num_units],
                             dtype=tf.float32)
 
-      b = tf.get_variable(
+      b = tf.compat.v1.get_variable(
           "B", shape=[4 * self._num_units],
-          initializer=tf.zeros_initializer, dtype=dtype)
+          initializer=tf.compat.v1.zeros_initializer, dtype=dtype)
 
       # i = input_gate, j = new_input, f = forget_gate, o = output_gate
       hidden_matrix = tf.matmul(m_prev, w_h)
-      bn_hidden_matrix = tf.layers.batch_normalization(hidden_matrix, 
+      bn_hidden_matrix = tf.compat.v1.layers.batch_normalization(hidden_matrix, 
         momentum=0.99,
-        beta_initializer=tf.constant_initializer(self._beta_h), 
-        gamma_initializer=tf.constant_initializer(self._gamma_h), 
+        beta_initializer=tf.compat.v1.constant_initializer(self._beta_h), 
+        gamma_initializer=tf.compat.v1.constant_initializer(self._gamma_h), 
         training=(not self.forward_only),
         name='bn_hidden_matrix', reuse=None)
       input_matrix = tf.matmul(inputs, w_x)
-      bn_input_matrix = tf.layers.batch_normalization(input_matrix, 
+      bn_input_matrix = tf.compat.v1.layers.batch_normalization(input_matrix, 
         momentum=0.99,
-        beta_initializer=tf.constant_initializer(self._beta_x), 
-        gamma_initializer=tf.constant_initializer(self._gamma_x), 
+        beta_initializer=tf.compat.v1.constant_initializer(self._beta_x), 
+        gamma_initializer=tf.compat.v1.constant_initializer(self._gamma_x), 
         training=(not self.forward_only), 
         name='bn_input_matrix', reuse=None)
       lstm_matrix = tf.nn.bias_add(
@@ -240,11 +240,11 @@ class BNLSTMCell(tf.nn.rnn_cell.RNNCell):
 
       # Diagonal connections
       if self._use_peepholes:
-        w_f_diag = tf.get_variable(
+        w_f_diag = tf.compat.v1.get_variable(
             "W_F_diag", shape=[self._num_units], dtype=dtype)
-        w_i_diag = tf.get_variable(
+        w_i_diag = tf.compat.v1.get_variable(
             "W_I_diag", shape=[self._num_units], dtype=dtype)
-        w_o_diag = tf.get_variable(
+        w_o_diag = tf.compat.v1.get_variable(
             "W_O_diag", shape=[self._num_units], dtype=dtype)
 
       if self._use_peepholes:
@@ -259,10 +259,10 @@ class BNLSTMCell(tf.nn.rnn_cell.RNNCell):
         c = tf.clip_by_value(c, -self._cell_clip, self._cell_clip)
         # pylint: enable=invalid-unary-operand-type
 
-      bn_c = tf.layers.batch_normalization(c, 
+      bn_c = tf.compat.v1.layers.batch_normalization(c, 
         momentum=0.99,
-        beta_initializer=tf.constant_initializer(self._beta_c),
-        gamma_initializer=tf.constant_initializer(self._gamma_c), 
+        beta_initializer=tf.compat.v1.constant_initializer(self._beta_c),
+        gamma_initializer=tf.compat.v1.constant_initializer(self._gamma_c), 
         training=(not self.forward_only), 
         name='bn_cell', reuse=None)
       if self._use_peepholes:
@@ -277,7 +277,7 @@ class BNLSTMCell(tf.nn.rnn_cell.RNNCell):
 
         m = tf.matmul(m, concat_w_proj)
 
-    new_state = (tf.nn.rnn_cell.LSTMStateTuple(c, m) if self._state_is_tuple
+    new_state = (tf.compat.v1.nn.rnn_cell.LSTMStateTuple(c, m) if self._state_is_tuple
                  else tf.concat(1, [c, m]))
     return m, new_state
 
@@ -337,7 +337,7 @@ def RNNModel(cell, inputs, initial_state=None, dtype=None,
       (column size) cannot be inferred from inputs via shape inference.
   """
 
-  if not isinstance(cell, tf.nn.rnn_cell.RNNCell):
+  if not isinstance(cell, tf.compat.v1.nn.rnn_cell.RNNCell):
     raise TypeError("cell must be an instance of RNNCell")
   if not isinstance(inputs, list):
     raise TypeError("inputs must be a list")
@@ -350,7 +350,7 @@ def RNNModel(cell, inputs, initial_state=None, dtype=None,
   # Create a new scope in which the caching device is either
   # determined by the parent scope, or is set to place the cached
   # Variable using the same placement as for the rest of the RNN.
-  with tf.variable_scope(scope or "RNN") as varscope:
+  with tf.compat.v1.variable_scope(scope or "RNN") as varscope:
     if varscope.caching_device is None:
       varscope.set_caching_device(lambda op: op.device)
 
@@ -368,7 +368,7 @@ def RNNModel(cell, inputs, initial_state=None, dtype=None,
     if fixed_batch_size.value:
       batch_size = fixed_batch_size.value
     else:
-      batch_size = tf.shape(inputs[0])[0]
+      batch_size = tf.shape(input=inputs[0])[0]
     if initial_state is not None:
       state = initial_state
     else:
@@ -378,14 +378,14 @@ def RNNModel(cell, inputs, initial_state=None, dtype=None,
       state = cell.zero_state(batch_size, dtype)
 
     if sequence_length is not None:  # Prepare variables
-      sequence_length = tf.to_int32(sequence_length)
+      sequence_length = tf.cast(sequence_length, dtype=tf.int32)
       zero_output = tf.zeros(
           tf.stack([batch_size, cell.output_size]), inputs[0].dtype)
       zero_output.set_shape(
           tf.tensor_shape.TensorShape([fixed_batch_size.value,
                                        cell.output_size]))
-      min_sequence_length = tf.reduce_min(sequence_length)
-      max_sequence_length = tf.reduce_max(sequence_length)
+      min_sequence_length = tf.reduce_min(input_tensor=sequence_length)
+      max_sequence_length = tf.reduce_max(input_tensor=sequence_length)
 
     for time, input_ in enumerate(inputs):
       if time > 0: varscope.reuse_variables()
@@ -453,9 +453,9 @@ def BiRNNModel(cell_fw, cell_bw, inputs, initial_state_fw=None,
     ValueError: If inputs is None or an empty list.
   """
 
-  if not isinstance(cell_fw, tf.nn.rnn_cell.RNNCell):
+  if not isinstance(cell_fw, tf.compat.v1.nn.rnn_cell.RNNCell):
     raise TypeError("cell_fw must be an instance of RNNCell")
-  if not isinstance(cell_bw, tf.nn.rnn_cell.RNNCell):
+  if not isinstance(cell_bw, tf.compat.v1.nn.rnn_cell.RNNCell):
     raise TypeError("cell_bw must be an instance of RNNCell")
   if not isinstance(inputs, list):
     raise TypeError("inputs must be a list")
@@ -464,12 +464,12 @@ def BiRNNModel(cell_fw, cell_bw, inputs, initial_state_fw=None,
 
   name = scope or "BiRNN"
   # Forward direction
-  with tf.variable_scope(name + "_FW") as fw_scope:
+  with tf.compat.v1.variable_scope(name + "_FW") as fw_scope:
     output_fw, states_fw = RNNModel(cell_fw, inputs, initial_state_fw,
       dtype, sequence_length, num_cell_layers=num_cell_layers, scope=fw_scope)
 
   # Backward direction
-  with tf.variable_scope(name + "_BW") as bw_scope:
+  with tf.compat.v1.variable_scope(name + "_BW") as bw_scope:
     tmp, tmp_states = RNNModel(cell_bw, _reverse_seq(inputs, sequence_length),
       initial_state_bw, dtype, sequence_length,
       num_cell_layers=num_cell_layers, scope=bw_scope)
@@ -523,10 +523,10 @@ def _reverse_seq(input_seq, lengths):
 
   # TODO(schuster, ebrevdo): Remove cast when reverse_sequence takes int32
   if lengths is not None:
-    lengths = tf.to_int64(lengths)
+    lengths = tf.cast(lengths, dtype=tf.int64)
 
   # Reverse along dimension 0
-  s_reversed = tf.reverse_sequence(s_joined, lengths, 0, 1)
+  s_reversed = tf.reverse_sequence(input=s_joined, seq_lengths=lengths, seq_axis=0, batch_axis=1)
   # Split again into list
   result = tf.unstack(s_reversed)
   for r in result:
@@ -574,9 +574,9 @@ def linear(args,
   dtype = [a.dtype for a in args][0]
 
   # Now the computation.
-  scope = tf.get_variable_scope()
-  with tf.variable_scope(scope) as outer_scope:
-    weights = tf.get_variable(
+  scope = tf.compat.v1.get_variable_scope()
+  with tf.compat.v1.variable_scope(scope) as outer_scope:
+    weights = tf.compat.v1.get_variable(
         "bias", [total_arg_size, output_size],
         dtype=dtype,
         initializer=kernel_initializer)
@@ -586,18 +586,18 @@ def linear(args,
       res = tf.matmul(tf.concat(args, 1), weights)
     if not bias:
       return res
-    with tf.variable_scope(outer_scope) as inner_scope:
+    with tf.compat.v1.variable_scope(outer_scope) as inner_scope:
       inner_scope.set_partitioner(None)
       if bias_initializer is None:
-        bias_initializer = tf.constant_initializer(0.0, dtype=dtype)
-      biases = tf.get_variable(
+        bias_initializer = tf.compat.v1.constant_initializer(0.0, dtype=dtype)
+      biases = tf.compat.v1.get_variable(
           "kernel", [output_size],
           dtype=dtype,
           initializer=bias_initializer)
     return tf.nn.bias_add(res, biases)
 
 
-class RANCell(tf.nn.rnn_cell.RNNCell):
+class RANCell(tf.compat.v1.nn.rnn_cell.RNNCell):
   """[Experimental] Recurrent Additive Network cell
      (cf. http://www.kentonl.com/pub/llz.2017.pdf)."""
 
@@ -618,13 +618,13 @@ class RANCell(tf.nn.rnn_cell.RNNCell):
 
   def __call__(self, inputs, state, scope=None):
     """Recurrent Additive Network (RAN) with nunits cells."""
-    with tf.variable_scope(scope or type(self).__name__):  # "RANCell"
-      with tf.variable_scope("Input_projection"):
+    with tf.compat.v1.variable_scope(scope or type(self).__name__):  # "RANCell"
+      with tf.compat.v1.variable_scope("Input_projection"):
         c_tilde = linear(inputs, self._num_units, True)
-      with tf.variable_scope("Gates"):  # input gate and forget gate.
+      with tf.compat.v1.variable_scope("Gates"):  # input gate and forget gate.
         i, f = tf.split(axis=1, num_or_size_splits=2,
             value=linear([inputs, state], 2 * self._num_units, True, self.bias))
         i, f = tf.sigmoid(i), tf.sigmoid(f)
-      with tf.variable_scope("Context"):
+      with tf.compat.v1.variable_scope("Context"):
         new_c = self._activation(i * c_tilde + f * state)
     return new_c, new_c

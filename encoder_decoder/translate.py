@@ -15,7 +15,8 @@ import sys
 
 if sys.version_info > (3, 0):
     from six.moves import xrange
-    
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
+
 import math
 import numpy as np
 import pickle
@@ -57,7 +58,7 @@ def define_model(session, forward_only, buckets=None):
 # --- Run experiments --- #
 
 def train(train_set, test_set):
-    with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
+    with tf.compat.v1.Session(config=tf.compat.v1.ConfigProto(allow_soft_placement=True,
             log_device_placement=FLAGS.log_device_placement)) as sess:
         # Initialize model parameters
         model = define_model(sess, forward_only=False, buckets=train_set.buckets)
@@ -155,7 +156,7 @@ def train(train_set, test_set):
 
 
 def decode(dataset, buckets=None, verbose=True):
-    with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
+    with tf.compat.v1.Session(config=tf.compat.v1.ConfigProto(allow_soft_placement=True,
             log_device_placement=FLAGS.log_device_placement)) as sess:
         # Initialize model parameters.
         model = define_model(sess, forward_only=True, buckets=buckets)
@@ -183,7 +184,7 @@ def manual_eval(dataset, model_dir=None, decode_sig=None):
 
 
 def demo(buckets=None):
-    with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
+    with tf.compat.v1.Session(config=tf.compat.v1.ConfigProto(allow_soft_placement=True,
         log_device_placement=FLAGS.log_device_placement)) as sess:
         # Initialize model parameters.
         model = define_model(sess, forward_only=True, buckets=buckets)
@@ -202,7 +203,7 @@ def gen_slot_filling_training_data(FLAGS, datasets):
     FLAGS.token_decoding_algorithm = 'greedy'
     FLAGS.force_reading_input = True
 
-    with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
+    with tf.compat.v1.Session(config=tf.compat.v1.ConfigProto(allow_soft_placement=True,
             log_device_placement=FLAGS.log_device_placement)) as sess:
         # Create model and load parameters.
         train_set, dev_set, test_set = datasets
@@ -352,7 +353,7 @@ def main(_):
             train(train_set, dataset)
 
             if FLAGS.normalized:
-                tf.reset_default_graph()
+                tf.compat.v1.reset_default_graph()
                 gen_slot_filling_training_data(FLAGS, [train_set, dev_set, test_set])
                 FLAGS.fill_argument_slots = True
 
@@ -360,7 +361,7 @@ def main(_):
             save_hyperparameters() 
 
             # Decode the new model on the development set.
-            tf.reset_default_graph()
+            tf.compat.v1.reset_default_graph()
             model = decode(dataset, buckets=train_set.buckets)
 
             # Run automatic evaluation on the development set.
@@ -369,4 +370,4 @@ def main(_):
 
     
 if __name__ == "__main__":
-    tf.app.run()
+    tf.compat.v1.app.run()
