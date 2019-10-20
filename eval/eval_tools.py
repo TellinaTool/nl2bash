@@ -245,7 +245,7 @@ def automatic_eval(model_dir, decode_sig, dataset, FLAGS, top_k, num_samples=-1,
                          "{} vs. {}".format(len(grouped_dataset), len(prediction_list)))
 
     metrics = get_automatic_evaluation_metrics(grouped_dataset, prediction_list, vocabs, FLAGS,
-                                         top_k, num_samples, verbose)
+                                               top_k, num_samples, verbose)
     return metrics
 
 
