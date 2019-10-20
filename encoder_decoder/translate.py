@@ -36,7 +36,7 @@ from .seq2tree.seq2tree_model import Seq2TreeModel
 from eval import eval_tools, error_analysis
 
 # Refer to parse_args.py for model parameter explanations
-FLAGS = tf.app.flags.FLAGS
+FLAGS = tf.compat.v1.flags.FLAGS
 parse_args.define_input_flags()
 
 # --- Define models --- #
@@ -189,12 +189,6 @@ def demo(buckets=None):
         # Initialize model parameters.
         model = define_model(sess, forward_only=True, buckets=buckets)
         decode_tools.demo(sess, model, FLAGS)
-
-
-def save_hyperparameters():
-    model_subdir, decode_sig = graph_utils.get_decode_signature(FLAGS)
-    with open(os.path.join(FLAGS.model_root_dir, model_subdir, 'hyperparameters.pkl'), 'wb') as o_f:
-        pickle.dump(FLAGS, o_f)
 
 
 def gen_slot_filling_training_data(FLAGS, datasets):
@@ -358,7 +352,12 @@ def main(_):
                 FLAGS.fill_argument_slots = True
 
             # save model hyperparameters
-            save_hyperparameters() 
+            model_subdir, decode_sig = graph_utils.get_decode_signature(FLAGS)
+            with open(os.path.join(FLAGS.model_root_dir, model_subdir, 'hyperparameters.pkl'), 'wb') as o_f:
+                flag_dict = dict()
+                for flag in dir(FLAGS):
+                    flag_dict[flag] = getattr(FLAGS, flag)
+                pickle.dump(flag_dict, o_f)
 
             # Decode the new model on the development set.
             tf.compat.v1.reset_default_graph()

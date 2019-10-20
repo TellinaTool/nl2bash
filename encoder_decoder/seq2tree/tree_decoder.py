@@ -11,7 +11,7 @@ if sys.version_info > (3, 0):
 
 import tensorflow as tf
 
-from encoder_decoder import decoder, data_utils, graph_utils, rnn
+from encoder_decoder import decoder, data_utils, graph_utils
 
 DEBUG = False
 
@@ -318,7 +318,7 @@ class BasicTreeDecoder(decoder.Decoder):
     def vertical_cell(self):
         """Cell that controls transition from parent to child."""
         with tf.compat.v1.variable_scope("vertical_cell") as scope:
-            cell = rnn.create_multilayer_cell(self.rnn_cell, scope,
+            cell = graph_utils.create_multilayer_cell(self.rnn_cell, scope,
                                                       self.dim, self.num_layers,
                                                       self.tg_input_keep,
                                                       self.tg_output_keep)
@@ -328,7 +328,7 @@ class BasicTreeDecoder(decoder.Decoder):
     def horizontal_cell(self):
         """Cell that controls transition from left sibling to right sibling."""
         with tf.compat.v1.variable_scope("horizontal_cell") as scope:
-            cell = rnn.create_multilayer_cell(self.rnn_cell, scope,
+            cell = graph_utils.create_multilayer_cell(self.rnn_cell, scope,
                                                       self.dim, self.num_layers,
                                                       self.tg_input_keep,
                                                       self.tg_output_keep)

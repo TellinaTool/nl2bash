@@ -9,7 +9,7 @@ from __future__ import print_function
 import numpy as np
 import tensorflow as tf
 
-from encoder_decoder import decoder, data_utils, graph_utils, rnn
+from encoder_decoder import decoder, data_utils, graph_utils
 
 
 class RNNDecoder(decoder.Decoder):
@@ -243,7 +243,7 @@ class RNNDecoder(decoder.Decoder):
                 if self.use_attention:
                     attn_alignments = tf.reshape(attn_alignments,
                             [self.batch_size, self.beam_size, len(decoder_inputs),
-                             attention_states.get_shape()[1].value])
+                             attention_states.get_shape()[1]])
                 # LSTM: ([batch_size*self.beam_size, :, dim],
                 #        [batch_size*self.beam_size, :, dim])
                 # GRU: [batch_size*self.beam_size, :, dim]
@@ -293,11 +293,9 @@ class RNNDecoder(decoder.Decoder):
         else:
             input_size = self.dim
         with tf.compat.v1.variable_scope(self.scope + "_decoder_cell") as scope:
-            cell = rnn.create_multilayer_cell(
+            cell = graph_utils.create_multilayer_cell(
                 self.rnn_cell, scope, self.dim, self.num_layers,
                 self.input_keep, self.output_keep,
                 variational_recurrent=self.variational_recurrent_dropout,
-                batch_normalization=self.recurrent_batch_normalization,
-                forward_only=self.forward_only,
                 input_dim=input_size)
         return cell

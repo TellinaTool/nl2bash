@@ -11,7 +11,7 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.python.util import nest
 
-from encoder_decoder import data_utils, graph_utils, beam_search, rnn
+from encoder_decoder import data_utils, graph_utils, beam_search
 
 
 class Decoder(graph_utils.NNModel):
@@ -120,7 +120,7 @@ class CopyCellWrapper(tf.compat.v1.nn.rnn_cell.RNNCell):
         gen_prob = tf.slice(prob, [0, 0], [-1, self.tg_vocab_size])
         copy_prob = tf.slice(prob, [0, self.tg_vocab_size], [-1, -1])
         copy_vocab_prob = tf.squeeze(tf.matmul(tf.expand_dims(copy_prob, 1),
-            tf.one_hot(self.encoder_copy_inputs, depth=self.tg_vocab_size+copy_prob.get_shape()[1].value)), 1)
+            tf.one_hot(self.encoder_copy_inputs, depth=self.tg_vocab_size+copy_prob.get_shape()[1])), 1)
 
         # mixture probability
         mix_prob = tf.concat([gen_prob, tf.zeros(tf.shape(input=copy_prob))], 1) + \
@@ -158,8 +158,8 @@ class AttentionCellWrapper(tf.compat.v1.nn.rnn_cell.RNNCell):
                   .format(attention_input_keep))
             attention_states = tf.nn.dropout(
                 attention_states, 1 - (attention_input_keep))
-        attn_length = attention_states.get_shape()[1].value
-        attn_dim = attention_states.get_shape()[2].value
+        attn_length = attention_states.get_shape()[1]
+        attn_dim = attention_states.get_shape()[2]
 
         self.cell = cell
         self.encoder_attn_masks = encoder_attn_masks
@@ -246,7 +246,7 @@ class AttentionCellWrapper(tf.compat.v1.nn.rnn_cell.RNNCell):
         #                          self.attention_output_keep# )
 
         with tf.compat.v1.variable_scope("AttnOutputProjection"):
-            output = rnn.linear([cell_output, attns[0]], self.dim, True)
+            output = graph_utils.linear([cell_output, attns[0]], self.dim, True)
 
         self.attention_cell_vars = True
         return output, state, alignments, attns
