@@ -186,7 +186,7 @@ class BeamDecoderCellWrapper(tf.compat.v1.nn.rnn_cell.RNNCell):
                 logprobs = tf.nn.log_softmax(tf.matmul(cell_output, W) + b)
             else:
                 logprobs = tf.matmul(cell_output, W) + b
-        num_classes = logprobs.get_shape()[1].value
+        num_classes = logprobs.get_shape()[1]
 
         # stop_mask: indicates partial sequences ending with a stop token
         # [batch_size * beam_size]

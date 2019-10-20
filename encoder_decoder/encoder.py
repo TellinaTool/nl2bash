@@ -13,7 +13,7 @@ import numpy as np
 
 import tensorflow as tf
 
-from encoder_decoder import graph_utils, rnn
+from encoder_decoder import graph_utils
 
 
 class Encoder(graph_utils.NNModel):
@@ -115,14 +115,12 @@ class Encoder(graph_utils.NNModel):
         if self.sc_char_composition == 'rnn':
             with tf.compat.v1.variable_scope("encoder_char_rnn",
                                    reuse=self.char_rnn_vars) as scope:
-                cell = rnn.create_multilayer_cell(
+                cell = graph_utils.create_multilayer_cell(
                     self.sc_char_rnn_cell, scope,
                     self.sc_char_dim, self.sc_char_rnn_num_layers,
-                    variational_recurrent=self.variational_recurrent_dropout,
-                    batch_normalization=self.recurrent_batch_normalization,
-                    forward_only=self.forward_only)
-                rnn_outputs, rnn_states = rnn.RNNModel(cell, input_embeddings,
-                    num_cell_layers=self.sc_char_rnn_num_layers, dtype=tf.float32)
+                    variational_recurrent=self.variational_recurrent_dropout)
+                rnn_outputs, rnn_states = graph_utils.RNNModel(cell, input_embeddings,
+                                                               dtype=tf.float32)
                 self.char_rnn_vars = True
         else:
             raise NotImplementedError
@@ -151,17 +149,14 @@ class RNNEncoder(Encoder):
         if input_embeddings is None:
             input_embeddings = self.token_representations(encoder_channel_inputs)
         with tf.compat.v1.variable_scope("encoder_rnn"):
-            return rnn.RNNModel(self.cell, input_embeddings,
-                num_cell_layers=self.num_layers, dtype=tf.float32)
+            return graph_utils.RNNModel(self.cell, input_embeddings, dtype=tf.float32)
 
     def encoder_cell(self):
         """RNN cell for the encoder."""
         with tf.compat.v1.variable_scope("encoder_cell") as scope:
-            cell = rnn.create_multilayer_cell(self.rnn_cell, scope,
+            cell = graph_utils.create_multilayer_cell(self.rnn_cell, scope,
                 self.dim, self.num_layers, self.input_keep, self.output_keep,
-                variational_recurrent=self.variational_recurrent_dropout,
-                batch_normalization=self.recurrent_batch_normalization,
-                forward_only=self.forward_only)
+                variational_recurrent=self.variational_recurrent_dropout)
         return cell
 
 
@@ -185,25 +180,21 @@ class BiRNNEncoder(Encoder):
         if input_embeddings is None:
             input_embeddings = self.token_representations(channel_inputs)
         with tf.compat.v1.variable_scope("encoder_rnn"):
-            return rnn.BiRNNModel(self.fw_cell, self.bw_cell, input_embeddings,
+            return graph_utils.BiRNNModel(self.fw_cell, self.bw_cell, input_embeddings,
                 num_cell_layers=self.num_layers, dtype=tf.float32)
 
     def forward_cell(self):
         """RNN cell for the forward RNN."""
         with tf.compat.v1.variable_scope("forward_cell") as scope:
-            cell = rnn.create_multilayer_cell(self.rnn_cell, scope,
+            cell = graph_utils.create_multilayer_cell(self.rnn_cell, scope,
                 self.dim, self.num_layers, self.input_keep, self.output_keep,
-                variational_recurrent=self.variational_recurrent_dropout,
-                batch_normalization=self.recurrent_batch_normalization,
-                forward_only=self.forward_only)
+                variational_recurrent=self.variational_recurrent_dropout)
         return cell
 
     def backward_cell(self):
         """RNN cell for the backward RNN."""
         with tf.compat.v1.variable_scope("backward_cell") as scope:
-            cell = rnn.create_multilayer_cell(self.rnn_cell, scope,
+            cell = graph_utils.create_multilayer_cell(self.rnn_cell, scope,
                 self.dim, self.num_layers, self.input_keep, self.output_keep,
-                variational_recurrent=self.variational_recurrent_dropout,
-                batch_normalization=self.recurrent_batch_normalization,
-                forward_only=self.forward_only)
+                variational_recurrent=self.variational_recurrent_dropout)
         return cell

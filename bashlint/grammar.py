@@ -353,7 +353,7 @@ class BashGrammar(object):
         """
         Build utility grammar from man-page synopsis.
         """
-        with open(input_file) as f:
+        with open(input_file, encoding='utf-8') as f:
             content = f.readlines()
 
         reading_type = False
