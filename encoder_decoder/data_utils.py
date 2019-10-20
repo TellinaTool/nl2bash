@@ -190,10 +190,10 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
     num_data = 0
     max_sc_length = 0
     max_tg_length = 0
-    sc_file = open(sc_path)
-    tg_file = open(tg_path)
-    sc_token_file = open(sc_token_path)
-    tg_token_file = open(tg_token_path)
+    sc_file = open(sc_path, encoding='utf-8')
+    tg_file = open(tg_path, encoding='utf-8')
+    sc_token_file = open(sc_token_path, encoding='utf-8')
+    tg_token_file = open(tg_token_path, encoding='utf-8')
     with open(os.path.join(data_dir, '{}.{}.align'.format(split, FLAGS.channel)),
               'rb') as f:
         alignments = pickle.load(f)
@@ -227,10 +227,10 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
                                                 copy_token_ext)
         tg_copy_token_path = get_data_file_path(data_dir, split, target,
                                                 copy_token_ext)
-        sc_token_file = open(sc_token_path)
-        tg_token_file = open(tg_token_path)
-        sc_copy_token_file = open(sc_copy_token_path)
-        tg_copy_token_file = open(tg_copy_token_path)
+        sc_token_file = open(sc_token_path, encoding='utf-8')
+        tg_token_file = open(tg_token_path, encoding='utf-8')
+        sc_copy_token_file = open(sc_copy_token_path, encoding='utf-8')
+        tg_copy_token_file = open(tg_copy_token_path, encoding='utf-8')
         for i, data_point in enumerate(dataset):
             sc_tokens = sc_token_file.readline().strip().split(TOKEN_SEPARATOR)
             tg_tokens = tg_token_file.readline().strip().split(TOKEN_SEPARATOR)
@@ -371,9 +371,9 @@ def initialize_vocabulary(vocab_path, min_frequency=1):
     Raises:
       ValueError: if the provided vocab_path does not exist.
     """
-    if tf.gfile.Exists(vocab_path):
+    if tf.io.gfile.exists(vocab_path):
         V = []
-        with tf.gfile.GFile(vocab_path, mode="r") as f:
+        with tf.io.gfile.GFile(vocab_path, mode="r") as f:
             while(True):
                 line = f.readline()
                 if line:

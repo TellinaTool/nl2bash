@@ -128,7 +128,7 @@ def grid_search(train_fun, decode_fun, eval_fun, train_set, dev_set, FLAGS):
 
         for t in xrange(num_trials):
             seed = random.getrandbits(32)
-            tf.set_random_seed(seed)
+            tf.compat.v1.set_random_seed(seed)
             metrics_value = single_round_model_eval(train_fun, decode_fun,
                 eval_fun, train_set, dev_set, metrics, metrics_weights)
             print('Parameter set: ')
@@ -223,11 +223,11 @@ def single_round_model_eval(train_fun, decode_fun, eval_fun, train_set,
     '''
     assert(len(metrics) > 0)
     assert(len(metrics) == len(metrics_weights))
-    tf.reset_default_graph()
+    tf.compat.v1.reset_default_graph()
     try:
         train_fun(train_set, dev_set)
 
-        tf.reset_default_graph()
+        tf.compat.v1.reset_default_graph()
         model = decode_fun(dev_set, buckets=train_set.buckets,
                            verbose=False)
 

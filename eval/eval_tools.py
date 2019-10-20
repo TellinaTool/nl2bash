@@ -20,7 +20,6 @@ from bashlint import data_tools
 from encoder_decoder import data_utils, graph_utils
 from eval import token_based, tree_dist
 from nlp_tools import constants, tokenizer
-import utils.ops
 
 
 def manual_eval(model_dir, decode_sig, dataset, FLAGS, top_k, num_examples=-1, interactive=True, verbose=True):
@@ -313,10 +312,10 @@ def get_automatic_evaluation_metrics(grouped_dataset, prediction_list, vocabs, F
         template_gt_asts = [cmd_parser(temp) for temp in template_gts]
         if verbose:
             print("Example {}".format(data_id))
-            print("Original Source: {}".format(sc_str))
+            print("Original Source: {}".format(sc_str.encode('utf-8')))
             print("Source: {}".format(sc_features))
             for j, command_gt in enumerate(command_gts):
-                print("GT Target {}: ".format(j + 1) + command_gt.strip())
+                print("GT Target {}: {}".format(j + 1, command_gt.strip().encode('utf-8')))
         num_eval += 1
         predictions = prediction_list[data_id]
         for i in xrange(len(predictions)):
@@ -341,6 +340,7 @@ def get_automatic_evaluation_metrics(grouped_dataset, prediction_list, vocabs, F
                 top_k_str_correct[data_id, i] = 1
             cms = token_based.command_match_score(template_gt_asts, pred_ast)
             bleu = token_based.bleu_score(template_gt_asts, pred_ast)
+            # bleu = nltk.translate.bleu_score.sentence_bleu(command_gts, pred_cmd)
             top_k_cms[data_id, i] = cms
             top_k_bleu[data_id, i] = bleu
             if verbose:
@@ -401,17 +401,21 @@ def get_automatic_evaluation_metrics(grouped_dataset, prediction_list, vocabs, F
 
 
 def print_eval_table(model_names, metrics_names, model_metrics):
+
+    def pad_spaces(s, max_len):
+        return s + ' ' * (max_len - len(s))
+
     # print evaluation table
     # pad model names with spaces to create alignment
     max_len = len(max(model_names, key=len))
     max_len_with_offset = (int(max_len / 4) + 1) * 4
-    first_row = utils.ops.padding_spaces('Model', max_len_with_offset)
+    first_row = pad_spaces('Model', max_len_with_offset)
     for metrics_name in metrics_names:
         first_row += '{}    '.format(metrics_name)
     print(first_row.strip())
     print('-' * len(first_row))
     for i, model_name in enumerate(model_names):
-        row = utils.ops.padding_spaces(model_name, max_len_with_offset)
+        row = pad_spaces(model_name, max_len_with_offset)
         for metrics in model_metrics[model_name]:
             row += '{:.2f}    '.format(metrics)
         print(row.strip())
@@ -594,7 +598,7 @@ def load_cached_evaluations(model_dir, verbose=True):
 def load_cached_evaluations_from_file(input_file, treat_empty_as_correct=False, verbose=True):
     structure_eval_results = {}
     command_eval_results = {}
-    with open(input_file) as f:
+    with open(input_file, encoding='utf-8') as f:
         if verbose:
             print('reading cached evaluations from {}'.format(input_file))
         reader = csv.DictReader(f)

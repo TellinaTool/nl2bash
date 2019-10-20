@@ -7,6 +7,7 @@ from __future__ import division
 from __future__ import print_function
 
 import collections
+import nltk
 import numpy as np
 
 from bashlint import data_tools, nast
