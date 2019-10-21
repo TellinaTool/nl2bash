@@ -57,7 +57,7 @@ def define_model(session, forward_only, buckets=None):
 
 # --- Run experiments --- #
 
-def train(train_set, test_set):
+def train(train_set, test_set, verbose=False):
     with tf.compat.v1.Session(config=tf.compat.v1.ConfigProto(allow_soft_placement=True,
             log_device_placement=FLAGS.log_device_placement)) as sess:
         # Initialize model parameters
@@ -129,7 +129,8 @@ def train(train_set, test_set):
                 repeated_samples = list(range(len(train_set.buckets))) * sample_size
                 for bucket_id in repeated_samples:
                     if len(test_set.data_points[bucket_id]) == 0:
-                        print("  eval: empty bucket %d" % (bucket_id))
+                        if verbose:
+                            print("  eval: empty bucket %d" % (bucket_id))
                         continue
                     formatted_example = model.get_batch(test_set.data_points, bucket_id)
                     model_outputs = model.step(
@@ -137,7 +138,8 @@ def train(train_set, test_set):
                     eval_loss = model_outputs.losses
                     dev_loss += eval_loss
                     eval_ppx = math.exp(eval_loss) if eval_loss < 300 else float('inf')
-                    print("  eval: bucket %d perplexity %.2f" % (bucket_id, eval_ppx))
+                    if verbose:
+                        print("  eval: bucket %d perplexity %.2f" % (bucket_id, eval_ppx))
                 dev_loss = dev_loss / len(repeated_samples)
 
                 dev_perplexity = math.exp(dev_loss) if dev_loss < 1000 else float('inf')
@@ -164,23 +166,24 @@ def decode(dataset, buckets=None, verbose=True):
         return model
 
 
-def eval(dataset, model_dir=None, decode_sig=None, verbose=True):
-    if model_dir is None:
+def eval(dataset, prediction_path=None, verbose=True):
+    if prediction_path is None:
         model_subdir, decode_sig = graph_utils.get_decode_signature(FLAGS)
         model_dir = os.path.join(FLAGS.model_root_dir, model_subdir)
-    print("(Auto) evaluating " + model_dir)
+        prediction_path = os.path.join(model_dir, 'predictions.{}.latest'.format(decode_sig))
+    print("(Auto) evaluating " + prediction_path)
 
-    return eval_tools.automatic_eval(model_dir, decode_sig, dataset,
-        top_k=3, FLAGS=FLAGS, verbose=verbose)
+    return eval_tools.automatic_eval(prediction_path, dataset, top_k=3, FLAGS=FLAGS, verbose=verbose)
 
 
-def manual_eval(dataset, model_dir=None, decode_sig=None):
-    if model_dir is None:
+def manual_eval(dataset, prediction_path=None):
+    if prediction_path is None:
         model_subdir, decode_sig = graph_utils.get_decode_signature(FLAGS)
         model_dir = os.path.join(FLAGS.model_root_dir, model_subdir)
-    print("(Manual) evaluating " + model_dir)
+        prediction_path = os.path.join(model_dir, 'predictions.{}.latest'.format(decode_sig))
+    print("(Manual) evaluating " + prediction_path)
 
-    return eval_tools.manual_eval(model_dir, decode_sig, dataset, FLAGS, top_k=3, num_examples=100, verbose=True)
+    return eval_tools.manual_eval(prediction_path, dataset, FLAGS, top_k=3, num_examples=100, verbose=True)
 
 
 def demo(buckets=None):
@@ -290,25 +293,14 @@ def main(_):
         process_data()
 
     else:
-        train_set, dev_set, test_set = \
-            data_utils.load_data(FLAGS, use_buckets=True, load_mappings=False)
-        vocab = data_utils.load_vocabulary(FLAGS)
-
-        print("Set dataset parameters")
-        FLAGS.max_sc_length = train_set.max_sc_length if not train_set.buckets else \
-            train_set.buckets[-1][0]
-        FLAGS.max_tg_length = train_set.max_tg_length if not train_set.buckets else \
-            train_set.buckets[-1][1]
-        FLAGS.sc_vocab_size = len(vocab.sc_vocab)
-        FLAGS.tg_vocab_size = len(vocab.tg_vocab)
-        FLAGS.max_sc_token_size = vocab.max_sc_token_size
-        FLAGS.max_tg_token_size = vocab.max_tg_token_size
-
+        train_set, dev_set, test_set = data_utils.load_data(
+            FLAGS, use_buckets=False, load_features=False)
         dataset = test_set if FLAGS.test else dev_set
+
         if FLAGS.eval:
-            eval(dataset)
+            eval(dataset, FLAGS.prediction_file_path)
         elif FLAGS.manual_eval:
-            manual_eval(dataset)
+            manual_eval(dataset, FLAGS.prediction_file_path)
         elif FLAGS.gen_error_analysis_sheet:
             gen_error_analysis_sheets(dataset, group_by_utility=True)
         elif FLAGS.gen_manual_evaluation_sheet:
@@ -324,48 +316,62 @@ def main(_):
             eval_tools.gen_automatic_evaluation_table(dataset, FLAGS)
         elif FLAGS.tabulate_example_predictions:
             error_analysis.tabulate_example_predictions(dataset, FLAGS, num_examples=100)
-
-        elif FLAGS.gen_slot_filling_training_data:
-            gen_slot_filling_training_data(FLAGS, [train_set, dev_set, test_set])
-
-        elif FLAGS.decode:
-            model = decode(dataset, buckets=train_set.buckets)
-            if not FLAGS.explain:
-                eval(dataset, model.model_dir, model.decode_sig, verbose=False)
-
-        elif FLAGS.demo:
-            demo(buckets=train_set.buckets)
-
-        elif FLAGS.grid_search:
-            meta_experiments.grid_search(
-                train, decode, eval, train_set, dataset, FLAGS)
-        elif FLAGS.schedule_experiments:
-            schedule_experiments(
-                train, decode, eval, train_set, dataset)
         else:
-            # Train the model.
-            train(train_set, dataset)
+            train_set, dev_set, test_set = data_utils.load_data(FLAGS, use_buckets=True)
+            dataset = test_set if FLAGS.test else dev_set
+            vocab = data_utils.load_vocabulary(FLAGS)
 
-            if FLAGS.normalized:
-                tf.compat.v1.reset_default_graph()
+            print("Set dataset parameters")
+            FLAGS.max_sc_length = train_set.max_sc_length if not train_set.buckets else \
+                train_set.buckets[-1][0]
+            FLAGS.max_tg_length = train_set.max_tg_length if not train_set.buckets else \
+                train_set.buckets[-1][1]
+            FLAGS.sc_vocab_size = len(vocab.sc_vocab)
+            FLAGS.tg_vocab_size = len(vocab.tg_vocab)
+            FLAGS.max_sc_token_size = vocab.max_sc_token_size
+            FLAGS.max_tg_token_size = vocab.max_tg_token_size
+
+            if FLAGS.gen_slot_filling_training_data:
                 gen_slot_filling_training_data(FLAGS, [train_set, dev_set, test_set])
-                FLAGS.fill_argument_slots = True
 
-            # save model hyperparameters
-            model_subdir, decode_sig = graph_utils.get_decode_signature(FLAGS)
-            with open(os.path.join(FLAGS.model_root_dir, model_subdir, 'hyperparameters.pkl'), 'wb') as o_f:
-                flag_dict = dict()
-                for flag in dir(FLAGS):
-                    flag_dict[flag] = getattr(FLAGS, flag)
-                pickle.dump(flag_dict, o_f)
+            elif FLAGS.decode:
+                model = decode(dataset, buckets=train_set.buckets)
+                if not FLAGS.explain:
+                    eval(dataset, verbose=False)
 
-            # Decode the new model on the development set.
-            tf.compat.v1.reset_default_graph()
-            model = decode(dataset, buckets=train_set.buckets)
+            elif FLAGS.demo:
+                demo(buckets=train_set.buckets)
 
-            # Run automatic evaluation on the development set.
-            if not FLAGS.explain:
-                eval(dataset, model.model_dir, model.decode_sig, verbose=True)
+            elif FLAGS.grid_search:
+                meta_experiments.grid_search(
+                    train, decode, eval, train_set, dataset, FLAGS)
+            elif FLAGS.schedule_experiments:
+                schedule_experiments(
+                    train, decode, eval, train_set, dataset)
+            else:
+                # Train the model.
+                train(train_set, dataset)
+
+                if FLAGS.normalized:
+                    tf.compat.v1.reset_default_graph()
+                    gen_slot_filling_training_data(FLAGS, [train_set, dev_set, test_set])
+                    FLAGS.fill_argument_slots = True
+
+                # save model hyperparameters
+                model_subdir, decode_sig = graph_utils.get_decode_signature(FLAGS)
+                with open(os.path.join(FLAGS.model_root_dir, model_subdir, 'hyperparameters.pkl'), 'wb') as o_f:
+                    flag_dict = dict()
+                    for flag in dir(FLAGS):
+                        flag_dict[flag] = getattr(FLAGS, flag)
+                    pickle.dump(flag_dict, o_f)
+
+                # Decode the new model on the development set.
+                tf.compat.v1.reset_default_graph()
+                model = decode(dataset, buckets=train_set.buckets)
+
+                # Run automatic evaluation on the development set.
+                if not FLAGS.explain:
+                    eval(dataset, verbose=True)
 
     
 if __name__ == "__main__":
