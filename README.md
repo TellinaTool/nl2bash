@@ -16,9 +16,9 @@ Specifically, it contains the following components:
 
 You may visit  http://tellina.rocks to interact with our pretrained model.
 
-**🆕 Oct 20, 2019:** To evaluate your own model predictions, please use the [standard evaluation scripts](#evaluate-models) provided.
+**🆕 Oct 20, 2019** To evaluate your own model predictions, please use the [standard evaluation scripts](#evaluate-models) provided.
 
-**🆕 Oct 20, 2019:** we update the code to Tensorflow 2.0.
+**🆕 Oct 20, 2019** We update the code to Tensorflow 2.0.
 
 ## Data Statistics
 
