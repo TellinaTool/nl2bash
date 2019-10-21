@@ -169,7 +169,7 @@ We provide evaluation scripts to evaluate the performance of any new model.
 
 To do so please save your model output to a file ([example](https://github.com/TellinaTool/nl2bash/blob/master/model/seq2seq/bash--partial-4-birnn-gru-standard-attention-0.6-0.6-0.0-copy-1.0-128-200-1-0.0001-1e-08-0.6-0.6-0.6-0.6/predictions.beam_search.100.dev.latest)). We assume the file is of the following format:
 ```
-1. The i-th line of the file contains predictions for example i in the dataset'
+1. The i-th line of the file contains predictions for example i in the dataset.
 2. Each line contains top-k predictions separated by "|||".
 ```
 
