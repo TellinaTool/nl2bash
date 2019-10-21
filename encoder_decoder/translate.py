@@ -298,9 +298,9 @@ def main(_):
         dataset = test_set if FLAGS.test else dev_set
 
         if FLAGS.eval:
-            eval(dataset, FLAGS.prediction_file_path)
+            eval(dataset, FLAGS.prediction_file)
         elif FLAGS.manual_eval:
-            manual_eval(dataset, FLAGS.prediction_file_path)
+            manual_eval(dataset, FLAGS.prediction_file)
         elif FLAGS.gen_error_analysis_sheet:
             gen_error_analysis_sheets(dataset, group_by_utility=True)
         elif FLAGS.gen_manual_evaluation_sheet:
