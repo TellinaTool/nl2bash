@@ -22,7 +22,7 @@ from eval import token_based, tree_dist
 from nlp_tools import constants, tokenizer
 
 
-def manual_eval(model_dir, decode_sig, dataset, FLAGS, top_k, num_examples=-1, interactive=True, verbose=True):
+def manual_eval(prediction_path, dataset, FLAGS, top_k, num_examples=-1, interactive=True, verbose=True):
     """
     Conduct dev/test set evaluation.
 
@@ -37,10 +37,10 @@ def manual_eval(model_dir, decode_sig, dataset, FLAGS, top_k, num_examples=-1, i
           Otherwise, all predictions that does not match any of the groundtruths are counted as wrong.
     """
     # Group dataset
-    grouped_dataset = data_utils.group_parallel_data(dataset, use_bucket=True)
+    grouped_dataset = data_utils.group_parallel_data(dataset)
 
     # Load model prediction
-    prediction_list = load_predictions(model_dir, decode_sig, top_k)
+    prediction_list = load_predictions(prediction_path, top_k)
 
     metrics = get_manual_evaluation_metrics(
         grouped_dataset, prediction_list, FLAGS, num_examples=num_examples, interactive=interactive, verbose=verbose)
@@ -63,7 +63,7 @@ def gen_manual_evaluation_table(dataset, FLAGS, num_examples=-1, interactive=Tru
           Otherwise, all predictions that does not match any of the groundtruths are counted as wrong.
     """
     # Group dataset
-    grouped_dataset = data_utils.group_parallel_data(dataset, use_bucket=True)
+    grouped_dataset = data_utils.group_parallel_data(dataset)
 
     # Load all model predictions
     model_names, model_predictions = load_all_model_predictions(grouped_dataset, FLAGS, top_k=3)
@@ -223,7 +223,7 @@ def add_judgement(data_dir, nl, command, correct_template='', correct_command=''
     print('new judgement added to {}'.format(manual_judgement_path))
 
 
-def automatic_eval(model_dir, decode_sig, dataset, FLAGS, top_k, num_samples=-1, verbose=False):
+def automatic_eval(prediction_path, dataset, FLAGS, top_k, num_samples=-1, verbose=False):
     """
     Generate automatic evaluation metrics on dev/test set.
     The following metrics are computed:
@@ -233,13 +233,14 @@ def automatic_eval(model_dir, decode_sig, dataset, FLAGS, top_k, num_samples=-1,
             3. Command keyword overlap
             4. BLEU
     """
-    use_bucket = False if "knn" in model_dir else True
-
-    grouped_dataset = data_utils.group_parallel_data(dataset, use_bucket=use_bucket)
-    vocabs = data_utils.load_vocabulary(FLAGS)
+    grouped_dataset = data_utils.group_parallel_data(dataset)
+    try:
+        vocabs = data_utils.load_vocabulary(FLAGS)
+    except ValueError:
+        vocabs = None
 
     # Load predictions
-    prediction_list = load_predictions(model_dir, decode_sig, top_k)
+    prediction_list = load_predictions(prediction_path, top_k)
     if len(grouped_dataset) != len(prediction_list):
         raise ValueError("ground truth and predictions length must be equal: "
                          "{} vs. {}".format(len(grouped_dataset), len(prediction_list)))
@@ -251,7 +252,7 @@ def automatic_eval(model_dir, decode_sig, dataset, FLAGS, top_k, num_samples=-1,
 
 def gen_automatic_evaluation_table(dataset, FLAGS):
     # Group dataset
-    grouped_dataset = data_utils.group_parallel_data(dataset, use_bucket=True)
+    grouped_dataset = data_utils.group_parallel_data(dataset)
     vocabs = data_utils.load_vocabulary(FLAGS)
 
     model_names, model_predictions = load_all_model_predictions(grouped_dataset, FLAGS, top_k=3)
@@ -273,7 +274,8 @@ def gen_automatic_evaluation_table(dataset, FLAGS):
 def get_automatic_evaluation_metrics(grouped_dataset, prediction_list, vocabs, FLAGS, top_k,
                                      num_samples=-1, verbose=False):
     cmd_parser = data_tools.bash_parser
-    rev_sc_vocab = vocabs.rev_sc_vocab
+    rev_sc_vocab = vocabs.rev_sc_vocab if vocabs is not None else None
+
 
     # Load cached evaluation results
     structure_eval_cache, command_eval_cache = \
@@ -300,12 +302,13 @@ def get_automatic_evaluation_metrics(grouped_dataset, prediction_list, vocabs, F
         _, data_group = grouped_dataset[data_id]
         sc_str = data_group[0].sc_txt.strip()
         sc_key = get_example_nl_key(sc_str)
-        sc_tokens = [rev_sc_vocab[i] for i in data_group[0].sc_ids]
-        if FLAGS.channel == 'char':
-            sc_features = ''.join(sc_tokens)
-            sc_features = sc_features.replace(constants._SPACE, ' ')
-        else:
-            sc_features = ' '.join(sc_tokens)
+        if vocabs is not None:
+            sc_tokens = [rev_sc_vocab[i] for i in data_group[0].sc_ids]
+            if FLAGS.channel == 'char':
+                sc_features = ''.join(sc_tokens)
+                sc_features = sc_features.replace(constants._SPACE, ' ')
+            else:
+                sc_features = ' '.join(sc_tokens)
         command_gts = [dp.tg_txt.strip() for dp in data_group]
         command_gt_asts = [cmd_parser(cmd) for cmd in command_gts]
         template_gts = [data_tools.cmd2template(cmd, loose_constraints=True) for cmd in command_gts]
@@ -313,7 +316,8 @@ def get_automatic_evaluation_metrics(grouped_dataset, prediction_list, vocabs, F
         if verbose:
             print("Example {}".format(data_id))
             print("Original Source: {}".format(sc_str.encode('utf-8')))
-            print("Source: {}".format(sc_features))
+            if vocabs is not None:
+                print("Source: {}".format([x.encode('utf-8') for x in sc_features]))
             for j, command_gt in enumerate(command_gts):
                 print("GT Target {}: {}".format(j + 1, command_gt.strip().encode('utf-8')))
         num_eval += 1
@@ -438,7 +442,8 @@ def load_all_model_predictions(grouped_dataset, FLAGS, top_k=1, model_names=('to
     def load_model_predictions():
         model_subdir, decode_sig = graph_utils.get_decode_signature(FLAGS)
         model_dir = os.path.join(FLAGS.model_root_dir, model_subdir)
-        prediction_list = load_predictions(model_dir, decode_sig, top_k)
+        prediction_path = os.path.join(model_dir, 'predictions.{}.latest'.format(decode_sig))
+        prediction_list = load_predictions(prediction_path, top_k)
         if prediction_list is not None and len(grouped_dataset) != len(prediction_list):
             raise ValueError("ground truth list and prediction list length must "
                              "be equal: {} vs. {}".format(len(grouped_dataset),
@@ -497,17 +502,21 @@ def load_all_model_predictions(grouped_dataset, FLAGS, top_k=1, model_names=('to
     return model_names, model_predictions
 
 
-def load_predictions(model_dir, decode_sig, top_k, verbose=True):
+def load_predictions(prediction_path, top_k, verbose=True):
     """
     Load model predictions (top_k per example) from disk.
 
-    :param model_dir: Directory where the model prediction file is stored.
-    :param decode_sig: The decoding signature of the model which generated the
-        prediction results.
+    :param prediction_path: path to the decoding output
+
+        We assume the file is of the format:
+
+            1. The i-th line of the file contains predictions for example i in the dataset'
+            2. Each line contains top-k predictions separated by "|||".
+
     :param top_k: Maximum number of predictions to read per example.
     :return: List of top k predictions.
     """
-    prediction_path = os.path.join(model_dir, 'predictions.{}.latest'.format(decode_sig))
+
     if os.path.exists(prediction_path):
         with open(prediction_path) as f:
             prediction_list = []
