@@ -16,6 +16,8 @@ Specifically, it contains the following components:
 
 You may visit  http://tellina.rocks to interact with our pretrained model.
 
+**🆕 Oct 20, 2019:** To evaluate your own model predictions, please use the [standard evaluation scripts](#evaluate-models) provided.
+
 **🆕 Oct 20, 2019:** we update the code to Tensorflow 2.0.
 
 ## Data Statistics
@@ -172,8 +174,14 @@ To do so please save your model output to a file ([example](https://github.com/T
 ```
 
 Then get the evaluation results using the following script
+#### Manual
 ```
-./bash-run.sh --data bash --prediction_file <path_to_your_model_output_file>
+./bash-run.sh --data bash --prediction_file <path_to_your_model_output_file> --manual_eval
+```
+
+#### Automatic
+```
+./bash-run.sh --data bash --prediction_file <path_to_your_model_output_file> --eval
 ```
 
 ### Generate evaluation table using pre-trained models
@@ -220,5 +228,5 @@ If you use the data or source code in your work, please cite
 Related paper: [Lin et. al. 2017. Program Synthesis from Natural Language Using Recurrent Neural Networks](http://victorialin.net/pubs/tellina_tr170510.pdf). 
 
 ## Changelog  
-* **Oct 20, 2019** provide standard evaluation scripts
+* **Oct 20, 2019** release standard evaluation scripts
 * **Oct 20, 2019** update to Tensorflow 2.0
