@@ -46,12 +46,13 @@ def gen_manual_evaluation_csv_single_model(dataset, FLAGS):
     # Group dataset
     tokenizer_selector = "cm" if FLAGS.explain else "nl"
     grouped_dataset = data_utils.group_parallel_data(
-        dataset, use_bucket=True, tokenizer_selector=tokenizer_selector)
+        dataset, tokenizer_selector=tokenizer_selector)
 
     # Load model predictions
     model_subdir, decode_sig = graph_utils.get_decode_signature(FLAGS)
     model_dir = os.path.join(FLAGS.model_root_dir, model_subdir)
-    prediction_list = load_predictions(model_dir, decode_sig, top_k=3)
+    prediction_path = os.path.join(model_dir, 'predictions.{}.latest'.format(decode_sig))
+    prediction_list = load_predictions(prediction_path, top_k=3)
     if len(grouped_dataset) != len(prediction_list):
         raise ValueError("ground truth list and prediction list length must "
                          "be equal: {} vs. {}".format(len(grouped_dataset),
@@ -126,7 +127,7 @@ def gen_manual_evaluation_csv(dataset, FLAGS, num_examples=100):
     # Group dataset
     tokenizer_selector = "cm" if FLAGS.explain else "nl"
     grouped_dataset = data_utils.group_parallel_data(
-        dataset, use_bucket=True, tokenizer_selector=tokenizer_selector)
+        dataset, tokenizer_selector=tokenizer_selector)
 
     model_names, model_predictions = load_all_model_predictions(
         grouped_dataset, FLAGS, top_k=3)
@@ -202,7 +203,7 @@ def tabulate_example_predictions(dataset, FLAGS, num_examples=100):
     # Group dataset
     tokenizer_selector = "cm" if FLAGS.explain else "nl"
     grouped_dataset = data_utils.group_parallel_data(
-        dataset, use_bucket=True, tokenizer_selector=tokenizer_selector)
+        dataset, tokenizer_selector=tokenizer_selector)
 
     model_names, model_predictions = load_all_model_predictions(
         grouped_dataset, FLAGS, top_k=1)
@@ -402,10 +403,11 @@ def gen_error_analysis_csv(model_dir, decode_sig, dataset, FLAGS, top_k=3):
     # Group dataset
     tokenizer_selector = "cm" if FLAGS.explain else "nl"
     grouped_dataset = data_utils.group_parallel_data(
-        dataset, use_bucket=True, tokenizer_selector=tokenizer_selector)
+        dataset, tokenizer_selector=tokenizer_selector)
 
     # Load model predictions
-    prediction_list = load_predictions(model_dir, decode_sig, top_k)
+    prediction_path = os.path.join(model_dir, 'predictions.{}.latest'.format(decode_sig))
+    prediction_list = load_predictions(prediction_path, top_k)
     if len(grouped_dataset) != len(prediction_list):
         raise ValueError("ground truth and predictions length must be equal: "
             "{} vs. {}".format(len(grouped_dataset), len(prediction_list)))
@@ -446,10 +448,11 @@ def gen_error_analysis_csv_by_utility(model_dir, decode_sig, dataset, FLAGS, top
     # Group dataset
     tokenizer_selector = "cm" if FLAGS.explain else "nl"
     grouped_dataset = data_utils.group_parallel_data(
-        dataset, use_bucket=True, tokenizer_selector=tokenizer_selector)
+        dataset, tokenizer_selector=tokenizer_selector)
 
     # Load model predictions
-    prediction_list = load_predictions(model_dir, decode_sig, top_k)
+    prediction_path = os.path.join(model_dir, 'predictions.{}.latest'.format(decode_sig))
+    prediction_list = load_predictions(prediction_path, top_k)
     if len(grouped_dataset) != len(prediction_list):
         raise ValueError(
             "ground truth and predictions length must be equal: {} vs. {}"
