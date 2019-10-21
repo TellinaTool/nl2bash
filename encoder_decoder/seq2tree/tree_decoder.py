@@ -11,7 +11,7 @@ if sys.version_info > (3, 0):
 
 import tensorflow as tf
 
-from encoder_decoder import decoder, data_utils, graph_utils, rnn
+from encoder_decoder import decoder, data_utils, graph_utils
 
 DEBUG = False
 
@@ -57,7 +57,7 @@ class BasicTreeDecoder(decoder.Decoder):
             raise ValueError("Shape[1] and [2] of attention_states must be known %s"
                              % attention_states.get_shape())
 
-        with tf.variable_scope("basic_tree_decoder") as scope:
+        with tf.compat.v1.variable_scope("basic_tree_decoder") as scope:
             vertical_cell, vertical_scope = self.vertical_cell()
             horizontal_cell, horizontal_scope = self.horizontal_cell()
             outputs = []
@@ -77,8 +77,8 @@ class BasicTreeDecoder(decoder.Decoder):
             if self.use_attention:
                 hidden, hidden_features, v = \
                     self.attention_hidden_layer(attention_states, num_heads)
-                batch_size = tf.shape(attention_states)[0]
-                attn_dim = tf.shape(attention_states)[2]
+                batch_size = tf.shape(input=attention_states)[0]
+                attn_dim = tf.shape(input=attention_states)[2]
                 batch_attn_size = tf.stack([batch_size, attn_dim])
                 # initial attention state
                 attns = tf.concat(axis=1, values=[tf.zeros(batch_attn_size, dtype=tf.float32)
@@ -98,7 +98,7 @@ class BasicTreeDecoder(decoder.Decoder):
             for i in xrange(len(decoder_inputs)):
                 if DEBUG:
                     print("decoder step: %d" % i)
-                if i > 0: tf.get_variable_scope().reuse_variables()
+                if i > 0: tf.compat.v1.get_variable_scope().reuse_variables()
 
                 self.step = i + 1
                 search_left_to_right = search_left_to_right_next
@@ -108,7 +108,7 @@ class BasicTreeDecoder(decoder.Decoder):
                 else:
                     input, state = self.peek()
 
-                input_embeddings = tf.squeeze(tf.nn.embedding_lookup(embeddings, input),
+                input_embeddings = tf.squeeze(tf.nn.embedding_lookup(params=embeddings, ids=input),
                                               axis=[1])
 
                 # compute batch horizontal and vertical steps.
@@ -127,8 +127,8 @@ class BasicTreeDecoder(decoder.Decoder):
                 # based on its own control state.
                 switch_masks = []
                 for j in xrange(self.batch_size):
-                    mask = tf.cond(search_left_to_right[j], lambda: tf.constant([[1, 0]]),
-                                                            lambda: tf.constant([[0, 1]]))
+                    mask = tf.cond(pred=search_left_to_right[j], true_fn=lambda: tf.constant([[1, 0]]),
+                                                            false_fn=lambda: tf.constant([[0, 1]]))
                     switch_masks.append(mask)
                 switch_mask = tf.concat(axis=0, values=switch_masks)
 
@@ -156,7 +156,7 @@ class BasicTreeDecoder(decoder.Decoder):
                         # Project decoder output for next state input.
                         W, b = self.output_project
                         batch_projected_output = tf.matmul(batch_output, W) + b
-                        batch_output_symbol = tf.argmax(batch_projected_output, 1)
+                        batch_output_symbol = tf.argmax(input=batch_projected_output, axis=1)
                         batch_output_symbol = tf.cast(batch_output_symbol, dtype=tf.int32)
                     else:
                         batch_output_symbol = decoder_inputs[i+1]
@@ -199,7 +199,7 @@ class BasicTreeDecoder(decoder.Decoder):
         if self.rnn_cell == "gru":
             final_batch_state = batch_state
         elif self.rnn_cell == "lstm":
-            final_batch_state = tf.nn.rnn_cell.LSTMStateTuple(batch_cell, batch_hs)
+            final_batch_state = tf.compat.v1.nn.rnn_cell.LSTMStateTuple(batch_cell, batch_hs)
 
         if self.use_attention:
             temp = [tf.expand_dims(batch_attn_alignment, 1) for batch_attn_alignment in attn_alignments]
@@ -210,42 +210,42 @@ class BasicTreeDecoder(decoder.Decoder):
 
     def back_pointer(self, x):
         h_search_next, h_search, grandparent, parent, current = x
-        return tf.cond(h_search_next,
-                       lambda : tf.cond(h_search[0], lambda : grandparent, lambda : parent),
-                       lambda : tf.cond(h_search[0], lambda : parent, lambda : current))
+        return tf.cond(pred=h_search_next,
+                       true_fn=lambda : tf.cond(pred=h_search[0], true_fn=lambda : grandparent, false_fn=lambda : parent),
+                       false_fn=lambda : tf.cond(pred=h_search[0], true_fn=lambda : parent, false_fn=lambda : current))
 
     def next_input(self, x):
         h_search_next, h_search, parent, current, next = x
-        return tf.cond(h_search_next,
-                       lambda : tf.cond(h_search[0], lambda : parent, lambda : current),
-                       lambda : next)
+        return tf.cond(pred=h_search_next,
+                       true_fn=lambda : tf.cond(pred=h_search[0], true_fn=lambda : parent, false_fn=lambda : current),
+                       false_fn=lambda : next)
 
     def next_state(self, x):
         h_search_next, h_search, parent, current, next = x
-        return tf.cond(h_search_next,
-                       lambda : tf.cond(h_search[0], lambda : parent, lambda : current),
-                       lambda : next)
+        return tf.cond(pred=h_search_next,
+                       true_fn=lambda : tf.cond(pred=h_search[0], true_fn=lambda : parent, false_fn=lambda : current),
+                       false_fn=lambda : next)
 
     def parent_input(self):
-        inds = tf.nn.embedding_lookup(self.E, tf.split(axis=0, num_or_size_splits=self.batch_size, value=self.parent()))
+        inds = tf.nn.embedding_lookup(params=self.E, ids=tf.split(axis=0, num_or_size_splits=self.batch_size, value=self.parent()))
         inds = tf.squeeze(inds, axis=[1])
         inds = inds[:, :self.step]
-        return tf.reduce_sum(tf.multiply(self.input[:, :, 0], inds), 1)
+        return tf.reduce_sum(input_tensor=tf.multiply(self.input[:, :, 0], inds), axis=1)
 
 
     def parent_state(self):
-        inds = tf.nn.embedding_lookup(self.E, tf.split(axis=0, num_or_size_splits=self.batch_size, value=self.parent()))
+        inds = tf.nn.embedding_lookup(params=self.E, ids=tf.split(axis=0, num_or_size_splits=self.batch_size, value=self.parent()))
         inds = tf.squeeze(inds, axis=[1])
         inds = inds[:, :self.step]
         inds = tf.expand_dims(inds, 2)
-        inds = tf.tile(inds, tf.stack([tf.constant(1), tf.constant(1), tf.shape(self.state)[2]]))
-        return tf.reduce_sum(tf.multiply(self.state, tf.cast(inds, tf.float32)), 1)
+        inds = tf.tile(inds, tf.stack([tf.constant(1), tf.constant(1), tf.shape(input=self.state)[2]]))
+        return tf.reduce_sum(input_tensor=tf.multiply(self.state, tf.cast(inds, tf.float32)), axis=1)
 
     def grandparent(self):
-        inds = tf.nn.embedding_lookup(self.E, tf.split(axis=0, num_or_size_splits=self.batch_size, value=self.parent()))
+        inds = tf.nn.embedding_lookup(params=self.E, ids=tf.split(axis=0, num_or_size_splits=self.batch_size, value=self.parent()))
         inds = tf.squeeze(inds, axis=[1])
         inds = inds[:, :self.step]
-        return tf.reduce_sum(tf.multiply(self.back_pointers[:, :, 0], inds), 1)
+        return tf.reduce_sum(input_tensor=tf.multiply(self.back_pointers[:, :, 0], inds), axis=1)
 
     def parent(self):
         p = self.back_pointers[:, -1, 0]
@@ -292,7 +292,7 @@ class BasicTreeDecoder(decoder.Decoder):
             batch_stack_cells = batch_stack_states[:, :self.dim]
             batch_stack_hiddens = batch_stack_states[:, self.dim:2*self.dim]
             attn_start_pos = 2 * self.dim
-            batch_states = tf.nn.rnn_cell.LSTMStateTuple(batch_stack_cells, batch_stack_hiddens)
+            batch_states = tf.compat.v1.nn.rnn_cell.LSTMStateTuple(batch_stack_cells, batch_stack_hiddens)
         else:
             raise ValueError("Unrecognized RNN cell type.")
 
@@ -317,8 +317,8 @@ class BasicTreeDecoder(decoder.Decoder):
 
     def vertical_cell(self):
         """Cell that controls transition from parent to child."""
-        with tf.variable_scope("vertical_cell") as scope:
-            cell = rnn.create_multilayer_cell(self.rnn_cell, scope,
+        with tf.compat.v1.variable_scope("vertical_cell") as scope:
+            cell = graph_utils.create_multilayer_cell(self.rnn_cell, scope,
                                                       self.dim, self.num_layers,
                                                       self.tg_input_keep,
                                                       self.tg_output_keep)
@@ -327,8 +327,8 @@ class BasicTreeDecoder(decoder.Decoder):
 
     def horizontal_cell(self):
         """Cell that controls transition from left sibling to right sibling."""
-        with tf.variable_scope("horizontal_cell") as scope:
-            cell = rnn.create_multilayer_cell(self.rnn_cell, scope,
+        with tf.compat.v1.variable_scope("horizontal_cell") as scope:
+            cell = graph_utils.create_multilayer_cell(self.rnn_cell, scope,
                                                       self.dim, self.num_layers,
                                                       self.tg_input_keep,
                                                       self.tg_output_keep)
@@ -348,7 +348,7 @@ def switch_mask(mask, candidates):
     threed_mask = tf.cast(threed_mask, candidates[0].dtype)
     expanded_candidates = [tf.expand_dims(c, 1) for c in candidates]
     candidate = tf.concat(axis=1, values=expanded_candidates)
-    return tf.reduce_sum(tf.multiply(threed_mask, candidate), 1)
+    return tf.reduce_sum(input_tensor=tf.multiply(threed_mask, candidate), axis=1)
 
 
 def map_fn(fn, elems, batch_size):
@@ -367,19 +367,19 @@ if __name__ == "__main__":
     decoder = BasicTreeDecoder(dim=100, batch_size=1, rnn_cell="gru", num_layers=1,
                                input_keep_prob=1, output_keep_prob=1,
                                use_attention=False, use_copy=False, output_project=None)
-    decoder_inputs = [tf.placeholder(dtype=tf.int32, shape=[None],
+    decoder_inputs = [tf.compat.v1.placeholder(dtype=tf.int32, shape=[None],
                                      name="decoder{0}".format(i)) for i in xrange(14)]
-    encoder_state = tf.random_normal(shape=[1, 100])
-    attention_states = tf.random_normal(shape=[8, 100])
-    target_embeddings = tf.random_normal(shape=[200, 100])
+    encoder_state = tf.random.normal(shape=[1, 100])
+    attention_states = tf.random.normal(shape=[8, 100])
+    target_embeddings = tf.random.normal(shape=[200, 100])
     outputs, state, left_to_right = decoder.define_graph(encoder_state,
                                                          decoder_inputs,
                                                          target_embeddings,
                                                          attention_states,
                                                          feed_previous=False)
 
-    with tf.Session() as sess:
-        sess.run(tf.global_variables_initializer())
+    with tf.compat.v1.Session() as sess:
+        sess.run(tf.compat.v1.global_variables_initializer())
         input_feed = {}
         inputs = [[9], [10], [21], [7], [53], [105], [7], [6], [32], [51], [7], [6], [6], [6]]
         for l in xrange(14):

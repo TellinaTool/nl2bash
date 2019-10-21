@@ -128,26 +128,25 @@ class Vocab(object):
 
 # --- Data IO --- #
 
-def load_data(FLAGS, use_buckets=True, load_mappings=False):
+def load_data(FLAGS, use_buckets=True, load_features=True):
     print("Loading data from %s" % FLAGS.data_dir)
 
     source, target = ('nl', 'cm') if not FLAGS.explain else ('cm', 'nl')
 
-    train_set = read_data(FLAGS, 'train', source, target,
-        use_buckets=use_buckets, add_start_token=True, add_end_token=True)
-    dev_set = read_data(FLAGS, 'dev', source, target,
-        use_buckets=use_buckets, buckets=train_set.buckets,
-        add_start_token=True, add_end_token=True)
-    test_set = read_data(FLAGS, 'test', source, target,
-        use_buckets=use_buckets, buckets=train_set.buckets,
-        add_start_token=True, add_end_token=True)
+    train_set = read_data(FLAGS, 'train', source, target, load_features=load_features,
+                          use_buckets=use_buckets, add_start_token=True, add_end_token=True)
+    dev_set = read_data(FLAGS, 'dev', source, target, load_features=load_features,
+                        use_buckets=use_buckets, buckets=train_set.buckets,
+                        add_start_token=True, add_end_token=True)
+    test_set = read_data(FLAGS, 'test', source, target, load_features=load_features,
+                         use_buckets=use_buckets, buckets=train_set.buckets,
+                         add_start_token=True, add_end_token=True)
 
     return train_set, dev_set, test_set
 
 
 def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
-              add_start_token=False, add_end_token=False):
-    vocab = load_vocabulary(FLAGS)
+              add_start_token=False, add_end_token=False, load_features=True):
 
     def get_data_file_path(data_dir, split, lang, channel):
         return os.path.join(data_dir, '{}.{}.{}'.format(split, lang, channel))
@@ -174,84 +173,88 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
             target_ids.append(EOS_ID)
         return target_ids
 
+    if load_features:
+        vocab = load_vocabulary(FLAGS)
+
     data_dir = FLAGS.data_dir
     sc_path = get_data_file_path(data_dir, split, source, 'filtered')
     tg_path = get_data_file_path(data_dir, split, target, 'filtered')
-    token_ext = 'normalized.{}'.format(FLAGS.channel) \
-        if FLAGS.normalized else FLAGS.channel
-    sc_token_path = get_data_file_path(data_dir, split, source, token_ext)
-    tg_token_path = get_data_file_path(data_dir, split, target, token_ext)
     print("source file: {}".format(sc_path))
     print("target file: {}".format(tg_path))
-    print("source tokenized sequence file: {}".format(sc_token_path))
-    print("target tokenized sequence file: {}".format(tg_token_path))
+    sc_file = open(sc_path, encoding='utf-8')
+    tg_file = open(tg_path, encoding='utf-8')
+
+    if load_features:
+        token_ext = 'normalized.{}'.format(FLAGS.channel) \
+            if FLAGS.normalized else FLAGS.channel
+        sc_token_path = get_data_file_path(data_dir, split, source, token_ext)
+        tg_token_path = get_data_file_path(data_dir, split, target, token_ext)
+        print("source tokenized sequence file: {}".format(sc_token_path))
+        print("target tokenized sequence file: {}".format(tg_token_path))
+        sc_token_file = open(sc_token_path, encoding='utf-8')
+        tg_token_file = open(tg_token_path, encoding='utf-8')
+        with open(os.path.join(data_dir, '{}.{}.align'.format(split, FLAGS.channel)), 'rb') as f:
+            alignments = pickle.load(f)
 
     dataset = []
     num_data = 0
     max_sc_length = 0
     max_tg_length = 0
-    sc_file = open(sc_path)
-    tg_file = open(tg_path)
-    sc_token_file = open(sc_token_path)
-    tg_token_file = open(tg_token_path)
-    with open(os.path.join(data_dir, '{}.{}.align'.format(split, FLAGS.channel)),
-              'rb') as f:
-        alignments = pickle.load(f)
+
     for i, sc_txt in enumerate(sc_file.readlines()):
         data_point = DataPoint()
         data_point.sc_txt = sc_txt.strip()
         data_point.tg_txt = tg_file.readline().strip()
-        data_point.sc_ids = \
-            get_source_ids(sc_token_file.readline().strip())
-        if len(data_point.sc_ids) > max_sc_length:
-            max_sc_length = len(data_point.sc_ids)
-        data_point.tg_ids = \
-            get_target_input_ids(tg_token_file.readline().strip())
-        data_point.alignments = alignments[i]
-        if len(data_point.tg_ids) > max_tg_length:
-            max_tg_length = len(data_point.tg_ids)
+        if load_features:
+            data_point.sc_ids = \
+                get_source_ids(sc_token_file.readline().strip())
+            if len(data_point.sc_ids) > max_sc_length:
+                max_sc_length = len(data_point.sc_ids)
+            data_point.tg_ids = \
+                get_target_input_ids(tg_token_file.readline().strip())
+            data_point.alignments = alignments[i]
+            if len(data_point.tg_ids) > max_tg_length:
+                max_tg_length = len(data_point.tg_ids)
         dataset.append(data_point)
         num_data += 1
+    data_size = len(dataset)
     sc_file.close()
     tg_file.close()
-    sc_token_file.close()
-    tg_token_file.close()
-
-    print('{} data points read.'.format(num_data))
-    print('max_source_length = {}'.format(max_sc_length))
-    print('max_target_length = {}'.format(max_tg_length))
-
-    if FLAGS.use_copy and FLAGS.copy_fun == 'copynet':
-        copy_token_ext = 'copy.{}'.format(token_ext)
-        sc_copy_token_path = get_data_file_path(data_dir, split, source,
-                                                copy_token_ext)
-        tg_copy_token_path = get_data_file_path(data_dir, split, target,
-                                                copy_token_ext)
-        sc_token_file = open(sc_token_path)
-        tg_token_file = open(tg_token_path)
-        sc_copy_token_file = open(sc_copy_token_path)
-        tg_copy_token_file = open(tg_copy_token_path)
-        for i, data_point in enumerate(dataset):
-            sc_tokens = sc_token_file.readline().strip().split(TOKEN_SEPARATOR)
-            tg_tokens = tg_token_file.readline().strip().split(TOKEN_SEPARATOR)
-            sc_copy_tokens = \
-                sc_copy_token_file.readline().strip().split(TOKEN_SEPARATOR)
-            tg_copy_tokens = \
-                tg_copy_token_file.readline().strip().split(TOKEN_SEPARATOR)
-            data_point.csc_ids, data_point.ctg_ids = \
-                compute_copy_indices(sc_tokens, tg_tokens,
-                    sc_copy_tokens, tg_copy_tokens, vocab.tg_vocab, token_ext)
+    if load_features:
         sc_token_file.close()
         tg_token_file.close()
-        sc_copy_token_file.close()
-        tg_copy_token_file.close()
-    
-    data_size = len(dataset)
 
-    def print_bucket_size(bs):
-        print('bucket size = ({}, {})'.format(bs[0], bs[1]))
+    print('{} data points read.'.format(num_data))
+    if load_features:
+        print('max_source_length = {}'.format(max_sc_length))
+        print('max_target_length = {}'.format(max_tg_length))
 
-    if use_buckets:
+        if FLAGS.use_copy and FLAGS.copy_fun == 'copynet':
+            copy_token_ext = 'copy.{}'.format(token_ext)
+            sc_copy_token_path = get_data_file_path(data_dir, split, source,
+                                                    copy_token_ext)
+            tg_copy_token_path = get_data_file_path(data_dir, split, target,
+                                                    copy_token_ext)
+            sc_token_file = open(sc_token_path, encoding='utf-8')
+            tg_token_file = open(tg_token_path, encoding='utf-8')
+            sc_copy_token_file = open(sc_copy_token_path, encoding='utf-8')
+            tg_copy_token_file = open(tg_copy_token_path, encoding='utf-8')
+            for i, data_point in enumerate(dataset):
+                sc_tokens = sc_token_file.readline().strip().split(TOKEN_SEPARATOR)
+                tg_tokens = tg_token_file.readline().strip().split(TOKEN_SEPARATOR)
+                sc_copy_tokens = \
+                    sc_copy_token_file.readline().strip().split(TOKEN_SEPARATOR)
+                tg_copy_tokens = \
+                    tg_copy_token_file.readline().strip().split(TOKEN_SEPARATOR)
+                data_point.csc_ids, data_point.ctg_ids = \
+                    compute_copy_indices(sc_tokens, tg_tokens,
+                        sc_copy_tokens, tg_copy_tokens, vocab.tg_vocab, token_ext)
+            sc_token_file.close()
+            tg_token_file.close()
+            sc_copy_token_file.close()
+            tg_copy_token_file.close()
+
+    if load_features and use_buckets:
         print('Group data points into buckets...')
         if split == 'train':
             # Determine bucket sizes based on the characteristics of the dataset
@@ -306,7 +309,7 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
       
     D = DataSet()
     D.data_points = dataset
-    if split == 'train':
+    if split == 'train' and load_features:
         D.max_sc_length = max_sc_length
         D.max_tg_length = max_tg_length
         if use_buckets:
@@ -371,9 +374,9 @@ def initialize_vocabulary(vocab_path, min_frequency=1):
     Raises:
       ValueError: if the provided vocab_path does not exist.
     """
-    if tf.gfile.Exists(vocab_path):
+    if tf.io.gfile.exists(vocab_path):
         V = []
-        with tf.gfile.GFile(vocab_path, mode="r") as f:
+        with tf.io.gfile.GFile(vocab_path, mode="r") as f:
             while(True):
                 line = f.readline()
                 if line:
@@ -833,8 +836,8 @@ def create_vocabulary(vocab_path, dataset, min_word_frequency=1,
     return dict([(x[0], y) for y, x in enumerate(vocab)])
 
 
-def group_parallel_data(dataset, attribute='source', use_bucket=False,
-                        use_temp=False, tokenizer_selector='nl'):
+def group_parallel_data(dataset, attribute='source', use_temp=False,
+                        tokenizer_selector='nl'):
     """
     Group parallel dataset by a certain attribute.
 
@@ -849,10 +852,13 @@ def group_parallel_data(dataset, attribute='source', use_bucket=False,
 
     :return: list of (key, data group) tuples sorted by the key value.
     """
-    if use_bucket:
-        data_points = functools.reduce(lambda x, y: x + y, dataset.data_points)
+    if dataset.data_points and isinstance(dataset.data_points, list):
+        if isinstance(dataset.data_points[0], list):
+            data_points = functools.reduce(lambda x, y: x + y, dataset.data_points)
+        else:
+            data_points = dataset.data_points
     else:
-        data_points = dataset.data_points
+        raise ValueError
 
     grouped_dataset = {}
     for i in xrange(len(data_points)):

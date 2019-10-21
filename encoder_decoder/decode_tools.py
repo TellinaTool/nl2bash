@@ -301,7 +301,7 @@ def decode_set(sess, model, dataset, top_k, FLAGS, verbose=False):
 
     tokenizer_selector = 'cm' if FLAGS.explain else 'nl'
     grouped_dataset = data_utils.group_parallel_data(
-        dataset, use_bucket=model.buckets, tokenizer_selector=tokenizer_selector)
+        dataset, okenizer_selector=tokenizer_selector)
     vocabs = data_utils.load_vocabulary(FLAGS)
     rev_sc_vocab = vocabs.rev_sc_vocab
 
@@ -328,10 +328,10 @@ def decode_set(sess, model, dataset, top_k, FLAGS, verbose=False):
         tg_asts = [data_tools.bash_parser(tg_txt) for tg_txt in tg_txts]
         if verbose:
             print('\nExample {}:'.format(example_id))
-            print('Original Source: {}'.format(sc_txt))
-            print('Source: {}'.format(sc_temp))
+            print('Original Source: {}'.format(sc_txt.encode('utf-8')))
+            print('Source: {}'.format(sc_temp.encode('utf-8')))
             for j in xrange(len(data_group)):
-                print('GT Target {}: {}'.format(j+1, data_group[j].tg_txt))
+                print('GT Target {}: {}'.format(j+1, data_group[j].tg_txt.encode('utf-8')))
 
         if FLAGS.fill_argument_slots:
             slot_filling_classifier = get_slot_filling_classifer(FLAGS)
@@ -373,7 +373,7 @@ def decode_set(sess, model, dataset, top_k, FLAGS, verbose=False):
                             top_k_pred_tree, loose_constraints=True)
                     else:
                         pred_cmd = top_k_pred_cmd
-                    pred_file.write('{}|||'.format(pred_cmd))
+                    pred_file.write('{}|||'.format(pred_cmd.encode('utf-8')))
                     eval_row += '"{}",'.format(pred_cmd.replace('"', '""'))
                     temp_match = tree_dist.one_match(
                         tg_asts, top_k_pred_tree, ignore_arg_value=True)
@@ -383,13 +383,13 @@ def decode_set(sess, model, dataset, top_k, FLAGS, verbose=False):
                         eval_row += 'y,'
                     if str_match:
                         eval_row += 'y'
-                    eval_file.write('{}\n'.format(eval_row))
+                    eval_file.write('{}\n'.format(eval_row.encode('utf-8')))
                     if verbose:
                         print('Prediction {}: {} ({})'.format(
-                            j+1, pred_cmd, top_k_scores[j]))
+                            j+1, pred_cmd.encode('utf-8'), top_k_scores[j]))
                         if FLAGS.tg_char:
                             print('Character-based prediction {}: {}'.format(
-                                j+1, top_k_char_predictions[j]))
+                                j+1, top_k_char_predictions[j].encode('utf-8')))
                 pred_file.write('\n')
         else:
             print(APOLOGY_MSG)

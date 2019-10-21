@@ -85,18 +85,18 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
         for i in xrange(self.max_source_length):
             self.encoder_inputs.append(
-                tf.placeholder(
+                tf.compat.v1.placeholder(
                     tf.int32, shape=[None], name="encoder{0}".format(i)))
             self.encoder_attn_masks.append(
-                tf.placeholder(
+                tf.compat.v1.placeholder(
                     tf.float32, shape=[None], name="attn_alignment{0}".format(i)))
 
         for j in xrange(self.max_target_length + 1):
             self.decoder_inputs.append(
-                tf.placeholder(
+                tf.compat.v1.placeholder(
                     tf.int32, shape=[None], name="decoder{0}".format(j)))
             self.target_weights.append(
-                tf.placeholder(
+                tf.compat.v1.placeholder(
                     tf.float32, shape=[None], name="weight{0}".format(j)))
             # Our targets are decoder inputs shifted by one.
             if j > 0 and not self.copynet:
@@ -105,11 +105,11 @@ class EncoderDecoderModel(graph_utils.NNModel):
         if self.copynet:
             for i in xrange(self.max_source_length):
                 self.encoder_copy_inputs.append(
-                    tf.placeholder(
+                    tf.compat.v1.placeholder(
                         tf.int32, shape=[None], name="encoder_copy{0}".format(i)))
             for j in xrange(self.max_target_length):
                 self.targets.append(
-                    tf.placeholder(
+                    tf.compat.v1.placeholder(
                         tf.int32, shape=[None], name="copy_target{0}".format(i)))
 
         # Compute training outputs and losses in the forward direction.
@@ -126,7 +126,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
             if self.use_copy:
                 self.pointers = []
             for bucket_id, bucket in enumerate(self.buckets):
-                with tf.variable_scope(tf.get_variable_scope(),
+                with tf.compat.v1.variable_scope(tf.compat.v1.get_variable_scope(),
                                        reuse=True if bucket_id > 0 else None):
                     print("creating bucket {} ({}, {})...".format(
                             bucket_id, bucket[0], bucket[1]))
@@ -193,11 +193,11 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
         # Gradients and SGD updates in the backward direction.
         if not self.forward_only:
-            params = tf.trainable_variables()
+            params = tf.compat.v1.trainable_variables()
             if self.optimizer == "sgd":
-                opt = tf.train.GradientDescentOptimizer(self.learning_rate)
+                opt = tf.compat.v1.train.GradientDescentOptimizer(self.learning_rate)
             elif self.optimizer == "adam":
-                opt = tf.train.AdamOptimizer(
+                opt = tf.compat.v1.train.AdamOptimizer(
                     self.learning_rate, beta1=0.9, beta2=0.999,
                     epsilon=self.adam_epsilon, )
             else:
@@ -207,20 +207,20 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 self.gradient_norms = []
                 self.updates = []
                 for bucket_id, _ in enumerate(self.buckets):
-                    gradients = tf.gradients(self.losses[bucket_id], params)
+                    gradients = tf.gradients(ys=self.losses[bucket_id], xs=params)
                     clipped_gradients, norm = tf.clip_by_global_norm(
                         gradients, self.max_gradient_norm)
                     self.gradient_norms.append(norm)
                     self.updates.append(opt.apply_gradients(
                         zip(clipped_gradients, params)))
             else:
-                gradients = tf.gradients(self.losses, params)
+                gradients = tf.gradients(ys=self.losses, xs=params)
                 clipped_gradients, norm = tf.clip_by_global_norm(
                     gradients, self.max_gradient_norm)
                 self.gradient_norms = norm
                 self.updates = opt.apply_gradients(zip(clipped_gradients, params))
 
-        self.saver = tf.train.Saver(tf.global_variables())
+        self.saver = tf.compat.v1.train.Saver(tf.compat.v1.global_variables())
 
 
     def encode_decode(self, encoder_channel_inputs, encoder_attn_masks,
@@ -352,7 +352,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
     # Loss functions.
     def sequence_loss(self, logits, targets, target_weights, loss_function):
         assert(len(logits) == len(targets))
-        with tf.variable_scope("sequence_loss"):
+        with tf.compat.v1.variable_scope("sequence_loss"):
             log_perp_list = []
             for logit, target, weight in zip(logits, targets, target_weights):
                 crossent = loss_function(logit, target)
@@ -361,7 +361,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
             total_size = tf.add_n(target_weights)
             log_perps /= total_size
 
-        avg_log_perps = tf.reduce_mean(log_perps)
+        avg_log_perps = tf.reduce_mean(input_tensor=log_perps)
 
         return avg_log_perps
 
@@ -371,10 +371,10 @@ class EncoderDecoderModel(graph_utils.NNModel):
         Entropy regularization term.
         :param attn_alignments: [batch_size, decoder_size, encoder_size]
         """
-        P = tf.reduce_sum(attn_alignments, 1)
+        P = tf.reduce_sum(input_tensor=attn_alignments, axis=1)
         P_exp = tf.exp(P)
-        Z = tf.reduce_sum(P_exp, 1, keep_dims=True)
-        return tf.reduce_mean(tf.reduce_sum(P_exp / Z * (P - tf.log(Z)), 1))
+        Z = tf.reduce_sum(input_tensor=P_exp, axis=1, keepdims=True)
+        return tf.reduce_mean(input_tensor=tf.reduce_sum(input_tensor=P_exp / Z * (P - tf.math.log(Z)), axis=1))
 
 
     def define_encoder(self, input_keep, output_keep):
@@ -623,7 +623,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
         if self.use_copy:
             output_feed['pointers'] = self.pointers
 
-        extra_update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
+        extra_update_ops = tf.compat.v1.get_collection(tf.compat.v1.GraphKeys.UPDATE_OPS)
         if extra_update_ops and not forward_only:
             outputs, extra_updates = session.run(
                 [output_feed, extra_update_ops], input_feed)

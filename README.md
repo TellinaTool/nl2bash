@@ -95,11 +95,11 @@ Top-k full command accuracy and top-k command template accuracy judged by human 
    </tr>
 </table>
 
-Please also refer to "Notes on Manual Evaluation" at the end of this readme for issues to keep in mind if you plan to run your own manual evaluation.
+⚠️ If you plan to run manual evaluation yourself, please refer to "Notes on Manual Evaluation" at the end of this readme for issues you should pay attention to.
 
 ### Automatic Evaluation Metrics
 
-In addition, we also report BLEU and a self-defined template matching score as the automatic evaluation metrics used to approximate the true translation accuracy. Please refer to appendix C of the paper for the metrics definitions.
+In addition, we also report [*character-based* BLEU](https://github.com/TellinaTool/nl2bash/blob/master/eval/eval_tools.py#L343) and a self-defined template matching score as the automatic evaluation metrics used to approximate the true translation accuracy. Please refer to appendix C of the paper for the metrics definitions.
 
 <table>
    <tr>
