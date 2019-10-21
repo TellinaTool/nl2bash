@@ -16,6 +16,8 @@ Specifically, it contains the following components:
 
 You may visit  http://tellina.rocks to interact with our pretrained model.
 
+**🆕 Oct 20, 2019:** we update the code to Tensorflow 2.0.
+
 ## Data Statistics
 
 Our corpus contain a diverse set of Bash utilities and flags: 102 unique utilities, 206 unique flags and 15 reserved tokens. (Browse the raw data collection [here](https://github.com/TellinaTool/nl2bash/tree/master/data/bash).)
@@ -127,13 +129,9 @@ In addition, we also report BLEU and a self-defined template matching score as t
 
 ### Install TensorFlow
 
-To reproduce our experiments, please install TensorFlow (>= 1.0). The experiments can be reproduced on machines with or without GPUs.
+To reproduce our experiments, please install TensorFlow 2.0. The experiments can be reproduced on machines with or without GPUs. However, training with CPU only is extremely slow and we do not recommend it. Inference with CPU only is slow but tolerable.
 
-We suggest following the [official instructions](https://www.tensorflow.org/install/) to install the library. Specifically, we used the following pip installation command copied from the official website on Mac OS 10.10.5.
-```
-sudo pip3 install --upgrade \
- https://storage.googleapis.com/tensorflow/mac/cpu/tensorflow-1.3.0-py3-none-any.whl 
-```
+We suggest following the [official instructions](https://www.tensorflow.org/install/) to install the library. The code has been tested on Ubuntu 16.04 + CUDA 10.0 + CUDNN 7.6.3.
 
 ### Environment Variables & Dependencies
 
@@ -206,3 +204,6 @@ If you use the data or source code in your work, please cite
 ```
 
 Related paper: [Lin et. al. 2017. Program Synthesis from Natural Language Using Recurrent Neural Networks](http://victorialin.net/pubs/tellina_tr170510.pdf). 
+
+## Changelog  
+* **Oct 20, 2019** update to Tensorflow 2.0
