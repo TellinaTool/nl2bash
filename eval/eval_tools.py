@@ -346,10 +346,11 @@ def get_automatic_evaluation_metrics(grouped_dataset, prediction_list, vocabs, F
             if str_match:
                 top_k_str_correct[data_id, i] = 1
             cms = token_based.command_match_score(command_gt_asts, pred_ast)
-            if pred_cmd.strip():
-                bleu = token_based.sentence_bleu_score(command_gt_asts, pred_ast)   
-            else:
-                bleu = 0
+            # if pred_cmd.strip():
+            #     bleu = token_based.sentence_bleu_score(command_gt_asts, pred_ast)   
+            # else:
+            #     bleu = 0
+            bleu = nltk.translate.bleu_score.sentence_bleu(command_gts, pred_cmd)
             top_k_cms[data_id, i] = cms
             top_k_bleu[data_id, i] = bleu
             if verbose:
