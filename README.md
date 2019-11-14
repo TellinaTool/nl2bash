@@ -175,13 +175,27 @@ To do so please save your model output to a file ([example](https://github.com/T
 
 Then get the evaluation results using the following script
 #### Manual
+
+Dev set evaluation
 ```
 ./bash-run.sh --data bash --prediction_file <path_to_your_model_output_file> --manual_eval
 ```
 
+Test set evaluation
+```
+./bash-run.sh --data bash --prediction_file <path_to_your_model_output_file> --manual_eval --test
+```
+
 #### Automatic
+
+Dev set evaluation
 ```
 ./bash-run.sh --data bash --prediction_file <path_to_your_model_output_file> --eval
+```
+
+Test set evaluation
+```
+./bash-run.sh --data bash --prediction_file <path_to_your_model_output_file> --eval --test
 ```
 
 ### Generate evaluation table using pre-trained models
