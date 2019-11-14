@@ -296,7 +296,6 @@ def main(_):
         train_set, dev_set, test_set = data_utils.load_data(
             FLAGS, use_buckets=False, load_features=False)
         dataset = test_set if FLAGS.test else dev_set
-
         if FLAGS.eval:
             eval(dataset, FLAGS.prediction_file)
         elif FLAGS.manual_eval:

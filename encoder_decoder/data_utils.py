@@ -881,7 +881,6 @@ def group_parallel_data(dataset, attribute='source', use_temp=False,
             grouped_dataset[temp].append(data_point)
         else:
             grouped_dataset[temp] = [data_point]
-
     return sorted(grouped_dataset.items(), key=lambda x: x[0])
 
 

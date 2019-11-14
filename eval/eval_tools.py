@@ -28,7 +28,7 @@ def manual_eval(prediction_path, dataset, FLAGS, top_k, num_examples=-1, interac
 
     Evaluation metrics:
         1) full command accuracy;
-        2) command template accuracy.
+        2) command template accuracy. 
 
     :param interactive:
         - If set, prompt the user to enter judgement if a prediction does not
@@ -256,8 +256,6 @@ def gen_automatic_evaluation_table(dataset, FLAGS):
     vocabs = data_utils.load_vocabulary(FLAGS)
 
     model_names, model_predictions = load_all_model_predictions(grouped_dataset, FLAGS, top_k=3)
-    import pdb
-    pdb.set_trace()
     auto_eval_metrics = {}
     for model_id, model_name in enumerate(model_names):
         prediction_list = model_predictions[model_id]
@@ -298,6 +296,8 @@ def get_automatic_evaluation_metrics(grouped_dataset, prediction_list, vocabs, F
     top_k_cms = np.zeros([len(grouped_dataset), top_k])
     top_k_bleu = np.zeros([len(grouped_dataset), top_k])
 
+    command_gt_asts_list, pred_ast_list = [], []
+    
     for data_id in xrange(len(grouped_dataset)):
         _, data_group = grouped_dataset[data_id]
         sc_str = data_group[0].sc_txt.strip()
@@ -311,6 +311,7 @@ def get_automatic_evaluation_metrics(grouped_dataset, prediction_list, vocabs, F
                 sc_features = ' '.join(sc_tokens)
         command_gts = [dp.tg_txt.strip() for dp in data_group]
         command_gt_asts = [cmd_parser(cmd) for cmd in command_gts]
+        command_gt_asts_list.append(command_gt_asts)
         template_gts = [data_tools.cmd2template(cmd, loose_constraints=True) for cmd in command_gts]
         template_gt_asts = [cmd_parser(temp) for temp in template_gts]
         if verbose:
@@ -325,6 +326,8 @@ def get_automatic_evaluation_metrics(grouped_dataset, prediction_list, vocabs, F
         for i in xrange(len(predictions)):
             pred_cmd = predictions[i]
             pred_ast = cmd_parser(pred_cmd)
+            if i == 0:
+                pred_ast_list.append(pred_ast)
             pred_temp = data_tools.cmd2template(pred_cmd, loose_constraints=True)
             # A) Exact match with ground truths & exisitng judgements
             command_example_key = '{}<NL_PREDICTION>{}'.format(sc_key, pred_cmd)
@@ -342,16 +345,19 @@ def get_automatic_evaluation_metrics(grouped_dataset, prediction_list, vocabs, F
                 top_k_temp_correct[data_id, i] = 1
             if str_match:
                 top_k_str_correct[data_id, i] = 1
-            cms = token_based.command_match_score(template_gt_asts, pred_ast)
-            # bleu = token_based.bleu_score(template_gt_asts, pred_ast)
-            bleu = nltk.translate.bleu_score.sentence_bleu(command_gts, pred_cmd)
+            cms = token_based.command_match_score(command_gt_asts, pred_ast)
+            if pred_cmd.strip():
+                bleu = token_based.sentence_bleu_score(command_gt_asts, pred_ast)   
+            else:
+                bleu = 0
             top_k_cms[data_id, i] = cms
             top_k_bleu[data_id, i] = bleu
             if verbose:
-                print("Prediction {}: {} ({})".format(i + 1, pred_cmd, cms))
-
+                print("Prediction {}: {} ({}, {})".format(i + 1, pred_cmd, cms, bleu))
         if verbose:
             print()
+    
+    bleu = token_based.corpus_bleu_score(command_gt_asts_list, pred_ast_list)
 
     top_temp_acc = [-1 for _ in [1, 3, 5, 10]]
     top_cmd_acc = [-1 for _ in [1, 3, 5, 10]]
@@ -393,6 +399,7 @@ def get_automatic_evaluation_metrics(grouped_dataset, prediction_list, vocabs, F
         print("Top 10 Command Acc = %.3f" % top_cmd_acc[3])
         print("Average top 10 Template Match Score = %.3f" % top_cms[3])
         print("Average top 10 BLEU Score = %.3f" % top_bleu[3])
+    print('Corpus BLEU = %.3f' % bleu)
     print()
 
     metrics = {}
