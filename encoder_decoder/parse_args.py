@@ -74,6 +74,7 @@ def define_input_flags():
     tf.compat.v1.flags.DEFINE_string('channel', '', 'translation feature channel.')
     tf.compat.v1.flags.DEFINE_string('data_dir', os.path.join(os.path.dirname(__file__), 'data'), 'Data directory')
     tf.compat.v1.flags.DEFINE_string('model_dir', os.path.join(os.path.dirname(__file__), 'model'), 'Model directory')
+    tf.compat.v1.flags.DEFINE_string('prediction_file', None, 'path to where the decoding output is stored')
     tf.compat.v1.flags.DEFINE_integer('sample_size', 200, 'Training data sample size')
     tf.compat.v1.flags.DEFINE_boolean('normalized', False, 'Set to True for learning with normalized command.')
     tf.compat.v1.flags.DEFINE_boolean('canonical', False,
