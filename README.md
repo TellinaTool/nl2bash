@@ -16,7 +16,9 @@ Specifically, it contains the following components:
 
 You may visit  http://tellina.rocks to interact with our pretrained model.
 
-**🆕 Oct 20, 2019:** we update the code to Tensorflow 2.0.
+**🆕 Oct 20, 2019** To evaluate your own model, please use the [standard evaluation scripts](#evaluate-models) provided.
+
+**🆕 Oct 20, 2019** We update the code to Tensorflow 2.0.
 
 ## Data Statistics
 
@@ -95,11 +97,11 @@ Top-k full command accuracy and top-k command template accuracy judged by human 
    </tr>
 </table>
 
-Please also refer to "Notes on Manual Evaluation" at the end of this readme for issues to keep in mind if you plan to run your own manual evaluation.
+⚠️ If you plan to run manual evaluation yourself, please refer to ["Notes on Manual Evaluation"](#notes-on-manual-evaluation) for issues you should pay attention to.
 
 ### Automatic Evaluation Metrics
 
-In addition, we also report BLEU and a self-defined template matching score as the automatic evaluation metrics used to approximate the true translation accuracy. Please refer to appendix C of the paper for the metrics definitions.
+In addition, we also report [*character-based* BLEU](https://github.com/TellinaTool/nl2bash/blob/master/eval/eval_tools.py#L343) and a self-defined template matching score as the automatic evaluation metrics used to approximate the true translation accuracy. Please refer to appendix C of the paper for the metrics definitions.
 
 <table>
    <tr>
@@ -157,9 +159,43 @@ make data
 ```
 To change the data-processing workflow, go to [data](/data) and modify the utility scripts.
 
-### Train the models
+### Train models
 ```
 make train
+```
+
+### Evaluate models
+We provide evaluation scripts to evaluate the performance of any new model. 
+
+To do so please save your model output to a file ([example](https://github.com/TellinaTool/nl2bash/blob/master/model/seq2seq/bash--partial-4-birnn-gru-standard-attention-0.6-0.6-0.0-copy-1.0-128-200-1-0.0001-1e-08-0.6-0.6-0.6-0.6/predictions.beam_search.100.dev.latest)). We assume the file is of the following format:
+```
+1. The i-th line of the file contains predictions for example i in the dataset.
+2. Each line contains top-k predictions separated by "|||".
+```
+
+Then get the evaluation results using the following script
+#### Manual
+
+Dev set evaluation
+```
+./bash-run.sh --data bash --prediction_file <path_to_your_model_output_file> --manual_eval
+```
+
+Test set evaluation
+```
+./bash-run.sh --data bash --prediction_file <path_to_your_model_output_file> --manual_eval --test
+```
+
+#### Automatic
+
+Dev set evaluation
+```
+./bash-run.sh --data bash --prediction_file <path_to_your_model_output_file> --eval
+```
+
+Test set evaluation
+```
+./bash-run.sh --data bash --prediction_file <path_to_your_model_output_file> --eval --test
 ```
 
 ### Generate evaluation table using pre-trained models
@@ -206,4 +242,5 @@ If you use the data or source code in your work, please cite
 Related paper: [Lin et. al. 2017. Program Synthesis from Natural Language Using Recurrent Neural Networks](http://victorialin.net/pubs/tellina_tr170510.pdf). 
 
 ## Changelog  
+* **Oct 20, 2019** release standard evaluation scripts
 * **Oct 20, 2019** update to Tensorflow 2.0

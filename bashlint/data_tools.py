@@ -62,7 +62,11 @@ def bash_parser(cmd, recover_quotation=True, verbose=False):
     """
     Parse bash command into AST.
     """
-    return lint.normalize_ast(cmd, recover_quotation, verbose=verbose)
+    ast = lint.normalize_ast(cmd, recover_quotation, verbose=verbose)
+    if ast is None:
+        return paren_parser(cmd)
+    else:
+        return ast
 
 
 def ast2tokens(node, loose_constraints=False, ignore_flag_order=False,
