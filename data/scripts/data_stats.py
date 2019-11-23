@@ -11,7 +11,7 @@ import os, sys
 sys.path.append('../../')  # for bashlint
 import re
 
-from bashlint import bash, data_tools
+from bashlint import bash, bash_parser, bash_tokenizer, cmd2template, get_utilities, utility_stats
 from nlp_tools.tokenizer import basic_tokenizer
 
 
@@ -21,8 +21,8 @@ def u_hist_to_radar_chart():
     u_hist = collections.defaultdict(int)
     with open(input_file) as f:
         for cmd in f:
-            ast = data_tools.bash_parser(cmd, verbose=False)
-            for u in data_tools.get_utilities(ast):
+            ast = bash_parser(cmd, verbose=False)
+            for u in get_utilities(ast):
                 if u in bash.BLACK_LIST or u in bash.GREY_LIST:
                     continue
                 u_hist[u] += 1
@@ -60,6 +60,7 @@ def compute_nl_stats():
     for w, f in sorted(sents_per_word.items(), key=lambda x:x[1], reverse=True)[:5]:
         print(w, f)
 
+
 def compute_cm_stats():
     input_file = sys.argv[1]
     unique_commands = set()
@@ -71,9 +72,9 @@ def compute_cm_stats():
         for line in f:
             cm = line.strip()
             unique_commands.add(cm)
-            temp = data_tools.cmd2template(cm, loose_constraints=True)
+            temp = cmd2template(cm, loose_constraints=True)
             unique_templates.add(temp)
-            tokens = data_tools.bash_tokenizer(cm, loose_constraints=True)
+            tokens = bash_tokenizer(cm, loose_constraints=True)
             unique_tokens |= set(tokens)
             tokens_per_cmd.append(len(tokens))
             for token in tokens:
@@ -161,6 +162,7 @@ def compute_nlmaps_stats():
         num += code_len_hist[key]
     print('average sentence length: {}'.format(float(total_len) / num))
 
+
 def compute_bash_stats():
     input_file = sys.argv[1]
     unique_utilities = set()
@@ -171,7 +173,7 @@ def compute_bash_stats():
     with open(input_file) as f:
         for line in f:
             cm = line.strip()
-            tokens = data_tools.bash_tokenizer(cm, loose_constraints=True, with_prefix=True)
+            tokens = bash_tokenizer(cm, loose_constraints=True, with_prefix=True)
             for token in tokens:
                 if token.startswith('UTILITY<KIND_PREFIX>'):
                     unique_utilities.add(token)
@@ -189,6 +191,7 @@ def compute_bash_stats():
     print('# commands per flag: average {}, median {}'.format(
         np.mean(list(cmds_per_flag.values())), np.median(list(cmds_per_flag.values()))))
 
+
 def compute_flag_stats():
     input_file = sys.argv[1]
     train_file = sys.argv[2]
@@ -196,8 +199,8 @@ def compute_flag_stats():
     u_hist = collections.defaultdict(int)
     with open(input_file) as f:
         for cmd in f:
-            ast = data_tools.bash_parser(cmd, verbose=False)
-            for u in data_tools.get_utilities(ast):
+            ast = bash_parser(cmd, verbose=False)
+            for u in get_utilities(ast):
                 if u in bash.BLACK_LIST or u in bash.GREY_LIST:
                     continue
                 u_hist[u] += 1
@@ -210,8 +213,7 @@ def compute_flag_stats():
     least_frequent_10_flags = collections.defaultdict(set)
     with open(train_file) as f:
         for cmd in f:
-            tokens = data_tools.bash_tokenizer(cmd, loose_constraints=True,
-                                               with_flag_head=True)
+            tokens = bash_tokenizer(cmd, loose_constraints=True, with_flag_head=True)
             for token in tokens:
                 if '@@' in token:
                     u, f = token.split('@@')
@@ -222,16 +224,17 @@ def compute_flag_stats():
 
     for u in most_frequent_10:
         if u in most_frequent_10_flags:
-            print(u, data_tools.get_utility_statistics(u), len(most_frequent_10_flags[u]))
+            print(u, utility_stats(u), len(most_frequent_10_flags[u]))
         else:
-            print(u, data_tools.get_utility_statistics(u), 0)
+            print(u, utility_stats(u), 0)
     print()
     for u in least_frequent_10:
         if u in least_frequent_10_flags:
-            print(u, data_tools.get_utility_statistics(u), len(least_frequent_10_flags[u]))
+            print(u, utility_stats(u), len(least_frequent_10_flags[u]))
         else:
-            print(u, data_tools.get_utility_statistics(u), 0)    
-    
+            print(u, utility_stats(u), 0)
+
+
 def compute_mapping_stats():
     nl_file = sys.argv[1]
     cm_file = sys.argv[2]
@@ -249,6 +252,7 @@ def compute_mapping_stats():
     print('# nls per cm: average {}, median {}, max {}'.format(
         np.mean(cm_to_nl_sizes.values()), np.median(cm_to_nl_sizes.values()), np.max(cm_to_nl_sizes.values())))
 
+
 def count_unique_nls():
     nl_file = sys.argv[1]
     unique_nls = set()
@@ -259,8 +263,8 @@ def count_unique_nls():
             unique_nls.add(nl_temp)
     print('number of unique natural language forms: {}'.format(len(unique_nls)))
 
-        
-def main():
+
+if __name__ == '__main__':
     # compute_nl_stats()
     # compute_cm_stats()
     # compute_bash_stats()
@@ -271,6 +275,3 @@ def main():
     # compute_regex_stats()
     # compute_jobs_stats()
     # compute_nlmaps_stats()
-
-if __name__ == '__main__':
-    main()

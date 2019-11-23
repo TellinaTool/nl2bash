@@ -11,7 +11,7 @@ import csv
 import os
 import sys
 
-from bashlint import data_tools
+from bashlint import ast2template, bash_parser, cmd2template
 from eval.eval_tools import load_cached_evaluations_from_file
 from eval.eval_tools import get_example_nl_key, get_example_cm_key
 from eval.eval_tools import normalize_judgement
@@ -95,8 +95,8 @@ def combine_annotations_multi_files():
             description, prediction = key.split('<NL_PREDICTION>')
             template_eval = template_evals[example_key]
             command_eval = command_evals[example_key]
-            pred_tree = data_tools.bash_parser(prediction)
-            pred_temp = data_tools.ast2template(pred_tree, loose_constraints=True)
+            pred_tree = bash_parser(prediction)
+            pred_temp = ast2template(pred_tree, loose_constraints=True)
             o_f.write('"{}","{}","{}",{},{}\n'.format(
                 description.replace('"', '""'),
                 prediction.replace('"', '""'),
@@ -146,7 +146,7 @@ def combine_annotations_multi_annotators():
                 if not pred_cmd:
                     row1_template_eval, row1_command_eval = 'n', 'n'
                     row2_template_eval, row2_command_eval = 'n', 'n'
-                pred_temp = data_tools.cmd2template(pred_cmd, loose_constraints=True)
+                pred_temp = cmd2template(pred_cmd, loose_constraints=True)
                 structure_example_key = '{}<NL_PREDICTION>{}'.format(sc_key, pred_temp)
                 command_example_key = '{}<NL_PREDICTION>{}'.format(sc_key, pred_cmd)
                 row3_template_eval, row3_command_eval = None, None
@@ -221,7 +221,7 @@ def print_error_analysis_sheet():
                 if not pred_cmd:
                     row1_template_eval, row1_command_eval = 'n', 'n'
                     row2_template_eval, row2_command_eval = 'n', 'n'
-                pred_temp = data_tools.cmd2template(pred_cmd, loose_constraints=True)
+                pred_temp = cmd2template(pred_cmd, loose_constraints=True)
                 structure_example_key = '{}<NL_PREDICTION>{}'.format(sc_key, pred_temp)
                 command_example_key = '{}<NL_PREDICTION>{}'.format(sc_key, pred_cmd)
                 row3_template_eval, row3_command_eval = None, None

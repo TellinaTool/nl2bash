@@ -9,13 +9,13 @@ from __future__ import print_function
 
 import collections
 import os, sys
-sys.path.append('../../')  # for bashlint
 
-from bashlint import bash, data_tools
+from bashlint import bash, bash_parser, get_utilities
 
 data_splits = ['train', 'dev', 'test']
 
 NUM_UTILITIES = 100
+
 
 def compute_top_utilities(path, k):
     print('computing top most frequent utilities...') 
@@ -25,8 +25,8 @@ def compute_top_utilities(path, k):
             command = f.readline().strip()
             if not command:
                 break
-            ast = data_tools.bash_parser(command, verbose=False)
-            for u in data_tools.get_utilities(ast):
+            ast = bash_parser(command, verbose=False)
+            for u in get_utilities(ast):
                 utilities[u] += 1
     top_utilities = []
 
@@ -45,11 +45,10 @@ def compute_top_utilities(path, k):
 
 
 def filter_by_most_frequent_utilities(data_dir, num_utilities):
-    def select(ast, utility_set):
-        for ut in data_tools.get_utilities(ast):
+    def select(ast, cm, utility_set):
+        for ut in get_utilities(ast):
             if not ut in utility_set:
-                print('Utility currently not handled: {} - {}'.format(
-                    ut, data_tools.ast2command(ast, loose_constraints=True)))
+                print('Utility currently not handled: {} - {}'.format(ut, cm))
                 return False
         return True
 
@@ -70,8 +69,8 @@ def filter_by_most_frequent_utilities(data_dir, num_utilities):
                     if len(nl.split()) > 50:
                         print('lenthy description skipped: {}'.format(nl))
                         continue
-                    ast = data_tools.bash_parser(cm)
-                    if ast and select(ast, top_utilities):
+                    ast = bash_parser(cm)
+                    if ast and select(ast, cm, top_utilities):
                         nl_outfile.write('{}\n'.format(nl))
                         cm_outfile.write('{}\n'.format(cm))
                             
@@ -89,7 +88,7 @@ def gen_non_specific_description_check_csv(data_dir):
             if ' specific ' in nl or ' a file ' in nl or ' a folder ' in nl \
                     or ' a directory ' in nl or ' some ' in nl \
                     or ' a pattern ' in nl or ' a string ' in nl:
-                ast = data_tools.bash_parser(cm)
+                ast = bash_parser(cm)
                 if ast:
                     o_f.write(',"{}","{}"\n'.format(cm.replace('"', '""'), 
                         nl.replace('"', '""')))
