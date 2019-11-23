@@ -39,7 +39,7 @@ from bashlint.nast import *
 from nlp_tools import constants
 
 
-def correct_errors_and_normalize_surface(cmd):
+def clean_and_normalize(cmd):
     # special normalization for certain commands
     ## remove all "sudo"'s
     cmd = cmd.replace("sudo", "")
@@ -121,6 +121,7 @@ def correct_errors_and_normalize_surface(cmd):
     cmd = cmd.strip()
 
     return cmd
+
 
 def attach_to_tree(node, parent):
     node.parent = parent
@@ -208,7 +209,7 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
     :return normalized_tree
     """
     cmd = cmd.replace('\n', ' ').strip()
-    cmd = correct_errors_and_normalize_surface(cmd)
+    cmd = clean_and_normalize(cmd)
     if not cmd:
         return None
 
@@ -865,7 +866,3 @@ def serialize_ast(node, loose_constraints=False, ignore_flag_order=False):
         return str
 
     return to_command_fun(node)
-
-
-def get_utility_statistics(utility):
-    return len(bg.grammar[utility].compound_flag.flag_index)

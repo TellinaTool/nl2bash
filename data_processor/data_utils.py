@@ -6,15 +6,10 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import functools
-import sys
-
-if sys.version_info > (3, 0):
-    from six.moves import xrange
-
-import bashlint
+import numpy as np
+import scipy.sparse as ssp
 from bashlint import nast
-from nlp_tools import constants, tokenizer
+from nlp_tools import constants
 
 # Special token symbols
 _PAD = "__SP__PAD"
@@ -99,8 +94,12 @@ class DataSet(object):
 
 
 class ExampleGroup(object):
-    def __init__(self):
+    def __init__(self, signature):
         self.examples = []
+        self.group_signature = signature
+
+    def add_example(self, example):
+        self.examples.append(example)
 
 
 class Example(object):
@@ -123,3 +122,57 @@ class Vocab(object):
         self.rev_tg_vocab = None
         self.max_sc_token_size = -1
         self.max_tg_token_size = -1
+
+
+def compute_copy_indices(sc_tokens, tg_tokens, sc_copy_tokens, tg_copy_tokens, tg_vocab, channel):
+    assert (len(sc_tokens) == len(sc_copy_tokens))
+    assert (len(tg_tokens) == len(tg_copy_tokens))
+    csc_ids, ctg_ids = [], []
+    init_vocab = CHAR_INIT_VOCAB if channel == 'char' else TOKEN_INIT_VOCAB
+    for i, sc_token in enumerate(sc_tokens):
+        if (not sc_token in init_vocab) and sc_token in tg_vocab:
+            csc_ids.append(tg_vocab[sc_token])
+        else:
+            csc_ids.append(len(tg_vocab) + sc_tokens.index(sc_token))
+    for j, tg_token in enumerate(tg_tokens):
+        tg_copy_token = tg_copy_tokens[j]
+        if tg_token in tg_vocab:
+            ctg_ids.append(tg_vocab[tg_token])
+        else:
+            if tg_copy_token in sc_copy_tokens:
+                ctg_ids.append(
+                    len(tg_vocab) + sc_copy_tokens.index(tg_copy_token))
+            else:
+                if channel == 'char':
+                    ctg_ids.append(CUNK_ID)
+                else:
+                    ctg_ids.append(UNK_ID)
+    # Append EOS symbol
+    if channel == 'char':
+        ctg_ids.append(CEOS_ID)
+    else:
+        ctg_ids.append(EOS_ID)
+    return csc_ids, ctg_ids
+
+
+def load_pair_alignment(in_path):
+    alignments = []
+    with open(in_path) as f:
+        for line in f:
+            source_len, target_len, pairs = line.strip().split(':::')
+            source_len, target_len = int(source_len), int(target_len)
+            A = np.zeros([source_len, target_len], dtype=np.int32)
+            alignments_ = [pair.split('-') for pair in pairs.split()]
+            for pair in alignments_:
+                A[int(pair[0]), int(pair[1])] = 1
+            alignments.append(A)
+
+
+def save_pair_alignment(alignments, out_path):
+    with open(out_path, 'w') as o_f:
+        for alignments_ in alignments:
+            source, target = alignments_.nonzero()
+            o_f.write('{}:::{}:::'.format(len(source), len(target)))
+            for i in range(len(source)):
+                o_f.write('{}-{} '.format(source[i], target[i]))
+            o_f.write('\n')

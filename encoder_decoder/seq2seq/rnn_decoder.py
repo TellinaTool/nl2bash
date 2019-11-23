@@ -9,7 +9,8 @@ from __future__ import print_function
 import numpy as np
 import tensorflow as tf
 
-from encoder_decoder import decoder, data_utils, graph_utils
+from encoder_decoder import decoder, graph_utils
+from data_processor import data_utils
 
 
 class RNNDecoder(decoder.Decoder):
@@ -150,7 +151,7 @@ class RNNDecoder(decoder.Decoder):
                     if self.copynet:
                         decoder_input = input
                         input = tf.compat.v1.where(input >= self.target_vocab_size,
-                                         tf.ones_like(input)*data_utils.UNK_ID, input)
+                                                   tf.ones_like(input) * data_utils.UNK_ID, input)
 
                 input_embedding = tf.nn.embedding_lookup(params=input_embeddings, ids=input)
 

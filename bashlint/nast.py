@@ -6,11 +6,6 @@ import collections
 
 from bashlint import bash
 
-_H_NO_EXPAND = '__SP__H_NO_EXPAND'
-_V_NO_EXPAND = '__SP__V_NO_EXPAND'
-
-KIND_PREFIX = '<KIND_PREFIX>'
-
 
 def make_parent_child(parent, child):
     parent.add_child(child)

@@ -17,8 +17,8 @@ if sys.version_info > (3, 0):
 import tensorflow as tf
 from tensorflow.python.util import nest
 
-from encoder_decoder import data_utils, graph_utils
-
+from encoder_decoder import graph_utils
+from data_processor import data_loader
 
 hyperparam_range = {
     'attention_input_keep': [0.4, 0.6, 0.8, 1.0],
@@ -119,8 +119,8 @@ def grid_search(train_fun, decode_fun, eval_fun, train_set, dev_set, FLAGS):
                 'num_buckets' in hyperparameters:
             # Read train and dev sets from disk
             train_set, dev_set, test_set = \
-                data_utils.load_data(FLAGS, use_buckets=True, load_mappings=False)
-            vocab = data_utils.load_vocabulary(FLAGS)
+                data_loader.load_data(FLAGS, use_buckets=True, load_features=False)
+            vocab = data_loader.load_vocabulary(FLAGS)
             FLAGS.sc_vocab_size = len(vocab.sc_vocab)
             FLAGS.tg_vocab_size = len(vocab.tg_vocab)
             FLAGS.max_sc_token_size = vocab.max_sc_token_size
@@ -174,8 +174,7 @@ def grid_search(train_fun, decode_fun, eval_fun, train_set, dev_set, FLAGS):
     grid_search_log_file.close()
 
 
-def schedule_experiments(train_fun, decode_fun, eval_fun, train_set, dev_set,
-                         hyperparam_sets, FLAGS):
+def schedule_experiments(train_fun, decode_fun, eval_fun, train_set, dev_set, hyperparam_sets, FLAGS):
     '''
     Run multiple experiments with different sets of hyperparameters.
     '''
@@ -195,18 +194,14 @@ def schedule_experiments(train_fun, decode_fun, eval_fun, train_set, dev_set,
         print('Trying parameter set: ')
         for hp in hyperparam_set:
             print('* {}: {}'.format(hp, hyperparam_set[hp]))
-            metrics = 'top1_temp_ms'
-
+        metrics = 'top1_temp_ms'
         metrics_value = single_round_model_eval(
             train_fun, decode_fun, eval_fun, train_set, dev_set, metrics)
-        print('Parameter set: ')
-        for hp in hyperparam_set:
-            print('* {}: {}'.format(hp, hyperparam_set[hp]))
         print('{} = {}'.format(metrics, metrics_value))
 
 
-def single_round_model_eval(train_fun, decode_fun, eval_fun, train_set,
-                            dev_set, metrics, metrics_weights):
+def single_round_model_eval(train_fun, decode_fun, eval_fun, train_set, dev_set,
+                            metrics, metrics_weights=None):
     '''
     Train the model with a certain set of hyperparameters and evaluate on the
     development set.
@@ -222,7 +217,10 @@ def single_round_model_eval(train_fun, decode_fun, eval_fun, train_set,
     :return: The weighted evaluation metrics.
     '''
     assert(len(metrics) > 0)
-    assert(len(metrics) == len(metrics_weights))
+    if metrics_weights is None:
+        metrics_weights = np.ones(len(metrics)) / len(metrics)
+    assert (len(metrics) == len(metrics_weights))
+
     tf.compat.v1.reset_default_graph()
     try:
         train_fun(train_set, dev_set)

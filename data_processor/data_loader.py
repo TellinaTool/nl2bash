@@ -2,9 +2,13 @@
 Collection of data loading functions.
 """
 import os
-import pickle
+import sys
+if sys.version_info > (3, 0):
+    from six.moves import xrange
 
+import bashlint
 from data_processor.data_utils import *
+from nlp_tools import canonicalize_text
 
 
 def load_data(FLAGS, use_buckets=True, load_features=True):
@@ -70,8 +74,8 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
         print("target tokenized sequence file: {}".format(tg_token_path))
         sc_token_file = open(sc_token_path, encoding='utf-8')
         tg_token_file = open(tg_token_path, encoding='utf-8')
-        with open(os.path.join(data_dir, '{}.{}.align'.format(split, FLAGS.channel)), 'rb') as f:
-            alignments = pickle.load(f)
+        align_file = os.path.join(data_dir, '{}.{}.align'.format(split, FLAGS.channel))
+        alignments = load_pair_alignment(align_file)
 
     dataset = []
     num_data = 0
@@ -92,7 +96,6 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
                 max_tg_length = len(example.tg_ids)
         dataset.append(example)
         num_data += 1
-    data_size = len(dataset)
     sc_file.close()
     tg_file.close()
     if load_features:
@@ -124,42 +127,38 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
             sc_copy_token_file.close()
             tg_copy_token_file.close()
 
-    if load_features and use_buckets:
+    if load_features and use_buckets and split == 'train':
         print('Group data points into buckets...')
-        if split == 'train':
-            # Determine bucket sizes based on the characteristics of the dataset
-            num_buckets = FLAGS.num_buckets
-            bucket_capacity = int(len(dataset) / num_buckets)
-            assert (bucket_capacity > 0)
-            # Excluding outliers (very long sequences)
-            length_cutoff = 0.01
-            # A. Determine maximum source length
-            sorted_dataset = sorted(dataset, key=lambda x: len(x.sc_ids), reverse=True)
-            max_sc_length = len(sorted_dataset[int(len(sorted_dataset) * length_cutoff)].sc_ids)
-            # B. Determine maximum target length
-            sorted_dataset = sorted(dataset, key=lambda x: len(x.tg_ids), reverse=True)
-            max_tg_length = len(sorted_dataset[int(len(sorted_dataset) * length_cutoff)].tg_ids)
-            print('max_source_length after filtering = {}'.format(max_sc_length))
-            print('max_target_length after filtering = {}'.format(max_tg_length))
-            # Determine thresholds for buckets of equal capacity
-            buckets = []
-            sorted_dataset = sorted(dataset, key=lambda x: len(x.sc_ids), reverse=False)
-            max_tg_len_so_far = 0
-            for i, dp in enumerate(sorted_dataset):
-                if len(dp.sc_ids) > max_sc_length:
-                    break
-                if len(dp.tg_ids) > max_tg_len_so_far:
-                    max_tg_len_so_far = len(dp.tg_ids)
-                if i > 0 and i % bucket_capacity == 0:
-                    buckets.append((len(dp.sc_ids) + 1, min(max_tg_len_so_far, max_tg_length) + 1))
-            if len(buckets) == 0 or buckets[-1][0] < max(max_sc_length, max_tg_length):
-                buckets.append((max_sc_length + 1, min(max_tg_len_so_far, max_tg_length) + 1))
-        else:
-            num_buckets = len(buckets)
-            assert (num_buckets >= 1)
+        # Determine bucket sizes based on the characteristics of the dataset
+        num_buckets = FLAGS.num_buckets
+        bucket_capacity = int(len(dataset) / num_buckets)
+        assert (bucket_capacity > 0)
+        # Excluding outliers (very long sequences)
+        length_cutoff = 0.01
+        # A. Determine maximum source length
+        sorted_dataset = sorted(dataset, key=lambda x: len(x.sc_ids), reverse=True)
+        max_sc_length = len(sorted_dataset[int(len(sorted_dataset) * length_cutoff)].sc_ids)
+        # B. Determine maximum target length
+        sorted_dataset = sorted(dataset, key=lambda x: len(x.tg_ids), reverse=True)
+        max_tg_length = len(sorted_dataset[int(len(sorted_dataset) * length_cutoff)].tg_ids)
+        print('max_source_length after filtering = {}'.format(max_sc_length))
+        print('max_target_length after filtering = {}'.format(max_tg_length))
+        # Determine thresholds for buckets of equal capacity
+        buckets = []
+        sorted_dataset = sorted(dataset, key=lambda x: len(x.sc_ids), reverse=False)
+        max_tg_len_so_far = 0
+        for i, dp in enumerate(sorted_dataset):
+            if len(dp.sc_ids) > max_sc_length:
+                break
+            if len(dp.tg_ids) > max_tg_len_so_far:
+                max_tg_len_so_far = len(dp.tg_ids)
+            if i > 0 and i % bucket_capacity == 0:
+                buckets.append((len(dp.sc_ids) + 1, min(max_tg_len_so_far, max_tg_length) + 1))
+        if len(buckets) == 0 or buckets[-1][0] < max(max_sc_length, max_tg_length):
+            buckets.append((max_sc_length + 1, min(max_tg_len_so_far, max_tg_length) + 1))
 
         dataset2 = [[] for _ in buckets]
-        for i in range(len(dataset)):
+        for i, example in enumerate(dataset):
             example = dataset[i]
             # Compute bucket id
             bucket_ids = [b for b in xrange(len(buckets))
@@ -172,8 +171,16 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
                     bucket_id = len(buckets) - 1
                     dataset2[bucket_id].append(example)
         dataset = dataset2
-        if split != 'train':
-            assert (len(functools.reduce(lambda x, y: x + y, dataset)) == data_size)
+
+    # Group dev and test sets
+    if split != 'train':
+        data_holder = dict()
+        for i, example in enumerate(dataset):
+            signature = canonicalize_text(example.sc_txt)
+            if not signature in data_holder:
+                data_holder[signature] = ExampleGroup(signature)
+            data_holder[signature].add_example(example)
+        dataset = data_holder.values()
 
     D = DataSet(dataset)
     if split == 'train' and load_features:
@@ -183,38 +190,6 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
             D.buckets = buckets
 
     return D
-
-
-def compute_copy_indices(sc_tokens, tg_tokens, sc_copy_tokens, tg_copy_tokens,
-                         tg_vocab, channel):
-    assert (len(sc_tokens) == len(sc_copy_tokens))
-    assert (len(tg_tokens) == len(tg_copy_tokens))
-    csc_ids, ctg_ids = [], []
-    init_vocab = CHAR_INIT_VOCAB if channel == 'char' else TOKEN_INIT_VOCAB
-    for i, sc_token in enumerate(sc_tokens):
-        if (not sc_token in init_vocab) and sc_token in tg_vocab:
-            csc_ids.append(tg_vocab[sc_token])
-        else:
-            csc_ids.append(len(tg_vocab) + sc_tokens.index(sc_token))
-    for j, tg_token in enumerate(tg_tokens):
-        tg_copy_token = tg_copy_tokens[j]
-        if tg_token in tg_vocab:
-            ctg_ids.append(tg_vocab[tg_token])
-        else:
-            if tg_copy_token in sc_copy_tokens:
-                ctg_ids.append(
-                    len(tg_vocab) + sc_copy_tokens.index(tg_copy_token))
-            else:
-                if channel == 'char':
-                    ctg_ids.append(CUNK_ID)
-                else:
-                    ctg_ids.append(UNK_ID)
-    # Append EOS symbol
-    if channel == 'char':
-        ctg_ids.append(CEOS_ID)
-    else:
-        ctg_ids.append(EOS_ID)
-    return csc_ids, ctg_ids
 
 
 def load_vocabulary(FLAGS):

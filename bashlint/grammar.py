@@ -92,6 +92,10 @@ class UtilityState(BashGrammarState):
             header += ' ' + arg.serialize()
         return header
 
+    @property
+    def num_compound_flags(self):
+        return len(self.compound_flag.flag_index)
+
 
 class CompoundFlagState(BashGrammarState):
     def __init__(self, parent):

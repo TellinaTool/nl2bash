@@ -12,7 +12,8 @@ import numpy as np
 
 import tensorflow as tf
 
-from encoder_decoder import data_utils, graph_utils
+from encoder_decoder import graph_utils
+from data_processor import data_utils
 from encoder_decoder.seq2seq import rnn_decoder
 
 
@@ -504,12 +505,12 @@ class EncoderDecoderModel(graph_utils.NNModel):
         if not use_all:
             data_ids = np.random.choice(data_ids, self.batch_size)
         for i in data_ids:
-            data_point = sample_pool[i]
-            encoder_inputs.append(data_point.sc_ids)
-            decoder_inputs.append(data_point.tg_ids)
+            example = sample_pool[i]
+            encoder_inputs.append(example.sc_ids)
+            decoder_inputs.append(example.tg_ids)
             if self.copynet:
-                encoder_copy_inputs.append(data_point.csc_ids)
-                copy_targets.append(data_point.ctg_ids)
+                encoder_copy_inputs.append(example.csc_ids)
+                copy_targets.append(example.ctg_ids)
 
         encoder_input_channels = [encoder_inputs]
         decoder_input_channels = [decoder_inputs]

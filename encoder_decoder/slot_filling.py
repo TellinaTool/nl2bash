@@ -14,7 +14,8 @@ import collections, copy, re
 import numpy as np
 from numpy.linalg import norm
 
-from bashlint import bash, data_tools
+import bashlint
+from bashlint import bash
 from nlp_tools import constants, format_args, tokenizer
 
 
@@ -68,8 +69,8 @@ def gen_slot_filling_training_data(sess, FLAGS, model, dataset, output_file):
 
     X, Y = [], []
     for bucket_id in xrange(len(model.buckets)):
-        for i in xrange(len(dataset.data_points[bucket_id])):
-            dp = dataset.data_points[bucket_id][i]
+        for i in xrange(len(dataset.examples[bucket_id])):
+            dp = dataset.examples[bucket_id][i]
             if dp.alignments is not None:
                 source_inds, target_inds = dp.alignments.nonzero()
                 mappings = list(zip(list(source_inds), list(target_inds)))
@@ -207,10 +208,10 @@ def stable_slot_filling(template_tokens, sc_fillers, tg_slots, pointer_targets,
             template_tokens[s] = format_args.get_fill_in_value(
                 tg_slots[s], sc_fillers[f])
         cmd = ' '.join(template_tokens)
-        tree = data_tools.bash_parser(cmd)
+        tree = bashlint.bash_parser(cmd)
         if not tree is None:
             fill_default_value(tree)
-        temp = data_tools.ast2command(
+        temp = bashlint.ast2command(
             tree, loose_constraints=True, ignore_flag_order=False)
     else:
         tree, temp = None, None
@@ -372,8 +373,8 @@ def slot_filler_alignment_induction(nl, cm, verbose=False):
     # and the slots in the command
     tokens, entities = tokenizer.ner_tokenizer(nl)
     nl_fillers, _, _ = entities
-    cm_tokens = data_tools.bash_tokenizer(cm)
-    cm_tokens_with_types = data_tools.bash_tokenizer(cm, arg_type_only=True)
+    cm_tokens = bashlint.bash_tokenizer(cm)
+    cm_tokens_with_types = bashlint.bash_tokenizer(cm, arg_type_only=True)
     assert(len(cm_tokens) == len(cm_tokens_with_types))
     cm_slots = {}
     for i in xrange(len(cm_tokens_with_types)):

@@ -18,8 +18,10 @@ import datetime, time
 import re
 import shutil
 
-from bashlint import bash, data_tools
-from encoder_decoder import data_utils, slot_filling
+import bashlint
+from bashlint import bash
+from encoder_decoder import slot_filling
+from data_processor import data_utils
 from eval import tree_dist
 from nlp_tools import constants, format_args, tokenizer
 
@@ -67,18 +69,18 @@ def demo(sess, model, FLAGS):
         sentence = sys.stdin.readline()
 
 
-def translate_fun(data_point, sess, model, vocabs, FLAGS,
+def translate_fun(example, sess, model, vocabs, FLAGS,
                   slot_filling_classifier=None):
     tg_ids = [data_utils.ROOT_ID]
     decoder_features = [[tg_ids]]
-    if type(data_point) is str:
-        source_str = data_point
-        encoder_features = query_to_encoder_features(data_point, vocabs, FLAGS)
+    if type(example) is str:
+        source_str = example
+        encoder_features = query_to_encoder_features(example, vocabs, FLAGS)
     else:
-        source_str = data_point[0].sc_txt
-        encoder_features = [[data_point[0].sc_ids]]
+        source_str = example[0].sc_txt
+        encoder_features = [[example[0].sc_ids]]
         if FLAGS.use_copy and FLAGS.copy_fun == 'copynet':
-            encoder_features.append([data_point[0].csc_ids])
+            encoder_features.append([example[0].csc_ids])
 
     if FLAGS.use_copy and FLAGS.copy_fun == 'copynet':
         # append dummy copynet target features (
@@ -186,8 +188,8 @@ def decode(model_outputs, FLAGS, vocabs, sc_fillers=None,
             for token_id in xrange(len(outputs)):
                 output = outputs[token_id]
                 pred_token = as_str(output, rev_tg_vocab)
-                if data_tools.flag_suffix in pred_token:
-                    pred_token = pred_token.split(data_tools.flag_suffix)[0]
+                if bashlint.flag_suffix in pred_token:
+                    pred_token = pred_token.split(bashlint.flag_suffix)[0]
                 # process argument slots
                 if pred_token in bash.argument_types:
                     if token_id > 0 and format_args.is_min_flag(
@@ -234,12 +236,12 @@ def decode(model_outputs, FLAGS, vocabs, sc_fillers=None,
             if FLAGS.grammatical_only and not FLAGS.explain:
                 if FLAGS.dataset.startswith('bash'):
                     target = re.sub('( ;\s+)|( ;$)', ' \\; ', target)
-                    target_ast = data_tools.bash_parser(target, verbose=False)
+                    target_ast = bashlint.bash_parser(target, verbose=False)
                 elif FLAGS.dataset.startswith('regex'):
                     # TODO: check if a predicted regular expression is legal
                     target_ast = '__DUMMY_TREE__'
                 else:
-                    target_ast = data_tools.paren_parser(target)
+                    target_ast = bashlint.shallow_parser(target)
                 # filter out non-grammatical output
                 if target_ast is None:
                     continue
@@ -325,7 +327,7 @@ def decode_set(sess, model, dataset, top_k, FLAGS, verbose=False):
         else:
             sc_temp = ' '.join(sc_tokens)
         tg_txts = [dp.tg_txt for dp in data_group]
-        tg_asts = [data_tools.bash_parser(tg_txt) for tg_txt in tg_txts]
+        tg_asts = [bashlint.bash_parser(tg_txt) for tg_txt in tg_txts]
         if verbose:
             print('\nExample {}:'.format(example_id))
             print('Original Source: {}'.format(sc_txt.encode('utf-8')))
@@ -348,8 +350,7 @@ def decode_set(sess, model, dataset, top_k, FLAGS, verbose=False):
             if FLAGS.token_decoding_algorithm == 'greedy':
                 tree, pred_cmd = batch_outputs[0]
                 if nl2bash:
-                    pred_cmd = data_tools.ast2command(
-                        tree, loose_constraints=True)
+                    pred_cmd = bashlint.ast2command(tree, loose_constraints=True)
                 score = sequence_logits[0]
                 if verbose:
                     print('Prediction: {} ({})'.format(pred_cmd, score))
@@ -369,7 +370,7 @@ def decode_set(sess, model, dataset, top_k, FLAGS, verbose=False):
                         eval_row += ','
                     top_k_pred_tree, top_k_pred_cmd = top_k_predictions[j]
                     if nl2bash:
-                        pred_cmd = data_tools.ast2command(
+                        pred_cmd = bashlint.ast2command(
                             top_k_pred_tree, loose_constraints=True)
                     else:
                         pred_cmd = top_k_pred_cmd

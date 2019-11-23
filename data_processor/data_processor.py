@@ -3,11 +3,8 @@ Collection of data processing functions.
 """
 import collections
 import os
-import pickle
 
-import numpy as np
-import scipy.sparse as ssp
-
+import bashlint
 from bashlint import bash
 from data_processor.data_utils import *
 from data_processor.data_loader import initialize_vocabulary
@@ -102,9 +99,8 @@ def prepare_channel(data_dir, nl_list, cm_list, split, channel,
     save_channel_features_to_file(data_dir, split, 'copy.{}'.format(channel),
                                   nl_copy_tokens, cm_copy_tokens, feature_separator=TOKEN_SEPARATOR)
     alignments = compute_alignments(data_dir, nl_tokens, cm_tokens, split, channel)
-    with open(os.path.join(data_dir, '{}.{}.align'.format(split, channel)),
-              'wb') as o_f:
-        pickle.dump(alignments, o_f)
+    out_align = os.path.join(data_dir, '{}.{}.align'.format(split, channel))
+    save_pair_alignment(alignments, out_align)
 
 
 def save_channel_features_to_file(data_dir, split, channel, nl_features,
@@ -199,7 +195,7 @@ def cm_to_characters(cm, use_preprocessing=False):
             if i < len(cm_tokens) - 1:
                 cm_example.append(constants._SPACE)
     else:
-        cm = bashlint.correct_errors_and_normalize_surface(cm)
+        cm = bashlint.clean_and_normalize(cm)
         cm_example = string_to_characters(cm)
     return cm_example
 
@@ -211,7 +207,7 @@ def nl_to_partial_tokens(s, tokenizer, to_lower_case=True, lemmatization=True):
 
 
 def cm_to_partial_tokens(s, tokenizer):
-    s = bashlint.correct_errors_and_normalize_surface(s)
+    s = bashlint.clean_and_normalize(s)
     return string_to_partial_tokens(cm_to_tokens(s, tokenizer))
 
 
@@ -317,16 +313,14 @@ def tokens_to_ids(tokens, vocabulary):
     return token_ids
 
 
-def compute_alignments(data_dir, nl_list, cm_list, split, channel):
+def compute_alignments(nl_list, cm_list):
     alignments = []
-    output_path = os.path.join(data_dir, '{}.{}.align.readable'.format(split, channel))
-    with open(output_path, 'w') as o_f:
-        for nl_tokens, cm_tokens in zip(nl_list, cm_list):
-            alignments.append(compute_pair_alignment(nl_tokens, cm_tokens, o_f))
+    for nl_tokens, cm_tokens in zip(nl_list, cm_list):
+        alignments.append(compute_pair_alignment(nl_tokens, cm_tokens))
     return alignments
 
 
-def compute_pair_alignment(nl_tokens, cm_tokens, out_file):
+def compute_pair_alignment(nl_tokens, cm_tokens):
     """
     Compute the alignments between two parallel sequences.
     """
@@ -340,14 +334,12 @@ def compute_pair_alignment(nl_tokens, cm_tokens, out_file):
         for j, y in enumerate(cm_tokens):
             if not x in init_vocab and x == y:
                 A[i, j] = 1
-                out_file.write('{}-{} '.format(i, j))
-    out_file.write('\n')
 
     return ssp.lil_matrix(A)
 
 
-def create_vocabulary(vocab_path, dataset, min_word_frequency=1,
-                      is_character_model=False, parallel_dataset=None):
+def create_vocabulary(vocab_path, dataset, min_word_frequency=1, is_character_model=False,
+                      parallel_dataset=None):
     """
     Compute the vocabulary of a tokenized dataset and save to file.
     """

@@ -5,13 +5,14 @@ from __future__ import division
 from __future__ import print_function
 
 import numpy as np
-import os, sys
+import sys
 if sys.version_info > (3, 0):
     from six.moves import xrange
 
 import tensorflow as tf
 
-from encoder_decoder import decoder, data_utils, graph_utils
+from encoder_decoder import decoder, graph_utils
+from data_processor import data_utils
 
 DEBUG = False
 

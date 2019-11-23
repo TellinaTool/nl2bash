@@ -17,15 +17,15 @@ if sys.version_info > (3, 0):
     from six.moves import xrange
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
 
+import json
 import math
 import numpy as np
-import pickle
 import time
 from tqdm import tqdm
 
 import tensorflow as tf
 
-from encoder_decoder import data_utils
+from data_processor import data_utils
 from encoder_decoder import decode_tools
 from encoder_decoder import graph_utils
 from encoder_decoder import meta_experiments
@@ -33,7 +33,7 @@ from encoder_decoder import parse_args
 from encoder_decoder import slot_filling
 from .seq2seq.seq2seq_model import Seq2SeqModel
 from .seq2tree.seq2tree_model import Seq2TreeModel
-from eval import eval_tools, error_analysis
+from eval import eval_tools
 
 # Refer to parse_args.py for model parameter explanations
 FLAGS = tf.compat.v1.flags.FLAGS
@@ -63,7 +63,7 @@ def train(train_set, test_set, verbose=False):
         # Initialize model parameters
         model = define_model(sess, forward_only=False, buckets=train_set.buckets)
 
-        train_bucket_sizes = [len(train_set.data_points[b])
+        train_bucket_sizes = [len(train_set.examples[b])
                               for b in xrange(len(train_set.buckets))]
         for i, bucket in enumerate(train_set.buckets):
             print('bucket {}: {} ({})'.format(i, bucket, train_bucket_sizes[i]))
@@ -90,7 +90,7 @@ def train(train_set, test_set, verbose=False):
                 random_number_01 = np.random.random_sample()
                 bucket_id = min([i for i in xrange(len(train_buckets_scale))
                                  if train_buckets_scale[i] > random_number_01])
-                formatted_example = model.get_batch(train_set.data_points, bucket_id)
+                formatted_example = model.get_batch(train_set.examples, bucket_id)
                 model_outputs = model.step(
                     sess, formatted_example, bucket_id, forward_only=False)
                 loss += model_outputs.losses
@@ -128,11 +128,11 @@ def train(train_set, test_set, verbose=False):
                 sample_size = 10
                 repeated_samples = list(range(len(train_set.buckets))) * sample_size
                 for bucket_id in repeated_samples:
-                    if len(test_set.data_points[bucket_id]) == 0:
+                    if len(test_set.examples[bucket_id]) == 0:
                         if verbose:
                             print("  eval: empty bucket %d" % (bucket_id))
                         continue
-                    formatted_example = model.get_batch(test_set.data_points, bucket_id)
+                    formatted_example = model.get_batch(test_set.examples, bucket_id)
                     model_outputs = model.step(
                         sess, formatted_example, bucket_id, forward_only=True)
                     eval_loss = model_outputs.losses
@@ -249,7 +249,7 @@ def schedule_experiments(train_fun, decode_fun, eval_fun, train_set, dev_set):
 
 def process_data():
     print("Preparing data in %s" % FLAGS.data_dir)
-    data_utils.prepare_data(FLAGS)
+    data_utils.process_data(FLAGS)
 
 
 def main(_):
@@ -335,7 +335,7 @@ def main(_):
                 gen_slot_filling_training_data(FLAGS, [train_set, dev_set, test_set])
 
             elif FLAGS.decode:
-                model = decode(dataset, buckets=train_set.buckets)
+                decode(dataset, buckets=train_set.buckets)
                 if not FLAGS.explain:
                     eval(dataset, verbose=False)
 
@@ -359,11 +359,11 @@ def main(_):
 
                 # save model hyperparameters
                 model_subdir, decode_sig = graph_utils.get_decode_signature(FLAGS)
-                with open(os.path.join(FLAGS.model_root_dir, model_subdir, 'hyperparameters.pkl'), 'wb') as o_f:
+                with open(os.path.join(FLAGS.model_root_dir, model_subdir, 'hyperparameters.json'), 'w') as o_f:
                     flag_dict = dict()
                     for flag in dir(FLAGS):
                         flag_dict[flag] = getattr(FLAGS, flag)
-                    pickle.dump(flag_dict, o_f)
+                    json.dump(flag_dict, o_f, indent=4)
 
                 # Decode the new model on the development set.
                 tf.compat.v1.reset_default_graph()

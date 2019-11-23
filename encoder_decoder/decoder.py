@@ -11,7 +11,8 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.python.util import nest
 
-from encoder_decoder import data_utils, graph_utils, beam_search
+from encoder_decoder import graph_utils, beam_search
+from data_processor import data_utils
 
 
 class Decoder(graph_utils.NNModel):

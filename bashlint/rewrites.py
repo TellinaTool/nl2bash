@@ -12,7 +12,7 @@ import os, sys
 if sys.version_info > (3, 0):
     from six.moves import xrange
 
-from bashlint import data_tools
+from bashlint import cmd2template
 from nlp_tools import tokenizer
 
 
@@ -33,7 +33,7 @@ def extract_rewrites(data):
             continue
         nl_tokens, _ = tokenizer.ner_tokenizer(nl)
         nl_temp = ' '.join(nl_tokens)
-        cm_temp = data_tools.cmd2template(cm)
+        cm_temp = cmd2template(cm)
         if not cm_temp in group_pairs_by_nl[nl_temp]:
             group_pairs_by_nl[nl_temp].add(cm_temp)
 

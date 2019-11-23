@@ -91,13 +91,11 @@ def basic_tokenizer(sentence, to_lower_case=True, lemmatization=True,
     """
     Regex-based English tokenizer.
     :param sentence: input sentence.
-    :param to_lower_case: if set, remove capitalization at the beginning of the
-        input sentence.
+    :param to_lower_case: if set, remove capitalization at the beginning of the input sentence.
     :param lemmatization: if set, lemmatize the tokens.
     :param remove_stop_words: if set, remove stop words.
     :param correct_spell: if set, perform spelling error correction.
-    :param separate_quotations: if set, separate quotation marks from a quoted
-        token
+    :param separate_quotations: if set, separate quotation marks from a quoted token
 
     :return: list of tokens obtained subjected to the tokenization criteria.
     """
