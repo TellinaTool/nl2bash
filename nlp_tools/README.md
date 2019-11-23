@@ -1,3 +1,2 @@
-## NLP-Tools
-
-This folder consists of the tools used to process the user's natural language query, specifically adapted to the Linux OS domain.
+## NLP Tools
+The NLP tools in this folder are customized to the NL2Bash domain.
