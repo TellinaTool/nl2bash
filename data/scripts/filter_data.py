@@ -21,11 +21,12 @@ NUM_UTILITIES = 100
 def compute_top_utilities(path, k):
     print('computing top most frequent utilities...') 
     utilities = collections.defaultdict(int)
-    with open(path) as f:
+    with open(path, encoding='utf-8') as f:
         while (True):
             command = f.readline().strip()
             if not command:
                 break
+            # print(command.encode('utf-8'))
             ast = bash_parser(command, verbose=False)
             for u in get_utilities(ast):
                 utilities[u] += 1
@@ -49,7 +50,7 @@ def filter_by_most_frequent_utilities(data_dir, num_utilities):
     def select(ast, cm, utility_set):
         for ut in get_utilities(ast):
             if not ut in utility_set:
-                print('Utility currently not handled: {} - {}'.format(ut, cm))
+                print('Utility currently not handled: {} - {}'.format(ut, cm.encode('utf-8')))
                 return False
         return True
 
@@ -58,9 +59,9 @@ def filter_by_most_frequent_utilities(data_dir, num_utilities):
     for split in ['all']:
         nl_file_path = os.path.join(data_dir, split + '.nl')
         cm_file_path = os.path.join(data_dir, split + '.cm')
-        with open(nl_file_path) as f:
+        with open(nl_file_path, encoding='utf-8') as f:
             nls = [nl.strip() for nl in f.readlines()]
-        with open(cm_file_path) as f:
+        with open(cm_file_path, encoding='utf-8') as f:
             cms = [cm.strip() for cm in f.readlines()]
         nl_outfile_path = os.path.join(data_dir, split + '.nl.filtered')
         cm_outfile_path = os.path.join(data_dir, split + '.cm.filtered')
@@ -72,8 +73,8 @@ def filter_by_most_frequent_utilities(data_dir, num_utilities):
                         continue
                     ast = bash_parser(cm)
                     if ast and select(ast, cm, top_utilities):
-                        nl_outfile.write('{}\n'.format(nl))
-                        cm_outfile.write('{}\n'.format(cm))
+                        nl_outfile.write('{}\n'.format(nl.encode('utf-8')))
+                        cm_outfile.write('{}\n'.format(cm.encode('utf-8')))
 
 
 if __name__ == '__main__':
