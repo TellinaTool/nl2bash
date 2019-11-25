@@ -8,7 +8,6 @@ from __future__ import print_function
 
 import numpy as np
 import bashlint
-from json import JSONEncoder
 from nlp_tools import constants
 import scipy.sparse as ssp
 
@@ -87,9 +86,9 @@ data_splits = ['train', 'dev', 'test']
 TOKEN_SEPARATOR = '<TOKEN_SEPARATOR>'
 
 
-class DataSet(JSONEncoder):
-    def __init__(self, examples=list()):
-        self.examples = examples
+class DataSet(object):
+    def __init__(self, examples=None):
+        self.examples = examples if examples else list()
         self.max_sc_length = -1
         self.max_tg_length = -1
         self.buckets = None
@@ -98,7 +97,7 @@ class DataSet(JSONEncoder):
         self.examples.append(example)
 
 
-class ExampleGroup(JSONEncoder):
+class ExampleGroup(object):
     def __init__(self, signature):
         self.examples = []
         self.group_signature = signature
@@ -107,7 +106,7 @@ class ExampleGroup(JSONEncoder):
         self.examples.append(example)
 
 
-class Example(JSONEncoder):
+class Example(object):
     def __init__(self, source=None, target=None):
         self.source = source
         self.target = target
