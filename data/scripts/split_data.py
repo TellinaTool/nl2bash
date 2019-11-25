@@ -85,7 +85,7 @@ def split_data(data_dir):
                 train[nl_temp].append((nl, cm))
                 num_moved += 1
             else:
-                test[nl_temp].append((nl, cm))
+                test_cleaned[nl_temp].append((nl, cm))
     print('{} pairs moved from test to train'.format(num_moved))
 
     # select 100 examples as dev
