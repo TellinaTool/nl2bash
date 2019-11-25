@@ -2,7 +2,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-from bashlint import data_tools, nast
+from bashlint import ast2template, bash_parser, nast
 from eval import zss
 
 
@@ -40,12 +40,10 @@ def temp_local_dist(s1, s2):
     return local_dist(s1, s2, skip_argument=True)
 
 def str_dist(ast1, ast2):
-    return zss.simple_distance(ast1, ast2, nast.Node.get_children,
-                               nast.Node.get_label, str_local_dist)
+    return zss.simple_distance(ast1, ast2, nast.Node.get_children, nast.Node.get_label, str_local_dist)
 
 def temp_dist(ast1, ast2):
-    return zss.simple_distance(ast1, ast2, nast.Node.get_children,
-                               nast.Node.get_label, temp_local_dist)
+    return zss.simple_distance(ast1, ast2, nast.Node.get_children, nast.Node.get_label, temp_local_dist)
 
 
 def min_dist(asts, ast2, rewrite=False, ignore_arg_value=False):
@@ -59,7 +57,7 @@ def min_dist(asts, ast2, rewrite=False, ignore_arg_value=False):
     """
     # tolerate ungrammatical predictions
     if not ast2:
-        ast2 = data_tools.bash_parser("find")
+        ast2 = bash_parser("find")
 
     if rewrite:
         raise NotImplementedError
@@ -82,28 +80,26 @@ def one_match(asts, ast2, rewrite=False, ignore_arg_value=False):
         raise NotImplementedError
     else:
         ast_rewrites = asts
-    cmd2 = data_tools.ast2template(ast2, loose_constraints=True,
-                                   arg_type_only=ignore_arg_value)
+    cmd2 = ast2template(ast2, loose_constraints=True, arg_type_only=ignore_arg_value)
     for ast1 in ast_rewrites:
-        cmd1 = data_tools.ast2template(ast1, loose_constraints=True,
-                                       arg_type_only=ignore_arg_value)
+        cmd1 = ast2template(ast1, loose_constraints=True, arg_type_only=ignore_arg_value)
         if cmd1 == cmd2:
             return True
     return False
 
 def template_match(ast1, ast2):
-    temp1 = data_tools.ast2template(ast1, loose_constraints=True)
-    temp2 = data_tools.ast2template(ast2, loose_constraints=True)
+    temp1 = ast2template(ast1, loose_constraints=True)
+    temp2 = ast2template(ast2, loose_constraints=True)
     return temp1 == temp2
 
 def string_match(ast1, ast2):
-    str1 = data_tools.ast2template(ast1, loose_constraints=True, arg_type_only=False)
-    str2 = data_tools.ast2template(ast2, loose_constraints=True, arg_type_only=False)
+    str1 = ast2template(ast1, loose_constraints=True, arg_type_only=False)
+    str2 = ast2template(ast2, loose_constraints=True, arg_type_only=False)
     return str1 == str2
 
 
 if __name__ == '__main__':
-    asts = [data_tools.bash_parser('find . -type f -print0 | xargs -0 -I {} grep -i -l __SP__UNK {}')]
-    ast = data_tools.bash_parser('find . -type f -print0 | xargs -0 -I {} grep -i -l \'.*\' {}')
+    asts = [bash_parser('find . -type f -print0 | xargs -0 -I {} grep -i -l __SP__UNK {}')]
+    ast = bash_parser('find . -type f -print0 | xargs -0 -I {} grep -i -l \'.*\' {}')
     print(one_match(asts, ast, ignore_arg_value=True))
     print(one_match(asts, ast, ignore_arg_value=False))

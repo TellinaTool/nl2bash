@@ -16,8 +16,9 @@ import random
 if sys.version_info > (3, 0):
     from six.moves import xrange
 
-from bashlint import data_tools
-from encoder_decoder import data_utils, graph_utils
+import bashlint
+from encoder_decoder import graph_utils
+from data_processor import data_utils
 from eval import token_based, tree_dist
 from nlp_tools import constants, tokenizer
 
@@ -101,8 +102,7 @@ def get_manual_evaluation_metrics(grouped_dataset, prediction_list, FLAGS, num_e
             os.path.join(FLAGS.data_dir, 'manual_judgements'), verbose=True)
 
     eval_bash = FLAGS.dataset.startswith("bash")
-    cmd_parser = data_tools.bash_parser if eval_bash \
-        else data_tools.paren_parser
+    cmd_parser = bashlint.bash_parser if eval_bash else bashlint.shallow_parser
 
     # Interactive manual evaluation
     num_t_top_1_correct = 0.0
@@ -112,17 +112,17 @@ def get_manual_evaluation_metrics(grouped_dataset, prediction_list, FLAGS, num_e
 
     for exam_id, example_id in enumerate(sample_ids):
         data_group = grouped_dataset[example_id][1]
-        sc_txt = data_group[0].sc_txt.strip()
-        sc_key = get_example_nl_key(sc_txt)
-        command_gts = [dp.tg_txt for dp in data_group]
-        command_gt_asts = [data_tools.bash_parser(gt) for gt in command_gts]
+        source = data_group[0].source.strip()
+        sc_key = get_example_nl_key(source)
+        command_gts = [dp.target for dp in data_group]
+        command_gt_asts = [bashlint.bash_parser(gt) for gt in command_gts]
         predictions = prediction_list[example_id]
         top_3_s_correct_marked = False
         top_3_f_correct_marked = False
         for i in xrange(min(3, len(predictions))):
             pred_cmd = predictions[i]
             pred_ast = cmd_parser(pred_cmd)
-            pred_temp = data_tools.ast2template(pred_ast, loose_constraints=True)
+            pred_temp = bashlint.ast2template(pred_ast, loose_constraints=True)
             temp_match = tree_dist.one_match(
                 command_gt_asts, pred_ast, ignore_arg_value=True)
             str_match = tree_dist.one_match(
@@ -144,18 +144,18 @@ def get_manual_evaluation_metrics(grouped_dataset, prediction_list, FLAGS, num_e
             if command_eval != 'y':
                 if structure_eval == 'y':
                     if not command_eval and interactive:
-                        print('#{}. {}'.format(exam_id, sc_txt))
+                        print('#{}. {}'.format(exam_id, source))
                         for j, gt in enumerate(command_gts):
                             print('- GT{}: {}'.format(j, gt))
                         print('> {}'.format(pred_cmd))
                         command_eval = input(
                             'CORRECT COMMAND? [y/reason] ')
-                        add_judgement(FLAGS.data_dir, sc_txt, pred_cmd,
+                        add_judgement(FLAGS.data_dir, source, pred_cmd,
                                       structure_eval, command_eval)
                         print()
                 else:
                     if not structure_eval and interactive:
-                        print('#{}. {}'.format(exam_id, sc_txt))
+                        print('#{}. {}'.format(exam_id, source))
                         for j, gt in enumerate(command_gts):
                             print('- GT{}: {}'.format(j, gt))
                         print('> {}'.format(pred_cmd))
@@ -164,7 +164,7 @@ def get_manual_evaluation_metrics(grouped_dataset, prediction_list, FLAGS, num_e
                         if structure_eval == 'y':
                             command_eval = input(
                                 'CORRECT COMMAND? [y/reason] ')
-                        add_judgement(FLAGS.data_dir, sc_txt, pred_cmd,
+                        add_judgement(FLAGS.data_dir, source, pred_cmd,
                                       structure_eval, command_eval)
                         print()
                 structure_eval_cache[structure_example_key] = structure_eval
@@ -211,7 +211,7 @@ def add_judgement(data_dir, nl, command, correct_template='', correct_command=''
             o_f.write(
                 'description,prediction,template,correct template,correct command\n')
     with open(manual_judgement_path, 'a') as o_f:
-        temp = data_tools.cmd2template(command, loose_constraints=True)
+        temp = bashlint.cmd2template(command, loose_constraints=True)
         if not correct_template:
             correct_template = 'n'
         if not correct_command:
@@ -271,7 +271,7 @@ def gen_automatic_evaluation_table(dataset, FLAGS):
 
 def get_automatic_evaluation_metrics(grouped_dataset, prediction_list, vocabs, FLAGS, top_k,
                                      num_samples=-1, verbose=False):
-    cmd_parser = data_tools.bash_parser
+    cmd_parser = bashlint.bash_parser
     rev_sc_vocab = vocabs.rev_sc_vocab if vocabs is not None else None
 
 
@@ -300,7 +300,7 @@ def get_automatic_evaluation_metrics(grouped_dataset, prediction_list, vocabs, F
     
     for data_id in xrange(len(grouped_dataset)):
         _, data_group = grouped_dataset[data_id]
-        sc_str = data_group[0].sc_txt.strip()
+        sc_str = data_group[0].source.strip()
         sc_key = get_example_nl_key(sc_str)
         if vocabs is not None:
             sc_tokens = [rev_sc_vocab[i] for i in data_group[0].sc_ids]
@@ -309,10 +309,10 @@ def get_automatic_evaluation_metrics(grouped_dataset, prediction_list, vocabs, F
                 sc_features = sc_features.replace(constants._SPACE, ' ')
             else:
                 sc_features = ' '.join(sc_tokens)
-        command_gts = [dp.tg_txt.strip() for dp in data_group]
+        command_gts = [dp.target.strip() for dp in data_group]
         command_gt_asts = [cmd_parser(cmd) for cmd in command_gts]
         command_gt_asts_list.append(command_gt_asts)
-        template_gts = [data_tools.cmd2template(cmd, loose_constraints=True) for cmd in command_gts]
+        template_gts = [bashlint.cmd2template(cmd, loose_constraints=True) for cmd in command_gts]
         template_gt_asts = [cmd_parser(temp) for temp in template_gts]
         if verbose:
             print("Example {}".format(data_id))
@@ -328,7 +328,7 @@ def get_automatic_evaluation_metrics(grouped_dataset, prediction_list, vocabs, F
             pred_ast = cmd_parser(pred_cmd)
             if i == 0:
                 pred_ast_list.append(pred_ast)
-            pred_temp = data_tools.cmd2template(pred_cmd, loose_constraints=True)
+            pred_temp = bashlint.cmd2template(pred_cmd, loose_constraints=True)
             # A) Exact match with ground truths & exisitng judgements
             command_example_key = '{}<NL_PREDICTION>{}'.format(sc_key, pred_cmd)
             structure_example_key = '{}<NL_PREDICTION>{}'.format(sc_key, pred_temp)
@@ -500,7 +500,7 @@ def load_all_model_predictions(grouped_dataset, FLAGS, top_k=1, model_names=('to
     # --- Seq2Seq
     if 'char_seq2seq' in model_names:
         model_predictions.append(load_model_predictions())
-    # --= CopyNet
+    # --- CopyNet
     if 'char_copynet' in model_names:
         FLAGS.use_copy = True
         FLAGS.copy_fun = 'copynet'
@@ -568,7 +568,7 @@ def load_cached_correct_translations(data_dir, treat_empty_as_correct=False, ver
                 if 'template' in row:
                     pred_temp = row['template']
                 else:
-                    pred_temp = data_tools.cmd2template(pred_cmd, loose_constraints=True)
+                    pred_temp = bashlint.cmd2template(pred_cmd, loose_constraints=True)
                 structure_eval = row['correct template']
                 if treat_empty_as_correct:
                     structure_eval = normalize_judgement(structure_eval)
@@ -627,7 +627,7 @@ def load_cached_evaluations_from_file(input_file, treat_empty_as_correct=False, 
             if 'template' in row:
                 pred_temp = row['template']
             else:
-                pred_temp = data_tools.cmd2template(pred_cmd, loose_constraints=True)
+                pred_temp = bashlint.cmd2template(pred_cmd, loose_constraints=True)
             command_eval = row['correct command']
             if treat_empty_as_correct:
                 command_eval = normalize_judgement(command_eval)
