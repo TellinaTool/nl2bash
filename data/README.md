@@ -18,12 +18,21 @@ The manual evaluations of a subset of model predictions are stored in `bash/manu
 Filtering the raw parallel corpus.
 ```
 python3 scripts/filter_data.py bash
+
+Output:
+data/bash/all.nl.filtered
+data/bash/all.cm.filtered
 ```
 
 ### Splitting
 Randomly split the filtered parallel corpus into train, dev and test (using fixed random seed).
 ```
 python3 scripts/split_data.py bash
+
+Output:
+data/bash/train.filtered.json
+data/bash/dev.filtered.json
+data/bash/test.filtered.json
 ```
 Statistics of the dataset split is shown below.
 
