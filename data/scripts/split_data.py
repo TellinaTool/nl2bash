@@ -94,9 +94,6 @@ def split_data(data_dir):
     print('train - {} pairs, dev - {} pairs, test - {} pairs'.format(
         len(train), len(dev_cleaned), len(test_cleaned)))
 
-    import pdb
-    pdb.set_trace()
-
     def save_data_split(data_split, out_json):
         dataset = DataSet()
         for nl_temp in data_split:
@@ -105,6 +102,9 @@ def split_data(data_dir):
                 example = Example(nl, cm)
                 example_group.add_example(example)
             dataset.add_example(example_group)
+        # print(len(dataset.examples))
+        # import pdb
+        # pdb.set_trace()
         with open(out_json, 'w') as o_f:
             json.dump(dataset, o_f, indent=4, default=lambda x: x.__dict__)
 
