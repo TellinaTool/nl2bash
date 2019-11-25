@@ -16,9 +16,7 @@ Specifically, it contains the following components:
 
 You may visit  http://tellina.rocks to interact with our pretrained model.
 
-**🆕 Oct 20, 2019** To evaluate your own model, please use the [standard evaluation scripts](#evaluate-models) provided.
-
-**🆕 Oct 20, 2019** We update the code to Tensorflow 2.0.
+**🆕 Nov 25, 2019** The data after [filtering and splitting](#data-filtering-split-and-pre-processing) are now saved in `.json` format instead of `.txt` format for readability and cleaner I/O.
 
 ## Data Statistics
 
@@ -242,5 +240,6 @@ If you use the data or source code in your work, please cite
 Related paper: [Lin et. al. 2017. Program Synthesis from Natural Language Using Recurrent Neural Networks](http://victorialin.net/pubs/tellina_tr170510.pdf). 
 
 ## Changelog  
-* **Oct 20, 2019** release standard evaluation scripts
-* **Oct 20, 2019** update to Tensorflow 2.0
+* **Nov 25, 2019** Save the data after [filtering and splitting](#data-filtering-split-and-pre-processing) in `.json` format instead of `.txt` format for readability and cleaner I/O.
+* **Oct 20, 2019** Release [standard evaluation scripts](#evaluate-models).
+* **Oct 20, 2019** Update to Tensorflow 2.0.
