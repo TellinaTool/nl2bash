@@ -8,7 +8,6 @@ if sys.version_info > (3, 0):
 
 import bashlint
 from data_processor.data_utils import *
-from nlp_tools import canonicalize_text
 
 
 def load_data(FLAGS, use_buckets=True, load_features=True):
@@ -82,10 +81,10 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
     max_sc_length = 0
     max_tg_length = 0
 
-    for i, sc_txt in enumerate(sc_file.readlines()):
+    for i, source in enumerate(sc_file.readlines()):
         example = Example()
-        example.sc_txt = sc_txt.strip()
-        example.tg_txt = tg_file.readline().strip()
+        example.source = source.strip()
+        example.target = tg_file.readline().strip()
         if load_features:
             example.sc_ids = get_source_ids(sc_token_file.readline().strip())
             if len(example.sc_ids) > max_sc_length:
@@ -171,16 +170,6 @@ def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
                     bucket_id = len(buckets) - 1
                     dataset2[bucket_id].append(example)
         dataset = dataset2
-
-    # Group dev and test sets
-    if split != 'train':
-        data_holder = dict()
-        for i, example in enumerate(dataset):
-            signature = canonicalize_text(example.sc_txt)
-            if not signature in data_holder:
-                data_holder[signature] = ExampleGroup(signature)
-            data_holder[signature].add_example(example)
-        dataset = data_holder.values()
 
     D = DataSet(dataset)
     if split == 'train' and load_features:

@@ -4,6 +4,9 @@ ratio.
 
 Usage: python3 split_data.py [data_directory]
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 import collections
 import json
