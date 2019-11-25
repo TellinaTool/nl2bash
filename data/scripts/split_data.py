@@ -117,7 +117,7 @@ def split_data(data_dir):
                 example_group.add_example(example)
             dataset.add_example(example_group)
         with open(out_json, 'w') as o_f:
-            json.dump(dataset.__dict__, o_f, indent=4)
+            json.dump(dataset, o_f, indent=4)
 
     save_data_split(train, os.path.join(data_dir, "train.filtered.json"))
     save_data_split(dev_cleaned, os.path.join(data_dir, "dev.filtered.json"))
