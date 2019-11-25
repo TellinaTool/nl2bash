@@ -347,7 +347,7 @@ def shallow_parser(line):
         line = line + " )"
     words = line.strip().split()
 
-    print(line)
+    print(line.encode('utf-8'))
     root = nast.Node(kind="root", value="root")
     stack = [root]
 
