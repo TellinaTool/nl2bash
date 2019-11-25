@@ -21,12 +21,12 @@ _H_NO_EXPAND = '__SP__H_NO_EXPAND'
 _V_NO_EXPAND = '__SP__V_NO_EXPAND'
 
 
-def bash_parser(cmd, recover_quotation=True, verbose=False):
+def bash_parser(cmd, use_shallow_parser=False, recover_quotation=True, verbose=False):
     """
     Parse bash command into AST.
     """
     ast = lint.normalize_ast(cmd, recover_quotation, verbose=verbose)
-    if ast is None:
+    if ast is None and use_shallow_parser:
         return shallow_parser(cmd)
     else:
         return ast
@@ -363,7 +363,7 @@ def shallow_parser(line):
             else:
                 stack.append(root)
         elif word == ")":
-            if stack:
+            if stack and stack[-1].kind != 'root':
                 stack.pop()
         else:
             node = nast.Node(kind="t", value=word)
