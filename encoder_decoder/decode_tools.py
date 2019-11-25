@@ -77,7 +77,7 @@ def translate_fun(example, sess, model, vocabs, FLAGS,
         source_str = example
         encoder_features = query_to_encoder_features(example, vocabs, FLAGS)
     else:
-        source_str = example[0].sc_txt
+        source_str = example[0].source
         encoder_features = [[example[0].sc_ids]]
         if FLAGS.use_copy and FLAGS.copy_fun == 'copynet':
             encoder_features.append([example[0].csc_ids])
@@ -319,21 +319,21 @@ def decode_set(sess, model, dataset, top_k, FLAGS, verbose=False):
     for example_id in xrange(len(grouped_dataset)):
         key, data_group = grouped_dataset[example_id]
 
-        sc_txt = data_group[0].sc_txt.strip()
+        source = data_group[0].source.strip()
         sc_tokens = [rev_sc_vocab[i] for i in data_group[0].sc_ids]
         if FLAGS.channel == 'char':
             sc_temp = ''.join(sc_tokens)
             sc_temp = sc_temp.replace(constants._SPACE, ' ')
         else:
             sc_temp = ' '.join(sc_tokens)
-        tg_txts = [dp.tg_txt for dp in data_group]
-        tg_asts = [bashlint.bash_parser(tg_txt) for tg_txt in tg_txts]
+        targets = [dp.target for dp in data_group]
+        tg_asts = [bashlint.bash_parser(target) for target in targets]
         if verbose:
             print('\nExample {}:'.format(example_id))
-            print('Original Source: {}'.format(sc_txt.encode('utf-8')))
+            print('Original Source: {}'.format(source.encode('utf-8')))
             print('Source: {}'.format(sc_temp.encode('utf-8')))
             for j in xrange(len(data_group)):
-                print('GT Target {}: {}'.format(j+1, data_group[j].tg_txt.encode('utf-8')))
+                print('GT Target {}: {}'.format(j+1, data_group[j].target.encode('utf-8')))
 
         if FLAGS.fill_argument_slots:
             slot_filling_classifier = get_slot_filling_classifer(FLAGS)
@@ -345,7 +345,7 @@ def decode_set(sess, model, dataset, top_k, FLAGS, verbose=False):
         if FLAGS.tg_char:
             batch_outputs, batch_char_outputs = batch_outputs
 
-        eval_row = '{},"{}",'.format(example_id, sc_txt.replace('"', '""'))
+        eval_row = '{},"{}",'.format(example_id, source.replace('"', '""'))
         if batch_outputs:
             if FLAGS.token_decoding_algorithm == 'greedy':
                 tree, pred_cmd = batch_outputs[0]
@@ -364,8 +364,8 @@ def decode_set(sess, model, dataset, top_k, FLAGS, verbose=False):
                 for j in xrange(num_preds):
                     if j > 0:
                         eval_row = ',,'
-                    if j < len(tg_txts):
-                        eval_row += '"{}",'.format(tg_txts[j].strip().replace('"', '""'))
+                    if j < len(targets):
+                        eval_row += '"{}",'.format(targets[j].strip().replace('"', '""'))
                     else:
                         eval_row += ','
                     top_k_pred_tree, top_k_pred_cmd = top_k_predictions[j]
