@@ -26,7 +26,6 @@ def compute_top_utilities(path, k):
             command = f.readline().strip()
             if not command:
                 break
-            # print(command.encode('utf-8'))
             ast = bash_parser(command, verbose=False)
             for u in get_utilities(ast):
                 utilities[u] += 1
@@ -54,27 +53,25 @@ def filter_by_most_frequent_utilities(data_dir, num_utilities):
                 return False
         return True
 
+    nl_path = os.path.join(data_dir, 'all.nl')
     cm_path = os.path.join(data_dir, 'all.cm')
     top_utilities = compute_top_utilities(cm_path, num_utilities)
-    for split in ['all']:
-        nl_file_path = os.path.join(data_dir, split + '.nl')
-        cm_file_path = os.path.join(data_dir, split + '.cm')
-        with open(nl_file_path, encoding='utf-8') as f:
-            nls = [nl.strip() for nl in f.readlines()]
-        with open(cm_file_path, encoding='utf-8') as f:
-            cms = [cm.strip() for cm in f.readlines()]
-        nl_outfile_path = os.path.join(data_dir, split + '.nl.filtered')
-        cm_outfile_path = os.path.join(data_dir, split + '.cm.filtered')
-        with open(nl_outfile_path, 'w') as nl_outfile:
-            with open(cm_outfile_path, 'w') as cm_outfile:
-                for nl, cm in zip(nls, cms):
-                    if len(nl.split()) > MAX_TEXT_LENGTH:
-                        print('lenthy description skipped: {}'.format(nl))
-                        continue
-                    ast = bash_parser(cm)
-                    if ast and select(ast, cm, top_utilities):
-                        nl_outfile.write('{}\n'.format(nl.encode('utf-8')))
-                        cm_outfile.write('{}\n'.format(cm.encode('utf-8')))
+    with open(nl_path, encoding='utf-8') as f:
+        nls = [nl.strip() for nl in f.readlines()]
+    with open(cm_path, encoding='utf-8') as f:
+        cms = [cm.strip() for cm in f.readlines()]
+    nl_outfile_path = os.path.join(data_dir, 'all.nl.filtered')
+    cm_outfile_path = os.path.join(data_dir, 'all.cm.filtered')
+    with open(nl_outfile_path, 'w', encoding='utf-8') as nl_outfile:
+        with open(cm_outfile_path, 'w', encoding='utf-8') as cm_outfile:
+            for nl, cm in zip(nls, cms):
+                if len(nl.split()) > MAX_TEXT_LENGTH:
+                    print('lenthy description skipped: {}'.format(nl))
+                    continue
+                ast = bash_parser(cm)
+                if ast and select(ast, cm, top_utilities):
+                    nl_outfile.write('{}\n'.format(nl))
+                    cm_outfile.write('{}\n'.format(cm))
 
 
 if __name__ == '__main__':

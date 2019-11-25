@@ -27,9 +27,9 @@ RANDOM_SEED = 100
 def split_data(data_dir):
     nl_file_path = os.path.join(data_dir, 'all.nl.filtered')
     cm_file_path = os.path.join(data_dir, 'all.cm.filtered')
-    with open(nl_file_path) as f:
+    with open(nl_file_path, encoding='utf-8') as f:
         nls = [line.strip() for line in f.readlines()]
-    with open(cm_file_path) as f:
+    with open(cm_file_path, encoding='utf-8') as f:
         cms = [line.strip() for line in f.readlines()]
     assert(len(nls) == len(cms))
 
@@ -63,6 +63,9 @@ def split_data(data_dir):
         elif ind == num_folds - 1:
             test[nl_temp] = pairs[nl_temp]
             num_test += 1
+    print('First round split:')
+    print('train - {} pairs, dev - {} pairs, test - {} pairs'.format(
+        len(train), len(dev), len(test)))
 
     # move dev/test examples whose command has appeared in the train set to 
     # train
@@ -87,26 +90,9 @@ def split_data(data_dir):
             else:
                 test_cleaned[nl_temp].append((nl, cm))
     print('{} pairs moved from test to train'.format(num_moved))
-
-    # select 100 examples as dev
-    # dev_nl_list_reorg = []
-    # dev_cm_list_reorg = []
-    # indices = list(range(len(dev_nl_list_cleaned)))
-    # random.seed(RANDOM_SEED)
-    # random.shuffle(indices)
-    # dev_nl_temps = set()
-    # for count, dev_ind in enumerate(indices):
-    #     dev_nl_temps.add(get_nl_temp(dev_nl_list_cleaned[dev_ind]))
-    #     dev_nl_list_reorg.append(dev_nl_list_cleaned[dev_ind])
-    #     dev_cm_list_reorg.append(dev_cm_list_cleaned[dev_ind])
-    #     if len(dev_nl_temps) == 100:
-    #         break
-    # 
-    # test_nl_list_reorg = test_nl_list_cleaned
-    # test_cm_list_reorg = test_cm_list_cleaned
-    # for i in indices[count+1:]:
-    #     test_nl_list_reorg.append(dev_nl_list_cleaned[i])
-    #     test_cm_list_reorg.append(dev_cm_list_cleaned[i])
+    print('Second round split:')
+    print('train - {} pairs, dev - {} pairs, test - {} pairs'.format(
+        len(train), len(dev_cleaned), len(test_cleaned)))
 
     def save_data_split(data_split, out_json):
         dataset = DataSet()
@@ -116,8 +102,11 @@ def split_data(data_dir):
                 example = Example(nl, cm)
                 example_group.add_example(example)
             dataset.add_example(example_group)
+        # print(len(dataset.examples))
+        # import pdb
+        # pdb.set_trace()
         with open(out_json, 'w') as o_f:
-            json.dump(dataset, o_f, indent=4) 
+            json.dump(dataset, o_f, indent=4, default=lambda x: x.__dict__)
 
     save_data_split(train, os.path.join(data_dir, "train.filtered.json"))
     save_data_split(dev_cleaned, os.path.join(data_dir, "dev.filtered.json"))
