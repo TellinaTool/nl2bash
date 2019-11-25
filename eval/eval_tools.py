@@ -20,7 +20,7 @@ import bashlint
 from encoder_decoder import graph_utils
 from data_processor import data_utils
 from eval import token_based, tree_dist
-from nlp_tools import constants, tokenizer
+from nlp_tools import canonicalize_text, constants, tokenizer
 
 
 def manual_eval(prediction_path, dataset, FLAGS, top_k, num_examples=-1, interactive=True, verbose=True):
@@ -647,8 +647,7 @@ def get_example_nl_key(nl):
     """
     Get the natural language description in an example with nuances removed.
     """
-    tokens, _ = tokenizer.basic_tokenizer(nl)
-    return ' '.join(tokens)
+    return canonicalize_text(nl)
 
 
 def get_example_cm_key(cm):
