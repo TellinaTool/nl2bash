@@ -347,6 +347,7 @@ def shallow_parser(line):
         line = line + " )"
     words = line.strip().split()
 
+    print(line)
     root = nast.Node(kind="root", value="root")
     stack = [root]
 
@@ -354,14 +355,11 @@ def shallow_parser(line):
     while i < len(words):
         word = words[i]
         if word == "(":
-            if stack:
-                # creates non-terminal
-                node = nast.Node(kind="nt", value="<n>")
-                stack[-1].add_child(node)
-                node.parent = stack[-1]
-                stack.append(node)
-            else:
-                stack.append(root)
+            # creates non-terminal
+            node = nast.Node(kind="nt", value="<n>")
+            stack[-1].add_child(node)
+            node.parent = stack[-1]
+            stack.append(node)
         elif word == ")":
             if stack:
                 stack.pop()
