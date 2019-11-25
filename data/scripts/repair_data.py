@@ -8,6 +8,8 @@ Usage: python3 repair_data.py [data_directory]
 import csv
 import os, sys
 
+from bashlint import bash_parser
+
 
 def import_repairs(import_dir):
     repairs, errors, new_annotations = {}, {}, {}
@@ -80,6 +82,26 @@ def repair_data(nl_path, cm_path, repairs, errors, new_annotations):
         cm_out.write('{}\n'.format(cm))
     nl_out.close()
     cm_out.close()
+
+
+def gen_non_specific_description_check_csv(data_dir):
+    with open(os.path.join(data_dir, 'all.nl')) as f:
+        nl_list = [nl.strip() for nl in f.readlines()]
+    with open(os.path.join(data_dir, 'all.cm')) as f:
+        cm_list = [cm.strip() for cm in f.readlines()]
+    assert(len(nl_list) == len(cm_list))
+
+    with open('annotation_check_sheet.non.specific.csv', 'w') as o_f:
+        o_f.write('Utility,Command,Description\n')
+        for nl, cm in zip(nl_list, cm_list):
+            if ' specific ' in nl or ' a file ' in nl or ' a folder ' in nl \
+                    or ' a directory ' in nl or ' some ' in nl \
+                    or ' a pattern ' in nl or ' a string ' in nl:
+                ast = bash_parser(cm)
+                if ast:
+                    o_f.write(',"{}","{}"\n'.format(cm.replace('"', '""'),
+                        nl.replace('"', '""')))
+                    o_f.write(',,<Type a new description here>\n')
 
 
 if __name__ == '__main__':

@@ -14,6 +14,7 @@ from bashlint import bash, bash_parser, get_utilities
 
 data_splits = ['train', 'dev', 'test']
 
+MAX_TEXT_LENGTH = 50
 NUM_UTILITIES = 100
 
 
@@ -66,33 +67,13 @@ def filter_by_most_frequent_utilities(data_dir, num_utilities):
         with open(nl_outfile_path, 'w') as nl_outfile:
             with open(cm_outfile_path, 'w') as cm_outfile:
                 for nl, cm in zip(nls, cms):
-                    if len(nl.split()) > 50:
+                    if len(nl.split()) > MAX_TEXT_LENGTH:
                         print('lenthy description skipped: {}'.format(nl))
                         continue
                     ast = bash_parser(cm)
                     if ast and select(ast, cm, top_utilities):
                         nl_outfile.write('{}\n'.format(nl))
                         cm_outfile.write('{}\n'.format(cm))
-                            
-
-def gen_non_specific_description_check_csv(data_dir):
-    with open(os.path.join(data_dir, 'all.nl')) as f:
-        nl_list = [nl.strip() for nl in f.readlines()]
-    with open(os.path.join(data_dir, 'all.cm')) as f:
-        cm_list = [cm.strip() for cm in f.readlines()]
-    assert(len(nl_list) == len(cm_list))
-
-    with open('annotation_check_sheet.non.specific.csv', 'w') as o_f:
-        o_f.write('Utility,Command,Description\n')
-        for nl, cm in zip(nl_list, cm_list):
-            if ' specific ' in nl or ' a file ' in nl or ' a folder ' in nl \
-                    or ' a directory ' in nl or ' some ' in nl \
-                    or ' a pattern ' in nl or ' a string ' in nl:
-                ast = bash_parser(cm)
-                if ast:
-                    o_f.write(',"{}","{}"\n'.format(cm.replace('"', '""'), 
-                        nl.replace('"', '""')))
-                    o_f.write(',,<Type a new description here>\n')
 
 
 if __name__ == '__main__':
