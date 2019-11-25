@@ -8,7 +8,10 @@ from __future__ import print_function
 
 import numpy as np
 import bashlint
+from json import JSONEncoder
 from nlp_tools import constants
+import scipy.sparse as ssp
+
 
 # Special token symbols
 _PAD = "__SP__PAD"
@@ -84,7 +87,7 @@ data_splits = ['train', 'dev', 'test']
 TOKEN_SEPARATOR = '<TOKEN_SEPARATOR>'
 
 
-class DataSet(object):
+class DataSet(JSONEncoder):
     def __init__(self, examples=list()):
         self.examples = examples
         self.max_sc_length = -1
@@ -95,7 +98,7 @@ class DataSet(object):
         self.examples.append(example)
 
 
-class ExampleGroup(object):
+class ExampleGroup(JSONEncoder):
     def __init__(self, signature):
         self.examples = []
         self.group_signature = signature
@@ -104,7 +107,7 @@ class ExampleGroup(object):
         self.examples.append(example)
 
 
-class Example(object):
+class Example(JSONEncoder):
     def __init__(self, source=None, target=None):
         self.source = source
         self.target = target
@@ -167,7 +170,7 @@ def load_pair_alignment(in_path):
             alignments_ = [pair.split('-') for pair in pairs.split()]
             for pair in alignments_:
                 A[int(pair[0]), int(pair[1])] = 1
-            alignments.append(A)
+            alignments.append(ssp.lil_matrix(A))
 
 
 def save_pair_alignment(alignments, out_path):

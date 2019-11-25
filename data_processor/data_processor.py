@@ -4,11 +4,11 @@ Collection of data processing functions.
 import collections
 import os
 
-import bashlint
 from bashlint import bash
 from data_processor.data_utils import *
 from data_processor.data_loader import initialize_vocabulary
 from nlp_tools import tokenizer
+import scipy.sparse as ssp
 
 
 def process_data(FLAGS):
