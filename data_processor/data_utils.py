@@ -7,8 +7,7 @@ from __future__ import division
 from __future__ import print_function
 
 import numpy as np
-import scipy.sparse as ssp
-from bashlint import nast
+import bashlint
 from nlp_tools import constants
 
 # Special token symbols
@@ -47,8 +46,8 @@ TOKEN_INIT_VOCAB = [
     _ARG_UNK,
     _UTL_UNK,
     _FLAG_UNK,
-    nast._H_NO_EXPAND,
-    nast._V_NO_EXPAND,
+    bashlint._H_NO_EXPAND,
+    bashlint._V_NO_EXPAND,
     _GO,
     _ROOT,
     _ARG_START,
