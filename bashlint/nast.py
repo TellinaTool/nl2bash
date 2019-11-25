@@ -4,6 +4,7 @@ Node Classes for the Normalized Bash AST.
 
 import collections
 
+from bashlint import KIND_PREFIX
 from bashlint import bash
 
 
