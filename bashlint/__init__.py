@@ -348,7 +348,7 @@ def shallow_parser(line):
     words = line.strip().split()
 
     root = nast.Node(kind="root", value="root")
-    stack = []
+    stack = [root]
 
     i = 0
     while i < len(words):
@@ -370,8 +370,6 @@ def shallow_parser(line):
             stack[-1].add_child(node)
             node.parent = stack[-1]
         i += 1
-        if len(stack) == 0:
-            break
 
     # order nodes
     order_child_fun(root)
