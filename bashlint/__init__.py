@@ -17,7 +17,6 @@ split = bparser.split
 
 flag_suffix = '<FLAG_SUFFIX>'
 
-KIND_PREFIX = '<KIND_PREFIX>'
 _H_NO_EXPAND = '__SP__H_NO_EXPAND'
 _V_NO_EXPAND = '__SP__V_NO_EXPAND'
 

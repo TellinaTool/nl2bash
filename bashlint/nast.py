@@ -4,8 +4,9 @@ Node Classes for the Normalized Bash AST.
 
 import collections
 
-from bashlint import KIND_PREFIX
 from bashlint import bash
+
+KIND_PREFIX = '<KIND_PREFIX>'
 
 
 def make_parent_child(parent, child):
