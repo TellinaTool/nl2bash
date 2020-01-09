@@ -5,7 +5,7 @@ from __future__ import division
 from __future__ import print_function
 
 from src.encoder_decoder import encoder
-from src.encoder_decoder import EncoderDecoderModel
+from src.encoder_decoder.framework import EncoderDecoderModel
 from . import tree_decoder
 
 class Seq2TreeModel(EncoderDecoderModel):

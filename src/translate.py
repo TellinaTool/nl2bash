@@ -25,13 +25,14 @@ from tqdm import tqdm
 
 import tensorflow as tf
 
-from src.data_processor import data_utils, data_processor
+from src.data_processor import data_loader, data_processor, data_utils
 from src.encoder_decoder import decode_tools
 from src import meta_experiments, parse_args
 from src.encoder_decoder import slot_filling, common
 from src.encoder_decoder.seq2seq.seq2seq_model import Seq2SeqModel
 from src.encoder_decoder.seq2tree.seq2tree_model import Seq2TreeModel
 from src.eval import eval_tools, error_analysis
+import src.utils as utils
 
 # Refer to parse_args.py for model parameter explanations
 FLAGS = tf.compat.v1.flags.FLAGS
@@ -168,17 +169,17 @@ def decode(dataset, buckets=None, verbose=True):
 
 def eval(dataset, prediction_path=None, verbose=True):
     if prediction_path is None:
-        model_subdir, decode_sig = common.get_decode_signature(FLAGS)
+        model_subdir, decode_sig = utils.get_decode_signature(FLAGS)
         model_dir = os.path.join(FLAGS.model_root_dir, model_subdir)
         prediction_path = os.path.join(model_dir, 'predictions.{}.latest'.format(decode_sig))
     print("(Auto) evaluating " + prediction_path)
 
-    return eval_tools.automatic_eval(prediction_path, dataset, top_k=3, FLAGS=FLAGS, verbose=verbose)
+    return eval_tools.automatic_eval(prediction_path, dataset, FLAGS, top_k=3, verbose=verbose)
 
 
 def manual_eval(dataset, prediction_path=None):
     if prediction_path is None:
-        model_subdir, decode_sig = common.get_decode_signature(FLAGS)
+        model_subdir, decode_sig = utils.get_decode_signature(FLAGS)
         model_dir = os.path.join(FLAGS.model_root_dir, model_subdir)
         prediction_path = os.path.join(model_dir, 'predictions.{}.latest'.format(decode_sig))
     print("(Manual) evaluating " + prediction_path)
@@ -221,7 +222,7 @@ def gen_slot_filling_training_data(FLAGS, datasets):
 def gen_error_analysis_sheets(dataset, model_dir=None, decode_sig=None,
                               group_by_utility=False):
     if model_dir is None:
-        model_subdir, decode_sig = common.get_decode_signature(FLAGS)
+        model_subdir, decode_sig = utils.get_decode_signature(FLAGS)
         model_dir = os.path.join(FLAGS.model_root_dir, model_subdir)
     if group_by_utility:
         error_analysis.gen_error_analysis_csv_by_utility(
@@ -293,8 +294,7 @@ def main(_):
         process_data()
 
     else:
-        train_set, dev_set, test_set = data_utils.load_data(
-            FLAGS, use_buckets=False, load_features=False)
+        train_set, dev_set, test_set = data_loader.load_data(FLAGS, load_features=False)
         dataset = test_set if FLAGS.test else dev_set
 
         if FLAGS.eval:
@@ -317,7 +317,7 @@ def main(_):
         elif FLAGS.tabulate_example_predictions:
             error_analysis.tabulate_example_predictions(dataset, FLAGS, num_examples=100)
         else:
-            train_set, dev_set, test_set = data_utils.load_data(FLAGS, use_buckets=True)
+            train_set, dev_set, test_set = data_loader.load_data(FLAGS, load_features=True)
             dataset = test_set if FLAGS.test else dev_set
             vocab = data_utils.load_vocabulary(FLAGS)
 

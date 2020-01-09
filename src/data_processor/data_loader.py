@@ -8,17 +8,17 @@ import os
 from src.data_processor.data_utils import *
 
 
-def load_data(args):
+def load_data(args, load_features=False):
     print("Loading data from %s" % args.data_dir)
-    train_set = load_data_split(args, 'train')
-    dev_set = load_data_split(args, 'dev')
-    test_set = load_data_split(args, 'test')
-    return train_set, dev_set, test_set
-
-
-def load_data_split(args, split):
     data_dir = args.data_dir
-    in_json = os.path.join(data_dir, '{}.filtered.json'.format(split))
+    data = dict()
+    suffix = '.filtered.features.json' if load_features else '.filtered.json'
+    for split in ['train', 'dev', 'test']:
+        data[split] = os.path.join(data_dir, '{}.{}'.format(split, suffix))
+    return data['train'], data['dev'], data['test']
+
+
+def load_data_split(in_json):
     print("input data file: {}".format(in_json))
     with open(in_json) as f:
         content = json.load(f)
@@ -107,7 +107,7 @@ def save_data_split(data_split, out_json):
     for nl_temp in data_split:
         example_group = ExampleGroup(nl_temp)
         for nl, cm in data_split[nl_temp]:
-            example = Example(nl, cm)
+            example = DataExample(nl, cm)
             example_group.add_example(example)
         dataset.add_example(example_group)
     with open(out_json, 'w') as o_f:

@@ -116,7 +116,7 @@ class ExampleGroup(object):
         self.examples.append(example)
 
 
-class Example(object):
+class DataExample(object):
     def __init__(self, nl=None, cm=None):
         self.nl = nl
         self.cm = cm

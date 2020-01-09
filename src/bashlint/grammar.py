@@ -686,4 +686,4 @@ class BashGrammar(object):
 
 
 bg = BashGrammar()
-bg.make_grammar(os.path.join(os.path.dirname(__file__), 'grammar', 'grammar100.txt'))
+bg.make_grammar(os.path.join(os.path.dirname(__file__), 'grammar100.txt'))

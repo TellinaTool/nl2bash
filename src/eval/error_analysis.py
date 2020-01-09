@@ -15,14 +15,16 @@ import random
 if sys.version_info > (3, 0):
     from six.moves import xrange
 
-from bashlint import bash, data_tools
-from encoder_decoder import data_utils, graph_utils
-from eval import tree_dist
-from eval.eval_tools import load_predictions
-from eval.eval_tools import load_all_model_predictions
-from eval.eval_tools import load_cached_evaluations
-from eval.eval_tools import load_cached_correct_translations
-from eval.eval_tools import get_example_nl_key
+from src.bashlint import bash, data_tools
+from src.data_processor import data_utils
+from src.eval import tree_dist
+from src.eval.eval_tools import load_predictions
+from src.eval.eval_tools import load_all_model_predictions
+from src.eval.eval_tools import load_cached_evaluations
+from src.eval.eval_tools import load_cached_correct_translations
+from src.eval.eval_tools import get_example_nl_key
+import src.utils as utils
+
 
 error_types = {
     0: "unmarked error",
@@ -48,7 +50,7 @@ def gen_manual_evaluation_csv_single_model(dataset, FLAGS):
         dataset, tokenizer_selector=tokenizer_selector)
 
     # Load model predictions
-    model_subdir, decode_sig = graph_utils.get_decode_signature(FLAGS)
+    model_subdir, decode_sig = utils.get_decode_signature(FLAGS)
     model_dir = os.path.join(FLAGS.model_root_dir, model_subdir)
     prediction_path = os.path.join(model_dir, 'predictions.{}.latest'.format(decode_sig))
     prediction_list = load_predictions(prediction_path, top_k=3)

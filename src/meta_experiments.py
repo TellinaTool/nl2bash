@@ -119,7 +119,7 @@ def grid_search(train_fun, decode_fun, eval_fun, train_set, dev_set, flags):
                 'num_buckets' in hyperparameters:
             # Read train and dev sets from disk
             train_set, dev_set, test_set = \
-                data_loader.load_data(flags, use_buckets=True, load_features=False)
+                data_loader.load_data(flags, load_features=False)
             vocab = data_loader.load_vocabulary(flags)
             flags.nl_vocab_size = len(vocab.nl_vocab)
             flags.cm_vocab_size = len(vocab.cm_vocab)
