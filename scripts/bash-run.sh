@@ -2,7 +2,7 @@
 
 ARGS=${@:1}
 
-python3 -m encoder_decoder.translate \
+python3 -m src.encoder_decoder.translate \
     --rnn_cell gru \
     --encoder_topology birnn \
     --num_epochs 100 \
