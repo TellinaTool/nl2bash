@@ -8,7 +8,7 @@ Usage: python3 repair_data.py [data_directory]
 import csv
 import os, sys
 
-from bashlint import bash_parser
+from src.bashlint import bash_parser
 
 
 def import_repairs(import_dir):

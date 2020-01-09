@@ -14,8 +14,8 @@ import random
 import re
 import os, sys
 
-from data_processor.data_utils import DataSet, ExampleGroup, Example
-from nlp_tools import canonicalize_text
+from src.data_processor.data_loader import save_data_split
+from src.nlp_tools import canonicalize_text
 
 html_rel2abs = re.compile('"/[^\s<>]*/*http')
 hypothes_header = re.compile(
@@ -93,20 +93,6 @@ def split_data(data_dir):
     print('Second round split:')
     print('train - {} pairs, dev - {} pairs, test - {} pairs'.format(
         len(train), len(dev_cleaned), len(test_cleaned)))
-
-    def save_data_split(data_split, out_json):
-        dataset = DataSet()
-        for nl_temp in data_split:
-            example_group = ExampleGroup(nl_temp)
-            for nl, cm in data_split[nl_temp]:
-                example = Example(nl, cm)
-                example_group.add_example(example)
-            dataset.add_example(example_group)
-        # print(len(dataset.examples))
-        # import pdb
-        # pdb.set_trace()
-        with open(out_json, 'w') as o_f:
-            json.dump(dataset, o_f, indent=4, default=lambda x: x.__dict__)
 
     save_data_split(train, os.path.join(data_dir, "train.filtered.json"))
     save_data_split(dev_cleaned, os.path.join(data_dir, "dev.filtered.json"))

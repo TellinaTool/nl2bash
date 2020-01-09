@@ -7,12 +7,10 @@ from __future__ import print_function
 
 import collections
 import numpy as np
-import os, sys
-sys.path.append('../../')  # for bashlint
-import re
+import sys
 
-from bashlint import bash, bash_parser, bash_tokenizer, cmd2template, get_utilities, utility_stats
-from nlp_tools.tokenizer import basic_tokenizer
+from src.bashlint import bash, bash_parser, bash_tokenizer, cmd2template, get_utilities, utility_stats
+from src.nlp_tools.tokenizer import basic_tokenizer
 
 
 def u_hist_to_radar_chart():

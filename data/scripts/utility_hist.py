@@ -3,10 +3,10 @@ from __future__ import division
 from __future__ import print_function
 
 import collections
-import os, sys
+import sys
 sys.path.append('/home/xilin/Projects/tellina/learning_module/')
 
-from bashlint import bash, bash_parser, get_utilities, utility_stats
+from src.bashlint import bash, bash_parser, get_utilities, utility_stats
 
 
 def get_u_hist_from_file(input_file):
@@ -21,7 +21,7 @@ def get_u_hist_from_file(input_file):
     return u_hist
 
 
-def u_hist_to_radar_chart(hist):
+def u_hist_to_radar_chart(hist): 
     long_tail = 0
     top_utilities = []
     for i, (u, freq) in enumerate(

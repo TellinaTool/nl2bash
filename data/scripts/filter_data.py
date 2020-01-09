@@ -10,7 +10,7 @@ from __future__ import print_function
 import collections
 import os, sys
 
-from bashlint import bash, bash_parser, get_utilities
+from src.bashlint import bash, bash_parser, get_utilities
 
 data_splits = ['train', 'dev', 'test']
 
