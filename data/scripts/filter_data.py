@@ -20,7 +20,7 @@ NUM_UTILITIES = 100
 def compute_top_utilities(path, k):
     print('computing top most frequent utilities...') 
     utilities = collections.defaultdict(int)
-    with open(path) as f:
+    with open(path, encoding='utf-8') as f:
         while (True):
             command = f.readline().strip()
             if not command:
@@ -49,7 +49,7 @@ def filter_by_most_frequent_utilities(data_dir, num_utilities):
         for ut in data_tools.get_utilities(ast):
             if not ut in utility_set:
                 print('Utility currently not handled: {} - {}'.format(
-                    ut, data_tools.ast2command(ast, loose_constraints=True)))
+                    ut, data_tools.ast2command(ast, loose_constraints=True).encode('utf-8')))
                 return False
         return True
 
@@ -58,14 +58,14 @@ def filter_by_most_frequent_utilities(data_dir, num_utilities):
     for split in ['all']:
         nl_file_path = os.path.join(data_dir, split + '.nl')
         cm_file_path = os.path.join(data_dir, split + '.cm')
-        with open(nl_file_path) as f:
+        with open(nl_file_path, encoding='utf-8') as f:
             nls = [nl.strip() for nl in f.readlines()]
-        with open(cm_file_path) as f:
+        with open(cm_file_path, encoding='utf-8') as f:
             cms = [cm.strip() for cm in f.readlines()]
         nl_outfile_path = os.path.join(data_dir, split + '.nl.filtered')
         cm_outfile_path = os.path.join(data_dir, split + '.cm.filtered')
-        with open(nl_outfile_path, 'w') as nl_outfile:
-            with open(cm_outfile_path, 'w') as cm_outfile:
+        with open(nl_outfile_path, 'w', encoding='utf-8') as nl_outfile:
+            with open(cm_outfile_path, 'w', encoding='utf-8') as cm_outfile:
                 for nl, cm in zip(nls, cms):
                     if len(nl.split()) > 50:
                         print('lenthy description skipped: {}'.format(nl))

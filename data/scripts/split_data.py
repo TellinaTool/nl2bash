@@ -29,7 +29,7 @@ def get_nl_temp(nl):
 
 def split_data(data_dir):
     def write_data(data_path, data):
-        with open(data_path, 'w') as o_f:
+        with open(data_path, 'w', encoding='utf-8') as o_f:
             for line in data:
                 o_f.write(line + '\n')
             print('{} saved'.format(data_path))
@@ -37,9 +37,9 @@ def split_data(data_dir):
     nl_file_path = os.path.join(data_dir, 'all.{}'.format(nl_suffix))
     cm_file_path = os.path.join(data_dir, 'all.{}'.format(cm_suffix))
 
-    with open(nl_file_path) as f:
+    with open(nl_file_path, encoding='utf-8') as f:
         nls = [line.strip() for line in f.readlines()]
-    with open(cm_file_path) as f:
+    with open(cm_file_path, encoding='utf-8') as f:
         cms = [line.strip() for line in f.readlines()]
 
     assert(len(nls) == len(cms))

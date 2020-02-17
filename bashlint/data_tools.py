@@ -362,9 +362,10 @@ def paren_parser(line):
             if stack:
                 stack.pop()
         else:
-            node = nast.Node(kind="t", value=word)
-            stack[-1].add_child(node)
-            node.parent = stack[-1]
+            if stack:
+                node = nast.Node(kind="t", value=word)
+                stack[-1].add_child(node)
+                node.parent = stack[-1]
         i += 1
         if len(stack) == 0:
             break
