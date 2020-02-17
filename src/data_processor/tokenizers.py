@@ -9,7 +9,7 @@ from src.nlp_tools import constants, tokenizer
 
 def parallel_data_to_tokens(dataset):
     nl_tokens_list, cm_tokens_list = [], []
-    for exp in dataset.example_list:
+    for exp in dataset.all_examples:
         exp.nl_tokens = nl_to_tokens(exp.nl, tokenizer.basic_tokenizer)
         exp.nl_tokens_orig = nl_to_tokens(
             exp.nl, tokenizer.basic_tokenizer, to_lower_case=False, lemmatization=False)
@@ -21,8 +21,9 @@ def parallel_data_to_tokens(dataset):
 
 def parallel_data_to_chars(dataset):
     nl_chars_list, cm_chars_list = [], []
-    for exp in dataset.example_list:
-        exp.nl_chars = nl_to_chars(exp.nl)
+    for exp in dataset.all_examples:
+        exp.nl_chars = nl_to_chars(exp.nl, to_lower_case=True)
+        exp.nl_chars_orig = nl_to_chars(exp.nl, to_lower_case=False)
         exp.cm_chars = cm_to_chars(exp.cm)
         nl_chars_list.append(exp.nl_chars)
         cm_chars_list.append(exp.cm_chars)
@@ -31,7 +32,7 @@ def parallel_data_to_chars(dataset):
 
 def parallel_data_to_partial_tokens(dataset):
     nl_partial_tokens_list, cm_partial_tokens_list = [], []
-    for exp in dataset.example_list:
+    for exp in dataset.all_examples:
         exp.nl_partial_tokens = nl_to_partial_tokens(exp.nl, tokenizer.basic_tokenizer)
         exp.nl_partial_tokens_orig = nl_to_partial_tokens(
             exp.nl, tokenizer.basic_tokenizer, to_lower_case=False, lemmatization=False)
@@ -42,26 +43,23 @@ def parallel_data_to_partial_tokens(dataset):
 
 
 def parallel_data_to_normalized_tokens(dataset):
-    nl_normalized_tokens_list, cm_normalized_tokens_list = [], []
-    for exp in dataset.example_list:
-        exp.nl_normalized_tokens = nl_to_tokens(exp.nl, tokenizer.ner_tokenizer)
-        exp.cm_normalized_tokens = cm_to_tokens(exp.cm, bashlint.bash_tokenizer, arg_type_only=True)
-        nl_normalized_tokens_list.append(exp.nl_normalized_tokens)
-        cm_normalized_tokens_list.append(exp.cm_normalized_tokens)
-    return nl_normalized_tokens_list, cm_normalized_tokens_list
+    nl_norm_tokens_list, cm_norm_tokens_list = [], []
+    for exp in dataset.all_examples:
+        exp.nl_norm_tokens = nl_to_tokens(exp.nl, tokenizer.ner_tokenizer)
+        exp.cm_norm_tokens = cm_to_tokens(exp.cm, bashlint.bash_tokenizer, arg_type_only=True)
+        nl_norm_tokens_list.append(exp.nl_norm_tokens)
+        cm_norm_tokens_list.append(exp.cm_norm_tokens)
+    return nl_norm_tokens_list, cm_norm_tokens_list
 
 
-def nl_to_chars(nl, use_preprocessing=False):
+def nl_to_chars(nl, to_lower_case=True, lemmatization=True):
     nl_example = []
-    if use_preprocessing:
-        nl_tokens = nl_to_tokens(nl, tokenizer.basic_tokenizer, lemmatization=False)
-        for c in ' '.join(nl_tokens):
-            if c == ' ':
-                nl_example.append(constants._SPACE)
-            else:
-                nl_example.append(c)
-    else:
-        nl_example = string_to_chars(nl)
+    nl_tokens = nl_to_tokens(nl, tokenizer.basic_tokenizer, to_lower_case=to_lower_case, lemmatization=lemmatization)
+    for c in ' '.join(nl_tokens):
+        if c == ' ':
+            nl_example.append(constants._SPACE)
+        else:
+            nl_example.append(c)
     return nl_example
 
 
@@ -185,8 +183,7 @@ def nl_to_tokens(s, tokenizer, to_lower_case=True, lemmatization=True):
     """
     Split a natural language string into a sequence of tokens.
     """
-    tokens, _ = tokenizer(
-        s, to_lower_case=to_lower_case, lemmatization=lemmatization)
+    tokens, _ = tokenizer(s, to_lower_case=to_lower_case, lemmatization=lemmatization)
     return tokens
 
 

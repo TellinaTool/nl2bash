@@ -2,7 +2,6 @@
 Collection of data processing functions.
 """
 import collections
-import json
 import os
 
 import src.data_processor.data_utils as data_utils
@@ -58,6 +57,8 @@ def process_dataset_split(data_dir, split, channel=''):
     if not channel or channel == 'normalized.token':
         prepare_channel(data_dir, dataset, split, channel='normalized.token',
                         tokenize_data=parallel_data_to_normalized_tokens)
+    out_json = os.path.join(data_dir, '{}.filtered.features.json')
+    save_data_split(dataset, out_json)
 
 
 def prepare_channel(data_dir, dataset, split, channel, tokenize_data):
@@ -71,16 +72,14 @@ def prepare_channel(data_dir, dataset, split, channel, tokenize_data):
     nl_vocab = create_vocabulary(nl_vocab_path, nl_tokens) \
         if split == 'train' else initialize_vocabulary(nl_vocab_path)[0]
     cm_vocab = create_vocabulary(cm_vocab_path, cm_tokens) \
-        if split == 'train' else initialize_vocabulary(cm_vocab_path)
+        if split == 'train' else initialize_vocabulary(cm_vocab_path)[0]
 
     # Vectorize data
     vectorize_data(dataset, channel, nl_vocab, cm_vocab)
 
     # For copying
-    vectorize_data_copy(dataset, channel)
-
-    out_json = os.path.join(data_dir, '{}.filtered.features.json')
-    save_data_split(dataset, out_json)
+    if channel in ['token', 'char', 'partial.token']:
+        vectorize_data_copy(dataset, channel, cm_vocab)
 
 
 def create_vocabulary(vocab_path, dataset, min_word_frequency=1,
@@ -117,6 +116,6 @@ def create_vocabulary(vocab_path, dataset, min_word_frequency=1,
 
     with open(vocab_path, 'w') as vocab_file:
         for v, f in vocab:
-            vocab_file.write('{}\t{}\n'.format(v, f))
+            vocab_file.write('{}\t{}\n'.format(v.encode('utf-8'), f))
 
     return dict([(x[0], y) for y, x in enumerate(vocab)])

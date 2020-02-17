@@ -21,7 +21,7 @@ def get_u_hist_from_file(input_file):
     return u_hist
 
 
-def u_hist_to_radar_chart(hist): 
+def u_hist_to_radar_chart(hist):
     long_tail = 0
     top_utilities = []
     for i, (u, freq) in enumerate(

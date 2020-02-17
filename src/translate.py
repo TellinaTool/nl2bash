@@ -121,8 +121,7 @@ def train(train_set, test_set, verbose=False):
 
                 checkpoint_path = os.path.join(FLAGS.model_dir, "translate.ckpt")
                 # Save checkpoint and reset timer and loss.
-                model.saver.save(
-                    sess, checkpoint_path, global_step=t, write_meta_graph=False)
+                model.saver.save(sess, checkpoint_path, global_step=t, write_meta_graph=False)
 
                 epoch_time, loss, dev_loss = 0.0, 0.0, 0.0
                 # Run evals on development set and print the metrics.
@@ -319,7 +318,7 @@ def main(_):
         else:
             train_set, dev_set, test_set = data_loader.load_data(FLAGS, load_features=True)
             dataset = test_set if FLAGS.test else dev_set
-            vocab = data_utils.load_vocabulary(FLAGS)
+            vocab = data_loader.load_vocabulary(FLAGS)
 
             print("Set dataset parameters")
             FLAGS.max_nl_seq_len = train_set.max_nl_seq_len if not train_set.buckets else \
@@ -343,11 +342,9 @@ def main(_):
                 demo(buckets=train_set.buckets)
 
             elif FLAGS.grid_search:
-                meta_experiments.grid_search(
-                    train, decode, eval, train_set, dataset, FLAGS)
+                meta_experiments.grid_search(train, decode, eval, train_set, dataset, FLAGS)
             elif FLAGS.schedule_experiments:
-                schedule_experiments(
-                    train, decode, eval, train_set, dataset)
+                schedule_experiments(train, decode, eval, train_set, dataset)
             else:
                 # Train the model.
                 train(train_set, dataset)
@@ -358,7 +355,7 @@ def main(_):
                     FLAGS.fill_argument_slots = True
 
                 # save model hyperparameters
-                model_subdir, decode_sig = common.get_decode_signature(FLAGS)
+                model_subdir, decode_sig = utils.get_decode_signature(FLAGS)
                 with open(os.path.join(FLAGS.model_root_dir, model_subdir, 'hyperparameters.json'), 'w') as o_f:
                     flag_dict = dict()
                     for flag in dir(FLAGS):
@@ -367,7 +364,7 @@ def main(_):
 
                 # Decode the new model on the development set.
                 tf.compat.v1.reset_default_graph()
-                model = decode(dataset, buckets=train_set.buckets)
+                decode(dataset, buckets=train_set.buckets)
 
                 # Run automatic evaluation on the development set.
                 if not FLAGS.explain:

@@ -473,7 +473,7 @@ class EncoderDecoderModel(common.NNModel):
                     batch_decoder_input_mask[batch_idx] = 0.0
             batch_decoder_input_masks.append(batch_decoder_input_mask)
 
-        E = Example()
+        E = DataBatch()
         E.encoder_inputs = batch_encoder_inputs
         E.encoder_attn_masks = batch_encoder_input_masks
         E.decoder_inputs = batch_decoder_inputs
@@ -654,7 +654,7 @@ class EncoderDecoderModel(common.NNModel):
         return O
 
 
-class Example(object):
+class DataBatch(object):
     """
     Input data to the neural network (batched when mini-batch training is used).
     """

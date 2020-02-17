@@ -1,7 +1,6 @@
 """
 Collection of data loading functions.
 """
-from bunch import bunchify
 import json
 import os
 
@@ -20,9 +19,38 @@ def load_data(args, load_features=False):
 
 def load_data_split(in_json):
     print("input data file: {}".format(in_json))
+    dataset = DataSet()
     with open(in_json) as f:
         content = json.load(f)
-        return bunchify(content)
+        for exp_json in content['examples']:
+            if 'group_signature' in exp_json:
+                # example group
+                exp = parse_example_group(exp_json)
+            else:
+                # example
+                exp = parse_example(exp_json)
+            dataset.add_example(exp)
+        dataset.channel = content['channel']
+        dataset.buckets = content['buckets']
+        dataset._max_nl_seq_len = content['_max_nl_seq_len']
+        dataset._max_cm_seq_len = content['_max_cm_seq_len']
+    return dataset
+
+
+def parse_example_group(exp_grp_json):
+    assert('group_signature' in exp_grp_json)
+    exp_group = ExampleGroup(exp_grp_json['group_signature'])
+    for exp_json in exp_grp_json['examples']:
+        exp = parse_example(exp_json)
+        exp_group.add_example(exp)
+    return exp_group
+
+
+def parse_example(exp_json):
+    exp = DataExample()
+    for key in exp_json:
+        setattr(exp, key, exp_json[key])
+    return exp
 
 
 def load_vocabulary(args):

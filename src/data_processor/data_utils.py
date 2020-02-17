@@ -80,22 +80,33 @@ CHAR_INIT_VOCAB = [
     _CGO
 ]
 
-data_splits = ['train', 'dev', 'test']
-TOKEN_SEPARATOR = '<TOKEN_SEPARATOR>'
+# Feature Channels
+CH_CHAR = 1
+CH_PARTIAL_TOKEN = 2
+CH_TOKEN = 3
+CH_NORM_TOKEN = 4
 
 
 class DataSet(object):
-    def __init__(self, examples=None):
-        self.examples = examples if examples else list()
-        self.max_nl_seq_len = -1
-        self.max_cm_seq_len = -1
-        self.buckets = None
+    def __init__(self, examples=None, channel=None, buckets=None):
+        self.examples = list() if examples is None else examples
+        self.channel = channel
+        self.buckets = buckets
+        self._max_nl_seq_len = -1
+        self._max_cm_seq_len = -1
+
+        self.set_channel(channel)
 
     def add_example(self, example):
         self.examples.append(example)
 
+    def set_channel(self, channel):
+        self.channel = channel
+        for exp in self.all_examples:
+            exp.set_channel(channel)
+
     @property
-    def example_list(self):
+    def all_examples(self):
         exp_list = []
         for example in self.examples:
             if isinstance(example, ExampleGroup):
@@ -105,6 +116,26 @@ class DataSet(object):
             else:
                 exp_list.append(example)
         return exp_list
+
+    @property
+    def max_nl_seq_len(self):
+        if self._max_nl_seq_len < 0:
+            max_nl_seq_len = 0
+            for exp in self.examples:
+                if len(exp.nl_ids) > max_nl_seq_len:
+                    max_nl_seq_len = len(exp.nl_ids)
+            self._max_nl_seq_len = max_nl_seq_len
+        return self._max_nl_seq_len
+
+    @property
+    def max_cm_seq_len(self):
+        if self._max_cm_seq_len < 0:
+            max_cm_seq_len = 0
+            for exp in self.examples:
+                if len(exp.cm_ids) > max_cm_seq_len:
+                    max_cm_seq_len = len(exp.cm_ids)
+            self._max_cm_seq_len = max_cm_seq_len
+        return self._max_cm_seq_len
 
 
 class ExampleGroup(object):
@@ -117,25 +148,113 @@ class ExampleGroup(object):
 
 
 class DataExample(object):
-    def __init__(self, nl=None, cm=None):
+    def __init__(self, nl=None, cm=None, channel=None):
+        self.channel = channel
         self.nl = nl
         self.cm = cm
         self.nl_tokens = None
         self.nl_tokens_orig = None
         self.cm_tokens = None
         self.nl_chars = None
+        self.nl_chars_orig = None
         self.cm_chars = None
         self.nl_partial_tokens = None
         self.nl_partial_tokens_orig = None
         self.cm_partial_tokens = None
-        self.nl_normalized_tokens = None
-        self.cm_normalized_tokens = None
+        self.nl_norm_tokens = None
+        self.cm_norm_tokens = None
 
-        self.nl_ids = None
-        self.cm_ids = None
-        self.copy_sc_ids = None         # CopyNet training source ids
-        self.copy_tg_ids = None         # CopyNet training target ids
-        self.alignments = None
+        self.nl_char_ids = None
+        self.cm_char_ids = None
+        self.copy_sc_char_ids = None  # CopyNet training source ids
+        self.copy_tg_char_ids = None  # CopyNet training target ids
+        self.char_alignments = None
+
+        self.nl_token_ids = None
+        self.cm_token_ids = None
+        self.copy_sc_token_ids = None  # CopyNet training source ids
+        self.copy_tg_token_ids = None  # CopyNet training target ids
+        self.token_alignments = None
+
+        self.nl_partial_token_ids = None
+        self.cm_partial_token_ids = None
+        self.copy_sc_partial_token_ids = None  # CopyNet training source ids
+        self.copy_tg_partial_token_ids = None  # CopyNet training target ids
+        self.partial_token_alignments = None
+
+        self.nl_norm_token_ids = None
+        self.cm_norm_token_ids = None
+        self.copy_sc_norm_token_ids = None  # CopyNet training source ids
+        self.copy_tg_norm_token_ids = None  # CopyNet training target ids
+        self.norm_token_alignments = None
+
+    def set_channel(self, channel):
+        self.channel = channel
+
+    @property
+    def nl_ids(self):
+        if self.channel == CH_CHAR:
+            return self.nl_char_ids
+        elif self.channel == CH_TOKEN:
+            return self.nl_token_ids
+        elif self.channel == CH_PARTIAL_TOKEN:
+            return self.nl_partial_token_ids
+        elif self.channel == CH_NORM_TOKEN:
+            return self.nl_norm_token_ids
+        else:
+            raise NotImplementedError
+
+    @property
+    def cm_ids(self):
+        if self.channel == CH_CHAR:
+            return self.cm_char_ids
+        elif self.channel == CH_TOKEN:
+            return self.cm_token_ids
+        elif self.channel == CH_PARTIAL_TOKEN:
+            return self.cm_partial_token_ids
+        elif self.channel == CH_NORM_TOKEN:
+            return self.cm_norm_token_ids
+        else:
+            raise NotImplementedError
+
+    @property
+    def copy_sc_ids(self):
+        if self.channel == CH_CHAR:
+            return self.copy_sc_char_ids
+        elif self.channel == CH_TOKEN:
+            return self.copy_sc_token_ids
+        elif self.channel == CH_PARTIAL_TOKEN:
+            return self.copy_sc_partial_token_ids
+        elif self.channel == CH_NORM_TOKEN:
+            return self.copy_sc_norm_token_ids
+        else:
+            raise NotImplementedError
+
+    @property
+    def copy_tg_ids(self):
+        if self.channel == CH_CHAR:
+            return self.copy_tg_char_ids
+        elif self.channel == CH_TOKEN:
+            return self.copy_tg_token_ids
+        elif self.channel == CH_PARTIAL_TOKEN:
+            return self.copy_tg_partial_token_ids
+        elif self.channel == CH_NORM_TOKEN:
+            return self.copy_tg_norm_token_ids
+        else:
+            raise NotImplementedError
+
+    @property
+    def alignments(self):
+        if self.channel == CH_CHAR:
+            return self.char_alignments
+        elif self.channel == CH_TOKEN:
+            return self.token_alignments
+        elif self.channel == CH_PARTIAL_TOKEN:
+            return self.partial_token_alignments
+        elif self.channel == CH_NORM_TOKEN:
+            return self.norm_token_alignments
+        else:
+            raise NotImplementedError
 
 
 class Vocab(object):

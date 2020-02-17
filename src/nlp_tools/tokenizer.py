@@ -109,13 +109,7 @@ def basic_tokenizer(sentence, to_lower_case=True, lemmatization=True,
 
         if word in ['"', '\'']:
             continue
-        
-        # normalize to lower cases
-        if to_lower_case:
-            if len(word) > 1 and constants.is_english_word(word) \
-                    and not constants.with_quotation(word):
-                word = word.lower()
-        
+
         # spelling correction
         if correct_spell:
             if word.isalpha() and word.islower() and len(word) > 2:
@@ -124,6 +118,12 @@ def basic_tokenizer(sentence, to_lower_case=True, lemmatization=True,
                 if word != old_w:
                     if verbose:
                         print("spell correction: {} -> {}".format(old_w, word))
+
+        # normalize to lower cases
+        if to_lower_case:
+            if len(word) > 1 and constants.is_english_word(word) \
+                    and not constants.with_quotation(word):
+                word = word.lower()
        
         # remove English stopwords
         if remove_stop_words:

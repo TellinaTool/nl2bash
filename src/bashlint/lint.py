@@ -34,6 +34,8 @@ if sys.version_info > (3, 0):
 from src.bashlint import errors
 from src.bashlint import bast
 from src.bashlint import *
+from src.bashlint.nast import *
+from src.bashlint.grammar import *
 
 from src.nlp_tools import constants
 
