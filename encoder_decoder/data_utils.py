@@ -456,9 +456,9 @@ def prepare_dataset_split(data_dir, split, channel=''):
     Process a specific dataset split.
     """
     def read_parallel_data(nl_path, cm_path):
-        with open(nl_path) as f:
+        with open(nl_path, encoding='utf-8') as f:
             nl_list = [nl.strip() for nl in f.readlines()]
-        with open(cm_path) as f:
+        with open(cm_path, encoding='utf-8') as f:
             cm_list = [cm.strip() for cm in f.readlines()]
         return nl_list, cm_list
 
@@ -528,14 +528,14 @@ def save_channel_features_to_file(data_dir, split, channel, nl_features,
     convert_to_str = channel.startswith('ids')
     nl_feature_path = os.path.join(data_dir, '{}.nl.{}'.format(split, channel))
     cm_feature_path = os.path.join(data_dir, '{}.cm.{}'.format(split, channel))
-    with open(nl_feature_path, 'w') as o_f:
+    with open(nl_feature_path, 'w', encoding='utf-8') as o_f:
         for data_point in nl_features:
             if convert_to_str:
                 o_f.write('{}\n'.format(feature_separator.join(
                     [str(x) for x in data_point])))
             else:
                 o_f.write('{}\n'.format(feature_separator.join(data_point)))
-    with open(cm_feature_path, 'w') as o_f:
+    with open(cm_feature_path, 'w', encoding='utf-8') as o_f:
         for data_point in cm_features:
             if convert_to_str:
                 o_f.write('{}\n'.format(feature_separator.join(
@@ -829,7 +829,7 @@ def create_vocabulary(vocab_path, dataset, min_word_frequency=1,
         if not v in init_vocab:
             vocab.append((v, f))
 
-    with open(vocab_path, 'w') as vocab_file:
+    with open(vocab_path, 'w', encoding='utf-8') as vocab_file:
         for v, f in vocab:
             vocab_file.write('{}\t{}\n'.format(v, f))
 
