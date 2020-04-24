@@ -1,5 +1,7 @@
 # NL2Bash
 
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+
 ## Overview
 
 This repository contains the data and source code release of the paper: [NL2Bash: A Corpus and Semantic Parser for
@@ -16,9 +18,8 @@ Specifically, it contains the following components:
 
 You may visit  http://tellina.rocks to interact with our pretrained model.
 
-**🆕 Oct 20, 2019** To evaluate your own model, please use the [standard evaluation scripts](#evaluate-models) provided.
+**🆕 Apr 24, 2020** The dataset `data/bash` is separately licensed under the terms of the MIT license.
 
-**🆕 Oct 20, 2019** We update the code to Tensorflow 2.0.
 
 ## Data Statistics
 
@@ -242,5 +243,6 @@ If you use the data or source code in your work, please cite
 Related paper: [Lin et. al. 2017. Program Synthesis from Natural Language Using Recurrent Neural Networks](http://victorialin.net/pubs/tellina_tr170510.pdf). 
 
 ## Changelog  
+* **Apr 24, 2020** The dataset `data/bash` is separately licensed under the terms of the MIT license.
 * **Oct 20, 2019** release standard evaluation scripts
 * **Oct 20, 2019** update to Tensorflow 2.0
