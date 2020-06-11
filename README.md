@@ -18,7 +18,7 @@ Specifically, it contains the following components:
 
 You may visit  http://tellina.rocks to interact with our pretrained model.
 
-**🆕 Apr 24, 2020** The dataset `data/bash` is separately licensed under the terms of the MIT license.
+**🆕  Apr 24, 2020** The dataset `data/bash` is separately licensed under MIT license.
 
 
 ## Data Statistics
